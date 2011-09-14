@@ -8,3 +8,8 @@ syntax: regexp
 \.a$
 syntax: glob
 .settings/*
+*.a
+*.o
+*.s
+*.map
+*.elf
