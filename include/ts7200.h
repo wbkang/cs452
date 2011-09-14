@@ -5,9 +5,11 @@
  *
  */
 
+
 #define	TIMER1_BASE	0x80810000
 #define	TIMER2_BASE	0x80810020
 #define	TIMER3_BASE	0x80810080
+
 
 #define	LDR_OFFSET	0x00000000	// 16/32 bits, RW
 #define	VAL_OFFSET	0x00000004	// 16/32 bits, RO
@@ -16,6 +18,7 @@
 	#define	MODE_MASK	0x00000040
 	#define	CLKSEL_MASK	0x00000008
 #define CLR_OFFSET	0x0000000c	// no data, WO
+
 
 
 #define LED_ADDRESS	0x80840020
