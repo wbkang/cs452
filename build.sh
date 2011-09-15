@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-LIBS=bwio
+LIBS=realtime
 
 for i in $LIBS; do
 	(cd $i; make clean; make; cp $i.a ../lib/lib$i.a);
