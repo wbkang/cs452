@@ -13,3 +13,4 @@ syntax: glob
 *.s
 *.map
 *.elf
+*.swp

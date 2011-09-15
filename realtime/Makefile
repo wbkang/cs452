@@ -23,8 +23,8 @@ ARFLAGS = rcs
 
 %.o : %.c
 #################
-TARGETLIB= bwio.a
-OBJS= bwio.o
+TARGETLIB= realtime.a
+OBJS= bwio.o console.o
 ################
 
 
