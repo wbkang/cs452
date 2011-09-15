@@ -18,5 +18,9 @@ typedef char *va_list;
 #define ON  1
 #define OFF 0
 
-#define MEM(X) (*(int *)(x))
+#define MEM(X) (*(int *)(X))
+#define die() {} // TODO
+#define ASSERT(X, MSG) { if (!X) { bwputstr(COM2, MSG); die(); } }
+
+
 #endif
