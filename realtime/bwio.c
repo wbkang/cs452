@@ -4,7 +4,7 @@
  * Specific to the TS-7200 ARM evaluation board
  *
  */
-
+#include <util.h>
 #include <ts7200.h>
 #include <bwio.h>
 

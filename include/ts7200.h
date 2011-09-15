@@ -1,3 +1,5 @@
+#ifndef TS7200_H_
+#define TS7200_H_
 /*
  * ts7200.h - definitions describing the ts7200 peripheral registers
  *
@@ -85,3 +87,4 @@
 #define UART_HDLCSTS_OFFSET	0x21c
 
 
+#endif
