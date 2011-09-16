@@ -1,5 +1,4 @@
-#ifndef BWIO_H_
-#define BWIO_H_
+#pragma once 
 /*
  * bwio.h
  */
@@ -29,4 +28,3 @@ void bwputw( int channel, int n, char fc, char *bf );
 
 void bwprintf( int channel, char *format, ... );
 void bwformat(int channel, char *fmt, va_list vl);
-#endif
