@@ -7,35 +7,41 @@
 #include <ts7200.h>
 #include <util.h>
 #include <train.h>
+#include <timer.h>
+#include <rawio.h>
 
-
-#define RTC_ADDR 	0x80920000
-#define RTC_SWCOMP 	0x80920108
-
-#define pause() { int i = 1000000; while(i-->0); }
 
 
 int main(int argc, char* argv[]) {
 	console_init();
 	train_init();
+	timer3_init();
+	int TEST[262144];
 
-	argc = 10000;
-	while(argc--);
-	MEM(TIMER3_BASE + CRTL_OFFSET) &= ~CLKSEL_MASK;
-	MEM(TIMER3_BASE + CRTL_OFFSET) |= ENABLE_MASK;
+	bwinit(TEST);
 
-	//unsigned int time = MEM(TIMER3_BASE + VAL_OFFSET); 
+	console_clear();
+	console_move(0,0);
+	
+	//console_printf("TIMER TEST. Waiting %d seconds" CRLF, 3);
 
-	train_init();
-	pause();
-	train_go();
-	pause();
-	train_setspeed(21,14);
-	pause();
-	train_reverse(21);
+	//sleep(3 * 1000);
+	console_printf("TESTABC");
+	
+	
+	while (1)
+	{
+		if (raw_istxready(COM2))
+		{
+			int v = bwpopoutbuf(COM2);
+			if (v != -1) {
+				raw_putc(COM2, (char)v);
+			}
+		}
 
-
-
+	//	sleep(1000);
+	}
+	
 
 	return 0;
 }

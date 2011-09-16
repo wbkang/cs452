@@ -24,7 +24,7 @@ ARFLAGS = rcs
 %.o : %.c
 #################
 TARGETLIB= realtime.a
-OBJS= bwio.o console.o train.o
+OBJS= bwio.o console.o train.o timer.o util.o rawio.o
 ################
 
 

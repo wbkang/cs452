@@ -8,6 +8,72 @@
 #include <ts7200.h>
 #include <bwio.h>
 
+#define OUT_BUFFER_SIZE 4096
+
+static char out_buffer[COM_COUNT][OUT_BUFFER_SIZE];
+//static char** out_buffer;
+static int out_buffer_basepos[COM_COUNT];
+static int out_buffer_writepos[COM_COUNT];
+
+void bwwriteoutbuf(int channel, char c)
+{
+	//raw_putcc(COM2,c);
+	int* basepos = out_buffer_basepos + channel;
+	int* writepos = out_buffer_writepos + channel;
+
+	out_buffer[channel][*writepos] = c;
+	*writepos += 1;
+
+	if (*writepos == OUT_BUFFER_SIZE)
+	{
+		*writepos = 0;
+	}
+	
+	ASSERT(*writepos != *basepos, "outbuf overflow!!!!!");
+}
+
+int bwpopoutbuf(int channel)
+{
+	CHECK_COM(channel);
+	
+	int *basepos = out_buffer_basepos + channel;
+	int *writepos = out_buffer_writepos + channel;
+
+	if (*basepos == *writepos)
+	{
+		return -1;
+	}
+	else
+	{
+		char retVal = out_buffer[channel][*basepos];
+		*basepos += 1;
+	
+		ASSERT(*basepos > 0 && *basepos <= OUT_BUFFER_SIZE, "invalid basepos");
+
+		if (*basepos == OUT_BUFFER_SIZE)
+		{
+			*basepos = 0;
+		}
+
+		return retVal;
+	}
+}
+
+void bwinit(void * mem)
+{
+	//out_buffer = (char**) mem;
+	for(int i = 0; i < COM_COUNT; i++)
+	{
+		out_buffer_basepos[i] = 0;
+		out_buffer_writepos[i] = 0;
+
+		for (int j = 0; j < OUT_BUFFER_SIZE; j++)
+		{
+			out_buffer[i][j] = 0;
+		}
+	}
+}
+
 /*
  * The UARTs are initialized by RedBoot to the following state
  * 	115,200 bps
@@ -64,22 +130,7 @@ int bwsetspeed( int channel, int speed ) {
 }
 
 int bwputc( int channel, char c ) {
-	int *flags, *data;
-	switch( channel ) {
-	case COM1:
-		flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
-		data = (int *)( UART1_BASE + UART_DATA_OFFSET );
-		break;
-	case COM2:
-		flags = (int *)( UART2_BASE + UART_FLAG_OFFSET );
-		data = (int *)( UART2_BASE + UART_DATA_OFFSET );
-		break;
-	default:
-		return -1;
-		break;
-	}
-	while( ( *flags & TXFF_MASK ) ) ;
-	*data = c;
+	bwwriteoutbuf(channel, c);
 	return 0;
 }
 
@@ -106,7 +157,9 @@ int bwputr( int channel, unsigned int reg ) {
 }
 
 int bwputstr( int channel, char *str ) {
+	//raw_putcc(COM2, 0x1d);
 	while( *str ) {
+	//raw_putcc(COM2, 0x1e);
 		if( bwputc( channel, *str ) < 0 ) return -1;
 		str++;
 	}
