@@ -9,7 +9,7 @@
 int bwpopoutbuf(int channel);
 void bwwriteoutbuf(int channel, char c);
 
-void bwinit(void* s);
+void bwinit();
 
 int bwsetfifo( int channel, int state );
 
