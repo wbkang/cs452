@@ -1,5 +1,4 @@
-#ifndef RAWIO_H_
-#define RAWIO_H_
+#pragma once
 
 
 
@@ -10,4 +9,3 @@ void raw_putc(int chan, char c);
 int raw_putcc(int chan, char c);
 void raw_logemergency(int chan, char* c);
 
-#endif

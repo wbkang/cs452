@@ -1,6 +1,4 @@
-#ifndef TIMER_H_
-#define TIMER_H_
-
+#pragma once
 
 struct timeout_info {
 	void (*callback)(void*);
@@ -21,4 +19,3 @@ void sleep(int ms);
 
 
 
-#endif

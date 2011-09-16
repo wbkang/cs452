@@ -1,6 +1,4 @@
-#ifndef TRAIN_H_
-#define TRAIN_H_
-
+#pragma once
 
 enum switch_state { straight, curved };
 
@@ -13,4 +11,3 @@ void train_setswitch(int sw, enum switch_state state);
 
 
 
-#endif
