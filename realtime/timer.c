@@ -11,7 +11,7 @@ void timer3_init()
 	MEM(TIMER3_BASE + CRTL_OFFSET) |= ENABLE_MASK;
 }
 
-void timer_settimeout(void (*fn)(void*), int timeoutms)
+void timer_settimeout(void (*fn)(void*), void* arg, int timeoutms)
 {
 
 }

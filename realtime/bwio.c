@@ -11,13 +11,11 @@
 #define OUT_BUFFER_SIZE 4096
 
 static char out_buffer[COM_COUNT][OUT_BUFFER_SIZE];
-//static char** out_buffer;
 static int out_buffer_basepos[COM_COUNT];
 static int out_buffer_writepos[COM_COUNT];
 
 void bwwriteoutbuf(int channel, char c)
 {
-	//raw_putcc(COM2,c);
 	int* basepos = out_buffer_basepos + channel;
 	int* writepos = out_buffer_writepos + channel;
 
@@ -59,9 +57,8 @@ int bwpopoutbuf(int channel)
 	}
 }
 
-void bwinit(void * mem)
+void bwinit()
 {
-	//out_buffer = (char**) mem;
 	for(int i = 0; i < COM_COUNT; i++)
 	{
 		out_buffer_basepos[i] = 0;

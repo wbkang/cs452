@@ -16,9 +16,8 @@ int main(int argc, char* argv[]) {
 	console_init();
 	train_init();
 	timer3_init();
-	int TEST[262144];
 
-	bwinit(TEST);
+	bwinit();
 
 	console_clear();
 	console_move(0,0);

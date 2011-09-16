@@ -1,5 +1,7 @@
-#ifndef UTIL_H_
-#define UTIL_H_
+#pragma once
+
+//#ifndef UTIL_H_
+//#define UTIL_H_
 typedef char *va_list;
 
 #define __va_argsiz(t)  \
@@ -50,4 +52,4 @@ typedef char *va_list;
 void logmsg(char* msg);
 void die();
 
-#endif
+//#endif
