@@ -16,8 +16,10 @@ typedef char *va_list;
 #define COM2    1
 #define COM_COUNT 2
 
+#define NULL 0
 
-#define UART_BASE(_x) ((_x == COM1) ? UART1_BASE : UART2_BASE)
+
+#define UART_BASE(_x) (((_x) == COM1) ? UART1_BASE : UART2_BASE)
 				 
 #define ON  1
 #define OFF 0
@@ -31,22 +33,25 @@ typedef char *va_list;
 #define TOSTRING(x) STRINGIFY(x)
 
 #define DEBUG 1
+#define DEBUGMSG 0
 
 #if DEBUG
+void raw_logemergency(int, char*);
 #define ASSERT(X, MSG) \
 {\
-	if (!X) {\
-		logmsg("assertion failed in function " __FILE__ " line:" TOSTRING(__LINE__) CRLF);\
-		logmsg(MSG); die(); \
+	if (!(X)) {\
+		raw_logemergency(COM2, "assertion failed in function " __FILE__ " line:" TOSTRING(__LINE__) CRLF);\
+		raw_logemergency(COM2, MSG); die(); \
 	}\
 }
 #else
 #define ASSERT(X,MSG) { }
 #endif
 
-#define CHECK_COM(_c) ASSERT(_c != COM1 &&  _c != COM2, "Invalid channel " #_c)
+#define CHECK_COM(_c) ASSERT((_c) == COM1 ||  (_c) == COM2, "Invalid channel " #_c)
 
 
 void logmsg(char* msg);
+void lognum(int num);
 void die();
 
