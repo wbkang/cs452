@@ -14,9 +14,14 @@
 #define TURN_OFF_SOLENOID 0x20
 
 
-#define NUM_TRAINS 255
+#define NUM_TRAINS 40// 1 index 
+#define NUM_SWITCHES 50 // 0 index
 
-static int TRAIN_SPEED[NUM_TRAINS] = {0};
+static int TRAIN_SPEED[NUM_TRAINS+1] = {0};
+static int TRAIN_DELAYED_TIMEOUT[NUM_TRAINS] = {0};
+
+static int SWITCH_STATUS[NUM_SWITCHES] = { 0} ;
+static int solenoid_timeout;
 
 static void set_stopbit_2()
 {
@@ -26,9 +31,16 @@ static void set_stopbit_2()
 
 static int train_write(int b)
 {
-	bwprintf(COM2, "WRITING %x" CRLF, b);
-	sleep(500);
+	//bwprintf(COM2, "WRITING %x" CRLF, b);
+	logmsg("train_write");
+	lognum(b);
 	return bwputc(TRAIN_PORT, b);
+}
+
+static void cancel_trainspeed_lambda(int train)
+{
+	timer_cleartimeout(TRAIN_DELAYED_TIMEOUT[train]);
+	TRAIN_DELAYED_TIMEOUT[train] = 0;
 }
 
 void train_init() 
@@ -36,12 +48,26 @@ void train_init()
 	set_stopbit_2();
 	bwsetspeed(TRAIN_PORT, 2400);
 	bwsetfifo(TRAIN_PORT, OFF);
+
+	for (int i = 0; i < NUM_TRAINS; i++) {
+		TRAIN_SPEED[i] = 0;
+		TRAIN_DELAYED_TIMEOUT[i] = 0;
+		train_setspeed(i, 0);
+	}
+
+	solenoid_timeout = NULL;
+
+	for (int i = 0; i < NUM_SWITCHES; i++) {
+		train_setswitch(i, straight);		
+	}
+
 }
 
 void train_stop()
 {
 	train_write(STOP);
 }
+
 void train_go()
 {
 	train_write(GO);
@@ -49,26 +75,52 @@ void train_go()
 
 void train_setspeed(int train, int speed)
 {
-	bwprintf(COM2, "WRITING %x, %x" CRLF, speed, train);
+	if (train <= 1 || train >= NUM_TRAINS) {
+		return;
+	}
+
+	//logmsg("train_setspeed");
+	//lognum(train);
+	//lognum(speed);
+
 	train_write(speed);
 	train_write(train);
 	TRAIN_SPEED[train] = speed;
-	bwprintf(COM2, "Saving speed %x for train %x" CRLF, speed, train);
+	cancel_trainspeed_lambda(train);
+}
+
+static void train_speed_lambda(void* p)
+{
+	// top 16 bit is the train #
+	// bottom 16 bit is the speed
+	int data = (int)p;
+	int train = data >> 16;
+	int speed = data & 0xffff; 
+	
+	train_write(speed);
+	train_write(train);
+	TRAIN_DELAYED_TIMEOUT[train] = NULL;
 }
 
 void train_reverse(int train)
 {
-	bwprintf(COM2, "WRITING 0, %x" CRLF, train);
+	cancel_trainspeed_lambda(train);
 	train_write(0);
 	train_write(train);
-	sleep(3000);
-	bwprintf(COM2, "WRITING f, %x" CRLF, train);
 	train_write(0xf);
 	train_write(train);
-	sleep(1000);
-	bwprintf(COM2, "WRITING %x, %x" CRLF, TRAIN_SPEED[train], train);
-	train_write(TRAIN_SPEED[train]);
-	train_write(train);
+	
+	TRAIN_DELAYED_TIMEOUT[train] = timer_settimeout(
+			train_speed_lambda, 
+			(void*)(train<<16 | TRAIN_SPEED[train]), 3000);
+}
+
+void solenoid_off_lambda(void* unused)
+{
+	logmsg("solenoid_off_lambda");
+	lognum(unused);
+	train_write(TURN_OFF_SOLENOID);
+	solenoid_timeout = NULL;
 }
 
 void train_setswitch(int sw, enum switch_state state)
@@ -82,11 +134,11 @@ void train_setswitch(int sw, enum switch_state state)
 	else{
 		ASSERT(0, "Wrong switch state");
 	}
-
-	train_write(sw);
 	
-	sleep(150);
+	train_write(sw);
 
-	train_write(TURN_OFF_SOLENOID);
+	SWITCH_STATUS[sw] = state;
+	timer_cleartimeout(solenoid_timeout);
+	solenoid_timeout = timer_settimeout(solenoid_off_lambda, sw, 200);
 }
 

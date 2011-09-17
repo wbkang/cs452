@@ -7,12 +7,42 @@
 #include <util.h>
 #include <ts7200.h>
 #include <bwio.h>
+#include <rawio.h>
+#include <timer.h>
 
-#define OUT_BUFFER_SIZE 4096
+#define OUT_BUFFER_SIZE 8192
+#define COM1_WAIT_TIME 10
 
 static char out_buffer[COM_COUNT][OUT_BUFFER_SIZE];
 static int out_buffer_basepos[COM_COUNT];
 static int out_buffer_writepos[COM_COUNT];
+static int last_com1_out_time = 0;
+
+
+int bwtryputc(int channel)
+{
+	CHECK_COM(channel);
+
+	if (raw_istxready(channel))
+	{
+		int v = bwpopoutbuf(channel);
+		if (v != -1) {
+			if (channel == COM1)
+			{
+				sleep(COM1_WAIT_TIME);
+			}
+			if (!DEBUGMSG)
+			{
+				raw_putc(channel, (char)v);
+			}
+		}
+	}
+
+	int *basepos = out_buffer_basepos + channel;
+	int *writepos = out_buffer_writepos + channel;
+
+	return (*basepos != *writepos);
+}
 
 void bwwriteoutbuf(int channel, char c)
 {
@@ -69,6 +99,7 @@ void bwinit()
 			out_buffer[i][j] = 0;
 		}
 	}
+	last_com1_out_time = 0;
 }
 
 /*

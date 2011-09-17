@@ -28,3 +28,5 @@ void bwputw( int channel, int n, char fc, char *bf );
 
 void bwprintf( int channel, char *format, ... );
 void bwformat(int channel, char *fmt, va_list vl);
+
+int bwtryputc(int channel);

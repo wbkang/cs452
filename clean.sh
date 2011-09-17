@@ -7,7 +7,7 @@ for i in $LIBS; do
 	(cd $i; make clean;);
 done
 
-rm lib/*
+rm -f lib/*
 
 (cd main; make clean; );
 
