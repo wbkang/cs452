@@ -14,8 +14,7 @@
 #define TURN_OFF_SOLENOID 0x20
 
 
-#define NUM_TRAINS 40// 1 index 
-#define NUM_SWITCHES 50 // 0 index
+#define NUM_TRAINS 80// 1 index 
 
 static int TRAIN_SPEED[NUM_TRAINS+1] = {0};
 static int TRAIN_DELAYED_TIMEOUT[NUM_TRAINS] = {0};
@@ -58,10 +57,18 @@ void train_init()
 	solenoid_timeout = NULL;
 
 	for (int i = 0; i < NUM_SWITCHES; i++) {
-		//train_setswitch(i, straight);		
-		train_setswitch(i, curved);		
+		if (i <= 18 || i >= 0x99)
+		{
+			//train_setswitch(i, curved);		
+			train_setswitch(i, straight);		
+		}
 	}
 
+}
+
+enum switch_state train_getswitch(int sw)
+{
+	return SWITCH_STATUS[sw];
 }
 
 void train_stop()
@@ -143,3 +150,8 @@ void train_setswitch(int sw, enum switch_state state)
 	solenoid_timeout = timer_settimeout(solenoid_off_lambda, NULL, 200);
 }
 
+void train_batch_sensor_req(int n)
+{
+	ASSERT(n > 0, "need to prove at least 1 sensor");
+	train_write(0x80 + n);
+}

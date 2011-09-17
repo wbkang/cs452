@@ -1,5 +1,6 @@
 #pragma once
 
+////////// VAR ARG
 typedef char *va_list;
 
 #define __va_argsiz(t)  \
@@ -11,12 +12,11 @@ typedef char *va_list;
 		
 #define va_arg(ap, t)   \
 		         (((ap) = (ap) + __va_argsiz(t)), *((t*) (void*) ((ap) - __va_argsiz(t))))
-				 
+
+//////////// MACHINE STUFF
 #define COM1    0
 #define COM2    1
 #define COM_COUNT 2
-
-#define NULL 0
 
 
 #define UART_BASE(_x) (((_x) == COM1) ? UART1_BASE : UART2_BASE)
@@ -24,19 +24,20 @@ typedef char *va_list;
 #define ON  1
 #define OFF 0
 
+///////////// USEFUL MACROS
+#define NULL 0
 #define CRLF "\r\n"
-
-
 #define MEM(X) (*(unsigned int *)(X))
-
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
+///////////// DEBUG
 #define DEBUG 1
 #define DEBUGMSG 0
 
-#if DEBUG
 void raw_logemergency(int, char*);
+
+#if DEBUG
 #define ASSERT(X, MSG) \
 {\
 	if (!(X)) {\
@@ -50,8 +51,11 @@ void raw_logemergency(int, char*);
 
 #define CHECK_COM(_c) ASSERT((_c) == COM1 ||  (_c) == COM2, "Invalid channel " #_c)
 
+#define BOOTLOG(X) raw_logemergency(COM2, X CRLF)
+
 
 void logmsg(char* msg);
 void lognum(int num);
 void die();
 
+void signal_quit();

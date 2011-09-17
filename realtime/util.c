@@ -66,3 +66,4 @@ void die()
 	raw_logemergency(COM2,"PRETEND YOU ARE DEAD!");
 	while(1);
 }
+
