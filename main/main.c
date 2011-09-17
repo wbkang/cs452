@@ -20,13 +20,27 @@ int main(int argc, char* argv[]) {
 	train_init();
 
 	logmsg("KERNEL INIT FINISHED!");
+
 	console_clear();
 	console_move(0,0);
-
-
-	logmsg("before initial timer run!");
+	console_printf("BOOTING....");
+	logmsg("booting");
 	while(bwtryputc(COM1) || bwtryputc(COM2) || runtimer());
-	console_printf("after intial timer run!" CRLF);
+	logmsg("finished booting");
+	console_printf("DONE!" CRLF);
+
+	console_effect(EFFECT_FG_RED);
+	console_fillrect('$', 60, 10, 10, 10);
+
+	console_effect(EFFECT_RESET);
+	console_effect(EFFECT_BG_BLUE);
+	console_printf("TEST" CRLF);
+
+	console_effect(EFFECT_RESET);
+	console_fillrect('$', 10, 10, 10, 10);
+
+	console_move(20, 10);
+	console_printf("HELLO WORLD 2010" CRLF);
 
 	train_go();
 	train_setspeed(21, 14);
