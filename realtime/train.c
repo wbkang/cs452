@@ -58,7 +58,8 @@ void train_init()
 	solenoid_timeout = NULL;
 
 	for (int i = 0; i < NUM_SWITCHES; i++) {
-		train_setswitch(i, straight);		
+		//train_setswitch(i, straight);		
+		train_setswitch(i, curved);		
 	}
 
 }
@@ -118,7 +119,7 @@ void train_reverse(int train)
 void solenoid_off_lambda(void* unused)
 {
 	logmsg("solenoid_off_lambda");
-	lognum(unused);
+	lognum((int)unused);
 	train_write(TURN_OFF_SOLENOID);
 	solenoid_timeout = NULL;
 }
@@ -139,6 +140,6 @@ void train_setswitch(int sw, enum switch_state state)
 
 	SWITCH_STATUS[sw] = state;
 	timer_cleartimeout(solenoid_timeout);
-	solenoid_timeout = timer_settimeout(solenoid_off_lambda, sw, 200);
+	solenoid_timeout = timer_settimeout(solenoid_off_lambda, NULL, 200);
 }
 
