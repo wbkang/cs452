@@ -44,6 +44,20 @@ int bwtryputc(int channel)
 	return (*basepos != *writepos);
 }
 
+int bwtrygetc(int channel)
+{
+	CHECK_COM(channel);
+
+	if (!raw_isrxempty(channel))
+	{
+		return raw_getc(channel);
+	}
+	else
+	{
+		return -1;
+	}
+}
+
 void bwwriteoutbuf(int channel, char c)
 {
 	int* basepos = out_buffer_basepos + channel;

@@ -16,7 +16,7 @@ int bwsetspeed( int channel, int speed );
 
 int bwputc( int channel, char c );
 
-int bwgetc( int channel );
+//int bwgetc( int channel );
 
 int bwputx( int channel, char c );
 
@@ -30,3 +30,4 @@ void bwprintf( int channel, char *format, ... );
 void bwformat(int channel, char *fmt, va_list vl);
 
 int bwtryputc(int channel);
+int bwtrygetc(int channel);

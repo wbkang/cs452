@@ -56,10 +56,27 @@ void console_clear()
 
 void console_move(int line, int column)
 {
-	bwprintf(CONSOLE_PORT, "\033[%d;%dH", line, column);
+	bwprintf(CONSOLE_PORT, "\033[%d;%df", line, column);
 }
 
 void console_init()
 {
 	bwsetfifo(CONSOLE_PORT, OFF);
+}
+
+void console_close()
+{
+	bwsetfifo(CONSOLE_PORT, ON);
+}
+
+void console_showcursor(int show)
+{
+	console_putstr("\033[?25");
+	console_putstr(show ? "h" : "l");
+}
+
+void console_savecursor(int save)
+{
+	console_putstr("\033");
+	console_putstr(save ? "7" : "8");
 }

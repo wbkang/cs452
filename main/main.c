@@ -7,58 +7,73 @@
 #include <util.h>
 #include <train.h>
 #include <timer.h>
+#include <a0ui.h>
 
 
-static void timeout_test(void*);
 static int runtimer();
+static int quit_signalled;
+
 
 int main(int argc, char* argv[]) {
+	quit_signalled = 0;
 	console_init();
-	logmsg("KERNEL INIT...");
+	BOOTLOG("KERNEL INIT...");
 	timer3_init();
 	bwinit();
+	return;
 	train_init();
 
-	logmsg("KERNEL INIT FINISHED!");
-
-	console_clear();
-	console_move(0,0);
-	console_printf("BOOTING....");
-	logmsg("booting");
+	BOOTLOG("INIT FINISHED!");
+	BOOTLOG("INITIALIZING THE TRACK...");
 	while(bwtryputc(COM1) || bwtryputc(COM2) || runtimer());
-	logmsg("finished booting");
-	console_printf("DONE!" CRLF);
-
-	console_effect(EFFECT_FG_RED);
-	console_fillrect('$', 60, 10, 10, 10);
-
-	console_effect(EFFECT_RESET);
-	console_effect(EFFECT_BG_BLUE);
-	console_printf("TEST" CRLF);
-
-	console_effect(EFFECT_RESET);
-	console_fillrect('$', 10, 10, 10, 10);
-
-	console_move(20, 10);
-	console_printf("HELLO WORLD 2010" CRLF);
+	BOOTLOG("DONE");
 
 	train_go();
-	train_setspeed(21, 14);
-	train_setspeed(24, 14);
 
-	for (int i = 1; i < 10; i++)
-	{
-		timer_settimeout(timeout_test, 0, 10000 * i);
-	}
-
+	a0ui_start();
 	
-	while (1)
+	unsigned int lastkeystroke = 0;
+	unsigned int sensorbuf = -1;
+
+	while (!quit_signalled)
 	{
+		unsigned int curtime = timer3_getvalue();
+
+		bwtryputc(COM2);
 		bwtryputc(COM1);
 		bwtryputc(COM2);
+		bwtryputc(COM2);
+
+		int key = bwtrygetc(COM2);
+
+		if (key > 0 && curtime - lastkeystroke >= 10) {
+			lastkeystroke = curtime;
+			a0ui_handleKeyInput(key);
+		}
+		
+		int sensor = bwtrygetc(COM1);
+
+		if (sensor >= 0)
+		{
+			if(sensorbuf == -1)
+			{
+				sensorbuf = sensor;
+			}
+			else 
+			{
+				sensorbuf |= sensor << 8;
+				a0ui_handleSensorInput(sensorbuf);
+				sensorbuf = -1;
+			}
+		}
+
 		runtimer();
 	}
 	
+	
+	while(bwtryputc(COM1) || bwtryputc(COM2));
+	BOOTLOG("\033[0m\033c\033[2J" CRLF "GOODBYE!" CRLF);
+	console_close();
 
 	return 0;
 }
@@ -75,13 +90,7 @@ static int runtimer()
 	return timer_timeoutcount();
 }
 
-
-void timeout_test(void * a)
+void signal_quit()
 {
-	unsigned int number = (unsigned int)a;
-
-	console_printf("timeout_test: %u" CRLF, number);
-
-	train_reverse(21);
-	train_reverse(24);
+	quit_signalled = 1;
 }
