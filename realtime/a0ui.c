@@ -6,8 +6,7 @@
 #include <train.h>
 #include <string.h>
 
-#define REFRESH_TICK 90
-#define SENSOR_WATCH_TICK 250
+#define REFRESH_TICK 100
 #define NUM_SENSORSET 5
 #define SENSOR_HISTORY 21
 
@@ -47,10 +46,15 @@ static void reseteffects()
 
 static void a0ui_redraw(void* redrawerptr)
 {
+	int curtime = timer3_getvalue();
+
 	void (*fn)(void) = (void(*)(void))(FPTR_OFFSET+(unsigned int)redrawerptr);
 	ASSERT(!(0xff000000 & (unsigned int)redrawerptr), "invalid callback addr");	
 	fn();
-	timer_settimeout(a0ui_redraw, redrawerptr, REFRESH_TICK);
+
+	int targettime = (curtime / REFRESH_TICK) * REFRESH_TICK + REFRESH_TICK;
+
+	timer_settimeout(a0ui_redraw, redrawerptr, MAX(targettime - curtime, 0));
 }
 
 static void print_pad2(unsigned int val)
