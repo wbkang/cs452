@@ -8,7 +8,7 @@
 
 #define REFRESH_TICK 90
 #define SENSOR_WATCH_TICK 250
-#define NUM_SENSORSET 5
+#define NUM_SENSORSET 6
 #define SENSOR_HISTORY 21
 
 #define SCR_WIDTH 80
@@ -22,7 +22,7 @@ static void a0ui_clock_redraw();
 static void a0ui_clock_draw();
 static void a0ui_switch_draw();
 static void a0ui_switch_redraw(int sw, enum switch_state);
-static void a0ui_sensor_watcher();
+static void a0ui_sensor_watcher(void *);
 static void a0ui_sensor_draw();
 static void a0ui_sensor_redraw();
 static void a0ui_log_draw();
@@ -30,6 +30,7 @@ static void a0ui_log_draw();
 static char keyboard_buffer[SCR_WIDTH];
 static int keyboard_buffer_idx;
 
+static int sensor_watcher_timeout;
 static int last_sensor_buffer[NUM_SENSORSET];
 static int sensor_buffer[NUM_SENSORSET];
 static int sensor_buffer_idx;
@@ -46,7 +47,7 @@ static void reseteffects()
 
 static void a0ui_redraw(void* redrawerptr)
 {
-	void (*fn)(void) = (void(*)(void))(0x218000+(unsigned int)redrawerptr);
+	void (*fn)(void) = (void(*)(void))(FPTR_OFFSET+(unsigned int)redrawerptr);
 	fn();
 	timer_settimeout(a0ui_redraw, redrawerptr, REFRESH_TICK);
 }
@@ -73,17 +74,28 @@ static void a0ui_log_draw()
 	console_putstr("Command> ");
 }
 
-static void a0ui_sensor_watcher() 
+static void a0ui_sensor_watcher(void* unused) 
 {
-	unsigned int curtime = timer3_getvalue();
+	// two state here:
+	// sensor request, accept input for 250 ms
+	// set ignore on for 250ms, reset sensor_buffer_idx
 
-	// if no response for more than 500ms
-	// then re-probe
-	if (curtime >= last_sensor_response_time + 500)
-	{
-		train_batch_sensor_req(NUM_SENSORSET);
-		sensor_buffer_idx = 0;
-	}
+	//if (sensor_ignore)
+	//{
+//		train_sensor_req(sensor_buffer_idx);
+//	}
+
+	//sensor_ignore = !sensor_ignore;
+
+	//timer_settimeout(a0ui_sensor_watcher, NULL, 250);
+
+//		if (++sensor_buffer_idx >= NUM_SENSORSET) { sensor_buffer_idx = 0; }
+	
+	logmsg("a0ui_sensor_watcher: ");
+	lognum(sensor_watcher_timeout);
+	lognum(sensor_watcher_timeout);
+	train_sensor_req(sensor_buffer_idx);
+	sensor_watcher_timeout = timer_settimeout(a0ui_sensor_watcher, NULL, 1000);
 }
 
 static void a0ui_sensor_draw() 
@@ -209,9 +221,11 @@ void a0ui_start()
 	}
 
 	sensor_buffer_idx = 0;
+	sensor_watcher_timeout = 0;
+	a0ui_sensor_watcher(NULL);
 
 	timer_settimeout(a0ui_redraw, (void*)(unsigned int)a0ui_clock_redraw, REFRESH_TICK);
-	timer_settimeout(a0ui_redraw, (void*)(unsigned int)a0ui_sensor_watcher, SENSOR_WATCH_TICK);
+	//timer_settimeout(a0ui_sensor_watcher, NULL, 10);
 
 	for (int i =0; i<SENSOR_HISTORY; i++)
 	{
@@ -349,7 +363,8 @@ static void parseCommand(char* cmd)
 						return;
 				}
 				train_setswitch(switch_number, ss);
-				console_printf("Successfully %s the switch #%d.", ss == straight ? "straighted" : "bent", switch_number);
+				console_printf("Successfully %s the switch #%d.", 
+					ss == straight ? "straighted" : "bent", switch_number);
 				a0ui_switch_redraw(switch_number, ss);
 				return;
 			}
@@ -447,33 +462,29 @@ static void a0ui_updateSensorHistory(int set, int sensor)
 void a0ui_handleSensorInput(int b)
 {
 	last_sensor_response_time = timer3_getvalue();
+	
 
-	//console_move(20,20 + sensor_buffer_idx * 4);
-	//console_printf("%x", b);
-	sensor_buffer[sensor_buffer_idx++] = b;
-
-	if (sensor_buffer_idx == NUM_SENSORSET)
+	sensor_buffer[sensor_buffer_idx] = b;
+	
+	int lastVal = last_sensor_buffer[sensor_buffer_idx];
+	int turnedon = (b ^ lastVal) & ~lastVal;
+	
+	for (int j = 0; j < 16; j ++) 
 	{
-		for(int i=0; i <NUM_SENSORSET; i++) 
+		if (turnedon % 2 == 1)
 		{
-			int turnedon = (last_sensor_buffer[i] ^ sensor_buffer[i]) & ~last_sensor_buffer[i];
-
-			for (int j = 0; j < 16; j ++) 
-			{
-				if (turnedon % 2 == 1)
-				{
-					a0ui_updateSensorHistory(i, 16-j);
-				}
-				turnedon = turnedon >> 1;
-			}
+			a0ui_updateSensorHistory(sensor_buffer_idx, 16-j);
 		}
 
-		for(int i =0; i <NUM_SENSORSET; i++) {
-			last_sensor_buffer[i] = sensor_buffer[i];
-		}
-
-		sensor_buffer_idx = 0;
+		turnedon = turnedon >> 1;
 	}
+
+	last_sensor_buffer[sensor_buffer_idx] = b;
+
+	if (++sensor_buffer_idx >= NUM_SENSORSET) { sensor_buffer_idx = 0; }
+
+	timer_cleartimeout(sensor_watcher_timeout);
+	a0ui_sensor_watcher(NULL);
 }
 
 
