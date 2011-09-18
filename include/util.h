@@ -30,9 +30,10 @@ typedef char *va_list;
 #define MEM(X) (*(unsigned int *)(X))
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
+#define MAX(x, y) ( ( (x) > (y) ) ? (x) : (y) )
 
 ///////////// DEBUG
-#define DEBUG 1
+#define DEBUG 0
 #define DEBUGMSG 0
 
 void raw_logemergency(int, char*);
@@ -53,7 +54,7 @@ void raw_logemergency(int, char*);
 
 #define BOOTLOG(X) raw_logemergency(COM2, X CRLF)
 
-#define FPTR_OFFSET 0x00218000
+#define FPTR_OFFSET 0x0
 
 void logmsg(char* msg);
 void lognum(int num);

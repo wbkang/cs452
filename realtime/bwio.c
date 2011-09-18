@@ -11,7 +11,7 @@
 #include <timer.h>
 
 #define OUT_BUFFER_SIZE 8192
-#define COM1_WAIT_TIME 10
+#define COM1_WAIT_TIME 45
 
 static char out_buffer[COM_COUNT][OUT_BUFFER_SIZE];
 static int out_buffer_basepos[COM_COUNT];
@@ -21,15 +21,18 @@ static int last_com1_out_time = 0;
 
 int bwtryputc(int channel)
 {
+	unsigned int curtime = timer3_getvalue();
 	CHECK_COM(channel);
 
-	if (raw_istxready(channel))
+	if (raw_istxready(channel) &&
+		(channel == COM2 ||
+		(channel == COM1 && last_com1_out_time + COM1_WAIT_TIME <= curtime)))
 	{
 		int v = bwpopoutbuf(channel);
-		if (v != -1) {
+		if (v > -1) {
 			if (channel == COM1)
 			{
-				sleep(COM1_WAIT_TIME);
+				last_com1_out_time = curtime;
 			}
 			if (!DEBUGMSG)
 			{

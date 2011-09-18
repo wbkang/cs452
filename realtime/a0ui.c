@@ -8,7 +8,7 @@
 
 #define REFRESH_TICK 90
 #define SENSOR_WATCH_TICK 250
-#define NUM_SENSORSET 6
+#define NUM_SENSORSET 5
 #define SENSOR_HISTORY 21
 
 #define SCR_WIDTH 80
@@ -19,7 +19,6 @@ static int last_draw_time = 0;
 static int last_sensor_response_time = 0;
 
 static void a0ui_clock_redraw();
-static void a0ui_clock_draw();
 static void a0ui_switch_draw();
 static void a0ui_switch_redraw(int sw, enum switch_state);
 static void a0ui_sensor_watcher(void *);
@@ -37,6 +36,7 @@ static int sensor_buffer_idx;
 static int sensor_history[SENSOR_HISTORY][2];
 static int sensor_history_idx;
 static int sensor_redraw_timeout;
+static unsigned int train_sensor_req_count;
 
 
 static void reseteffects()
@@ -48,6 +48,7 @@ static void reseteffects()
 static void a0ui_redraw(void* redrawerptr)
 {
 	void (*fn)(void) = (void(*)(void))(FPTR_OFFSET+(unsigned int)redrawerptr);
+	ASSERT(!(0xff000000 & (unsigned int)redrawerptr), "invalid callback addr");	
 	fn();
 	timer_settimeout(a0ui_redraw, redrawerptr, REFRESH_TICK);
 }
@@ -76,25 +77,10 @@ static void a0ui_log_draw()
 
 static void a0ui_sensor_watcher(void* unused) 
 {
-	// two state here:
-	// sensor request, accept input for 250 ms
-	// set ignore on for 250ms, reset sensor_buffer_idx
-
-	//if (sensor_ignore)
-	//{
-//		train_sensor_req(sensor_buffer_idx);
-//	}
-
-	//sensor_ignore = !sensor_ignore;
-
-	//timer_settimeout(a0ui_sensor_watcher, NULL, 250);
-
-//		if (++sensor_buffer_idx >= NUM_SENSORSET) { sensor_buffer_idx = 0; }
-	
 	logmsg("a0ui_sensor_watcher: ");
 	lognum(sensor_watcher_timeout);
-	lognum(sensor_watcher_timeout);
 	train_sensor_req(sensor_buffer_idx);
+	train_sensor_req_count++;
 	sensor_watcher_timeout = timer_settimeout(a0ui_sensor_watcher, NULL, 1000);
 }
 
@@ -173,10 +159,12 @@ static void a0ui_clock_redraw()
 {
 	struct timestruct t = time_convert(timer3_getvalue());
 
-	reseteffects();
 	console_effect(EFFECT_UNDERSCORE);
 	console_effect(EFFECT_FG_BLUE);
-	console_move(1, SCR_WIDTH-10);
+	console_effect(EFFECT_BRIGHT);
+
+	console_move(1,SCR_WIDTH - 17);	
+	console_putstr(" Time: ");
 	print_pad2(t.hour);
 	console_putc(':');
 	print_pad2(t.min);
@@ -184,15 +172,6 @@ static void a0ui_clock_redraw()
 	print_pad2(t.sec);
 	console_putc('.');
 	console_putc(t.ds + '0');
-}
-
-static void a0ui_clock_draw()
-{
-	reseteffects();
-	console_move(1,SCR_WIDTH - 17);	
-	console_effect(EFFECT_UNDERSCORE);
-	console_effect(EFFECT_FG_BLUE);
-	console_putstr(" Time: ");
 }
 
 
@@ -203,7 +182,6 @@ void a0ui_start()
 	last_draw_time = 0; 
 	last_sensor_response_time = 0;
 	
-	a0ui_clock_draw();
 	a0ui_switch_draw();
 	a0ui_sensor_draw();
 	a0ui_log_draw();
@@ -222,6 +200,7 @@ void a0ui_start()
 
 	sensor_buffer_idx = 0;
 	sensor_watcher_timeout = 0;
+	train_sensor_req_count = 0;
 	a0ui_sensor_watcher(NULL);
 
 	timer_settimeout(a0ui_redraw, (void*)(unsigned int)a0ui_clock_redraw, REFRESH_TICK);
@@ -231,8 +210,10 @@ void a0ui_start()
 	{
 		sensor_history[i][0] = -1;
 		sensor_history[i][1] = -1;
+		sensor_buffer[i] = 0;
 	}
 
+	sensor_history_idx = 0;
 	sensor_redraw_timeout = 0;
 }
 
@@ -414,9 +395,8 @@ void a0ui_handleKeyInput(char c)
 static void a0ui_sensor_redraw()
 {
 	int startX = SCR_WIDTH  / 2 + 1;
-
 	int recentIdx = sensor_history_idx - 1;
-
+	
 	for (int i =0; i < 2; i ++) 
 	{
 		if (recentIdx < 0) { recentIdx = SENSOR_HISTORY-1; }
@@ -461,9 +441,13 @@ static void a0ui_updateSensorHistory(int set, int sensor)
 
 void a0ui_handleSensorInput(int b)
 {
-	last_sensor_response_time = timer3_getvalue();
-	
+	if (train_sensor_req_count == 0)
+	{
+		//a0ui_updateSensorHistory(22, 0);
+		return;
+	}
 
+	last_sensor_response_time = timer3_getvalue();
 	sensor_buffer[sensor_buffer_idx] = b;
 	
 	int lastVal = last_sensor_buffer[sensor_buffer_idx];
