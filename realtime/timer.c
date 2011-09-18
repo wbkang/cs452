@@ -5,7 +5,7 @@
 
 #define TIMEOUT_CAPACITY 512 
 
-static struct timeout_info timeout_ary[TIMEOUT_CAPACITY];
+static struct timeout_info timeout_ary[TIMEOUT_CAPACITY+1024];
 static int timeout_count;
 
 int timer_timeoutcount()
@@ -43,7 +43,7 @@ struct timeout_info timer_poptimeout()
 				//lognum(t->timeout);
 				//lognum(curtime);
 				//lognum(t->callback);
-				ASSERT(0 < (int)t->callback, "invalid callback!?");
+				ASSERT(!(0xff000000 & (unsigned int)t->callback), "invalid callback!?");
 				to = t;
 				break;
 			}
@@ -61,7 +61,7 @@ struct timeout_info timer_poptimeout()
 		}
 
 		struct timeout_info retVal = *to;
-		ASSERT(0 < (int)retVal.callback, "invalid callback!?");
+		ASSERT(!(0xff000000 & (unsigned int)retVal.callback), "invalid callback!?");
 
 		timeout_count--;
 		to->callback = NULL;
@@ -97,6 +97,8 @@ void timer_cleartimeout(int id)
 		return;
 	}
 
+	ASSERT(id > 0 && id <= TIMEOUT_CAPACITY, "wrong cleartimeout");
+
 	ASSERT(timeout_count > 0, "there is no timeout to cancel!?!?");
 
 	logmsg("cleartimeout: id");
@@ -105,7 +107,7 @@ void timer_cleartimeout(int id)
 	struct timeout_info *t = timeout_ary + id - 1;
 	
 	ASSERT(t->callback, "there is no callback timeout attached!");
-	ASSERT(0 < (int) t->callback, "suspicious callback timeout attached!");
+	ASSERT(!(0xff000000 & (unsigned int) t->callback), "suspicious callback timeout attached!");
 	t->callback = NULL;
 	t->arg = NULL;
 	t->start_time = NULL;
@@ -119,12 +121,7 @@ int timer_settimeout(void (*fn)(void*), void* arg, unsigned int timeoutms)
 	ASSERT(timeout_count >= 0, "something crazy");
 	ASSERT(timeout_count <= TIMEOUT_CAPACITY, "too many timeouts!");
 	ASSERT(fn, "there is no callback timeout attached!");
-	if (0 <=(int) fn)
-	{
-		//logmsg("sus callback");
-		//lognum(fn);
-	}
-	ASSERT(0 < (int) fn, "suspicious callback timeout attached!");
+	ASSERT(!(0xff000000 & (unsigned int) fn), "suspicious callback timeout attached!");
 
 
 	struct timeout_info *spareto = NULL;
@@ -140,7 +137,7 @@ int timer_settimeout(void (*fn)(void*), void* arg, unsigned int timeoutms)
 		}
 		else
 		{
-			ASSERT(0 < (int) timeout_ary[i].callback, "suspicious callback timeout attached!");
+			ASSERT(!(0xff000000 & (unsigned int) timeout_ary[i].callback), "suspicious callback timeout attached!");
 		}
 	}
 

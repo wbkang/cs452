@@ -13,27 +13,49 @@
 static int runtimer();
 static int quit_signalled;
 
+static void fptr_test()
+{
+	BOOTLOG("fptr_test");
+}
+
+static void flush_com1()
+{
+	unsigned int curtime = timer3_getvalue();
+	BOOTLOG("flushing com1 input for a second");
+	while(timer3_getvalue() < curtime + 1000) {
+		if (bwtrygetc(COM1) >= 0)
+		{
+			BOOTLOG("*");	
+		}
+	}
+	BOOTLOG("flushing com1 done");
+}
+
 
 int main(int argc, char* argv[]) {
 	quit_signalled = 0;
 	console_init();
-	BOOTLOG("KERNEL INIT...");
+
+	void (*x)() = fptr_test; x();
+
+	BOOTLOG("TIMER INIT...");
 	timer3_init();
+	BOOTLOG("BWIO INIT...");
 	bwinit();
-	train_go();
+	BOOTLOG("TRAIN INIT...");
 	train_init();
 
-	BOOTLOG("INIT FINISHED!");
-	BOOTLOG("INITIALIZING THE TRACK...");
+	BOOTLOG("WAITING UNTIL ALL THE PACKETS ARE SENT...");
 	while(bwtryputc(COM1) || bwtryputc(COM2) || runtimer());
-	BOOTLOG("DONE");
-
+	flush_com1();
+	
+	BOOTLOG("BOOTING DONE");
+	
 
 	a0ui_start();
 	
 	unsigned int lastkeystroke_time = 0;
-	//int lastkeystroke = -1;
-	unsigned int sensorbuf = -1;
+	int sensorbuf = -1;
 
 	while (!quit_signalled)
 	{
@@ -46,13 +68,11 @@ int main(int argc, char* argv[]) {
 
 		int key = bwtrygetc(COM2);
 
-		if (key > 0 && curtime - lastkeystroke_time >= 10) {
+		if (key >= 0 /*&& curtime - lastkeystroke_time >= 10*/) {
 			lastkeystroke_time = curtime;
-
 			a0ui_handleKeyInput(key);
 		}
 
-	//	lastkeystroke = key;
 		
 		int sensor = bwtrygetc(COM1);
 
@@ -60,11 +80,11 @@ int main(int argc, char* argv[]) {
 		{
 			if(sensorbuf == -1)
 			{
-				sensorbuf = sensor;
+				sensorbuf = sensor << 8;
 			}
 			else 
 			{
-				sensorbuf |= sensor << 8;
+				sensorbuf |= sensor;
 				a0ui_handleSensorInput(sensorbuf);
 				sensorbuf = -1;
 			}
@@ -87,6 +107,9 @@ static int runtimer()
 
 	if (timeout.callback)
 	{
+		//ASSERT(0 < (int)timeout.callback, "WRONG JUMP ADDR");
+
+		ASSERT(!(((unsigned int)timeout.callback) & 0xff000000), "WRONG JUMP ADDR1");
 		((timeout_callback)(FPTR_OFFSET+(unsigned int)timeout.callback))(timeout.arg);
 	}
 	
