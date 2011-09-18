@@ -53,6 +53,7 @@ void raw_logemergency(int, char*);
 
 #define BOOTLOG(X) raw_logemergency(COM2, X CRLF)
 
+#define FPTR_OFFSET 0x00218000
 
 void logmsg(char* msg);
 void lognum(int num);

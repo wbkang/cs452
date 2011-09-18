@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 	BOOTLOG("KERNEL INIT...");
 	timer3_init();
 	bwinit();
-	return;
+	train_go();
 	train_init();
 
 	BOOTLOG("INIT FINISHED!");
@@ -28,11 +28,11 @@ int main(int argc, char* argv[]) {
 	while(bwtryputc(COM1) || bwtryputc(COM2) || runtimer());
 	BOOTLOG("DONE");
 
-	train_go();
 
 	a0ui_start();
 	
-	unsigned int lastkeystroke = 0;
+	unsigned int lastkeystroke_time = 0;
+	//int lastkeystroke = -1;
 	unsigned int sensorbuf = -1;
 
 	while (!quit_signalled)
@@ -46,10 +46,13 @@ int main(int argc, char* argv[]) {
 
 		int key = bwtrygetc(COM2);
 
-		if (key > 0 && curtime - lastkeystroke >= 10) {
-			lastkeystroke = curtime;
+		if (key > 0 && curtime - lastkeystroke_time >= 10) {
+			lastkeystroke_time = curtime;
+
 			a0ui_handleKeyInput(key);
 		}
+
+	//	lastkeystroke = key;
 		
 		int sensor = bwtrygetc(COM1);
 
@@ -84,7 +87,7 @@ static int runtimer()
 
 	if (timeout.callback)
 	{
-		((timeout_callback)(0x218000+(unsigned int)timeout.callback))(timeout.arg);
+		((timeout_callback)(FPTR_OFFSET+(unsigned int)timeout.callback))(timeout.arg);
 	}
 	
 	return timer_timeoutcount();

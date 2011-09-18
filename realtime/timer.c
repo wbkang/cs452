@@ -93,14 +93,14 @@ void timer_cleartimeout(int id)
 {
 	if (id == 0)
 	{
-		//logmsg("cleartimeout: id 0");
+		logmsg("cleartimeout: id 0");
 		return;
 	}
 
 	ASSERT(timeout_count > 0, "there is no timeout to cancel!?!?");
 
-	//logmsg("cleartimeout: id");
-	//lognum(id);
+	logmsg("cleartimeout: id");
+	lognum(id);
 
 	struct timeout_info *t = timeout_ary + id - 1;
 	
@@ -152,6 +152,9 @@ int timer_settimeout(void (*fn)(void*), void* arg, unsigned int timeoutms)
 	spareto->timeout = timeoutms;
 
 	timeout_count++;
+
+	logmsg("settimeout: idx: ");
+	lognum(spareidx + 1);
 
 	return spareidx + 1;
 }

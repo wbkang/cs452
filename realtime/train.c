@@ -155,3 +155,15 @@ void train_batch_sensor_req(int n)
 	ASSERT(n > 0, "need to prove at least 1 sensor");
 	train_write(0x80 + n);
 }
+
+void train_sensor_req(int n)
+{
+	ASSERT(n >= 0, "negative sensor number!?!?");
+
+	if (n > 12)
+	{
+		return; // invalid
+	}
+
+	train_write(0xc1 + n);
+}

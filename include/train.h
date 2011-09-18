@@ -13,4 +13,6 @@ void train_setswitch(int sw, enum switch_state state);
 
 enum switch_state train_getswitch(int sw);
 
+// do not use
 void train_batch_sensor_req(int n);
+void train_sensor_req(int n); 
