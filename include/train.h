@@ -1,6 +1,6 @@
 #pragma once
 
-#define NUM_SWITCHES 0x9e // 0 index
+#define NUM_SWITCHES 0xff // 0 index
 
 enum switch_state { straight, curved };
 
