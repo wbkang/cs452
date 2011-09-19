@@ -85,7 +85,7 @@ static void a0ui_sensor_watcher(void* unused)
 	lognum(sensor_watcher_timeout);
 	train_sensor_req(sensor_buffer_idx);
 	train_sensor_req_count++;
-	sensor_watcher_timeout = timer_settimeout(a0ui_sensor_watcher, NULL, 1000);
+	sensor_watcher_timeout = timer_settimeout(a0ui_sensor_watcher, NULL, 5000);
 }
 
 static void a0ui_sensor_draw() 

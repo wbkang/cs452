@@ -15,7 +15,7 @@ static int quit_signalled;
 
 static void fptr_test()
 {
-	BOOTLOG("fptr_test");
+	BOOTLOG("fptr_test: making sure the linker script is correct.");
 }
 
 static void flush_com1()
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 	a0ui_start();
 	
 	unsigned int lastkeystroke_time = 0;
-	int sensorbuf = -1;
+	int sensorbuf = -1; // a 2 byte buffer for sensor information.
 
 	while (!quit_signalled)
 	{

@@ -5,7 +5,7 @@
 
 #define TIMEOUT_CAPACITY 512 
 
-static struct timeout_info timeout_ary[TIMEOUT_CAPACITY+1024];
+static struct timeout_info timeout_ary[TIMEOUT_CAPACITY];
 static int timeout_count;
 
 int timer_timeoutcount()
@@ -77,6 +77,8 @@ void timer3_init()
 {
 	// 2khz timer
 	MEM(TIMER3_BASE + CRTL_OFFSET) &= ~CLKSEL_MASK;
+	MEM(TIMER3_BASE + CRTL_OFFSET) &= ~ENABLE_MASK;
+	MEM(TIMER3_BASE + LDR_OFFSET) = 0xFFFFFFFF;
 	MEM(TIMER3_BASE + CRTL_OFFSET) |= ENABLE_MASK;
 	
 	timeout_count = 0;
@@ -159,7 +161,7 @@ int timer_settimeout(void (*fn)(void*), void* arg, unsigned int timeoutms)
 unsigned int timer3_getvalue()
 {
 	unsigned int t =  (0xffffffff ^ MEM(TIMER3_BASE + VAL_OFFSET)) >> 1;
-	t += (t >> 11);
+	t += t / 333; 
 	return t;
 }
 
