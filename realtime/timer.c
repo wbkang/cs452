@@ -4,6 +4,7 @@
 #include <util.h>
 
 #define TIMEOUT_CAPACITY 512 
+#define TIMER3_DRIFT 1830
 
 static struct timeout_info timeout_ary[TIMEOUT_CAPACITY+1024];
 static int timeout_count;
@@ -158,7 +159,9 @@ int timer_settimeout(void (*fn)(void*), void* arg, unsigned int timeoutms)
 
 unsigned int timer3_getvalue()
 {
-	return (0xffffffff - MEM(TIMER3_BASE + VAL_OFFSET)) >> 1;
+	unsigned int t =  (0xffffffff - MEM(TIMER3_BASE + VAL_OFFSET)) >> 1;
+	t += (t/TIMER3_DRIFT);
+	return t;
 }
 
 // busy sleep
