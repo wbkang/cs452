@@ -4,7 +4,7 @@ set -e
 LIBS=kernel
 
 for i in $LIBS; do
-	(cd $i;  make; cp $i.a ../lib/lib$i.a);
+	(cd $i;  make; mkdir -p lib; cp $i.a ../lib/lib$i.a);
 done
 
 (cd main; make );
