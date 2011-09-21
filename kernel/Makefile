@@ -24,7 +24,7 @@ ARFLAGS = rcs
 %.o : %.c
 #################
 TARGETLIB= kernel.a
-OBJS= util.o
+OBJS= util.o rawio.o string.o
 ################
 
 
