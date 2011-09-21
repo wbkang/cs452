@@ -23,8 +23,8 @@ ARFLAGS = rcs
 
 %.o : %.c
 #################
-TARGETLIB= kernel.a
-OBJS= 
+TARGETLIB= realtime.a
+OBJS= bwio.o console.o train.o timer.o util.o rawio.o time.o string.o a0ui.o
 ################
 
 

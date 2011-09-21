@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-LIBS=realtime
+LIBS=kernel
 
 for i in $LIBS; do
 	(cd $i; make clean;);
