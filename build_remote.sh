@@ -1,10 +1,5 @@
 #!/bin/sh
 
-if (hg status | grep -v "^?"); then
-	echo "no changes..."
-	exit 1
-fi
-
 CURCS=`hg log | head -1 | awk '{ print $2 }' | cut -d ":" -f 2`
 PRIVATEKEY=/c/users/wbkang/.ssh/privatekey
 
@@ -23,9 +18,10 @@ ssh -i $PRIVATEKEY wbkang@linux024.student.cs.uwaterloo.ca \
 "
 source cs452.sh;
 cd cs452/kernel;
-hg update $TEMPCS  > /dev/null;
+hg update -C $TEMPCS  > /dev/null;
 ./clean.sh;
 ./build.sh;
+hg update `hg parent | grep changeset: | awk '{print $2}' | cut -d ':' -f 1`
 hg strip $TEMPCS > /dev/null;"
 
 hg update $CURCS
