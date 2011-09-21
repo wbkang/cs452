@@ -33,7 +33,7 @@ OBJS= main.o
 all : main.elf
 
 main.elf : $(OBJS)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS) -lrealtime -lgcc
+	$(LD) $(LDFLAGS) -o $@ $(OBJS) -lkernel -lgcc
 
 %.o : %.s
 	$(AS) $(ASFLAGS) -o $@ $<

@@ -13,9 +13,7 @@ source cs452.sh;
 cd cs452/kernel;
 ./clean.sh;
 ./build.sh;
-"
-fi
-	
+"	
 	exit 1;
 fi
 
