@@ -6,7 +6,16 @@ PRIVATEKEY=/c/users/wbkang/.ssh/privatekey
 hg commit -m "temp"
 
 if [ $? -ne 0 ]; then
-	echo "FAILED TO COMMIT"
+	echo "Just running remote build only"
+	ssh -i $PRIVATEKEY wbkang@linux024.student.cs.uwaterloo.ca  \
+	"
+source cs452.sh;
+cd cs452/kernel;
+./clean.sh;
+./build.sh;
+"
+fi
+	
 	exit 1;
 fi
 
