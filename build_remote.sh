@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if ! (hg status | grep -v "?"); then
+if (hg status | grep -v "^?"); then
 	echo "no changes..."
 	exit 1
 fi
