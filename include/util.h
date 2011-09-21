@@ -25,25 +25,29 @@ typedef char *va_list;
 #define OFF 0
 
 ///////////// USEFUL MACROS
+#define TRUE 1
+#define FALSE 0
 #define NULL 0
 #define CRLF "\r\n"
 #define MEM(X) (*(unsigned int *)(X))
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #define MAX(x, y) ( ( (x) > (y) ) ? (x) : (y) )
+#define MIN(x, y) ( ( (x) < (y) ) ? (x) : (y) )
 
 ///////////// DEBUG
+#define ASSERT_ENABLED 1
 #define DEBUG 0
-#define DEBUGMSG 0
 
-void raw_logemergency(int, char*);
+void errormsg(char*);
+void die();
 
-#if DEBUG
+#if ASSERT_ENABLED
 #define ASSERT(X, MSG) \
 {\
 	if (!(X)) {\
-		raw_logemergency(COM2, "assertion failed in function " __FILE__ " line:" TOSTRING(__LINE__) CRLF);\
-		raw_logemergency(COM2, MSG); die(); \
+		errormsg("assertion failed in function " __FILE__ " line:" TOSTRING(__LINE__) CRLF);\
+		errormsg(MSG); die(); \
 	}\
 }
 #else
@@ -52,12 +56,6 @@ void raw_logemergency(int, char*);
 
 #define CHECK_COM(_c) ASSERT((_c) == COM1 ||  (_c) == COM2, "Invalid channel " #_c)
 
-#define BOOTLOG(X) raw_logemergency(COM2, X CRLF)
 
-#define FPTR_OFFSET 0x0
 
-void logmsg(char* msg);
-void lognum(int num);
-void die();
 
-void signal_quit();
