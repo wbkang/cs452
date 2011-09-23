@@ -1,6 +1,7 @@
 #include <util.h>
 #include <ts7200.h>
 #include <string.h>
+#include <hardware.h>
 
 int raw_isrxempty(int channel) {
 	CHECK_COM(channel);
