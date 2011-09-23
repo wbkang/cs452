@@ -3,10 +3,12 @@
 .ident "human compiler (TM)"
 @ this code handles swi system call
 asm_handle_swi:
+	@ save the usermode crap
+	stmdb sp, {r0-r12,sp, lr}^
+	sub sp, sp, #60
+
 	@ save link register
 	stmfd sp!, {lr}
-	@ save the usermode crap
-	stmfd sp!, {r0-r12, sp, lr}^
 
 	@ put the swi argument in r0
 	ldr r0,[lr,#-4]
@@ -17,8 +19,10 @@ asm_handle_swi:
 	
 	@ restore link register
 	ldmfd sp!, {lr}
+
 	@ load the usermode stuff and byebye
-	ldmfd sp!, {r0-r12, sp, pc}^
+	ldmia sp, {r0-r12, sp, pc}^
+	add sp, sp, #60
 
 @ this code switches to the usermode
 @ r0 addr

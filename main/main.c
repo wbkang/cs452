@@ -18,24 +18,17 @@ void handle_swi(int i)
 
 static void install_interrupt_handlers()
 {
-	//unsigned int addr = (unsigned int) asm_handle_swi;
-
 	INSTALL_INTERRUPT_HANDLER(0x8, asm_handle_swi);
-	//INSTALL_INTERRUPT_HANDLER(0x8, 0x21805c);
-
-	//MEM(0x8) = 0xea ;
 }
 
 int main(int argc, char* argv[]) {
+	//handle_swi(0);
 	MEM(UART2_BASE + UART_LCRH_OFFSET) &= ~FEN_MASK;
 	install_interrupt_handlers();	
-	
+	//handle_swi(1);
 	ASM(
-#if 1
 		"swi 0" "\n\t"
-#endif
 		"swi 1" "\n\t"
-#if 1
 		"swi 2" "\n\t"
 		"swi 3" "\n\t"
 		"swi 4" "\n\t"
@@ -44,8 +37,6 @@ int main(int argc, char* argv[]) {
 		"swi 7" "\n\t"
 		"swi 8" "\n\t"
 		"swi 9" "\n\t"
-		"swi 10" "\n\t"
-#endif
 	);
 	
 	return 0;
