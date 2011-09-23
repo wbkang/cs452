@@ -11,6 +11,7 @@ if [ $? -ne 0 ]; then
 	"
 source cs452.sh;
 cd cs452/kernel;
+hg update;
 ./clean.sh;
 ./build.sh;
 "	

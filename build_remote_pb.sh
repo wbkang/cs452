@@ -12,6 +12,7 @@ if [ $? -ne 0 ]; then
 	ssh pbakhila@linux024.student.cs.uwaterloo.ca  \
 	"
 cd cs452/kernel;
+hg update;
 ./clean.sh;
 ./build.sh;
 "	
