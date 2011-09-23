@@ -1,5 +1,10 @@
 #pragma once
 
+////////// TYPES
+
+typedef unsigned int uint;
+typedef volatile uint *memptr;
+
 ////////// VAR ARG
 typedef char *va_list;
 
@@ -13,22 +18,11 @@ typedef char *va_list;
 #define va_arg(ap, t)   \
 		         (((ap) = (ap) + __va_argsiz(t)), *((t*) (void*) ((ap) - __va_argsiz(t))))
 
-//////////// MACHINE STUFF
-#define COM1    0
-#define COM2    1
-#define COM_COUNT 2
-
-#define UART_BASE(_x) (((_x) == COM1) ? UART1_BASE : UART2_BASE)
-
-#define ON  1
-#define OFF 0
-
 ///////////// USEFUL MACROS
 #define TRUE 1
 #define FALSE 0
 #define NULL 0
 #define CRLF "\r\n"
-typedef volatile unsigned int *memptr;
 #define MEM(x) (*(memptr)(x))
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)

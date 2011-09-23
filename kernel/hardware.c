@@ -1,5 +1,6 @@
 #include <util.h>
 #include <ts7200.h>
+#include <hardware.h>
 
 void uart_fifo(int channel, int state) {
 	CHECK_COM(channel);
