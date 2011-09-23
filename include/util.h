@@ -57,6 +57,10 @@ void die();
 
 #define CHECK_COM(_c) ASSERT((_c) == COM1 ||  (_c) == COM2, "Invalid channel " #_c)
 
-
+#if _X86_
+#define ASM(X)
+#else
+#define ASM(X) __asm(X)
+#endif
 
 

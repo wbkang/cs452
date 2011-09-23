@@ -33,18 +33,23 @@ OBJS= main.o interrupt.o
 all : main.elf
 
 main.elf : $(OBJS)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS) -lkernel -lgcc
+	@echo "[LD]\t$(OBJS) -> $@"
+	@$(LD) $(LDFLAGS) -o $@ $(OBJS) -lkernel -lgcc
 
 interrupt.o : interrupt.S
-	$(AS) $(ASFLAGS) -o $@ $<
+	@echo "[AS]\t$< -> $@"
+	@$(AS) $(ASFLAGS) -o $@ $<
 
 %.o : %.s
-	$(AS) $(ASFLAGS) -o $@ $<
+	@echo "[AS]\t$< -> $@"
+	@$(AS) $(ASFLAGS) -o $@ $<
 
 %.s : %.c
-	$(XCC) -S $(CFLAGS)  $< 
+	@echo "[CC]\t$< -> $@"
+	@$(XCC) -S $(CFLAGS)  $< 
 
 clean:
-	-rm -f *.s *.a *.o *.map
+	@echo "[rm]\tCleaning"
+	@-rm -f *.s *.a *.o *.map
 
 .PRECIOUS: %.o %.a %.s %.c

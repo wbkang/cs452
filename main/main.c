@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
 	MEM(UART2_BASE + UART_LCRH_OFFSET) &= ~FEN_MASK;
 	install_interrupt_handlers();	
 	
-	__asm(
+	ASM(
 #if 1
 		"swi 0" "\n\t"
 #endif
