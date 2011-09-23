@@ -3,7 +3,7 @@
 ////////// TYPES
 
 typedef unsigned int uint;
-typedef volatile uint *memptr;
+typedef uint *memptr;
 
 ////////// VAR ARG
 typedef char *va_list;
@@ -24,11 +24,12 @@ typedef char *va_list;
 #define NULL 0
 #define CRLF "\r\n"
 #define MEM(x) (*(memptr)(x))
+#define VMEM(x) (*(volatile memptr)(x))
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #define MAX(x, y) ( ( (x) > (y) ) ? (x) : (y) )
 #define MIN(x, y) ( ( (x) < (y) ) ? (x) : (y) )
-#define INSTALL_INTERRUPT_HANDLER(vec, jmp) { MEM((vec) + 0x20) = (unsigned int)(jmp); }
+#define INSTALL_INTERRUPT_HANDLER(vec, jmp) { VMEM((vec) + 0x20) = (uint)(jmp); }
 #define BIT_TOGGLE(word, mask, flag) ((word) ^= (-(flag) ^ (word)) & (mask)) // turn mask bits on/off in word based on flag (improve with orr/bic?)
 ///////////// DEBUG
 #define ASSERT_ENABLED 1
@@ -51,7 +52,7 @@ void die();
 
 #define CHECK_COM(_c) ASSERT((_c) == COM1 ||  (_c) == COM2, "Invalid channel " #_c)
 
-#if _X86_
+#if __i386__
 #define ASM(X)
 #else
 #define ASM(X) __asm(X)

@@ -1,4 +1,5 @@
 #include <string.h>
+#include <util.h>
 
 char char2hex(char n) {
 	return (n < 10 ? '0' + n : 'a' + n - 10);
@@ -11,10 +12,10 @@ int char2digit(char ch) {
 	return -1;
 }
 
-void uint2str(unsigned int num, unsigned int base, char *bf) {
+void uint2str(uint num, uint base, char *bf) {
 	int n = 0;
 	int dgt;
-	unsigned int d = 1;
+	uint d = 1;
 
 	while ((num / d) >= base)
 		d *= base;
@@ -38,7 +39,7 @@ void int2str(int num, char *bf) {
 	uint2str(num, 10, bf);
 }
 
-unsigned int strlen(char *str) {
+uint strlen(char *str) {
 	char *i = str;
 	while (*i) {
 		i++;
@@ -46,8 +47,8 @@ unsigned int strlen(char *str) {
 	return i - str;
 }
 
-unsigned int strparseuint(char *str, int *idx) {
-	unsigned int num = 0;
+uint strparseuint(char *str, int *idx) {
+	uint num = 0;
 	int digit;
 	for (;;) {
 		digit = char2digit(str[*idx]);

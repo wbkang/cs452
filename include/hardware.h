@@ -1,4 +1,5 @@
 #pragma once
+#include <util.h>
 
 //////////// MACHINE STUFF
 #define COM1    0
@@ -12,7 +13,12 @@
 
 #define SWI_VECTOR 0x8
 
-extern unsigned int _MY_MEM_START;
+#if __i386__
+uint _MY_MEM_START = 0x7000000;
+#else
+extern uint _MY_MEM_START;
+#endif
+
 
 //////////// METHODS
 
