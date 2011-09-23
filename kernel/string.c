@@ -1,10 +1,61 @@
-#include<string.h>
+#include <string.h>
 
-unsigned int strlen(char*c)
-{
-	unsigned int count = 0;
+char char2hex(char n) {
+	return (n < 10 ? '0' + n : 'a' + n - 10);
+}
 
-	while(*(c++)) count++;
+int char2digit(char ch) {
+	if (ch >= '0' && ch <= '9') return ch - '0';
+	if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
+	if (ch >= 'A' && ch <= 'F') return ch - 'A' + 10;
+	return -1;
+}
 
-	return count;
+void uint2str(unsigned int num, unsigned int base, char *bf) {
+	int n = 0;
+	int dgt;
+	unsigned int d = 1;
+
+	while ((num / d) >= base)
+		d *= base;
+	while (d != 0) {
+		dgt = num / d;
+		num %= d;
+		d /= base;
+		if (n || dgt > 0 || d == 0) {
+			*bf++ = dgt + (dgt < 10 ? '0' : 'a' - 10);
+			++n;
+		}
+	}
+	*bf = 0;
+}
+
+void int2str(int num, char *bf) {
+	if (num < 0) {
+		num = -num;
+		*bf++ = '-';
+	}
+	uint2str(num, 10, bf);
+}
+
+unsigned int strlen(char *str) {
+	char *i = str;
+	while (*i) {
+		i++;
+	}
+	return i - str;
+}
+
+unsigned int strparseuint(char *str, int *idx) {
+	unsigned int num = 0;
+	int digit;
+	for (;;) {
+		digit = char2digit(str[*idx]);
+		if (digit < 0 || digit > 10) {
+			break;
+		}
+		num = num * 10 + digit;
+		(*idx)++;
+	}
+	return num;
 }

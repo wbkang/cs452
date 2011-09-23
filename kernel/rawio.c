@@ -1,5 +1,6 @@
 #include <util.h>
 #include <ts7200.h>
+#include <string.h>
 
 int raw_isrxempty(int channel) {
 	CHECK_COM(channel);
@@ -32,13 +33,9 @@ void bwputc(int channel, char c) {
 	MEM(base + UART_DATA_OFFSET) = c;
 }
 
-char c2x(char ch) {
-	return (ch < 10 ? '0' + ch : 'a' + ch - 10);
-}
-
 void bwputx(int channel, char c) {
-	bwputc(channel, c2x(c / 16));
-	bwputc(channel, c2x(c % 16));
+	bwputc(channel, char2hex(c / 16));
+	bwputc(channel, char2hex(c % 16));
 }
 
 void bwputr(int channel, unsigned int reg) {
@@ -75,20 +72,13 @@ int bwgetc(int channel) {
 	return (char) MEM(base + UART_DATA_OFFSET);
 }
 
-int bwa2d(char ch) {
-	if (ch >= '0' && ch <= '9') return ch - '0';
-	if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
-	if (ch >= 'A' && ch <= 'F') return ch - 'A' + 10;
-	return -1;
-}
-
-char bwa2i(char ch, char **src, int base, int *nump) {
+char bwa2i(char ch, char **src, int base, int *nump) { // only for bwformat
 	int num, digit;
 	char *p;
 
 	p = *src;
 	num = 0;
-	while ((digit = bwa2d(ch)) >= 0) {
+	while ((digit = char2digit(ch)) >= 0) {
 		if (digit > base) break;
 		num = num * base + digit;
 		ch = *p++;
@@ -96,33 +86,6 @@ char bwa2i(char ch, char **src, int base, int *nump) {
 	*src = p;
 	*nump = num;
 	return ch;
-}
-
-void bwui2a(unsigned int num, unsigned int base, char *bf) {
-	int n = 0;
-	int dgt;
-	unsigned int d = 1;
-
-	while ((num / d) >= base)
-		d *= base;
-	while (d != 0) {
-		dgt = num / d;
-		num %= d;
-		d /= base;
-		if (n || dgt > 0 || d == 0) {
-			*bf++ = dgt + (dgt < 10 ? '0' : 'a' - 10);
-			++n;
-		}
-	}
-	*bf = 0;
-}
-
-void bwi2a(int num, char *bf) {
-	if (num < 0) {
-		num = -num;
-		*bf++ = '-';
-	}
-	bwui2a(num, 10, bf);
 }
 
 void bwformat(int channel, char *fmt, va_list va) {
@@ -164,15 +127,15 @@ void bwformat(int channel, char *fmt, va_list va) {
 					bwputw(channel, w, 0, va_arg( va, char* ));
 					break;
 				case 'u':
-					bwui2a(va_arg( va, unsigned int ), 10, bf);
+					uint2str(va_arg( va, unsigned int ), 10, bf);
 					bwputw(channel, w, lz, bf);
 					break;
 				case 'd':
-					bwi2a(va_arg( va, int ), bf);
+					int2str(va_arg( va, int ), bf);
 					bwputw(channel, w, lz, bf);
 					break;
 				case 'x':
-					bwui2a(va_arg( va, unsigned int ), 16, bf);
+					uint2str(va_arg( va, unsigned int ), 16, bf);
 					bwputw(channel, w, lz, bf);
 					break;
 				case '%':
