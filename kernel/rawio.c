@@ -3,6 +3,13 @@
 #include <string.h>
 #include <hardware.h>
 
+void raw_init() {
+	uart_fifo(COM2, OFF);
+	uart_speed(COM1, 2400);
+	uart_stopbits(COM2, 2);
+	uart_fifo(COM1, OFF);
+}
+
 int raw_isrxempty(int channel) {
 	CHECK_COM(channel);
 	return MEM(UART_BASE(channel) + UART_FLAG_OFFSET) & RXFE_MASK;
