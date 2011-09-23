@@ -4,15 +4,18 @@
 @ this code handles swi system call
 asm_handle_swi:
 	@ save the usermode crap
-	stmdb sp, {r0-r12,sp, lr}^
+	stmfd sp, {r0-r12,sp, lr}^
 	sub sp, sp, #60
+
+	@ r0 contains the pointer to the top of the register dump
+	mov r0, sp
 
 	@ save link register
 	stmfd sp!, {lr}
 
-	@ put the swi argument in r0
-	ldr r0,[lr,#-4]
-	bic r0, r0, #0xff000000
+	@ put the swi argument in r1
+	ldr r1,[lr,#-4]
+	bic r1, r1, #0xff000000
 
 	@ call function
 	bl handle_swi
@@ -21,8 +24,9 @@ asm_handle_swi:
 	ldmfd sp!, {lr}
 
 	@ load the usermode stuff and byebye
-	ldmia sp, {r0-r12, sp, pc}^
-	add sp, sp, #60
+	ldmfd sp, {r0-r12, sp}^
+	add sp, sp, #56
+	movs pc, lr
 
 @ this code switches to the usermode
 @ r0 addr
