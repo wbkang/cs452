@@ -1,5 +1,7 @@
 #pragma once
 
+#include <util.h>
+
 int raw_isrxempty(int channel);
 int raw_getc(int c);
 int raw_istxready(int c);

@@ -1,9 +1,6 @@
-#include <util.h>
-#include <ts7200.h>
 #include <rawio.h>
-#include <hardware.h>
-#include <task.h>
-#include <memory.h>
+#include <kernel.h>
+#include <test.h>
 
 
 

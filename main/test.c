@@ -1,6 +1,9 @@
 #include <test.h>
 #include <util.h>
 #include <hardware.h>
+#include <memory.h>
+#include <rawio.h>
+
 
 static void test_pages()
 {
