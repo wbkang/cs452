@@ -26,7 +26,7 @@ SECTIONS
 
 	text .  : /* The actual instructions. */
 	{
-		*(interrupt_handler)
+		*(asm_functions)
 		*(.text)
 		*(.got)
 		*(.got.plt)
