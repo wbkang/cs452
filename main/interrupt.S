@@ -1,14 +1,10 @@
-.section interrupt_handler
+.section asm_functions
 .global asm_handle_swi
 .ident "human compiler (TM)"
 @ this code handles swi system call
 asm_handle_swi:
-	@ use r0, r1, r2 as a scratch register
-	stmfd sp!, {r0-r2}
-
-	@ save the spsr in the stack
-	mrs r0, spsr
-	stmfd sp!, {r0}
+	@ save r0-r12, lr
+	stmfd sp!, {r0-r12, lr}
 
 	@ put the swi argument in r0
 	ldr r0,[lr,#-4]
@@ -41,23 +37,12 @@ asm_handle_swi:
 	bic r0,r0,#12
 	msr cpsr, r0
 	
-	@ load spsr to r0
-	ldmfd sp!, {r0}
-	
-	@ fix supervisor mode sp
-	add sp, sp, #12
-
-	@ save this kernel sp to r2
-	mov r2, sp 
-	
-	@ go back to the usermode
-	msr cpsr, r0
-	
 	@ now in usermode
 	@ r2 still contains the final kernel sp
-	ldr r0, [r2,#-12]
-	ldr r1, [r2,#-8]
-	ldr r2, [r2,#-4]
-	
-	@ sayonara
-	bx lr
+	ldmfd sp!, {r0-r12, pc}^
+
+@ this code switches to the usermode
+@ r0 addr
+@ r1 mem
+@ asm_usermode:
+		
