@@ -1,14 +1,15 @@
 #include <memory.h>
 
-void pages_init(pages p, uint maxlen, uint node_table, uint first_page) {
+void pages_init(pages p, uint size, uint node_table, uint first_page) {
 	p->head = (memptr) node_table;
 	p->node_table = node_table;
 	p->first_page = first_page;
-	uint last = 4 * maxlen - 4;
-	for (uint i = 0; i < last; i += 4) {
-		MEM(node_table + i) = node_table + i + 4;
+	uint addr = node_table + 4 * (size - 1); // bottom
+	MEM(addr) = NULL;
+	while (addr > node_table) {
+		addr -= 4;
+		MEM(addr) = addr + 4;
 	}
-	MEM(node_table + last) = NULL; // bottom of the stack
 }
 
 memptr pages_next(memptr node) {
@@ -25,7 +26,7 @@ memptr pages_p2n(pages p, memptr page) {
 
 memptr pages_get(pages p) { // allocate a page
 	memptr head = p->head;
-	if (head == NULL ) return NULL; // no more pages to give
+	if (head == NULL) return NULL; // no more pages to give
 	p->head = pages_next(head);
 	return pages_n2p(p, head);
 }
