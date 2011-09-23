@@ -10,6 +10,10 @@
 #define ON  1
 #define OFF 0
 
+#define SWI_VECTOR 0x8
+
+extern unsigned int _MY_MEM_START;
+
 //////////// METHODS
 
 void uart_fifo(int channel, int state);

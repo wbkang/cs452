@@ -47,22 +47,3 @@ void pages_put(pages p, memptr page) {
 	*node = (uint) p->head;
 	p->head = node;
 }
-
-void pages_test() {
-	int size = 1024;
-	struct _tag_pages _p;
-	pages p = &_p;
-	memptr node_table[size];
-	pages_init(p, size, (uint) node_table, 0x300000);
-	memptr test[size];
-	int i;
-	for (i = size - 1; i >= 0; --i) {
-		test[i] = pages_get(p);
-		bwprintf(COM2, "page %d: %x\n", i + 1, (uint) test[i]);
-	}
-	bwprintf(COM2, "head after remove %d: %x\n", size, (uint) p->head);
-	for (i = size - 1; i >= 0; --i) {
-		pages_put(p, test[size - 1 - i]);
-		bwprintf(COM2, "head %d: %x\n", i + 1, (uint) p->head);
-	}
-}
