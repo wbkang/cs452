@@ -11,14 +11,11 @@ typedef struct _tag_pages {
 		uint first_page;
 }*pages;
 
-void pages_init(pages p, uint maxlen, uint addr, uint offset);
-
-memptr pages_next(memptr node);
-
-memptr pages_n2p(pages p, memptr node);
-
-memptr pages_p2n(pages p, memptr page);
-
+void pages_init(pages p, uint size, uint node_table, uint first_page);
+memptr pages_nextnode(memptr node);
+uint pages_nodeindex(pages p, memptr node);
+uint pages_pageindex(pages p, memptr page);
+memptr pages_node2page(pages p, memptr node);
+memptr pages_page2node(pages p, memptr page);
 memptr pages_get(pages p);
-
 void pages_put(pages p, memptr page);
