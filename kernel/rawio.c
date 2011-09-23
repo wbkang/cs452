@@ -1,20 +1,22 @@
 #include <util.h>
 #include <ts7200.h>
+#include <string.h>
 
 int raw_isrxempty(int channel) {
 	CHECK_COM(channel);
 	return MEM(UART_BASE(channel) + UART_FLAG_OFFSET) & RXFE_MASK;
 }
 
-int raw_getc( int channel ) {
+int raw_getc(int channel) {
 	CHECK_COM(channel);
 	return MEM(UART_BASE(channel) + UART_DATA_OFFSET);
 }
 
 int raw_istxready(int channel) {
 	CHECK_COM(channel);
-	int flag = MEM(UART_BASE(channel) + UART_FLAG_OFFSET);
-	return !(flag & TXFF_MASK) && (channel == COM2 ||  (channel == COM1 && (flag & CTS_MASK)));
+	int flags = MEM(UART_BASE(channel) + UART_FLAG_OFFSET);
+	return !(flags & TXFF_MASK)
+			&& (channel == COM2 || (channel == COM1 && (flags & CTS_MASK)));
 }
 
 void raw_putc(int channel, char c) {
@@ -22,32 +24,132 @@ void raw_putc(int channel, char c) {
 	MEM(UART_BASE(channel) + UART_DATA_OFFSET) = c;
 }
 
-
-int raw_putcc( int channel, char c ) {
+void bwputc(int channel, char c) {
 	CHECK_COM(channel);
-	int *flags, *data;
-	switch( channel ) {
-		case COM1:
-			flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
-			data = (int *)( UART1_BASE + UART_DATA_OFFSET );
-			break;
-		case COM2:
-			flags = (int *)( UART2_BASE + UART_FLAG_OFFSET );
-			data = (int *)( UART2_BASE + UART_DATA_OFFSET );
-			break;
-		default:
-			return -1;
-	}
-	while( ( *flags & TXFF_MASK ) ) ;
-	*data = c;
-	return 0;
+	int base = UART_BASE(channel);
+	memptr flags = (memptr) (base + UART_FLAG_OFFSET);
+	while (*flags & TXFF_MASK)
+		;
+	MEM(base + UART_DATA_OFFSET) = c;
 }
 
-void raw_logemergency(int channel, char* c)
-{
+void bwputx(int channel, char c) {
+	bwputc(channel, char2hex(c / 16));
+	bwputc(channel, char2hex(c % 16));
+}
+
+void bwputr(int channel, unsigned int reg) {
+	char *ch = (char *) &reg;
+	bwputx(channel, ch[3]);
+	bwputx(channel, ch[2]);
+	bwputx(channel, ch[1]);
+	bwputx(channel, ch[0]);
+	bwputc(channel, ' ');
+}
+
+void bwputstr(int channel, char *str) {
+	while (*str)
+		bwputc(channel, *str++);
+}
+
+void bwputw(int channel, int n, char fc, char *bf) {
+	char ch;
+	char *p = bf;
+	while (*p++ && n > 0)
+		n--;
+	while (n-- > 0)
+		bwputc(channel, fc);
+	while ((ch = *bf++))
+		bwputc(channel, ch);
+}
+
+int bwgetc(int channel) {
 	CHECK_COM(channel);
-	while (*c) {
-		raw_putcc(channel, *c);
-		c++;
+	int base = UART_BASE(channel);
+	memptr flags = (memptr) (base + UART_FLAG_OFFSET);
+	while (!(*flags & RXFF_MASK))
+		;
+	return (char) MEM(base + UART_DATA_OFFSET);
+}
+
+char bwa2i(char ch, char **src, int base, int *nump) { // only for bwformat
+	int num, digit;
+	char *p;
+
+	p = *src;
+	num = 0;
+	while ((digit = char2digit(ch)) >= 0) {
+		if (digit > base) break;
+		num = num * base + digit;
+		ch = *p++;
 	}
+	*src = p;
+	*nump = num;
+	return ch;
+}
+
+void bwformat(int channel, char *fmt, va_list va) {
+	CHECK_COM(channel);
+	char bf[12];
+	char ch, lz;
+	int w;
+
+	while ((ch = *(fmt++))) {
+		if (ch != '%') bwputc(channel, ch);
+		else {
+			lz = 0;
+			w = 0;
+			ch = *(fmt++);
+			switch (ch) {
+				case '0':
+					lz = 1;
+					ch = *(fmt++);
+					break;
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
+					ch = bwa2i(ch, &fmt, 10, &w);
+					break;
+			}
+			switch (ch) {
+				case 0:
+					return;
+				case 'c':
+					bwputc(channel, va_arg( va, char ));
+					break;
+				case 's':
+					bwputw(channel, w, 0, va_arg( va, char* ));
+					break;
+				case 'u':
+					uint2str(va_arg( va, unsigned int ), 10, bf);
+					bwputw(channel, w, lz, bf);
+					break;
+				case 'd':
+					int2str(va_arg( va, int ), bf);
+					bwputw(channel, w, lz, bf);
+					break;
+				case 'x':
+					uint2str(va_arg( va, unsigned int ), 16, bf);
+					bwputw(channel, w, lz, bf);
+					break;
+				case '%':
+					bwputc(channel, ch);
+					break;
+			}
+		}
+	}
+}
+
+void bwprintf(int channel, char *fmt, ... ) {
+	CHECK_COM(channel);
+	va_list va;
+	va_start(va,fmt);
+	bwformat( channel, fmt, va );
+	va_end(va);
 }
