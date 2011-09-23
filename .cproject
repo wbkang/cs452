@@ -47,7 +47,7 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="kernel"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="main"/>
+						<entry excluding="*.S" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="main"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

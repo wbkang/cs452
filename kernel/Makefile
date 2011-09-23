@@ -31,17 +31,21 @@ OBJS= util.o rawio.o string.o
 all : $(TARGETLIB)
 
 %.a : $(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	@echo "[AR]\t$< -> $@"
+	@$(AR) $(ARFLAGS) $@ $(OBJS)
 
 
 %.o : %.s
-	$(AS) $(ASFLAGS) -o $@ $<
+	@echo "[AS]\t$< -> $@"
+	@$(AS) $(ASFLAGS) -o $@ $<
 
 %.s : %.c
-	$(XCC) -S $(CFLAGS)  $< 
+	@echo "[CC]\t$< -> $@"
+	@$(XCC) -S $(CFLAGS)  $< 
 
 
 clean:
-	-rm -f *.s *.a *.o
+	@echo "[rm] Cleaning"
+	@-rm -f *.s *.a *.o
 
 .PRECIOUS: %.o %.a %.s %.c
