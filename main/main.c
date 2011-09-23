@@ -2,14 +2,17 @@
 #include <ts7200.h>
 #include <rawio.h>
 #include <hardware.h>
+#include <task.h>
 
 // asm
 void asm_handle_swi();
 
-void handle_swi(int i) {
-	while (!raw_istxready(COM2))
-		;
-	raw_putc(COM2, '0' + i);
+void handle_swi(register_set reg, int service_no) {
+	bwprintf(COM2, "Dumping registers...\n");
+	for (int i = 0; i < 15; i++)
+	{
+		bwprintf(COM2, "r%d: %x\n", i, reg->registers[i]);
+	}
 }
 
 static void install_interrupt_handlers() {
@@ -18,20 +21,13 @@ static void install_interrupt_handlers() {
 
 int main(int argc, char* argv[]) {
 	uart_fifo(COM2, OFF);
-	install_interrupt_handlers();
-	
-	ASM(
-			"swi 0" "\n\t"
-			"swi 1" "\n\t"
-			"swi 2" "\n\t"
-			"swi 3" "\n\t"
-			"swi 4" "\n\t"
-			"swi 5" "\n\t"
-			"swi 6" "\n\t"
-			"swi 7" "\n\t"
-			"swi 8" "\n\t"
-			"swi 9" "\n\t"
-	);
+	int i= 0;
+	bwprintf(COM2, "%x\n", &i);
+//	install_interrupt_handlers();
+//
+//	ASM(
+//			"swi 0" "\n\t"
+//	);
 
 	return 0;
 }
