@@ -20,21 +20,7 @@ static void install_interrupt_handlers() {
 int main(int argc, char* argv[]) {
 	uart_fifo(COM2, OFF);
 
-	struct _tag_pages _p;
-	pages p = &_p;
-	memptr node_table[8];
-	pages_init(p, 8, (uint) node_table, 0x300000);
-	memptr test[8];
-	int i;
-	for (i = 7; i >= 0; --i) {
-		test[i] = pages_get(p);
-		bwprintf(COM2, "page %d: %x\n", i + 1, (uint) test[i]);
-	}
-	bwprintf(COM2, "head after remove 5: %x\n", (uint) p->head);
-	for (i = 7; i >= 0; --i) {
-		pages_put(p, test[7 - i]);
-		bwprintf(COM2, "head %d: %x\n", i + 1, (uint) p->head);
-	}
+	pages_test();
 
 	return 0;
 
