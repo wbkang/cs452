@@ -1,3 +1,5 @@
+extern unsigned int _MY_MEM_START;
+
 void uart_fifo(int channel, int state);
 void uart_stopbits(int channel, int bits);
 void uart_databits(int channel, int wlen);
