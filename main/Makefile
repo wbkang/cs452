@@ -26,7 +26,7 @@ LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/
 %.o : %.c
 
 #################
-OBJS= main.o
+OBJS= main.o interrupt.o
 ################
 
 
@@ -34,6 +34,9 @@ all : main.elf
 
 main.elf : $(OBJS)
 	$(LD) $(LDFLAGS) -o $@ $(OBJS) -lkernel -lgcc
+
+interrupt.o : interrupt.S
+	$(AS) $(ASFLAGS) -o $@ $<
 
 %.o : %.s
 	$(AS) $(ASFLAGS) -o $@ $<
