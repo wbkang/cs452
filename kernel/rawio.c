@@ -12,24 +12,24 @@ void raw_init() {
 
 int raw_isrxempty(int channel) {
 	CHECK_COM(channel);
-	return MEM(UART_BASE(channel) + UART_FLAG_OFFSET) & RXFE_MASK;
+	return VMEM(UART_BASE(channel) + UART_FLAG_OFFSET) & RXFE_MASK;
 }
 
 int raw_getc(int channel) {
 	CHECK_COM(channel);
-	return MEM(UART_BASE(channel) + UART_DATA_OFFSET);
+	return VMEM(UART_BASE(channel) + UART_DATA_OFFSET);
 }
 
 int raw_istxready(int channel) {
 	CHECK_COM(channel);
-	int flags = MEM(UART_BASE(channel) + UART_FLAG_OFFSET);
+	int flags = VMEM(UART_BASE(channel) + UART_FLAG_OFFSET);
 	return !(flags & TXFF_MASK)
 			&& (channel == COM2 || (channel == COM1 && (flags & CTS_MASK)));
 }
 
 void raw_putc(int channel, char c) {
 	CHECK_COM(channel);
-	MEM(UART_BASE(channel) + UART_DATA_OFFSET) = c;
+	VMEM(UART_BASE(channel) + UART_DATA_OFFSET) = c;
 }
 
 void bwputc(int channel, char c) {
@@ -38,7 +38,7 @@ void bwputc(int channel, char c) {
 	memptr flags = (memptr) (base + UART_FLAG_OFFSET);
 	while (*flags & TXFF_MASK)
 		;
-	MEM(base + UART_DATA_OFFSET) = c;
+	VMEM(base + UART_DATA_OFFSET) = c;
 }
 
 void bwputx(int channel, char c) {
@@ -46,7 +46,7 @@ void bwputx(int channel, char c) {
 	bwputc(channel, char2hex(c % 16));
 }
 
-void bwputr(int channel, unsigned int reg) {
+void bwputr(int channel, uint reg) {
 	char *ch = (char *) &reg;
 	bwputx(channel, ch[3]);
 	bwputx(channel, ch[2]);
@@ -77,7 +77,7 @@ int bwgetc(int channel) {
 	memptr flags = (memptr) (base + UART_FLAG_OFFSET);
 	while (!(*flags & RXFF_MASK))
 		;
-	return (char) MEM(base + UART_DATA_OFFSET);
+	return (char) VMEM(base + UART_DATA_OFFSET);
 }
 
 char bwa2i(char ch, char **src, int base, int *nump) { // only for bwformat
@@ -135,7 +135,7 @@ void bwformat(int channel, char *fmt, va_list va) {
 					bwputw(channel, w, 0, va_arg( va, char* ));
 					break;
 				case 'u':
-					uint2str(va_arg( va, unsigned int ), 10, bf);
+					uint2str(va_arg( va, uint ), 10, bf);
 					bwputw(channel, w, lz, bf);
 					break;
 				case 'd':
@@ -143,7 +143,7 @@ void bwformat(int channel, char *fmt, va_list va) {
 					bwputw(channel, w, lz, bf);
 					break;
 				case 'x':
-					uint2str(va_arg( va, unsigned int ), 16, bf);
+					uint2str(va_arg( va, uint ), 16, bf);
 					bwputw(channel, w, lz, bf);
 					break;
 				case '%':

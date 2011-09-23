@@ -10,7 +10,7 @@ void raw_init();
 
 void bwputc(int channel, char c);
 void bwputx(int channel, char c);
-void bwputr(int channel, unsigned int reg);
+void bwputr(int channel, uint reg);
 void bwputstr(int channel, char *str);
 void bwputw(int channel, int n, char fc, char *bf);
 void bwformat(int channel, char *fmt, va_list va);
