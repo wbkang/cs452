@@ -3,7 +3,7 @@
 #
 CCDIR = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin
 
-XCC     = $(CCDIR)/gcc
+XCC	= $(CCDIR)/gcc
 AS	= $(CCDIR)/as
 AR	= $(CCDIR)/ar
 CFLAGS  = -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99
@@ -24,7 +24,7 @@ ARFLAGS = rcs
 %.o : %.c
 #################
 TARGETLIB= kernel.a
-OBJS= util.o rawio.o string.o
+OBJS= util.o rawio.o string.o hardware.o
 ################
 
 

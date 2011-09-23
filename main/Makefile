@@ -3,7 +3,7 @@
 #
 CCDIR = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin
 
-XCC     = $(CCDIR)/gcc
+XCC	= $(CCDIR)/gcc
 AS	= $(CCDIR)/as
 AR	= $(CCDIR)/ar
 LD  = $(CCDIR)/ld
