@@ -29,11 +29,12 @@ typedef char *va_list;
 #define FALSE 0
 #define NULL 0
 #define CRLF "\r\n"
-#define MEM(X) (*(unsigned int *)(X))
+#define MEM(X) (*(volatile unsigned int *)(X))
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #define MAX(x, y) ( ( (x) > (y) ) ? (x) : (y) )
 #define MIN(x, y) ( ( (x) < (y) ) ? (x) : (y) )
+#define INSTALL_INTERRUPT_HANDLER(vec, jmp) { MEM((vec) + 0x20) = (unsigned int)(jmp); }
 
 ///////////// DEBUG
 #define ASSERT_ENABLED 1

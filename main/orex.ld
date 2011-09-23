@@ -1,30 +1,32 @@
 
 MEMORY
 {
-ram : ORIGIN = 0x00000000, LENGTH = 32M
-		  rom : ORIGIN = 0x60000000, LENGTH = 8M
+	ram : ORIGIN = 0x00000000, LENGTH = 32M
+	rom : ORIGIN = 0x60000000, LENGTH = 8M
 }
 
 SECTIONS
 {
+
 	. = 0x00218000;
 
 	data .  : /* Initialized data. */
 	{
 		_DataStart = . ;
 		*(.data)
-			_DataEnd = . ;
+		_DataEnd = . ;
 	} >ram
 
 	bss .  : /* Uninitialized data. */
 	{
 		_BssStart = . ;
 		*(.bss)
-			_BssEnd = . ;
+		_BssEnd = . ;
 	} >ram
 
 	text .  : /* The actual instructions. */
 	{
+		*(interrupt_handler)
 		*(.text)
 		*(.got)
 		*(.got.plt)
