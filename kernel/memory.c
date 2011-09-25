@@ -1,7 +1,5 @@
 #include <memory.h>
 #include <util.h>
-#include <rawio.h>
-#include <ts7200.h>
 
 void pages_init(pages p, uint size, uint first_node, uint first_page) {
 	p->head = (memptr) first_node;

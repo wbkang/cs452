@@ -2,8 +2,9 @@
 #include <util.h>
 #include <hardware.h>
 #include <memory.h>
+#include <heap.h>
+#include <stack.h>
 #include <rawio.h>
-
 
 static void test_pages() {
 	int size = 1024;
@@ -27,12 +28,52 @@ static void test_pages() {
 		bwprintf(COM2, "head %d: %x\n", i + 1, (uint) p->head);
 	}
 
-	ASSERT(p->head == (memptr) p->first_node, "we returned the last page last.");
+	ASSERT(p->head == (memptr) p->first_node,
+			"we returned the last page last.");
 }
 
-void test_run()
-{
+static void test_heap() {
+	int size = 8;
+	struct _tag_heap _h;
+	heap h = &_h;
+	HEAP_NODE space[size];
+	HEAP_INIT(h, (uint) space, size);
+	int i;
+	for (i = 0; i < size; i++) {
+		heap_max_insert(h, i << 2);
+		bwprintf(COM2, "inserted: %d, size: %d, top: %d\n", i << 2, h->size,
+				HEAP_TOP(h));
+	}
+
+	ASSERT(h->arr[0] == (size - 1) << 2,
+			"the top is not the largest number inserted");
+
+	for (i = 0; i < size; i++) {
+		bwprintf(COM2, "extracted %d, %size %d, top: %d\n", heap_extract_max(h),
+				h->size, HEAP_TOP(h));
+	}
+}
+
+static void test_stack() {
+	int size = 8;
+	struct _tag_stack _s;
+	stack s = &_s;
+	STACK_NODE space[size];
+	stack_init(s, space, size);
+	int i;
+	for (i = 0; i < size; i++) {
+		stack_push(s, i << 2);
+		bwprintf(COM2, "inserted: %d, top: %x\n", i << 2, s->top);
+	}
+	for (i = 0; i < size; i++) {
+		bwprintf(COM2, "extracted %d, top: %x\n", stack_pop(s), s->top);
+	}
+}
+
+void test_run() {
 	bwprintf(COM2, ">>>>>>>>>>>>>>>>>>>>TEST START\n");
 	test_pages();
+	test_heap();
+	test_stack();
 	bwprintf(COM2, ">>>>>>>>>>>>>>>>>>>>TEST END\n");
 }
