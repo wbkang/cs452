@@ -1,3 +1,5 @@
+#pragma once
+
 #include <util.h>
 
 #define HEAP_NODE uint
