@@ -37,7 +37,7 @@ void handle_swi(register_set *reg, int req_no) {
 void kernel_init() {
 	current_tid = -1;
 	install_interrupt_handlers();
-//	td_init();
+	td_init();
 	stack_storage_init();
 }
 
@@ -48,8 +48,7 @@ int kernel_createtask(int priority, void(*code)()) {
 	task_descriptor * td = td_new();
 
 	// initialize user stack
-	td->parent_id = 0;
-	td->priority = priority;
+
 
 
 	// append task to scheduler ready queue
