@@ -2,7 +2,7 @@
 
 static int last_used_tid;
 
-struct _tag_task_descriptor_list {
+static struct _tag_task_descriptor_list {
 		task_descriptor *head_taken;
 		task_descriptor *head_free;
 		task_descriptor td[TASK_LIST_SIZE];
@@ -27,6 +27,7 @@ struct _tag_task_descriptor_list {
 
 
 void td_init() {
+	// FIXME pavel fix this
 	last_used_tid = 0;
 
 	// initialize taken queue
