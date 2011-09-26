@@ -9,7 +9,7 @@ static void install_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
 }
 
-void handle_swi(register_set reg, int service_no) {
+void handle_swi(register_set *reg, int service_no) {
 	bwprintf(COM2, "Handling swi #%d", service_no);
 	bwprintf(COM2, "Dumping registers...\n");
 	for (int i = 0; i < 15; i++) {

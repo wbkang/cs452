@@ -5,19 +5,18 @@
 
 typedef struct _tag_register_set {
 		int registers[15]; // r0-r12, sp and lr
-}* register_set;
+		int spsr;
+} register_set;
 
 struct _tag_task_descriptor {
 		uint id;
 		uint state;
 		uint priority;
 		uint parent_id; // should this be a pointer to the parent td?
-		memptr stack;
-		uint spsr;
 		uint rv;
 		struct _tag_task_descriptor *prev;
 		struct _tag_task_descriptor *next;
-		int registers[15]; // r0-r12, sp and lr; these should be on user stack?
+		register_set registers; // r0-r12, sp and lr; these should be on user stack?
 };
 
 typedef struct _tag_task_descriptor task_descriptor;

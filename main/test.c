@@ -11,7 +11,7 @@ static void test_pages() {
 	struct _tag_pages _p;
 	pages p = &_p;
 	memptr node_table[size];
-	pages_init(p, size, (uint) node_table, 0x300000);
+	pages_init(p, size, (uint) node_table, _MY_MEM_START);
 	memptr test[size];
 	int i;
 	for (i = size - 1; i >= 0; --i) {
@@ -56,17 +56,16 @@ static void test_heap() {
 
 static void test_stack() {
 	int size = 8;
-	struct _tag_stack _s;
-	stack s = &_s;
-	STACK_NODE space[size];
-	stack_init(s, space, size);
+	stack s;
+	stack_node space[size];
+	stack_init(&s, space, size);
 	int i;
 	for (i = 0; i < size; i++) {
-		stack_push(s, i << 2);
-		bwprintf(COM2, "inserted: %d, top: %x\n", i << 2, s->top);
+		stack_push(&s, (void*)(i << 2));
+		bwprintf(COM2, "inserted: %d, top: %x\n", i << 2, s.top);
 	}
 	for (i = 0; i < size; i++) {
-		bwprintf(COM2, "extracted %d, top: %x\n", stack_pop(s), s->top);
+		bwprintf(COM2, "extracted %d, top: %x\n", stack_pop(&s), s.top);
 	}
 }
 
