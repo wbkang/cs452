@@ -7,7 +7,11 @@ asm_handle_swi:
 	stmfd sp, {r0-r12,sp, lr}^
 	sub sp, sp, #60
 
-	@ r0 contains the pointer to the top of the register dump
+	@ save the spsr as well
+	mrs r0, spsr
+	stmfd sp!, {r0}
+
+	@ r0 contains the pointer to the top of the register dump (ordered spsr, r0-r14)
 	mov r0, sp
 
 	@ save lr_svc
@@ -20,10 +24,12 @@ asm_handle_swi:
 	@ call function
 	bl handle_swi
 
-	@ load lr_svc
+	@ load lr_svc and spsr and save spsr
 	ldmfd sp!, {lr}
+	ldmfd sp!, {r0}
+	msr spsr, r0
 
-	@ load the usermode stuff and byebye
+	@ load the usermode stuff and say byebye
 	ldmfd sp, {r0-r12, sp, lr}^
 	add sp, sp, #60
 	movs pc, lr
