@@ -21,7 +21,7 @@ void kernel_init() {
 	install_interrupt_handlers();
 }
 
-int create(int priority, void(*code)()) {
+int kernel_create(int priority, void(*code)()) {
 	// test weather *code is valid
 	// generate task id
 	// initialize user stack
@@ -30,20 +30,20 @@ int create(int priority, void(*code)()) {
 	return 0;
 }
 
-int mytid() {
+int kernel_mytid() {
 	// return my task id
 	return 0;
 }
 
-int myparenttid() {
+int kernel_myparenttid() {
 	// return my parents task id
 	return 0;
 }
 
-void pass() {
+void kernel_pass() {
 	// put me on the ready queue
 }
 
-void exit() {
+void kernel_exit() {
 	// remove me from all queues and die
 }
