@@ -1,5 +1,6 @@
 #include <util.h>
-
+#include <hardware.h>
+#include <rawio.h>
 
 void die()
 {
@@ -9,5 +10,5 @@ void die()
 
 void errormsg(char* msg)
 {
-
+	bwprintf(COM2, msg);
 }

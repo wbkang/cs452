@@ -5,13 +5,49 @@
 #include <heap.h>
 #include <stack.h>
 #include <rawio.h>
+#include <priorityq.h>
+
+static void test_pqueue() {
+	priorityq pq;
+	priorityq_init(&pq, 4, 8, (void*)mem_start_address());
+
+	for (int tasknum = 0; tasknum < 8; tasknum++) {
+		for (int priority = 0; priority < 4; priority++) {
+			bwprintf(COM2, "PQ PUSH PRIORITY:%d TASK:%d\n", priority, tasknum);
+			uint item = priority * 10 + tasknum;
+			priorityq_push(&pq, (void*)item, priority);
+		}
+	}
+
+	for ( int i = 0; i < 32; i++) {
+		uint item = (uint)priorityq_pop(&pq);
+		bwprintf(COM2, "PQ MAXP PRIORITY:%d TASK:%d\n", item / 10, item%10);
+	}
+}
+
+static void test_queue() {
+	queue* q = (void*)mem_start_address();
+	queue_init(q, 5);
+
+	for (int i =0; i < 5; i ++) {
+		bwprintf(COM2, "Pushing %d\n", i);
+		queue_push(q, (void*)i);
+	}
+
+	for (int i = 0; i < 5; i++) {
+		bwprintf(COM2, "Popped...");
+		uint val = (uint)queue_pop(q);
+		bwprintf(COM2, "%d\n", val);
+		ASSERT(val == i, "test failed");
+	}
+}
 
 static void test_pages() {
-	int size = 1024;
+	int size = 16;
 	struct _tag_pages _p;
 	pages p = &_p;
 	memptr node_table[size];
-	pages_init(p, size, (uint) node_table, _MY_MEM_START);
+	pages_init(p, size, (uint) node_table, mem_start_address());
 	memptr test[size];
 	int i;
 	for (i = size - 1; i >= 0; --i) {
@@ -74,5 +110,7 @@ void test_run() {
 	test_pages();
 	test_heap();
 	test_stack();
+	test_queue();
+	test_pqueue();
 	bwprintf(COM2, ">>>>>>>>>>>>>>>>>>>>TEST END\n");
 }

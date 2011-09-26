@@ -13,12 +13,6 @@
 
 #define SWI_VECTOR 0x8
 
-#if __i386__
-uint _MY_MEM_START = 0x7000000;
-#else
-extern uint _MY_MEM_START;
-#endif
-
 
 //////////// METHODS
 
@@ -27,3 +21,4 @@ void uart_stopbits(int channel, int bits);
 void uart_databits(int channel, int wlen);
 void uart_parity(int channel, int enable);
 void uart_speed(int channel, int speed);
+uint mem_start_address();

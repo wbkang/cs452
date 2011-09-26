@@ -2,6 +2,8 @@
 
 #include <task.h>
 
+#define NUM_PRIORITY 32
+
 void kernel_init();
 
 void handle_swi(register_set *reg, int req_no);
@@ -59,3 +61,5 @@ void pass();
  */
 
 void exit();
+
+void kernel_runloop();
