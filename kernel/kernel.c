@@ -31,13 +31,11 @@ int create(int priority, void(*code)()) {
 }
 
 int mytid() {
-	// return my task id
-	return 0;
+	return TASK_CURRENT->id;
 }
 
 int myparenttid() {
-	// return my parents task id
-	return 0;
+	return TASK_CURRENT->parent_id;
 }
 
 void pass() {
