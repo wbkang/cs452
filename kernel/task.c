@@ -1,6 +1,7 @@
 #include <task.h>
 
-void td_init(task_descriptor_list *tdlist) {
+void td_init() {
+	task_descriptor_list *tdlist = TASK_LIST;
 	// initialize taken queue
 	task_descriptor *head_taken = &tdlist->head_taken;
 	head_taken->prev = head_taken;
@@ -17,7 +18,8 @@ void td_init(task_descriptor_list *tdlist) {
 	}
 }
 
-task_descriptor *td_new(task_descriptor_list *tdlist) {
+task_descriptor *td_new() {
+	task_descriptor_list *tdlist = TASK_LIST;
 	task_descriptor *head_free = &tdlist->head_free;
 	task_descriptor *td = head_free->next;
 	ASSERT(td != head_free, "no more empty task descriptors");
@@ -25,7 +27,6 @@ task_descriptor *td_new(task_descriptor_list *tdlist) {
 	return td;
 }
 
-void td_delete(task_descriptor_list *tdlist, task_descriptor *td) {
-	// ASSERT(td is in the taken queue, "...") // no efficient way to find out
-	TD_MOVE(&tdlist->head_free, td);
+void td_delete(task_descriptor *td) {
+	TD_MOVE(&TASK_LIST->head_free, td);
 }
