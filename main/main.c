@@ -6,7 +6,7 @@
 int main(int argc, char* argv[]) {
 	raw_init();
 
-//	test_run();
+	test_run();
 	bwprintf(COM2, "kernel_init starting\n");
 	kernel_init();
 	bwprintf(COM2, "kernel_init finished\n");

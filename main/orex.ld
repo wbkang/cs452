@@ -44,14 +44,6 @@ SECTIONS
 		*(.debug_abbrev)
 		*(.debug_aranges)
 	} > ram
-	. = 0x00300000;
-	
-	my_mem . :
-	{
-		_MY_MEM_START = .;
-	}
-
-	
 }
 
 

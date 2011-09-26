@@ -41,3 +41,8 @@ void uart_speed(int channel, int speed) {
 	VMEM(base + UART_LCRM_OFFSET) = 0x0;
 	VMEM(base + UART_LCRL_OFFSET) = (speed == 2400 ? 0xBF : 0x3); // F_UARTCLK / (16 * BAUD_RATE) - 1
 }
+
+uint mem_start_address()
+{
+	return 0x300000;
+}
