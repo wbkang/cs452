@@ -3,22 +3,25 @@
 #include <util.h>
 #include <hardware.h>
 
+
+#define TASK_LIST_SIZE 16
+
+
 typedef struct _tag_register_set {
 		int registers[15]; // r0-r12, sp and lr
 		int spsr;
 } register_set;
 
-struct _tag_task_descriptor {
-		uint id;
+typedef struct _tag_task_descriptor {
+		int id;
 		uint state;
 		uint priority;
-		uint parent_id; // should this be a pointer to the parent td?
-		struct _tag_task_descriptor *prev;
-		struct _tag_task_descriptor *next;
+		int parent_id; // should this be a pointer to the parent td?
 		register_set registers; // r0-r12, sp and lr; these should be on user stack?
-};
+		struct _tag_task_descriptor *_prev;
+		struct _tag_task_descriptor *_next;
+} task_descriptor;
 
-typedef struct _tag_task_descriptor task_descriptor;
 
 
 

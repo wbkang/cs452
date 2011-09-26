@@ -32,4 +32,14 @@ asm_handle_swi:
 @ r0 addr
 @ r1 mem
 @ asm_usermode:
-		
+
+
+@ syscall code.
+@ r0 : request id
+@ r1 : arguments array
+.global asm_handle_swi
+asm_syscall:
+	swi 0
+
+	@return
+	mov pc,lr
