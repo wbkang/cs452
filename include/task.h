@@ -22,6 +22,9 @@ struct _tag_task_descriptor {
 
 typedef struct _tag_task_descriptor task_descriptor;
 
+#define TASK_CURRENT_ADDRESS 0x31337
+#define TASK_CURRENT ((task_descriptor) TASK_CURRENT_ADDRESS)
+
 #define TASK_LIST_SIZE 16
 
 struct _tag_task_descriptor_list {
@@ -31,6 +34,9 @@ struct _tag_task_descriptor_list {
 };
 
 typedef struct _tag_task_descriptor_list task_descriptor_list;
+
+#define TASK_LIST_ADDRESS 0x1337
+#define TASK_LIST ((task_descriptor_list *) TASK_LIST_ADDRESS)
 
 /*
  * The task descriptor list must support the following operations in O(1)
@@ -78,8 +84,8 @@ typedef struct _tag_task_descriptor_list task_descriptor_list;
 	TD_APPEND(ref, td); \
 }
 
-void td_init(task_descriptor_list *tdlist);
+void td_init();
 
-task_descriptor *td_new(task_descriptor_list *tdlist);
+task_descriptor *td_new();
 
-void td_delete(task_descriptor_list *tdlist, task_descriptor *td);
+void td_delete(task_descriptor *td);
