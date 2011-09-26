@@ -51,15 +51,15 @@ void td_init() {
 }
 
 task_descriptor *td_new() {
-	task_descriptor *td = task_descriptors.head_free->_next;
-	ASSERT(td != task_descriptors.head_free, "no more empty task descriptors");
+	task_descriptor *td = task_descriptors.head_free._next;
+	ASSERT(td != &task_descriptors.head_free, "no more empty task descriptors");
 
-	TD_MOVE(task_descriptors.head_taken, td);
+	TD_MOVE(&task_descriptors.head_taken, td);
 
 	td->id = ++last_used_tid;
 	return td;
 }
 
 void td_delete(task_descriptor *td) {
-	TD_MOVE(task_descriptors.head_free, td);
+	TD_MOVE(&task_descriptors.head_free, td);
 }

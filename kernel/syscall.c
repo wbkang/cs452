@@ -13,7 +13,21 @@
 
 static int syscall(int reqid, void** args) {
 	bwprintf(COM2, "usermode syscall reqid:%d, args: %x\n", reqid, args);
-	int retval = asm_syscall(reqid, args);
+
+	int retval = -1;
+
+#ifndef __i386
+	__asm(
+		"mov r0, %[reqid]" "\n\t"
+		"mov r1, %[args]" "\n\t"
+		"swi 0" "\n\t"
+		"mov %[result], r0" "\n\t"
+		: [result] "=r" (retval)
+		: [reqid] "r" (reqid), [args] "r" (reqid)
+		: "r0", "r1"
+	);
+#endif
+
 	bwprintf(COM2, "usermode syscall retval:%d\n", retval);
 	return retval;
 }

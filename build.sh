@@ -11,6 +11,11 @@ done
 
 (cd main; make );
 
+if [ $? -ne 0 ]; then
+	echo "Build Failed."
+	exit 1
+fi
+
 ELF=/u/cs452/tftp/ARM/s.elf
 
 cp -f main/main.elf $ELF && echo "Copy successful"
