@@ -10,4 +10,4 @@
 
 // asm
 void asm_handle_swi();
-void asm_syscall(int reqid, void** args);
+int asm_syscall(int reqid, void** args);

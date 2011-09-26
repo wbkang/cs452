@@ -5,6 +5,7 @@
 #include <rawio.h>
 #include <task.h>
 #include <assembly.h>
+#include <stack.h>
 
 #define STACK_SIZE 65536
 
@@ -23,7 +24,7 @@ static void stack_storage_init() {
 	stack_init(&stack_storage, _stack_memory, TASK_LIST_SIZE);
 
 	for (int i = 0; i < TASK_LIST_SIZE; i++) {
-		stack_push(&stack_storage, mem_start + i * STACK_SIZE);
+		stack_push(&stack_storage, (stack_node)(mem_start + i * STACK_SIZE));
 	}
 }
 
@@ -36,7 +37,7 @@ void handle_swi(register_set *reg, int req_no) {
 void kernel_init() {
 	current_tid = -1;
 	install_interrupt_handlers();
-	td_init();
+//	td_init();
 	stack_storage_init();
 }
 

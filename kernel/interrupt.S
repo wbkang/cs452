@@ -10,7 +10,7 @@ asm_handle_swi:
 	@ r0 contains the pointer to the top of the register dump
 	mov r0, sp
 
-	@ save link register
+	@ save lr_svc
 	stmfd sp!, {lr}
 
 	@ put the swi argument in r1
@@ -19,13 +19,13 @@ asm_handle_swi:
 
 	@ call function
 	bl handle_swi
-	
-	@ restore link register
+
+	@ load lr_svc
 	ldmfd sp!, {lr}
 
 	@ load the usermode stuff and byebye
-	ldmfd sp, {r0-r12, sp}^
-	add sp, sp, #56
+	ldmfd sp!, {r0-r12, sp, lr}^
+	add sp, sp, #60
 	movs pc, lr
 
 @ this code switches to the usermode
@@ -37,9 +37,8 @@ asm_handle_swi:
 @ syscall code.
 @ r0 : request id
 @ r1 : arguments array
-.global asm_handle_swi
+.global asm_syscall
 asm_syscall:
 	swi 0
-
 	@return
-	mov pc,lr
+	mov pc, lr
