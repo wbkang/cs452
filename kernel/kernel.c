@@ -19,6 +19,7 @@ void handle_swi(register_set *reg, int service_no) {
 
 void kernel_init() {
 	install_interrupt_handlers();
+	td_init();
 }
 
 int kernel_create(int priority, void(*code)()) {

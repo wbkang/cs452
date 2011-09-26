@@ -13,7 +13,6 @@ struct _tag_task_descriptor {
 		uint state;
 		uint priority;
 		uint parent_id; // should this be a pointer to the parent td?
-		uint rv;
 		struct _tag_task_descriptor *prev;
 		struct _tag_task_descriptor *next;
 		register_set registers; // r0-r12, sp and lr; these should be on user stack?
@@ -21,21 +20,7 @@ struct _tag_task_descriptor {
 
 typedef struct _tag_task_descriptor task_descriptor;
 
-#define TASK_CURRENT_ADDRESS 0x31337
-#define TASK_CURRENT ((task_descriptor) TASK_CURRENT_ADDRESS)
 
-#define TASK_LIST_SIZE 16
-
-struct _tag_task_descriptor_list {
-		task_descriptor head_taken;
-		task_descriptor head_free;
-		task_descriptor td[TASK_LIST_SIZE];
-};
-
-typedef struct _tag_task_descriptor_list task_descriptor_list;
-
-#define TASK_LIST_ADDRESS 0x1337
-#define TASK_LIST ((task_descriptor_list *) TASK_LIST_ADDRESS)
 
 /*
  * The task descriptor list must support the following operations in O(1)
@@ -66,25 +51,9 @@ typedef struct _tag_task_descriptor_list task_descriptor_list;
  * every delete.
  */
 
-#define TD_REMOVE(td) { \
-	(td)->prev->next = (td)->next; \
-	(td)->next->prev = (td)->prev; \
-}
-
-#define TD_APPEND(ref, td) { \
-	(td)->prev = (ref); \
-	(td)->next = (td)->prev->next; \
-	(td)->prev->next = (td); \
-	(td)->next->prev = (td); \
-}
-
-#define TD_MOVE(ref, td) { \
-	TD_REMOVE(td); \
-	TD_APPEND(ref, td); \
-}
 
 void td_init();
 
-task_descriptor *td_new();
+task_descriptor* td_new();
 
 void td_delete(task_descriptor *td);
