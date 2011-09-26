@@ -24,7 +24,7 @@ asm_handle_swi:
 	ldmfd sp!, {lr}
 
 	@ load the usermode stuff and byebye
-	ldmfd sp!, {r0-r12, sp, lr}^
+	ldmfd sp, {r0-r12, sp, lr}^
 	add sp, sp, #60
 	movs pc, lr
 
