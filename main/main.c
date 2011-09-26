@@ -11,6 +11,7 @@ int main(int argc, char* argv[]) {
 	kernel_init();
 	bwprintf(COM2, "kernel_init finished\n");
 	ASM("swi 0");
+	ASM("swi 1");
 
 //	Create(1, NULL);
 	Pass();
