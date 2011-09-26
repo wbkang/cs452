@@ -11,35 +11,51 @@ static void test_pqueue() {
 	priorityq pq;
 	priorityq_init(&pq, 4, 8, (void*)mem_start_address());
 
+	bwprintf(COM2, "PQ pushing ");
+
 	for (int tasknum = 0; tasknum < 8; tasknum++) {
 		for (int priority = 0; priority < 4; priority++) {
-			bwprintf(COM2, "PQ PUSH PRIORITY:%d TASK:%d\n", priority, tasknum);
+			bwprintf(COM2, " [%d,%d]", priority, tasknum);
 			uint item = priority * 10 + tasknum;
 			priorityq_push(&pq, (void*)item, priority);
 		}
 	}
 
+	bwprintf(COM2, "\nPQ popping ");
+
 	for ( int i = 0; i < 32; i++) {
 		uint item = (uint)priorityq_pop(&pq);
-		bwprintf(COM2, "PQ MAXP PRIORITY:%d TASK:%d\n", item / 10, item%10);
+		bwprintf(COM2, " [%d,%d]", item / 10, item%10);
 	}
+
+	bwprintf(COM2, "\n");
 }
 
 static void test_queue() {
 	queue* q = (void*)mem_start_address();
 	queue_init(q, 5);
 
+	bwprintf(COM2, "Queue Pushing ");
+
 	for (int i =0; i < 5; i ++) {
-		bwprintf(COM2, "Pushing %d\n", i);
+		bwprintf(COM2, " %d", i);
 		queue_push(q, (void*)i);
 	}
 
+	ASSERT(QUEUE_FULL(q), "queue not full!?");
+
+	bwprintf(COM2, "\nPopping...");
+
 	for (int i = 0; i < 5; i++) {
-		bwprintf(COM2, "Popped...");
 		uint val = (uint)queue_pop(q);
-		bwprintf(COM2, "%d\n", val);
+		bwprintf(COM2, " %d", val);
 		ASSERT(val == i, "test failed");
 	}
+
+	bwprintf(COM2, " \n");
+
+	ASSERT(QUEUE_EMPTY(q), "queue not empty!?");
+
 }
 
 static void test_pages() {
@@ -75,19 +91,24 @@ static void test_heap() {
 	HEAP_NODE space[size];
 	HEAP_INIT(h, (uint) space, size);
 	int i;
+
+	bwprintf(COM2, "Heap inserting...");
 	for (i = 0; i < size; i++) {
+		int item = i << 2;
 		heap_max_insert(h, i << 2);
-		bwprintf(COM2, "inserted: %d, size: %d, top: %d\n", i << 2, h->size,
-				HEAP_TOP(h));
+		bwprintf(COM2, " %d", i << 2);
+		ASSERT(HEAP_TOP(h) == item, "wrong top item");
 	}
 
-	ASSERT(h->arr[0] == (size - 1) << 2,
-			"the top is not the largest number inserted");
+	ASSERT(h->arr[0] == (size - 1) << 2, "the top is not the largest number inserted");
 
+	bwprintf(COM2, "\nHeap popping...");
 	for (i = 0; i < size; i++) {
-		bwprintf(COM2, "extracted %d, %size %d, top: %d\n", heap_extract_max(h),
-				h->size, HEAP_TOP(h));
+		int item = heap_extract_max(h);
+		bwprintf(COM2, " %d", item);
 	}
+
+	bwputc(COM2, '\n');
 }
 
 static void test_stack() {
@@ -96,21 +117,26 @@ static void test_stack() {
 	stack_node space[size];
 	stack_init(&s, space, size);
 	int i;
+
+	bwprintf(COM2, "Stack pushing...");
 	for (i = 0; i < size; i++) {
 		stack_push(&s, (void*)(i << 2));
-		bwprintf(COM2, "inserted: %d, top: %x\n", i << 2, s.top);
+		bwprintf(COM2, " %d", i << 2);
 	}
+
+	bwprintf(COM2, "\nStack popping...");
 	for (i = 0; i < size; i++) {
-		bwprintf(COM2, "extracted %d, top: %x\n", stack_pop(&s), s.top);
+		bwprintf(COM2, " %d", stack_pop(&s));
 	}
+	bwputc(COM2, '\n');
 }
 
 void test_run() {
 	bwprintf(COM2, ">>>>>>>>>>>>>>>>>>>>TEST START\n");
-	test_pages();
+	//test_pages();
 	test_heap();
 	test_stack();
 	test_queue();
 	test_pqueue();
-	bwprintf(COM2, ">>>>>>>>>>>>>>>>>>>>TEST END\n");
+	bwprintf(COM2, "<<<<<<<<<<<<<<<<<<<<TEST END\n");
 }
