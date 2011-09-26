@@ -11,16 +11,26 @@ struct _tag_task_descriptor {
 		uint id;
 		uint state;
 		uint priority;
-		uint parent_id;
+		uint parent_id; // should this be a pointer to the parent td?
 		memptr stack;
 		uint spsr;
 		uint rv;
 		struct _tag_task_descriptor *prev;
 		struct _tag_task_descriptor *next;
-		int registers[15]; // r0-r12, sp and lr
+		int registers[15]; // r0-r12, sp and lr; these should be on user stack?
 };
 
 typedef struct _tag_task_descriptor task_descriptor;
+
+#define TASK_LIST_SIZE 16
+
+struct _tag_task_descriptor_list {
+		task_descriptor head_taken;
+		task_descriptor head_free;
+		task_descriptor td[TASK_LIST_SIZE];
+};
+
+typedef struct _tag_task_descriptor_list task_descriptor_list;
 
 /*
  * The task descriptor list must support the following operations in O(1)
@@ -44,18 +54,32 @@ typedef struct _tag_task_descriptor task_descriptor;
  * 	head of the taken list, and the second one is the head of the free list.
  */
 
-#define TD_FULL(tdl) (TD_HEAD_FREE(tdl)->next == TD_HEAD_FREE(tdl))
-#define TD_HEAD_TAKEN(tdl) tdl[0]
-#define TD_HEAD_FREE(tdl) tdl[1]
+/*
+ * I just realized that I could have used a stack as well. To remove from the
+ * middle you simply memcpy the top of the stack to the middle and pop. This
+ * will be simpler and use less space, but there will be a cost of memcpy on
+ * every delete.
+ */
 
 #define TD_REMOVE(td) { \
-	td->prev->next = td->next; \
-	td->next->prev = td->prev; \
+	(td)->prev->next = (td)->next; \
+	(td)->next->prev = (td)->prev; \
 }
 
-#define TD_APPEND(ref, td) {\
-	td->prev = ref; \
-	td->next = td->prev->next; \
-	td->prev->next = td; \
-	td->next->prev = td; \
+#define TD_APPEND(ref, td) { \
+	(td)->prev = (ref); \
+	(td)->next = (td)->prev->next; \
+	(td)->prev->next = (td); \
+	(td)->next->prev = (td); \
 }
+
+#define TD_MOVE(ref, td) { \
+	TD_REMOVE(td); \
+	TD_APPEND(ref, td); \
+}
+
+void td_init(task_descriptor_list *tdlist);
+
+task_descriptor *td_new(task_descriptor_list *tdlist);
+
+void td_delete(task_descriptor_list *tdlist, task_descriptor *td);

@@ -3,6 +3,7 @@
 #include <hardware.h>
 #include <util.h>
 #include <rawio.h>
+#include <task.h>
 
 static void install_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
