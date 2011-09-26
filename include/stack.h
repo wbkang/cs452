@@ -2,21 +2,20 @@
 
 #include <util.h>
 
-// ghetto templates, yo
 typedef void* stack_node;
 
 typedef struct _tag_stack {
 		stack_node *top, *min, *max;
-}stack;
+} stack;
 
 void stack_init(stack *s, stack_node* address, uint size);
 
 void stack_push(stack *s, stack_node p);
 
-void stack_pushmany(stack *s, stack_node *p, uint len);
-
 stack_node stack_pop(stack *s);
 
-stack_node *stack_popmany(stack *s, uint len);
+// void stack_pushmany(stack *s, stack_node *p, uint len);
 
-void stack_popmany2(stack *s, uint len, stack_node *dest);
+// stack_node *stack_popmany(stack *s, uint len);
+
+// void stack_popmany2(stack *s, uint len, stack_node *dest);
