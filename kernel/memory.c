@@ -1,10 +1,10 @@
 #include <memory.h>
 #include <util.h>
 
-void pages_init(pages p, uint size, uint first_node, uint first_page) {
+void pages_init(pages p, uint size, uint first_node, memptr first_page) {
 	p->head = (memptr) first_node;
 	p->first_node = first_node;
-	p->first_page = first_page;
+	p->first_page = (uint) first_page;
 	// initialize nodes
 	uint addr = first_node + 4 * (size - 1); // bottom
 	MEM(addr) = NULL;

@@ -4,10 +4,16 @@
 #include <hardware.h>
 
 void raw_init() {
-	uart_fifo(COM2, OFF);
-	uart_speed(COM1, 2400);
-	uart_stopbits(COM2, 2);
+	// init COM1
 	uart_fifo(COM1, OFF);
+	uart_speed(COM1, 2400);
+	uart_stopbits(COM1, 2);
+	uart_databits(COM1, 8);
+	uart_parity(COM1, OFF);
+
+	// init COM2
+	uart_fifo(COM2, OFF);
+	uart_stopbits(COM2, 2);
 }
 
 int raw_isrxempty(int channel) {
