@@ -64,7 +64,6 @@ void kernel_init() {
 	td_init();
 	stack_storage_init();
 	task_queue_init();
-
 }
 
 int kernel_createtask(int priority, void(*code)()) {

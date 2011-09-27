@@ -116,7 +116,8 @@ static void test_stack() {
 	int size = 8;
 	stack s;
 	stack_node space[size];
-	stack_init(&s, space, size);
+	stack_node *temp = space;
+	stack_init(&s, &temp, size);
 	int i;
 
 	bwprintf(COM2, "Stack pushing...");
