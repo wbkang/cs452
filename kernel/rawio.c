@@ -13,7 +13,7 @@ void raw_init() {
 
 	// init COM2
 	uart_fifo(COM2, OFF);
-	uart_stopbits(COM2, 2);
+
 }
 
 int raw_isrxempty(int channel) {
