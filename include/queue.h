@@ -6,7 +6,7 @@ typedef struct _tag_queue {
 		uint head;
 		uint tail;
 		uint size;
-		void* arr[]; // this needs to have the length of size
+		void* arr[];
 } queue;
 
 #define QUEUE_MEMSIZE(sz) (sizeof(queue)+ (sz))
@@ -17,7 +17,7 @@ typedef struct _tag_queue {
 
 #define QUEUE_FULL(q) (QUEUE_INCREMENT((q), (q)->tail) == (q)->head)
 
-queue* queue_init(uint size, memptr *space);
+queue* queue_init(uint size, memptr *heap);
 
 void queue_push(queue *q, void* item);
 

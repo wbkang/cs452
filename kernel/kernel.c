@@ -11,14 +11,11 @@
 // the size of a user task stack in words. 64k
 #define STACK_SIZE 16384
 
-// task queue size per priority
-#define TASK_QUEUE_SIZE TASK_LIST_SIZE
+volatile static task_descriptor *current_task_descriptor;
 
-volatile static task_descriptor * current_task_descriptor;
+static stack *stack_storage;
 
-static stack stack_storage;
-
-static priorityq task_priority_queue;
+static priorityq *task_priority_queue;
 
 static void install_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
@@ -26,14 +23,14 @@ static void install_interrupt_handlers() {
 
 static void stack_storage_init() {
 	memptr cur_mem_top = mem_top();
-	cur_mem_top = (memptr)ROUND_UP(cur_mem_top, 4096);
+	cur_mem_top = (memptr) ROUND_UP(cur_mem_top, 4096);
 
 	bwprintf(COM2, "Using %x as the usermode stacks storage.\n", cur_mem_top);
 
-	stack_init(&stack_storage, &cur_mem_top, TASK_LIST_SIZE);
+	stack_storage = new_stack(TASK_LIST_SIZE, &cur_mem_top);
 
 	for (int i = TASK_LIST_SIZE - 1; i != -1; i--) {
-		stack_push(&stack_storage, cur_mem_top);
+		stack_push(stack_storage, cur_mem_top);
 		cur_mem_top += STACK_SIZE;
 	}
 
@@ -42,9 +39,9 @@ static void stack_storage_init() {
 
 static void task_queue_init() {
 	bwprintf(COM2, "Task queue init\n");
-	memptr cur_mem_top = mem_top();
-	priorityq_init(&task_priority_queue, NUM_PRIORITY, TASK_LIST_SIZE, &cur_mem_top);
-	mem_mark_occupied(cur_mem_top);
+	memptr heap = mem_top();
+	task_priority_queue = priorityq_init(TASK_LIST_SIZE, NUM_PRIORITY, &heap);
+	// mem_mark_occupied(cur_mem_top);
 }
 
 void handle_swi(register_set *reg, int req_no) {
@@ -73,8 +70,6 @@ int kernel_createtask(int priority, void(*code)()) {
 	//task_descriptor * td = td_new();
 
 	// initialize user stack
-
-
 
 	// append task to scheduler ready queue
 	// return my task id

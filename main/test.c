@@ -7,10 +7,59 @@
 #include <rawio.h>
 #include <priorityq.h>
 
-static void test_pqueue() {
-	priorityq pq;
+#define TEST_START(name) bwprintf(COM2, "%s... ", name)
+
+#define TEST_END(name) bwprintf(COM2, "looks good\n")
+
+#define EXPECT(expected, got) { \
+	if (got != expected) { \
+		bwprintf(COM2, "ERROR!!!\nExpected %d but got %d (0x%x)", expected, got, got); \
+		die(); \
+	} \
+}
+
+static void test_stack() {
+	TEST_START("stack");
+	int size = 1337;
 	memptr p = mem_top();
-	priorityq_init(&pq, 4, 8, &p);
+	stack *s = new_stack(size, &p);
+	int i;
+	void *got, *expected;
+	for (i = 0; i < size; i++) {
+		stack_push(s, (void *) (1 << i));
+	}
+	for (i = size - 1; i != -1; i--) {
+		got = stack_pop(s);
+		expected = (void *) (1 << i);
+		EXPECT(expected, got);
+	}
+	TEST_END("stack");
+}
+
+static void test_queue() {
+	TEST_START("queue");
+	int size = 1337;
+	memptr p = mem_top();
+	queue *q = queue_init(size, &p);
+	void *got, *expected;
+	for (int i = 0; i < size; i++) {
+		queue_push(q, (void*) (1 << i));
+	}
+	ASSERT(QUEUE_FULL(q), "ERROR!!!\nInserted max no of items yet not full!");
+	for (int i = 0; i < size; i++) {
+		got = queue_pop(q);
+		expected = (void *) (1 << i);
+		EXPECT(expected, got);
+	}
+	TEST_END("queue");
+}
+
+static void test_pqueue() {
+	TEST_START("priority queue");
+	int size = 1337;
+	int num_priorities = 1337;
+	memptr p = mem_top();
+	priorityq *pq = priorityq_init(size, num_priorities, &p);
 
 	bwprintf(COM2, "PQ pushing ");
 
@@ -18,45 +67,18 @@ static void test_pqueue() {
 		for (int priority = 0; priority < 4; priority++) {
 			bwprintf(COM2, " [%d,%d]", priority, tasknum);
 			uint item = priority * 10 + tasknum;
-			priorityq_push(&pq, (void*)item, priority);
+			priorityq_push(&pq, (void*) item, priority);
 		}
 	}
 
 	bwprintf(COM2, "\nPQ popping ");
 
-	for ( int i = 0; i < 32; i++) {
-		uint item = (uint)priorityq_pop(&pq);
-		bwprintf(COM2, " [%d,%d]", item / 10, item%10);
+	for (int i = 0; i < 32; i++) {
+		uint item = (uint) priorityq_pop(&pq);
+		bwprintf(COM2, " [%d,%d]", item / 10, item % 10);
 	}
 
-	bwprintf(COM2, "\n");
-}
-
-static void test_queue() {
-	memptr p = mem_top();
-	queue *q = queue_init(5 , &p);
-
-	bwprintf(COM2, "Queue Pushing ");
-
-	for (int i =0; i < 5; i ++) {
-		bwprintf(COM2, " %d", i);
-		queue_push(q, (void*)i);
-	}
-
-	ASSERT(QUEUE_FULL(q), "queue not full!?");
-
-	bwprintf(COM2, "\nQueue Popping...");
-
-	for (int i = 0; i < 5; i++) {
-		uint val = (uint)queue_pop(q);
-		bwprintf(COM2, " %d", val);
-		ASSERT(val == i, "test failed");
-	}
-
-	bwprintf(COM2, " \n");
-
-	ASSERT(QUEUE_EMPTY(q), "queue not empty!?");
-
+	TEST_END("priority queue");
 }
 
 //static void test_pages() {
@@ -86,6 +108,7 @@ static void test_queue() {
 //}
 
 static void test_heap() {
+	TEST_START("heap");
 	int size = 8;
 	struct _tag_heap _h;
 	heap h = &_h;
@@ -101,7 +124,8 @@ static void test_heap() {
 		ASSERT(HEAP_TOP(h) == item, "wrong top item");
 	}
 
-	ASSERT(h->arr[0] == (size - 1) << 2, "the top is not the largest number inserted");
+	ASSERT(h->arr[0] == (size - 1) << 2,
+			"the top is not the largest number inserted");
 
 	bwprintf(COM2, "\nHeap popping...");
 	for (i = 0; i < size; i++) {
@@ -109,37 +133,16 @@ static void test_heap() {
 		bwprintf(COM2, " %d", item);
 	}
 
-	bwputc(COM2, '\n');
-}
-
-static void test_stack() {
-	int size = 8;
-	stack s;
-	stack_node space[size];
-	stack_node *temp = space;
-	stack_init(&s, &temp, size);
-	int i;
-
-	bwprintf(COM2, "Stack pushing...");
-	for (i = 0; i < size; i++) {
-		stack_push(&s, (void*)(i << 2));
-		bwprintf(COM2, " %d", i << 2);
-	}
-
-	bwprintf(COM2, "\nStack popping...");
-	for (i = 0; i < size; i++) {
-		bwprintf(COM2, " %d", stack_pop(&s));
-	}
-	bwputc(COM2, '\n');
+	TEST_END("heap");
 }
 
 void test_run() {
-	bwprintf(COM2, ">>>>>>>>>>>>>>>>>>>>TEST START\n");
 	mem_init();
+	bwprintf(COM2, "################ DIAGNOSTICS ################\n");
 	//test_pages();
-	test_heap();
 	test_stack();
 	test_queue();
+	test_heap();
 	test_pqueue();
-	bwprintf(COM2, "<<<<<<<<<<<<<<<<<<<<TEST END\n");
+	bwprintf(COM2, "################ END OF DIAGNOSTICS ################\n");
 }

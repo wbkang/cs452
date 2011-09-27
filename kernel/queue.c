@@ -1,16 +1,14 @@
 #include <queue.h>
 
-
-queue* queue_init(uint size, memptr *space) {
+queue* queue_init(uint size, memptr *heap) {
 	ASSERT(size > 0, "queue size needs to be greater than 0");
-	queue *q = (queue*)*space;
-	*space += size + 1 + sizeof(queue);
-
+	// allocate memory
+	queue *q = (queue*) *heap;
+	*heap += sizeof(queue) + sizeof(void*) * (size + 1); // extra 1 is an implementation detail, need it to diff. empty and full states
+	// initialize
 	q->head = 0;
 	q->tail = 0;
 	q->size = size + 1;
-
-
 	return q;
 }
 

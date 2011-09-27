@@ -2,21 +2,15 @@
 
 #include <util.h>
 
-typedef memptr stack_node;
-
 typedef struct _tag_stack {
-		stack_node *top, *min, *max;
+		void **top;
+		void **min;
+		void **max;
+		void *arr[];
 } stack;
 
-// FIXME change the order of the arguments top and size
-void stack_init(stack *s, memptr *top, uint size);
+stack *new_stack(uint size, memptr *heap);
 
-void stack_push(stack *s, stack_node p);
+void stack_push(stack *s, void *item);
 
-stack_node stack_pop(stack *s);
-
-// void stack_pushmany(stack *s, stack_node *p, uint len);
-
-// stack_node *stack_popmany(stack *s, uint len);
-
-// void stack_popmany2(stack *s, uint len, stack_node *dest);
+void* stack_pop(stack *s);
