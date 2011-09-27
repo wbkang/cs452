@@ -1,30 +1,25 @@
 #include <priorityq.h>
-
 #include <hardware.h>
 #include <rawio.h>
 
-void priorityq_init(priorityq *pq, int num_priorities, int size, memptr *space) {
-	memptr memtop = *space;
-
+priorityq *priorityq_init(int size, int num_priorities, memptr *heap) {
+	// allocate memory
+	priorityq *pq = (priorityq *) *heap;
+	*heap += sizeof(priorityq) + sizeof(queue) * num_priorities;
+	// initialize
 	pq->num_priorities = num_priorities;
 	pq->len = 0;
-	pq->q = (queue**)memtop;
-	memtop += num_priorities;
-
-	for (int i = 0; i < num_priorities; ++i) {
-		pq->q[i] = queue_init(size, &memtop);
+	for (int i = 0; i < num_priorities; i++) {
+		pq->q[i] = queue_init(size, &heap);
 	}
-
-	*space = memtop;
+	return pq;
 }
 
 int priorityq_maxp(priorityq *pq) { // index of non-empty q with max priority
 	int i = pq->num_priorities - 1;
-
 	while (i >= 0 && QUEUE_EMPTY(pq->q[i])) {
 		--i;
 	}
-
 	return i;
 }
 

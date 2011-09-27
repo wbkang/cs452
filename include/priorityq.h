@@ -1,20 +1,19 @@
 #pragma once
 
-#include <util.h>
 #include <queue.h>
+#include <util.h>
 
 typedef struct _tag_priorityq {
-	int num_priorities;
-	int len;
-	queue **q; // this needs to point to an array of queue pointers
+		int num_priorities;
+		int len;
+		queue **q; // this needs to point to an array of queue pointers
 } priorityq;
 
 #define PRIORITYQ_Q_MEMSIZE(num_p, qsize) ((num_p) * QUEUE_MEMSIZE(qsize))
 
 #define PRIORITYQ_EMPTY(pq) ((pq)->len == 0)
 
-// FIXIT change api
-void priorityq_init(priorityq *pq, int num_priorities, int size, memptr *space);
+void priorityq_init(int size, int num_priorities, memptr *heap);
 
 int priorityq_maxp(priorityq *pq);
 

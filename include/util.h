@@ -41,12 +41,11 @@ void errormsg(char*);
 void die();
 
 #if ASSERT_ENABLED
-#define ASSERT(X, MSG) \
-{\
-	if (!(X)) {\
-		errormsg("assertion failed in function " __FILE__ " line:" TOSTRING(__LINE__) CRLF);\
+#define ASSERT(X, MSG) { \
+	if (!(X)) { \
+		errormsg("assertion failed in function " __FILE__ " line:" TOSTRING(__LINE__) CRLF); \
 		errormsg(MSG); die(); \
-	}\
+	} \
 }
 #else
 #define ASSERT(X,MSG) { }
