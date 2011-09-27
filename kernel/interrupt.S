@@ -4,7 +4,7 @@
 @ this code handles swi system call
 asm_handle_swi:
 	@ save the usermode crap
-	stmfd sp, {r0-r12,sp, lr}^
+	stmfd sp, {r0-r12, sp, lr}^
 	sub sp, sp, #60
 
 	@ save the spsr as well
@@ -18,7 +18,7 @@ asm_handle_swi:
 	stmfd sp!, {lr}
 
 	@ put the swi argument in r1
-	ldr r1,[lr,#-4]
+	ldr r1, [lr,#-4]
 	bic r1, r1, #0xff000000
 
 	@ call function

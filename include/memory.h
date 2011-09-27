@@ -11,7 +11,7 @@ typedef struct _tag_pages {
 		uint first_page;
 }*pages;
 
-void pages_init(pages p, uint size, uint first_node, uint first_page);
+void pages_init(pages p, uint size, uint first_node, memptr first_page);
 memptr pages_nextnode(memptr node);
 uint pages_nodeindex(pages p, memptr node);
 uint pages_pageindex(pages p, memptr page);
