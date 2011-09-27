@@ -2,7 +2,6 @@
 #include <assembly.h>
 #include <util.h>
 
-
 #include <hardware.h>
 #include <rawio.h>
 /*
@@ -18,13 +17,13 @@ static int syscall(int reqid, void** args) {
 
 #ifndef __i386
 	__asm(
-		"mov r0, %[reqid]" "\n\t"
-		"mov r1, %[args]" "\n\t"
-		"swi 0" "\n\t"
-		"mov %[result], r0" "\n\t"
-		: [result] "=r" (retval)
-		: [reqid] "r" (reqid), [args] "r" (reqid)
-		: "r0", "r1"
+			"mov r0, %[reqid]" "\n\t"
+			"mov r1, %[args]" "\n\t"
+			"swi 0" "\n\t"
+			"mov %[result], r0" "\n\t"
+			: [result] "=r" (retval)
+			: [reqid] "r" (reqid), [args] "r" (reqid)
+			: "r0", "r1"
 	);
 #endif
 
@@ -33,7 +32,7 @@ static int syscall(int reqid, void** args) {
 }
 
 int Create(int priority, void(*code)()) {
-	void* args[2] = { (void*)priority, (void*)(unsigned int)code };
+	void* args[2] = { (void*) priority, (void*) (unsigned int) code };
 	return syscall(SYSCALL_CREATE, args);
 }
 

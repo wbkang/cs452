@@ -16,7 +16,7 @@
 
 volatile static int current_tid;
 
-static void* _stack_memory[TASK_LIST_SIZE];
+static void *_stack_memory[TASK_LIST_SIZE];
 static stack stack_storage;
 
 static priorityq task_priority_queue;
@@ -27,19 +27,17 @@ static void install_interrupt_handlers() {
 
 static void stack_storage_init() {
 	uint mem_start = mem_start_address();
-
-	bwprintf(COM2, "Using %x as the usermode stacks storage.\n", mem_start);
-
+	bwprintf(COM2, "Using 0x%x as the usermode stacks storage.\n", mem_start);
 	stack_init(&stack_storage, _stack_memory, TASK_LIST_SIZE);
-
 	for (int i = 0; i < TASK_LIST_SIZE; i++) {
-		stack_push(&stack_storage, (stack_node)(mem_start + i * STACK_SIZE));
+		stack_push(&stack_storage, (stack_node) (mem_start + i * STACK_SIZE));
 	}
 }
 
 static void task_queue_init() {
 	bwprintf(COM2, "Task queue init\n");
-	priorityq_init(&task_priority_queue, NUM_PRIORITY, TASK_LIST_SIZE, stack_pop(&stack_storage));
+	void **space = stack_pop(&stack_storage);
+	priorityq_init(&task_priority_queue, NUM_PRIORITY, TASK_LIST_SIZE, space);
 }
 
 void handle_swi(register_set *reg, int req_no) {
@@ -58,18 +56,15 @@ void kernel_init() {
 	td_init();
 	stack_storage_init();
 	task_queue_init();
-
 }
 
 int kernel_createtask(int priority, void(*code)()) {
 	// test weather *code is valid
 
 	// generate task id
-	//task_descriptor * td = td_new();
+	//task_descriptor  *td = td_new();
 
 	// initialize user stack
-
-
 
 	// append task to scheduler ready queue
 	// return my task id
