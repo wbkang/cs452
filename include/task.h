@@ -3,27 +3,22 @@
 #include <util.h>
 #include <hardware.h>
 
-
 #define TASK_LIST_SIZE 16
 
-
 typedef struct _tag_register_set {
-	int spsr;
-	int registers[15]; // r0-r12, sp and lr
+		int spsr;
+		int registers[15]; // r0-r12, sp and lr
 } register_set;
 
 typedef struct _tag_task_descriptor {
-	int id;
-	uint state;
-	uint priority;
-	int parent_id; // should this be a pointer to the parent td?
-	register_set registers; // r0-r12, sp and lr; these should be on user stack?
-	struct _tag_task_descriptor *_prev;
-	struct _tag_task_descriptor *_next;
+		int id;
+		uint state;
+		uint priority;
+		int parent_id; // should this be a pointer to the parent td?
+		register_set registers; // r0-r12, sp and lr; these should be on user stack?
+		struct _tag_task_descriptor *_prev;
+		struct _tag_task_descriptor *_next;
 } task_descriptor;
-
-
-
 
 /*
  * The task descriptor list must support the following operations in O(1)
@@ -53,7 +48,6 @@ typedef struct _tag_task_descriptor {
  * will be simpler and use less space, but there will be a cost of memcpy on
  * every delete.
  */
-
 
 void td_init();
 

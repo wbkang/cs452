@@ -1,11 +1,9 @@
 #include <task.h>
 
-static int last_used_tid;
-
 static struct _tag_task_descriptor_list {
-		task_descriptor head_taken;
-		task_descriptor head_free;
-		task_descriptor td[TASK_LIST_SIZE];
+	task_descriptor head_taken;
+	task_descriptor head_free;
+	task_descriptor td[TASK_LIST_SIZE];
 } task_descriptors;
 
 #define TD_REMOVE(td) { \
@@ -25,10 +23,7 @@ static struct _tag_task_descriptor_list {
 	TD_APPEND(ref, td); \
 }
 
-
 void td_init() {
-	last_used_tid = 0;
-
 	// initialize taken queue
 	task_descriptor *head_taken = &task_descriptors.head_taken;
 
@@ -53,10 +48,7 @@ void td_init() {
 task_descriptor *td_new() {
 	task_descriptor *td = task_descriptors.head_free._next;
 	ASSERT(td != &task_descriptors.head_free, "no more empty task descriptors");
-
 	TD_MOVE(&task_descriptors.head_taken, td);
-
-	td->id = ++last_used_tid;
 	return td;
 }
 
