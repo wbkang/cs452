@@ -30,6 +30,7 @@ typedef char *va_list;
 #define MAX(x, y) ( ( (x) > (y) ) ? (x) : (y) )
 #define MIN(x, y) ( ( (x) < (y) ) ? (x) : (y) )
 #define INSTALL_INTERRUPT_HANDLER(vec, jmp) { VMEM((vec) + 0x20) = (uint)(jmp); }
+#define ROUND_UP(x, num) ((((uint)x)+(num-1))&~(num-1))
 // turn mask bits on/off in word based on flag (improve with orr/bic?)
 #define BIT_TOGGLE(word, mask, flag) ((word) ^= (-(flag) ^ (word)) & (mask))
 ///////////// DEBUG

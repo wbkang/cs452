@@ -21,4 +21,7 @@ void uart_stopbits(int channel, int bits);
 void uart_databits(int channel, int wlen);
 void uart_parity(int channel, int enable);
 void uart_speed(int channel, int speed);
-uint mem_start_address();
+
+void mem_init();
+memptr mem_top();
+void mem_mark_occupied(void* p);

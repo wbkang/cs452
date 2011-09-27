@@ -13,7 +13,8 @@ typedef struct _tag_priorityq {
 
 #define PRIORITYQ_EMPTY(pq) ((pq)->len == 0)
 
-void priorityq_init(priorityq *pq, int num_priorities, int size, void** space);
+// FIXIT change api
+void priorityq_init(priorityq *pq, int num_priorities, int size, memptr *space);
 
 int priorityq_maxp(priorityq *pq);
 

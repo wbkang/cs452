@@ -3,17 +3,19 @@
 #include <hardware.h>
 #include <rawio.h>
 
-void priorityq_init(priorityq *pq, int num_priorities, int size, void** space) {
+void priorityq_init(priorityq *pq, int num_priorities, int size, memptr *space) {
+	memptr memtop = *space;
+
 	pq->num_priorities = num_priorities;
 	pq->len = 0;
-	pq->q = (queue**)space;
-	space += num_priorities;
+	pq->q = (queue**)memtop;
+	memtop += num_priorities;
 
 	for (int i = 0; i < num_priorities; ++i) {
-		pq->q[i] = (queue*)space;
-		queue_init(pq->q[i], size);
-		space += QUEUE_MEMSIZE(size);
+		pq->q[i] = queue_init(size, &memtop);
 	}
+
+	*space = memtop;
 }
 
 int priorityq_maxp(priorityq *pq) { // index of non-empty q with max priority
