@@ -2,6 +2,9 @@
 #include <ts7200.h>
 #include <hardware.h>
 
+extern uint _KERNEL_MEM_START;
+static memptr kernel_mem_start;
+
 void uart_fifo(int channel, int state) {
 	CHECK_COM(channel);
 	int addr = UART_BASE(channel) + UART_LCRH_OFFSET;
@@ -42,7 +45,14 @@ void uart_speed(int channel, int speed) {
 	VMEM(base + UART_LCRL_OFFSET) = (speed == 2400 ? 0xBF : 0x3); // F_UARTCLK / (16 * BAUD_RATE) - 1
 }
 
-uint mem_start_address()
-{
-	return 0x300000;
+void mem_init() {
+	kernel_mem_start = &_KERNEL_MEM_START;
+}
+
+memptr mem_top() {
+	return kernel_mem_start;
+}
+
+void mem_mark_occupied(void* p) {
+	kernel_mem_start = (memptr)p;
 }

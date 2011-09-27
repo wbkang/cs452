@@ -44,6 +44,11 @@ SECTIONS
 		*(.debug_abbrev)
 		*(.debug_aranges)
 	} > ram
+	
+	kernel_mem . :
+	{
+		_KERNEL_MEM_START = .;
+	} > ram
 }
 
 

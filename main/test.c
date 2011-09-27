@@ -9,7 +9,8 @@
 
 static void test_pqueue() {
 	priorityq pq;
-	priorityq_init(&pq, 4, 8, (void*)mem_start_address());
+	memptr p = mem_top();
+	priorityq_init(&pq, 4, 8, &p);
 
 	bwprintf(COM2, "PQ pushing ");
 
@@ -32,8 +33,8 @@ static void test_pqueue() {
 }
 
 static void test_queue() {
-	queue* q = (void*)mem_start_address();
-	queue_init(q, 5);
+	memptr p = mem_top();
+	queue *q = queue_init(5 , &p);
 
 	bwprintf(COM2, "Queue Pushing ");
 
@@ -44,7 +45,7 @@ static void test_queue() {
 
 	ASSERT(QUEUE_FULL(q), "queue not full!?");
 
-	bwprintf(COM2, "\nPopping...");
+	bwprintf(COM2, "\nQueue Popping...");
 
 	for (int i = 0; i < 5; i++) {
 		uint val = (uint)queue_pop(q);
@@ -58,31 +59,31 @@ static void test_queue() {
 
 }
 
-static void test_pages() {
-	int size = 16;
-	struct _tag_pages _p;
-	pages p = &_p;
-	memptr node_table[size];
-	pages_init(p, size, (uint) node_table, mem_start_address());
-	memptr test[size];
-	int i;
-	for (i = size - 1; i >= 0; --i) {
-		test[i] = pages_get(p);
-		ASSERT(test[i], "This should NOT be null. we have more pages.");
-		bwprintf(COM2, "page %d: %x\n", i + 1, (uint) test[i]);
-	}
-
-	ASSERT(p->head == NULL, "we have used up all the pages. should return 0.");
-
-	bwprintf(COM2, "head after remove %d: %x\n", size, (uint) p->head);
-	for (i = size - 1; i >= 0; --i) {
-		pages_put(p, test[size - 1 - i]);
-		bwprintf(COM2, "head %d: %x\n", i + 1, (uint) p->head);
-	}
-
-	ASSERT(p->head == (memptr) p->first_node,
-			"we returned the last page last.");
-}
+//static void test_pages() {
+//	int size = 16;
+//	struct _tag_pages _p;
+//	pages p = &_p;
+//	memptr node_table[size];
+//	pages_init(p, size, (uint) node_table, mem_top());
+//	memptr test[size];
+//	int i;
+//	for (i = size - 1; i >= 0; --i) {
+//		test[i] = pages_get(p);
+//		ASSERT(test[i], "This should NOT be null. we have more pages.");
+//		bwprintf(COM2, "page %d: %x\n", i + 1, (uint) test[i]);
+//	}
+//
+//	ASSERT(p->head == NULL, "we have used up all the pages. should return 0.");
+//
+//	bwprintf(COM2, "head after remove %d: %x\n", size, (uint) p->head);
+//	for (i = size - 1; i >= 0; --i) {
+//		pages_put(p, test[size - 1 - i]);
+//		bwprintf(COM2, "head %d: %x\n", i + 1, (uint) p->head);
+//	}
+//
+//	ASSERT(p->head == (memptr) p->first_node,
+//			"we returned the last page last.");
+//}
 
 static void test_heap() {
 	int size = 8;
@@ -133,6 +134,7 @@ static void test_stack() {
 
 void test_run() {
 	bwprintf(COM2, ">>>>>>>>>>>>>>>>>>>>TEST START\n");
+	mem_init();
 	//test_pages();
 	test_heap();
 	test_stack();

@@ -1,10 +1,14 @@
 #include <stack.h>
 #include <util.h>
 
-void stack_init(stack *s, stack_node* top, uint size) {
-	s->top = top; // top points to a free space
-	s->min = s->top;
-	s->max = s->top + size;
+void stack_init(stack *s, memptr *top, uint size) {
+	stack_node *topaddr = (stack_node*)*top;
+
+	s->top = topaddr; // top points to a free space
+	s->min = topaddr;
+	s->max = topaddr + size;
+
+	*top = (memptr)s->max;
 }
 
 void stack_push(stack *s, stack_node p) {

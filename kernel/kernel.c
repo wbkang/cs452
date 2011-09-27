@@ -8,15 +8,14 @@
 #include <stack.h>
 #include <priorityq.h>
 
-// the size of a user task stack
-#define STACK_SIZE 65536
+// the size of a user task stack in words. 64k
+#define STACK_SIZE 16384
 
 // task queue size per priority
 #define TASK_QUEUE_SIZE TASK_LIST_SIZE
 
-volatile static int current_tid;
+volatile static task_descriptor * current_task_descriptor;
 
-static void* _stack_memory[TASK_LIST_SIZE];
 static stack stack_storage;
 
 static priorityq task_priority_queue;
@@ -26,20 +25,26 @@ static void install_interrupt_handlers() {
 }
 
 static void stack_storage_init() {
-	uint mem_start = mem_start_address();
+	memptr cur_mem_top = mem_top();
+	cur_mem_top = (memptr)ROUND_UP(cur_mem_top, 4096);
 
-	bwprintf(COM2, "Using %x as the usermode stacks storage.\n", mem_start);
+	bwprintf(COM2, "Using %x as the usermode stacks storage.\n", cur_mem_top);
 
-	stack_init(&stack_storage, _stack_memory, TASK_LIST_SIZE);
+	stack_init(&stack_storage, &cur_mem_top, TASK_LIST_SIZE);
 
-	for (int i = 0; i < TASK_LIST_SIZE; i++) {
-		stack_push(&stack_storage, (stack_node)(mem_start + i * STACK_SIZE));
+	for (int i = TASK_LIST_SIZE - 1; i != -1; i--) {
+		stack_push(&stack_storage, cur_mem_top);
+		cur_mem_top += STACK_SIZE;
 	}
+
+	mem_mark_occupied(cur_mem_top);
 }
 
 static void task_queue_init() {
 	bwprintf(COM2, "Task queue init\n");
-	priorityq_init(&task_priority_queue, NUM_PRIORITY, TASK_LIST_SIZE, stack_pop(&stack_storage));
+	memptr cur_mem_top = mem_top();
+	priorityq_init(&task_priority_queue, NUM_PRIORITY, TASK_LIST_SIZE, &cur_mem_top);
+	mem_mark_occupied(cur_mem_top);
 }
 
 void handle_swi(register_set *reg, int req_no) {
@@ -53,8 +58,9 @@ void kernel_runloop() {
 }
 
 void kernel_init() {
-	current_tid = -1;
+	current_task_descriptor = NULL;
 	install_interrupt_handlers();
+	mem_init();
 	td_init();
 	stack_storage_init();
 	task_queue_init();

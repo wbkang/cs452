@@ -6,17 +6,18 @@ typedef struct _tag_queue {
 		uint head;
 		uint tail;
 		uint size;
-		uint count;
 		void* arr[]; // this needs to have the length of size
 } queue;
 
 #define QUEUE_MEMSIZE(sz) (sizeof(queue)+ (sz))
 
-#define QUEUE_EMPTY(q) ((q)->count == 0)
+#define QUEUE_EMPTY(q) ((q)->head == (q)->tail)
 
-#define QUEUE_FULL(q) ((q)->count == (q)->size)
+#define QUEUE_INCREMENT(q, i) (((i) + 1 < (q)->size) ? (i) + 1 : 0)
 
-void queue_init(queue *q, uint size);
+#define QUEUE_FULL(q) (QUEUE_INCREMENT((q), (q)->tail) == (q)->head)
+
+queue* queue_init(uint size, memptr *space);
 
 void queue_push(queue *q, void* item);
 
