@@ -140,6 +140,7 @@ void kernel_passtask() {
 
 void kernel_exittask() {
 	bwprintf(COM2, "kernel_exittask()\n");
+	td_free(td_current);
 	td_current = priorityq_pop(ready_queue); // grab next task
 	priorityq_push(ready_queue, (task_descriptor *) td_current,
 			td_current->priority); // schedule next task
