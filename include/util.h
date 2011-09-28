@@ -36,7 +36,7 @@ typedef char *va_list;
 #define BIT_TOGGLE(word, mask, flag) ((word) ^= (-(flag) ^ (word)) & (mask))
 ///////////// DEBUG
 #define ASSERT_ENABLED 1
-#define DEBUG 0
+#define TRACE_ENABLED 1
 
 void errormsg(char*);
 void die();
@@ -49,7 +49,14 @@ void die();
 	} \
 }
 #else
-#define ASSERT(X,MSG) { }
+#define ASSERT(X,MSG)
+#endif
+
+#if TRACE_ENABLED
+void bwprintf(int channel, char *fmt, ... );
+#define TRACE(...) { bwprintf(1, __VA_ARGS__); }
+#else
+#define TRACE(...)
 #endif
 
 #define CHECK_COM(_c) ASSERT((_c) == COM1 ||  (_c) == COM2, "Invalid channel " #_c)

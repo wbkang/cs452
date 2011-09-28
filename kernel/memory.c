@@ -37,7 +37,7 @@ void* umalloc(uint size) { // requires size in bytes
 	uint rounded_up = (size + 3) >> 2; // round up to nearest word
 	memptr rv = td->heap;
 	td->heap += rounded_up;
-	/*bwprintf(COM2, "sp: %x, heap: %x, size:%d, roundedup:%d\n",
+	/*TRACE("sp: %x, heap: %x, size:%d, roundedup:%d\n",
 			(uint) td->registers.r[REG_SP], (uint) td->heap, size,
 			rounded_up);*/
 	ASSERT(((uint)td->registers.r[REG_SP]) > (uint)td->heap,

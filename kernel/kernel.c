@@ -22,7 +22,7 @@ static void install_interrupt_handlers() {
 }
 
 static void task_queue_init() {
-	bwprintf(COM2, "\tready queue initialized\n");
+	TRACE("\tready queue initialized\n");
 	ready_queue = priorityq_new(TASK_LIST_SIZE, NUM_PRIORITY);
 }
 
@@ -62,7 +62,7 @@ void handle_swi(register_set *reg, int req_no) {
 			*rv = (int) umalloc((uint) args);
 			break;
 		default:
-			bwprintf(COM2, "unknown system call %d (%x)\n", req_no, req_no);
+			TRACE("unknown system call %d (%x)\n", req_no, req_no);
 			die();
 			break;
 	}
@@ -72,7 +72,7 @@ void handle_swi(register_set *reg, int req_no) {
 		td_in->registers.r[0] = *rv;
 	}
 
-	bwprintf(COM2, ">\ttid:%d, lr:%x, pc:%x, spsr:%x\n", td_current->id, reg->r[REG_LR], reg->r[REG_PC], reg->spsr);
+	TRACE(">\ttid:%d, lr:%x, pc:%x, spsr:%x\n", td_current->id, reg->r[REG_LR], reg->r[REG_PC], reg->spsr);
 }
 
 void kernel_driver(func_t code) {
@@ -112,11 +112,11 @@ int kernel_createtask(int priority, func_t code) {
 	td->registers.spsr = 0x600000d0;
 	td->heap = (memptr) allocate_user_memory(); // top of allocated memory
 	td->stack = td->heap + (STACK_SIZE >> 2); // bottom of allocated memory
-	td->registers.r[REG_SP] = td->stack;
+	td->registers.r[REG_SP] = (int) td->stack;
 
 	priorityq_push(ready_queue, td, priority);
 
-	bwprintf(COM2, ">\tcreatetask tid:%d heap:%x\n", td->id, td->heap);
+	TRACE(">\tcreatetask tid:%d heap:%x\n", td->id, td->heap);
 	return td->id;
 }
 
@@ -129,14 +129,14 @@ int kernel_myparenttid() {
 }
 
 void kernel_passtask() {
-	bwprintf(COM2, "kernel_passtask()\n");
+	TRACE("kernel_passtask()\n");
 	td_current = priorityq_pop(ready_queue); // grab next task
 	priorityq_push(ready_queue, (task_descriptor *) td_current,
 			td_current->priority); // schedule next task
 }
 
 void kernel_exittask() {
-	bwprintf(COM2, "kernel_exittask()\n");
+	TRACE("kernel_exittask()\n");
 	td_current = priorityq_pop(ready_queue); // grab next task
 	priorityq_push(ready_queue, (task_descriptor *) td_current,
 			td_current->priority); // schedule next task
