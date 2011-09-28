@@ -12,6 +12,8 @@ void int2str(int num, char *bf);
 
 uint strlen(char *str);
 
-void strcopy(char *dest, char *src);
+void strcpy(char *dest, const char *src);
 
 uint strparseuint(char *str, int *idx);
+
+void* memcpy(void* destination, const void* source, uint num);

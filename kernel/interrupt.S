@@ -3,6 +3,9 @@
 .ident "human compiler (TM)"
 @ this code handles swi system call
 asm_handle_swi:
+	@ save the usermode pc
+	stmfd sp!, {lr}
+
 	@ save the usermode crap
 	stmfd sp, {r0-r12, sp, lr}^
 	sub sp, sp, #60
@@ -14,9 +17,6 @@ asm_handle_swi:
 	@ r0 contains the pointer to the top of the register dump (ordered spsr, r0-r14)
 	mov r0, sp
 
-	@ save lr_svc
-	stmfd sp!, {lr}
-
 	@ put the swi argument in r1
 	ldr r1, [lr,#-4]
 	bic r1, r1, #0xff000000
@@ -24,15 +24,18 @@ asm_handle_swi:
 	@ call function
 	bl handle_swi
 
-	@ load lr_svc and spsr and save spsr
-	ldmfd sp!, {lr}
+	@ load spsr and save spsr
 	ldmfd sp!, {r0}
 	msr spsr, r0
+
 
 	@ load the usermode stuff and say byebye
 	ldmfd sp, {r0-r12, sp, lr}^
 	add sp, sp, #60
+	ldmfd sp!, {lr}
+
 	movs pc, lr
+
 
 @ this code switches to the usermode
 @ r0 the pointer to the stack pointer

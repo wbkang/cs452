@@ -47,12 +47,9 @@ uint strlen(char *str) {
 	return i - str;
 }
 
-void strcopy(char *dest, char *src) {
-	while (*src) {
-		*dest = *src;
-		dest++;
-		src++;
-	}
+void strcpy(char *dest, const char *src) {
+	while ((*dest++ = *src++))
+		;
 }
 
 uint strparseuint(char *str, int *idx) {
@@ -68,3 +65,12 @@ uint strparseuint(char *str, int *idx) {
 	}
 	return num;
 }
+
+void* memcpy(void* destination, const void* source, uint num) {
+	char *dst = (char*)destination, *src = (char*)source;
+	while (num--) {
+		*dst++ = *src++;
+	}
+	return destination;
+}
+

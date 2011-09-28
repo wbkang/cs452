@@ -13,7 +13,7 @@
 
 #define EXPECT(expected, got) { \
 	if (got != expected) { \
-		bwprintf(COM2, "ERROR!!!\nExpected %d but got %d (0x%x)", expected, got, got); \
+		bwprintf(COM2, "ERROR!!!\nExpected %d but got %d (%x)", expected, got, got); \
 		die(); \
 	} \
 }
@@ -95,6 +95,6 @@ void test_run() {
 	test_queue();
 	test_priorityq();
 	test_heap();
-	bwprintf(COM2, "\n######## diagnostics done ########\n\n");
+	bwprintf(COM2, "\n######## diagnostics done ########\n");
 	mem_reset();
 }

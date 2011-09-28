@@ -150,6 +150,8 @@ void bwformat(int channel, char *fmt, va_list va) {
 					break;
 				case 'x':
 					uint2str(va_arg( va, uint ), 16, bf);
+					bwputc(channel, '0');
+					bwputc(channel, 'x');
 					bwputw(channel, w, lz, bf);
 					break;
 				case '%':
