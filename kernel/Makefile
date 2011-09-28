@@ -6,7 +6,7 @@ CCDIR = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin
 XCC	= $(CCDIR)/gcc
 AS	= $(CCDIR)/as
 AR	= $(CCDIR)/ar
-CFLAGS  = -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99
+CFLAGS  = -fno-builtin -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99
 
 # -g: include hooks for gdb
 # -c: only compile

@@ -20,7 +20,6 @@ typedef struct _tag_task_descriptor {
 		uint priority;
 		int parent_id; // should this be a pointer to the parent td?
 		register_set registers; // r0-r12, sp and lr
-		memptr entry_point;
 		memptr stack;
 		memptr heap;
 		struct _tag_task_descriptor *_prev;
