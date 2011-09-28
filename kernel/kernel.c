@@ -81,13 +81,12 @@ void kernel_driver(func_t code) {
 	td->priority = 0;
 	td->parent_id = -1;
 	td->registers.r[REG_LR] = (uint) Exit;
-	td->entry_point = (memptr) (uint) code;
 	td->heap = (memptr) allocate_user_memory(); // top of allocated memory
 	td->stack = td->heap + (STACK_SIZE >> 2); // bottom of allocated memory
 
 	priorityq_push(ready_queue, td, td->priority);
 	td_current = td;
-	asm_switch_to_usermode(td->stack, td->entry_point);
+	asm_switch_to_usermode(td->stack, (memptr)(uint)code);
 
 	ASSERT(FALSE, "reached unreachable code...");
 }

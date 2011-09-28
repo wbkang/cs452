@@ -4,7 +4,7 @@
 
 typedef unsigned int uint;
 typedef uint *memptr;
-typedef void (*func_t)(char *);
+typedef void (*func_t)();
 
 ////////// VAR ARG
 typedef char *va_list;
