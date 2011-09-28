@@ -72,7 +72,8 @@ void handle_swi(register_set *reg, int req_no) {
 		td_in->registers.r[0] = *rv;
 	}
 
-	bwprintf(COM2, ">\ttid:%d, lr:%x, pc:%x, spsr:%x\n", td_current->id, reg->r[REG_LR], reg->r[REG_PC], reg->spsr);
+	bwprintf(COM2, ">\ttid:%d, lr:%x, pc:%x, spsr:%x\n", td_current->id,
+			reg->r[REG_LR], reg->r[REG_PC], reg->spsr);
 }
 
 void kernel_driver(func_t code) {
@@ -112,7 +113,7 @@ int kernel_createtask(int priority, func_t code) {
 	td->registers.spsr = 0x600000d0;
 	td->heap = (memptr) allocate_user_memory(); // top of allocated memory
 	td->stack = td->heap + (STACK_SIZE >> 2); // bottom of allocated memory
-	td->registers.r[REG_SP] = td->stack;
+	td->registers.r[REG_SP] = (int) td->stack;
 
 	priorityq_push(ready_queue, td, priority);
 
@@ -130,6 +131,8 @@ int kernel_myparenttid() {
 
 void kernel_passtask() {
 	bwprintf(COM2, "kernel_passtask()\n");
+	priorityq_push(ready_queue, (task_descriptor *) td_current,
+			td_current->priority);
 	td_current = priorityq_pop(ready_queue); // grab next task
 	priorityq_push(ready_queue, (task_descriptor *) td_current,
 			td_current->priority); // schedule next task
