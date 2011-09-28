@@ -3,9 +3,9 @@
 #include <util.h>
 
 typedef struct _tag_stack {
-		void** top;
-		void** min;
-		void** max;
+		void* *top;
+		void* *min;
+		void* *max;
 		void* arr[];
 } stack;
 
