@@ -47,6 +47,14 @@ uint strlen(char *str) {
 	return i - str;
 }
 
+void strcopy(char *dest, char *src) {
+	while (*src) {
+		*dest = *src;
+		dest++;
+		src++;
+	}
+}
+
 uint strparseuint(char *str, int *idx) {
 	uint num = 0;
 	int digit;

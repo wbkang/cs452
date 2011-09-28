@@ -49,7 +49,7 @@ void Pass() {
 }
 
 void Exit() {
-	bwprintf(COM2, "EXIIIIIIT\n");
+	bwprintf(COM2, "calling SYSCALL_EXIT\n");
 	syscall(SYSCALL_EXIT, NULL);
 }
 

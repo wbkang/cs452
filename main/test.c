@@ -7,7 +7,7 @@
 #include <rawio.h>
 #include <priorityq.h>
 
-#define TEST_START(name) bwprintf(COM2, "%s ... ", name)
+#define TEST_START(name) bwprintf(COM2, "\t%s ... ", name)
 
 #define TEST_END(name) bwprintf(COM2, "looks good\n")
 
@@ -78,14 +78,11 @@ static void test_heap() {
 	heap *h = heap_new(size);
 	void *got, *expected;
 	for (int i = 0; i < size; i++) {
-//		bwprintf(COM2, " %d", i);
 		heap_max_insert(h, (void *) i, 11 * i);
 	}
-//	bwprintf(COM2, "popping");
 	for (int i = size - 1; i != -1; i--) {
 		got = heap_extract_max(h);
 		expected = (void *) i;
-//		bwprintf(COM2, " %d", (int) i);
 		EXPECT(expected, got);
 	}
 	TEST_END("heap");
@@ -93,11 +90,11 @@ static void test_heap() {
 
 void test_run() {
 	mem_reset();
-	bwprintf(COM2, "################ DIAGNOSTICS ################\n");
+	bwprintf(COM2, "######## diagnostics ########\n\n");
 	test_stack();
 	test_queue();
 	test_priorityq();
 	test_heap();
-	bwprintf(COM2, "################ END OF DIAGNOSTICS ################\n");
+	bwprintf(COM2, "\n######## diagnostics done ########\n\n");
 	mem_reset();
 }
