@@ -60,4 +60,6 @@ void td_init();
 
 task_descriptor* td_new();
 
-void td_delete(task_descriptor *td);
+void td_free(task_descriptor *td);
+
+task_descriptor *td_find(uint id);

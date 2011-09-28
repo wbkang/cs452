@@ -26,7 +26,6 @@ static void task1() {
 
 int main(int argc, char* argv[]) {
 	raw_init();
-	kernel_init();
 	test_run();
 	bwprintf(COM2, "######## kernel_init ########\n\n");
 	kernel_init();

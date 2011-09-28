@@ -1,7 +1,7 @@
 #include <task.h>
 
 static struct _tag_task_descriptor_list {
-	task_descriptor head_taken;
+	//task_descriptor head_taken;
 	task_descriptor head_free;
 	task_descriptor td[TASK_LIST_SIZE];
 } task_descriptors;
@@ -18,17 +18,12 @@ static struct _tag_task_descriptor_list {
 	(td)->_next->_prev = (td); \
 }
 
-#define TD_MOVE(ref, td) { \
-	TD_REMOVE(td); \
-	TD_APPEND(ref, td); \
-}
-
 void td_init() {
 	// initialize taken queue
-	task_descriptor *head_taken = &task_descriptors.head_taken;
+	//task_descriptor *head_taken = &task_descriptors.head_taken;
 
-	head_taken->_prev = head_taken;
-	head_taken->_next = head_taken;
+	//head_taken->_prev = head_taken;
+	//head_taken->_next = head_taken;
 
 	// initialize free queue
 	task_descriptor *head_free = &task_descriptors.head_free;
@@ -48,10 +43,18 @@ void td_init() {
 task_descriptor *td_new() {
 	task_descriptor *td = task_descriptors.head_free._next;
 	ASSERT(td != &task_descriptors.head_free, "no more empty task descriptors");
-	TD_MOVE(&task_descriptors.head_taken, td);
+	// TD_MOVE(&task_descriptors.head_taken, td);
+	TD_REMOVE(td);
 	return td;
 }
 
-void td_delete(task_descriptor *td) {
-	TD_MOVE(&task_descriptors.head_free, td);
+void td_free(task_descriptor *td) {
+	td->id += 1 << 16;
+	TD_REMOVE(td);
+	TD_APPEND(&task_descriptors.head_free, td);
+}
+
+task_descriptor *td_find(uint id) {
+	task_descriptor *td = &task_descriptors.td[id & 0x0000FFFF];
+	return td->id == id ? td : NULL;
 }
