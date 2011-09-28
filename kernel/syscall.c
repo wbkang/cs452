@@ -11,7 +11,7 @@
  */
 
 static int syscall(int reqid, void** args) {
-	bwprintf(COM2, "usermode system call:\n\treqid: %d\n\targs: %x\n", reqid,
+	TRACE("usermode system call:\n\treqid: %d\n\targs: %x\n", reqid,
 			args);
 
 	int rv = 0xdeadbeef;
@@ -28,7 +28,7 @@ static int syscall(int reqid, void** args) {
 	);
 #endif
 
-	bwprintf(COM2, "\trv: %x\n", rv);
+	TRACE("\trv: %x\n", rv);
 	return rv;
 }
 
@@ -50,7 +50,7 @@ void Pass() {
 }
 
 void Exit() {
-	bwprintf(COM2, "calling SYSCALL_EXIT\n");
+	TRACE("calling SYSCALL_EXIT\n");
 	syscall(SYSCALL_EXIT, NULL);
 }
 
