@@ -54,5 +54,5 @@ memptr mem_top() {
 }
 
 void mem_mark_occupied(void* p) {
-	kernel_mem_start = (memptr)p;
+	kernel_mem_start = (memptr) p;
 }

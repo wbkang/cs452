@@ -2,15 +2,16 @@
 #include <hardware.h>
 #include <rawio.h>
 
-priorityq *priorityq_init(int size, int num_priorities, memptr *heap) {
+priorityq *priorityq_new(int size, int num_priorities, memptr *heap) {
 	// allocate memory
 	priorityq *pq = (priorityq *) *heap;
-	*heap += sizeof(priorityq) + sizeof(queue) * num_priorities;
+	*heap += ((sizeof(priorityq) + sizeof(void*) * num_priorities) >> 2);
+
 	// initialize
 	pq->num_priorities = num_priorities;
 	pq->len = 0;
 	for (int i = 0; i < num_priorities; i++) {
-		pq->q[i] = queue_init(size, &heap);
+		pq->q[i] = queue_new(size, heap);
 	}
 	return pq;
 }
