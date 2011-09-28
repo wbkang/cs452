@@ -11,9 +11,10 @@
  */
 
 static int syscall(int reqid, void** args) {
-	bwprintf(COM2, "usermode syscall reqid:%d, args: %x\n", reqid, args);
+	bwprintf(COM2, "usermode system call:\n\treqid: %d\n\targs: %x\n", reqid,
+			args);
 
-	int retval = -1;
+	int rv = 0xdeadbeef;
 
 #ifndef __i386
 	__asm(
@@ -21,14 +22,14 @@ static int syscall(int reqid, void** args) {
 			"mov r1, %[args]" "\n\t"
 			"swi 0" "\n\t"
 			"mov %[result], r0" "\n\t"
-			: [result] "=r" (retval)
+			: [result] "=r" (rv)
 			: [reqid] "r" (reqid), [args] "r" (args)
 			: "r0", "r1"
 	);
 #endif
 
-	bwprintf(COM2, "usermode syscall retval:%x\n", retval);
-	return retval;
+	bwprintf(COM2, "\trv: %x\n", rv);
+	return rv;
 }
 
 int Create(int priority, void(*code)()) {
@@ -54,5 +55,5 @@ void Exit() {
 }
 
 void* malloc(uint size) {
-	return (void*)syscall(SYSCALL_MALLOC, (void**)size);
+	return (void*) syscall(SYSCALL_MALLOC, (void**) size);
 }

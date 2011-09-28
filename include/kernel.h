@@ -23,7 +23,7 @@ void handle_swi(register_set *reg, int req_no);
  * 		-1 - if the priority is invalid.
  * 		-2 - if the kernel is out of task descriptors.
  */
-int create(int priority, void(*code)());
+int kernel_createtask(int priority, func_t code);
 
 /*
  * MyTid returns the task id of the calling task.
@@ -32,7 +32,7 @@ int create(int priority, void(*code)());
  * 		tid - the positive integer task id of the task that calls it.
  * 		Errors should be impossible!
  */
-int mytid();
+int kernel_mytid();
 
 /*
  * MyParentTid returns the task id of the task that created the calling task.
@@ -45,13 +45,13 @@ int mytid();
  * 		The return value is implementation-dependent if the parent has exited,
  * 		has been destroyed or is in the process of being destroyed.
  */
-int myparenttid();
+int kernel_myparenttid();
 
 /*
  * Pass causes a task to stop executing. The task is moved to the end of its
  * priority queue, and will resume executing when next scheduled.
  */
-void pass();
+void kernel_passtask();
 
 /*
  * Exit causes a task to cease execution permanently. It is removed from all
@@ -60,10 +60,10 @@ void pass();
  * reclaimed.
  */
 
-void exit();
+void kernel_exittask();
 
 void kernel_runloop();
 
-volatile task_descriptor* kernel_curtask();
+volatile task_descriptor* kernel_td_current();
 
-void kernel_driver(void (*func)());
+void kernel_driver(func_t code);

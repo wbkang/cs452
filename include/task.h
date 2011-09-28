@@ -7,10 +7,11 @@
 
 #define REG_SP 13
 #define REG_LR 14
+#define REG_PC 15
 
 typedef struct _tag_register_set {
 		int spsr;
-		int r[15]; // r0-r12, sp and lr
+		int r[16]; // r0-r12, sp, lr, pc
 } register_set;
 
 typedef struct _tag_task_descriptor {
