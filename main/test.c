@@ -7,9 +7,9 @@
 #include <rawio.h>
 #include <priorityq.h>
 
-#define TEST_START(name) bwprintf(COM2, "\t%s ... ", name)
+#define TEST_START(name) TRACE("\t%s ... ", name)
 
-#define TEST_END(name) bwprintf(COM2, "looks good\n")
+#define TEST_END(name) TRACE("looks good\n")
 
 #define EXPECT(expected, got) { \
 	if (got != expected) { \
@@ -90,11 +90,11 @@ static void test_heap() {
 
 void test_run() {
 	mem_reset();
-	bwprintf(COM2, "######## diagnostics ########\n\n");
+	TRACE("######## diagnostics ########\n\n");
 	test_stack();
 	test_queue();
 	test_priorityq();
 	test_heap();
-	bwprintf(COM2, "\n######## diagnostics done ########\n");
+	TRACE("\n######## diagnostics done ########\n");
 	mem_reset();
 }

@@ -28,9 +28,9 @@ int main(int argc, char* argv[]) {
 	raw_init();
 	kernel_init();
 	test_run();
-	bwprintf(COM2, "######## kernel_init ########\n\n");
+	TRACE("######## kernel_init ########\n\n");
 	kernel_init();
-	bwprintf(COM2, "\n######## kernel_init done ########\n");
+	TRACE("\n######## kernel_init done ########\n");
 	kernel_driver(task1);
 //	ASM("swi 0");
 //	ASM("swi 1");

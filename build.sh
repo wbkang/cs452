@@ -19,6 +19,7 @@ fi
 ELF=/u/cs452/tftp/ARM/s.elf
 
 cp -f main/main.elf $ELF && echo "Copy successful"
-chmod 776 $ELF
+chgrp -f cs452_sf $ELF 
+chmod -f 776 $ELF
 
 echo BUILT AND DEPLOYED
