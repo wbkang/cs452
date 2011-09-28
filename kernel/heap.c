@@ -1,6 +1,28 @@
 #include <heap.h>
 
-void heap_max_heapify(heap h, uint i) {
+#define HEAP_NODEMAG(n) ((n).key)
+#define HEAP_GT(h, i, j) (HEAP_NODEMAG(h->arr[i]) > HEAP_NODEMAG(h->arr[j]))
+#define HEAP_GE(h, i, j) (HEAP_NODEMAG(h->arr[i]) >= HEAP_NODEMAG(h->arr[j]))
+#define HEAP_PARENT(i) ((i) >> 1) // floor(i / 2)
+#define HEAP_LEFTCHILD(i) ((i) << 1) // 2 * i
+#define HEAP_RIGHTCHILD(i) (((i) << 1) | 1) // 2 * i + 1
+#define HEAP_EXCHANGE(h, i, j) { \
+	heap_item tmp = h->arr[i]; \
+	h->arr[i] = h->arr[j]; \
+	h->arr[j] = tmp; \
+}
+
+heap *heap_new(int size, memptr *mem_heap) {
+	// allocate memory
+	heap *h = (heap *) *mem_heap;
+	*mem_heap += sizeof(heap) + sizeof(heap_item) * size;
+	// initialize
+	h->size = 0;
+	h->max_size = size;
+	return h;
+}
+
+void heap_max_heapify(heap *h, uint i) {
 	uint left = HEAP_LEFTCHILD(i);
 	uint right = HEAP_RIGHTCHILD(i);
 	uint largest;
@@ -18,7 +40,7 @@ void heap_max_heapify(heap h, uint i) {
 	}
 }
 
-void heap_max_heapify2(heap h, uint i) {
+void heap_max_heapify2(heap *h, uint i) {
 	uint left, right, largest;
 	for (;;) {
 		left = HEAP_LEFTCHILD(i);
@@ -38,30 +60,25 @@ void heap_max_heapify2(heap h, uint i) {
 	}
 }
 
-HEAP_NODE heap_extract_max(heap h) {
+void* heap_extract_max(heap *h) {
 	ASSERT(h->size != 0, "popping an empty heap");
-	HEAP_NODE max = HEAP_TOP(h);
+	void* rv = h->arr[0].data;
 	h->size--;
-	HEAP_TOP(h) = h->arr[h->size];
+	h->arr[0] = h->arr[h->size];
 	heap_max_heapify(h, 0);
-	return max;
+	return rv;
 }
 
-void heap_increase_key(heap h, uint i, HEAP_NODE key) {
-	ASSERT(key >= HEAP_NODEMAG(h->arr[i]), "new key smaller than current key");
-	h->arr[i] = key;
-	uint parent;
+void heap_max_insert(heap *h, void* data, int key) {
+	ASSERT(h->size != h->max_size, "inserting into a full heap");
+	uint i = h->size, parent;
+	h->arr[i].data = data;
+	h->arr[i].key = key;
+	h->size++;
 	while (i > 0) {
 		parent = HEAP_PARENT(i);
 		if (HEAP_GE(h, parent, i)) return;
-		HEAP_EXCHANGE( h, i, parent);
+		HEAP_EXCHANGE(h, i, parent);
 		i = parent;
 	}
-}
-
-void heap_max_insert(heap h, HEAP_NODE key) {
-	ASSERT(h->size != h->max_size, "inserting into a full heap");
-	h->arr[h->size] = 0;
-	heap_increase_key(h, h->size, key);
-	h->size++;
 }

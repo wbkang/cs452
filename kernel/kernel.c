@@ -27,7 +27,7 @@ static void stack_storage_init() {
 
 	bwprintf(COM2, "Using %x as the usermode stacks storage.\n", cur_mem_top);
 
-	stack_storage = new_stack(TASK_LIST_SIZE, &cur_mem_top);
+	stack_storage = stack_new(TASK_LIST_SIZE, &cur_mem_top);
 
 	for (int i = TASK_LIST_SIZE - 1; i != -1; i--) {
 		stack_push(stack_storage, cur_mem_top);
@@ -40,8 +40,8 @@ static void stack_storage_init() {
 static void task_queue_init() {
 	bwprintf(COM2, "Task queue init\n");
 	memptr heap = mem_top();
-	task_priority_queue = priorityq_init(TASK_LIST_SIZE, NUM_PRIORITY, &heap);
-	// mem_mark_occupied(cur_mem_top);
+	task_priority_queue = priorityq_new(TASK_LIST_SIZE, NUM_PRIORITY, &heap);
+	mem_mark_occupied(heap);
 }
 
 void handle_swi(register_set *reg, int req_no) {

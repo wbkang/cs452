@@ -1,6 +1,6 @@
 #include <queue.h>
 
-queue* queue_init(uint size, memptr *heap) {
+queue* queue_new(uint size, memptr *heap) {
 	ASSERT(size > 0, "queue size needs to be greater than 0");
 	// allocate memory
 	queue *q = (queue*) *heap;
