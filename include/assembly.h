@@ -14,3 +14,4 @@ void asm_handle_swi();
 int asm_syscall(int reqid, void** args);
 void asm_switch_to_usermode(memptr sp, memptr entry_point);
 void asm_usermode_wrapper(func_t entry_point);
+void asm_byebye();

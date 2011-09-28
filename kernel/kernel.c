@@ -84,9 +84,9 @@ void kernel_driver(func_t code) {
 	td->heap = (memptr) allocate_user_memory(); // top of allocated memory
 	td->stack = td->heap + (STACK_SIZE >> 2); // bottom of allocated memory
 
-	priorityq_push(ready_queue, td, td->priority);
+	// priorityq_push(ready_queue, td, td->priority);
 	td_current = td;
-	asm_switch_to_usermode(td->stack, (memptr)(uint)code);
+	asm_switch_to_usermode(td->stack, (memptr) (uint) code);
 
 	ASSERT(FALSE, "reached unreachable code...");
 }
@@ -137,9 +137,14 @@ void kernel_passtask() {
 }
 
 void kernel_exittask() {
-	TRACE("kernel_exittask()\n");
-	td_free(td_current);
-	td_current = priorityq_pop(ready_queue); // grab next task
-	priorityq_push(ready_queue, (task_descriptor *) td_current,
-			td_current->priority); // schedule next task
+	TRACE("kernel_exittask() -- pq size:%d\n", ready_queue->len);
+	td_free((task_descriptor *) td_current);
+
+	if (PRIORITYQ_EMPTY(ready_queue)) {
+		TRACE("Kernel quitting~~~~~~~~~");
+		asm_byebye();
+		TRACE("OMG I DID NOT QUIT YET");
+	} else {
+		td_current = priorityq_pop(ready_queue); // grab next task
+	}
 }
