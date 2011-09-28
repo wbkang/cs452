@@ -61,3 +61,41 @@ asm_syscall:
 	swi 0
 	@return
 	mov pc, lr
+
+.global redboot_data
+redboot_data:
+	.fill 15, 4, 0
+redboot_data_addr:
+.word redboot_data(GOTOFF)
+
+.global asm_entrypoint
+asm_entrypoint:
+	ldr r0, redboot_data_addr
+	stmea r0, { r0-r14 }
+	@ldr r0, redboot_data_end
+	@sub r0, r0, #4
+	@stmfd r0, {sp, lr}
+	b main
+
+.global asm_byebye
+asm_byebye:
+	ldr r2, redboot_data_addr
+	mov r0, #1
+	mov r1, r2
+	bl bwputr(PLT)
+	add r2, r2, #60
+	ldmea r2, { r0-r14 }
+	/*
+	ldr r2, &.redboot_data_end
+	mov r0, #1
+	mov r1, r2
+	bl bwputr(PLT)
+	sub r2, r2, #4
+	ldmfd r2, {sp, lr}
+	mov r0, #1
+	mov r1, lr
+	bl bwputr(PLT)
+	*/
+	mov r0, #0
+	bx lr
+
