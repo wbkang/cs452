@@ -63,3 +63,7 @@ void pass();
 void exit();
 
 void kernel_runloop();
+
+volatile task_descriptor* kernel_curtask();
+
+void kernel_driver(void (*func)());

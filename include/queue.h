@@ -17,7 +17,7 @@ typedef struct _tag_queue {
 
 #define QUEUE_FULL(q) (QUEUE_INCREMENT((q), (q)->tail) == (q)->head)
 
-queue* queue_new(uint size, memptr *heap);
+queue* queue_new(uint size);
 
 void queue_push(queue *q, void* item);
 

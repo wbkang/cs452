@@ -6,12 +6,12 @@
 typedef struct _tag_priorityq {
 		int num_priorities;
 		int len;
-		queue *q[]; // this needs to point to an array of queue pointers
+		queue *q[];
 } priorityq;
 
 #define PRIORITYQ_EMPTY(pq) ((pq)->len == 0)
 
-priorityq *priorityq_new(int size, int num_priorities, memptr *heap);
+priorityq *priorityq_new(int size, int num_priorities);
 
 int priorityq_maxp(priorityq *pq);
 

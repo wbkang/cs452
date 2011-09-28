@@ -35,10 +35,20 @@ asm_handle_swi:
 	movs pc, lr
 
 @ this code switches to the usermode
-@ r0 addr
-@ r1 mem
-@ asm_usermode:
+@ r0 the pointer to the stack pointer
+@ r1 the entry point
+.global asm_switch_to_usermode
+asm_switch_to_usermode:
+	mrs r2, cpsr
+	bic r2, r2, #0xf
+	orr r2, r2, #0x10
+	msr cpsr, r2
 
+	mov sp, r0
+
+	mov lr, pc
+	bx r1
+	b Exit(PLT)
 
 @ syscall code.
 @ r0 : request id
