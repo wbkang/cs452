@@ -13,7 +13,7 @@ typedef struct _tag_heap {
 		heap_item arr[];
 } heap;
 
-heap *heap_new(int size, memptr *heap);
+heap *heap_new(int size);
 
 void heap_max_heapify(heap *h, uint i);
 

@@ -1,11 +1,11 @@
 #include <queue.h>
+#include <memory.h>
 
-queue* queue_new(uint size, memptr *heap) {
+queue* queue_new(uint size) {
 	ASSERT(size > 0, "queue size needs to be greater than 0");
-	// allocate memory
-	queue *q = (queue*) *heap;
-	*heap += sizeof(queue) + sizeof(void*) * (size + 1); // extra 1 is an implementation detail, need it to diff. empty and full states
-	// initialize
+	// extra 1 is an implementation detail, need it to diff.
+	// empty and full states
+	queue *q = kmalloc(sizeof(queue) + sizeof(void*) * (size + 1));
 	q->head = 0;
 	q->tail = 0;
 	q->size = size + 1;

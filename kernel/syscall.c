@@ -22,12 +22,12 @@ static int syscall(int reqid, void** args) {
 			"swi 0" "\n\t"
 			"mov %[result], r0" "\n\t"
 			: [result] "=r" (retval)
-			: [reqid] "r" (reqid), [args] "r" (reqid)
+			: [reqid] "r" (reqid), [args] "r" (args)
 			: "r0", "r1"
 	);
 #endif
 
-	bwprintf(COM2, "usermode syscall retval:%d\n", retval);
+	bwprintf(COM2, "usermode syscall retval:%x\n", retval);
 	return retval;
 }
 
@@ -49,5 +49,10 @@ void Pass() {
 }
 
 void Exit() {
+	bwprintf(COM2, "EXIIIIIIT\n");
 	syscall(SYSCALL_EXIT, NULL);
+}
+
+void* malloc(uint size) {
+	return (void*)syscall(SYSCALL_MALLOC, (void**)size);
 }

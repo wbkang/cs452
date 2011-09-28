@@ -1,13 +1,9 @@
 #include <stack.h>
 #include <util.h>
-#include <hardware.h>
-#include <rawio.h>
+#include <memory.h>
 
-stack *stack_new(uint size, memptr *heap) {
-	// allocate memory
-	stack *s = (stack*) *heap;
-	*heap += (sizeof(stack) + sizeof(void*) * size) >> 2;
-	// initialize
+stack *stack_new(uint size) {
+	stack *s = (stack*) kmalloc(sizeof(stack) + sizeof(void*) * size);
 	s->top = s->arr;
 	s->min = s->top;
 	s->max = s->top + size;

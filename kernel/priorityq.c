@@ -1,17 +1,12 @@
 #include <priorityq.h>
-#include <hardware.h>
-#include <rawio.h>
+#include <memory.h>
 
-priorityq *priorityq_new(int size, int num_priorities, memptr *heap) {
-	// allocate memory
-	priorityq *pq = (priorityq *) *heap;
-	*heap += ((sizeof(priorityq) + sizeof(void*) * num_priorities) >> 2);
-
-	// initialize
+priorityq *priorityq_new(int size, int num_priorities) {
+	priorityq *pq = kmalloc(sizeof(priorityq) + sizeof(queue*) * num_priorities);
 	pq->num_priorities = num_priorities;
 	pq->len = 0;
 	for (int i = 0; i < num_priorities; i++) {
-		pq->q[i] = queue_new(size, heap);
+		pq->q[i] = queue_new(size);
 	}
 	return pq;
 }

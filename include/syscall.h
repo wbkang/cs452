@@ -5,3 +5,4 @@ int MyTid();
 int MyParentsTid();
 void Pass();
 void Exit();
+void* malloc(unsigned int size);

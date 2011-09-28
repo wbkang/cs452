@@ -21,8 +21,7 @@
 static void test_stack() {
 	TEST_START("stack");
 	int size = 111;
-	memptr p = mem_top();
-	stack *s = stack_new(size, &p);
+	stack *s = stack_new(size);
 	void *got, *expected;
 	for (int i = 0; i < size; i++) {
 		stack_push(s, (void *) (1 << i));
@@ -38,8 +37,7 @@ static void test_stack() {
 static void test_queue() {
 	TEST_START("queue");
 	int size = 111;
-	memptr p = mem_top();
-	queue *q = queue_new(size, &p);
+	queue *q = queue_new(size);
 	void *got, *expected;
 	for (int i = 0; i < size; i++) {
 		queue_push(q, (void*) (1 << i));
@@ -57,8 +55,7 @@ static void test_priorityq() {
 	TEST_START("priority queue");
 	int size = 111;
 	int num_priorities = 32;
-	memptr p = mem_top();
-	priorityq *pq = priorityq_new(size, num_priorities, &p);
+	priorityq *pq = priorityq_new(size, num_priorities);
 	void *got, *expected;
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < num_priorities; j++) {
@@ -78,8 +75,7 @@ static void test_priorityq() {
 static void test_heap() {
 	TEST_START("heap");
 	int size = 111;
-	memptr p = mem_top();
-	heap *h = heap_new(size, &p);
+	heap *h = heap_new(size);
 	void *got, *expected;
 	for (int i = 0; i < size; i++) {
 //		bwprintf(COM2, " %d", i);
@@ -96,12 +92,12 @@ static void test_heap() {
 }
 
 void test_run() {
-	mem_init();
+	mem_reset();
 	bwprintf(COM2, "################ DIAGNOSTICS ################\n");
 	test_stack();
 	test_queue();
 	test_priorityq();
-	mem_init();
 	test_heap();
 	bwprintf(COM2, "################ END OF DIAGNOSTICS ################\n");
+	mem_reset();
 }

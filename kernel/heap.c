@@ -1,4 +1,5 @@
 #include <heap.h>
+#include <memory.h>
 
 #define HEAP_NODEMAG(n) ((n).key)
 #define HEAP_GT(h, i, j) (HEAP_NODEMAG(h->arr[i]) > HEAP_NODEMAG(h->arr[j]))
@@ -12,11 +13,8 @@
 	h->arr[j] = tmp; \
 }
 
-heap *heap_new(int size, memptr *mem_heap) {
-	// allocate memory
-	heap *h = (heap *) *mem_heap;
-	*mem_heap += sizeof(heap) + sizeof(heap_item) * size;
-	// initialize
+heap *heap_new(int size) {
+	heap *h = kmalloc(sizeof(heap) + sizeof(heap_item) * size);
 	h->size = 0;
 	h->max_size = size;
 	return h;

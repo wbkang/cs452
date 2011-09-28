@@ -9,7 +9,7 @@ typedef struct _tag_stack {
 		void* arr[];
 } stack;
 
-stack *stack_new(uint size, memptr *heap);
+stack *stack_new(uint size);
 
 void stack_push(stack *s, void *item);
 

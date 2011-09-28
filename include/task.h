@@ -5,9 +5,12 @@
 
 #define TASK_LIST_SIZE 16
 
+#define REG_SP 13
+#define REG_LR 14
+
 typedef struct _tag_register_set {
 		int spsr;
-		int registers[15]; // r0-r12, sp and lr
+		int r[15]; // r0-r12, sp and lr
 } register_set;
 
 typedef struct _tag_task_descriptor {
@@ -15,7 +18,10 @@ typedef struct _tag_task_descriptor {
 		uint state;
 		uint priority;
 		int parent_id; // should this be a pointer to the parent td?
-		register_set registers; // r0-r12, sp and lr; these should be on user stack?
+		register_set registers; // r0-r12, sp and lr
+		memptr entry_point;
+		memptr stack;
+		memptr heap;
 		struct _tag_task_descriptor *_prev;
 		struct _tag_task_descriptor *_next;
 } task_descriptor;
