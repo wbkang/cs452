@@ -3,17 +3,15 @@
 #include <rawio.h>
 #include <task.h>
 
-void die()
-{
-	//stub
-	while(1);
+void die() {
+	for (;;) {
+	}
 }
 
-void errormsg(char* msg)
-{
+void errormsg(char* msg) {
 	bwprintf(COM2, msg);
 }
 
-void dump_registers(int r0, int r1, int r2, int r3) {
-	TRACE("registers 1:%x\t2:%x\t3:%x\t4:%x\t\n", r0, r1, r2, r3);
+void dump_registers(int r0, int r1, int r2, int r3, int r4) {
+	TRACE("dump_registers:\n\tr0: %x\n\tr1: %x\n\tr2: %x\n\tr3: %x\n\tr4: %x\n", r0, r1, r2, r3, r4);
 }
