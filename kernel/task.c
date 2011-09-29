@@ -58,3 +58,14 @@ task_descriptor *td_find(uint id) {
 	task_descriptor *td = &task_descriptors.td[id & 0x0000FFFF];
 	return td->id == id ? td : NULL;
 }
+
+void reginfo(register_set *reg) {
+	TRACE("reginfo:\n");
+	TRACE("\tspsr: %x\n", reg->spsr);
+	for (int i = 0; i < 13; i++) {
+		TRACE("\tr%d: %x\n", i, reg->r[i]);
+	}
+	TRACE("\tsp: %x\n", reg->r[13]);
+	TRACE("\tlr: %x\n", reg->r[14]);
+	TRACE("\tpc: %x\n", reg->r[15]);
+}

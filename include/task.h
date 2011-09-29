@@ -62,3 +62,5 @@ task_descriptor* td_new();
 void td_free(task_descriptor *td);
 
 task_descriptor *td_find(uint id);
+
+void reginfo(register_set *reg);
