@@ -101,9 +101,13 @@ int kernel_createtask(int priority, func_t code) {
 	td->state = 0;
 	td->priority = priority;
 	td->parent_id = kernel_mytid();
+	td->registers.r[0] = 1;
+	td->registers.r[1] = 2;
+	td->registers.r[2] = 3;
+	td->registers.r[3] = 4;
 	td->registers.r[REG_LR] = (int) Exit;
 	td->registers.r[REG_PC] = (int) code;
-	//td->registers.spsr = 0x600000d0;
+	td->registers.spsr = 0x10;
 	td->heap = (memptr) allocate_user_memory(); // top of allocated memory
 	td->stack = td->heap + (STACK_SIZE >> 2); // bottom of allocated memory
 	td->registers.r[REG_SP] = (int) td->stack;
@@ -136,8 +140,12 @@ void kernel_runloop() {
 		td_current = priorityq_pop(ready_queue);
 		TRACE("q not empty, tid = %d\n", td_current->id);
 		register_set* reg = &((task_descriptor *) td_current)->registers;
-		TRACE("pc:%x\n", reg[REG_PC]);
+		TRACE("pc:%x\n", reg->r[REG_PC]);
+
 		int req_no = asm_switch_to_usermode(reg);
+//		__asm("mov r0, %[reg]\n\t"
+//				"bl asm_switch_to_usermode\n\t"
+//				: : [reg] "r" (reg));
 		TRACE("after switch\n");
 		handle_swi(reg, req_no);
 	}
