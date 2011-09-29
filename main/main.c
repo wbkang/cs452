@@ -4,6 +4,8 @@
 #include <syscall.h>
 #include <string.h>
 
+int redboot_data_ary[15];
+
 static void task2() {
 	bwprintf(COM2, "Hello, I'm task 2.\n");
 	char *str = malloc(1000);
@@ -30,7 +32,9 @@ int main(int argc, char* argv[]) {
 	TRACE("######## kernel_init ########\n\n");
 	kernel_init();
 	TRACE("\n######## kernel_init done ########\n");
-	kernel_driver(task1);
+	//kernel_driver(task1);
+	kernel_createtask(0, task1);
+	kernel_runloop();
 //	ASM("swi 0");
 //	ASM("swi 1");
 

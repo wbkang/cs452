@@ -3,38 +3,33 @@
 .ident "human compiler (TM)"
 @ this code handles swi system call
 asm_handle_swi:
-	@ save the usermode pc
-	stmfd sp!, {lr}
+	@ load the pointer to the register
+	stmfd sp, {r0, r1}
+	ldr r0, [sp]
 
-	@ save the usermode crap
-	stmfd sp, {r0-r12, sp, lr}^
-	sub sp, sp, #60
+	@ save spsr
+	mrs r1, spsr
+	str r1, [r0]
+	add r0, r0, #4
 
-	@ save the spsr as well
-	mrs r0, spsr
-	stmfd sp!, {r0}
+	@ save all the usermode register except r0 and r1
+	stmfa r0, {r0-r12, sp, lr}^
+	add r0, r0, #60
+	stmfa r0!, {lr}
 
-	@ r0 contains the pointer to the top of the register dump (ordered spsr, r0-r14)
-	mov r0, sp
+	ldr r2, [sp]
+	ldr r0, [sp,#-8]
+	str r0, [r2,#4]
+	ldr r1, [sp,#-4]
+	str r1, [r2,#8]
 
-	@ put the swi argument in r1
-	ldr r1, [lr,#-4]
-	bic r1, r1, #0xff000000
+	@ put the swi argument in r0
+	ldr r0, [lr,#-4]
+	bic r0, r1, #0xff000000
 
-	@ call function
-	bl handle_swi
+	add sp, sp, #8
 
-	@ load spsr and save spsr
-	ldmfd sp!, {r0}
-	msr spsr, r0
-
-
-	@ load the usermode stuff and say byebye
-	ldmfd sp, {r0-r12, sp, lr}^
-	add sp, sp, #60
-	ldmfd sp!, {lr}
-
-	movs pc, lr
+	bx lr
 
 
 @ this code switches to the usermode
@@ -42,16 +37,24 @@ asm_handle_swi:
 @ r1 the entry point
 .global asm_switch_to_usermode
 asm_switch_to_usermode:
-	mrs r2, cpsr
-	bic r2, r2, #0xf
-	orr r2, r2, #0x10
-	msr cpsr, r2
+	@ i save r0 and lr
+	stmfd sp!, {r0, lr}
 
-	mov sp, r0
+	@ load spsr and save spsr
+	mrs r1, cpsr
+	bic r1, r1, #0xf
+	orr r1, r1, #0x10
+	@ldr r1, [r0]
+	msr cpsr, r1
 
-	mov lr, pc
-	bx r1
-	b Exit(PLT)
+	add lr, r0, #64
+
+	@ load the usermode stuff and say byebye
+
+	ldmfd lr, {r0-r12, sp, lr, pc}^
+	@ldr lr, [lr,#4]
+	@mov pc, lr
+
 
 @ syscall code.
 @ r0 : request id
@@ -61,41 +64,4 @@ asm_syscall:
 	swi 0
 	@return
 	mov pc, lr
-
-.global redboot_data
-redboot_data:
-	.fill 15, 4, 0
-redboot_data_addr:
-.word redboot_data(GOTOFF)
-
-.global asm_entrypoint
-asm_entrypoint:
-	ldr r0, redboot_data_addr
-	stmea r0, { r0-r14 }
-	@ldr r0, redboot_data_end
-	@sub r0, r0, #4
-	@stmfd r0, {sp, lr}
-	b main
-
-.global asm_byebye
-asm_byebye:
-	ldr r2, redboot_data_addr
-	mov r0, #1
-	mov r1, r2
-	bl bwputr(PLT)
-	add r2, r2, #60
-	ldmea r2, { r0-r14 }
-	/*
-	ldr r2, &.redboot_data_end
-	mov r0, #1
-	mov r1, r2
-	bl bwputr(PLT)
-	sub r2, r2, #4
-	ldmfd r2, {sp, lr}
-	mov r0, #1
-	mov r1, lr
-	bl bwputr(PLT)
-	*/
-	mov r0, #0
-	bx lr
 

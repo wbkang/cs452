@@ -34,10 +34,6 @@ void handle_swi(register_set *reg, int req_no) {
 
 	volatile task_descriptor *td_in = td_current;
 
-	td_in->registers = *reg;
-
-	req_no = reg->r[0]; // what kinda crap is this...
-
 	int *rv = reg->r;
 	void* *args = (void* *) reg->r[1];
 
@@ -69,27 +65,26 @@ void handle_swi(register_set *reg, int req_no) {
 
 	if (td_in->id != td_current->id) {
 		*reg = td_current->registers;
-		td_in->registers.r[0] = *rv;
 	}
 
 	TRACE(">\ttid:%d, lr:%x, pc:%x, spsr:%x\n", td_current->id, reg->r[REG_LR], reg->r[REG_PC], reg->spsr);
 }
 
-void kernel_driver(func_t code) {
-	task_descriptor* td = td_new();
-	td->state = 0;
-	td->priority = 0;
-	td->parent_id = -1;
-	td->registers.r[REG_LR] = (uint) Exit;
-	td->heap = (memptr) allocate_user_memory(); // top of allocated memory
-	td->stack = td->heap + (STACK_SIZE >> 2); // bottom of allocated memory
-
-	// priorityq_push(ready_queue, td, td->priority);
-	td_current = td;
-	asm_switch_to_usermode(td->stack, (memptr) (uint) code);
-
-	ASSERT(FALSE, "reached unreachable code...");
-}
+//void kernel_driver(func_t code) {
+//	task_descriptor* td = td_new();
+//	td->state = 0;
+//	td->priority = 0;
+//	td->parent_id = -1;
+//	td->registers.r[REG_LR] = (uint) Exit;
+//	td->heap = (memptr) allocate_user_memory(); // top of allocated memory
+//	td->stack = td->heap + (STACK_SIZE >> 2); // bottom of allocated memory
+//
+//	// priorityq_push(ready_queue, td, td->priority);
+//	td_current = td;
+//	asm_switch_to_usermode(td->stack, (memptr) (uint) code);
+//
+//	ASSERT(FALSE, "reached unreachable code...");
+//}
 
 void kernel_init() {
 	td_current = NULL;
@@ -108,19 +103,19 @@ int kernel_createtask(int priority, func_t code) {
 	td->parent_id = kernel_mytid();
 	td->registers.r[REG_LR] = (int) Exit;
 	td->registers.r[REG_PC] = (int) code;
-	td->registers.spsr = 0x600000d0;
+	//td->registers.spsr = 0x600000d0;
 	td->heap = (memptr) allocate_user_memory(); // top of allocated memory
 	td->stack = td->heap + (STACK_SIZE >> 2); // bottom of allocated memory
 	td->registers.r[REG_SP] = (int) td->stack;
 
 	priorityq_push(ready_queue, td, priority);
 
-	TRACE(">\tcreatetask tid:%d heap:%x\n", td->id, td->heap);
+	TRACE(">\tcreatetask tid:%d heap:%x pc:%x\n", td->id, td->heap, td->registers.r[REG_PC]);
 	return td->id;
 }
 
 int kernel_mytid() {
-	return td_current->id;
+	return td_current ? td_current->id : -1;
 }
 
 int kernel_myparenttid() {
@@ -136,15 +131,19 @@ void kernel_passtask() {
 			td_current->priority); // schedule next task
 }
 
+void kernel_runloop() {
+	while (!PRIORITYQ_EMPTY(ready_queue)) {
+		td_current = priorityq_pop(ready_queue);
+		TRACE("q not empty, tid = %d\n", td_current->id);
+		register_set* reg = &((task_descriptor *) td_current)->registers;
+		TRACE("pc:%x\n", reg[REG_PC]);
+		int req_no = asm_switch_to_usermode(reg);
+		TRACE("after switch\n");
+		handle_swi(reg, req_no);
+	}
+}
+
 void kernel_exittask() {
 	TRACE("kernel_exittask() -- pq size:%d\n", ready_queue->len);
 	td_free((task_descriptor *) td_current);
-
-	if (PRIORITYQ_EMPTY(ready_queue)) {
-		TRACE("Kernel quitting~~~~~~~~~");
-		asm_byebye();
-		TRACE("OMG I DID NOT QUIT YET");
-	} else {
-		td_current = priorityq_pop(ready_queue); // grab next task
-	}
 }
