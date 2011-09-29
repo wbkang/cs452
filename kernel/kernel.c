@@ -26,11 +26,9 @@ static void task_queue_init() {
 	ready_queue = priorityq_new(TASK_LIST_SIZE, NUM_PRIORITY);
 }
 
-void handle_swi(register_set *reg, int req_no) {
-	bwprintf(
-			COM2,
-			">system call:\n>\treq_no: %d\n>\tr0: %x\n>\tr1: %x\n>\tstack: %x\n",
-			req_no, reg->r[0], reg->r[1], reg->r[REG_SP]);
+void handle_swi(int req_no, register_set *reg) {
+	TRACE( ">handle_swi: req_no: %d\n", req_no);
+	reginfo(reg);
 
 	volatile task_descriptor *td_in = td_current;
 
@@ -40,7 +38,6 @@ void handle_swi(register_set *reg, int req_no) {
 	switch (req_no) {
 		case SYSCALL_CREATE:
 			*rv = kernel_createtask((int) args[0], (func_t) (uint) args[1]);
-			// asm_switch_to_usermode(td_current->stack, td_current->entry_point);
 			break;
 		case SYSCALL_MYTID:
 			*rv = kernel_mytid();
@@ -67,7 +64,8 @@ void handle_swi(register_set *reg, int req_no) {
 		*reg = td_current->registers;
 	}
 
-	TRACE(">\ttid:%d, lr:%x, pc:%x, spsr:%x\n", td_current->id, reg->r[REG_LR], reg->r[REG_PC], reg->spsr);
+	TRACE(">handle_swi done:\n>\ttid: %d\n", td_current->id);
+	reginfo(reg);
 }
 
 //void kernel_driver(func_t code) {
@@ -114,7 +112,8 @@ int kernel_createtask(int priority, func_t code) {
 
 	priorityq_push(ready_queue, td, priority);
 
-	TRACE(">\tcreatetask tid:%d heap:%x pc:%x\n", td->id, td->heap, td->registers.r[REG_PC]);
+	TRACE(
+			">\tcreatetask tid:%d heap:%x pc:%x\n", td->id, td->heap, td->registers.r[REG_PC]);
 	return td->id;
 }
 
@@ -147,7 +146,7 @@ void kernel_runloop() {
 //				"bl asm_switch_to_usermode\n\t"
 //				: : [reg] "r" (reg));
 		TRACE("after switch\n");
-		handle_swi(reg, req_no);
+		handle_swi(req_no, reg);
 	}
 }
 

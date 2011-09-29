@@ -6,7 +6,7 @@
 
 void kernel_init();
 
-void handle_swi(register_set *reg, int req_no);
+void handle_swi(int req_no, register_set *reg);
 
 /*
  * Create allocates and initializes a task descriptor, using the given priority,
