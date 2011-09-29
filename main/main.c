@@ -4,8 +4,6 @@
 #include <syscall.h>
 #include <string.h>
 
-int redboot_data_ary[15];
-
 static void task2() {
 	bwprintf(COM2, "Hello, I'm task 2.\n");
 	char *str = malloc(1000);

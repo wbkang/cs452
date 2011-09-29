@@ -3,32 +3,30 @@
 .ident "human compiler (TM)"
 @ this code handles swi system call
 asm_handle_swi:
-	@ load the pointer to the register
 	stmfd sp, {r0, r1}
-	ldr r0, [sp]
 
-	@ save spsr
+	ldr r0, [sp]
+	bl dump_registers
+
+	ldr lr, [sp,#4]
+	add sp, sp, #4
+	bx lr
+
+	ldr r0, [sp]
 	mrs r1, spsr
 	str r1, [r0]
-	add r0, r0, #4
-
-	@ save all the usermode register except r0 and r1
+	add r0, r0, #64
 	stmfa r0, {r0-r12, sp, lr}^
-	add r0, r0, #60
-	stmfa r0!, {lr}
+	str lr, [r0, #4]
 
-	ldr r2, [sp]
-	ldr r0, [sp,#-8]
-	str r0, [r2,#4]
+	ldr r0, [sp]
+	ldr r1, [sp,#-8]
+	str r1, [r0,#4]
 	ldr r1, [sp,#-4]
-	str r1, [r2,#8]
+	str r1, [r0,#8]
 
-	@ put the swi argument in r0
-	ldr r0, [lr,#-4]
-	bic r0, r1, #0xff000000
-
-	add sp, sp, #8
-
+	ldr lr, [sp,#4]
+	add sp, sp, #4
 	bx lr
 
 
@@ -39,21 +37,10 @@ asm_handle_swi:
 asm_switch_to_usermode:
 	@ i save r0 and lr
 	stmfd sp!, {r0, lr}
-
-	@ load spsr and save spsr
-	mrs r1, cpsr
-	bic r1, r1, #0xf
-	orr r1, r1, #0x10
-	@ldr r1, [r0]
-	msr cpsr, r1
-
-	add lr, r0, #64
-
-	@ load the usermode stuff and say byebye
-
-	ldmfd lr, {r0-r12, sp, lr, pc}^
-	@ldr lr, [lr,#4]
-	@mov pc, lr
+	ldr r1, [r0]
+	msr spsr, r1
+	add r0, r0, #64
+	ldmfa r0, {r0-r12, sp,lr,pc}^
 
 
 @ syscall code.
