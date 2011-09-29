@@ -32,15 +32,30 @@ asm_handle_swi:
 
 @ this code switches to the usermode
 @ r0 the pointer to the stack pointer
-@ r1 the entry point
 .global asm_switch_to_usermode
 asm_switch_to_usermode:
+
+	@ start testing
+	mov r0, #0
+	mov r1, #1
+	mov r2, #2
+	mov r3, #3
+	mov r4, #ff
+	stmfd sp, {r0-r3}
+	ldr r3, [sp, #-4]
+	ldr r2, [sp, #-8]
+	ldr r1, [sp, #-12]
+	ldr r0, [sp, #-16]
+	bl dump_registers(PLT)
+	@ end testing
+
+
 	@ i save r0 and lr
 	stmfd sp!, {r0, lr}
 	ldr r1, [r0]
 	msr spsr, r1
 	add r0, r0, #64
-	ldmfa r0, {r0-r12, sp,lr,pc}^
+	ldmfa r0, {r0-r12, sp, lr, pc}^
 
 
 @ syscall code.
