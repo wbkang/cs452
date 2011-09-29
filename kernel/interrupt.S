@@ -2,8 +2,19 @@
 .global asm_handle_swi
 .ident "human compiler (TM)"
 @ this code handles swi system call
+@ r0 is request id
+@ r1 is pointer to args
 asm_handle_swi:
-	stmfd sp, {r0, r1}
+	@ swi was raised so we are in kernel mode
+	@ need to save user state
+	sub lr, lr, #4
+	stmfd sp!, {r0-r12, lr}
+	@ kernel stack contents: [r0], r1, ..., r12, lr_usr, ...
+
+	@ now that r2 is saved we can use it
+	mrs r2, spsr @ copy spsr_usr into r2
+	stmfd sp!, {r2} @ push spsr_usr on stack
+	@ user stack contents: [spsr_usr], r0, ..., r12, lr_usr, ...
 
 	ldr r0, [sp]
 	bl dump_registers
@@ -29,33 +40,24 @@ asm_handle_swi:
 	add sp, sp, #4
 	bx lr
 
+	@bl handle_swi
+
+	movs pc, lr
+
 
 @ this code switches to the usermode
-@ r0 the pointer to the stack pointer
+@ r0 is pointer to register_set (task.h) of current task descriptor
 .global asm_switch_to_usermode
 asm_switch_to_usermode:
-
-	@ start testing
-	mov r0, #0
-	mov r1, #1
-	mov r2, #2
-	mov r3, #3
-	mov r4, #ff
-	stmfd sp, {r0-r3}
-	ldr r3, [sp, #-4]
-	ldr r2, [sp, #-8]
-	ldr r1, [sp, #-12]
-	ldr r0, [sp, #-16]
-	bl dump_registers(PLT)
-	@ end testing
-
-
-	@ i save r0 and lr
-	stmfd sp!, {r0, lr}
-	ldr r1, [r0]
-	msr spsr, r1
-	add r0, r0, #64
-	ldmfa r0, {r0-r12, sp, lr, pc}^
+	stmfd sp!, {r0, lr} @ push lr_svc on kernel stack
+	@ kernel stack contents: [r0], lr_svc, ...
+	@ r0 is pointer to register_set of current task descriptor
+	@ the first thing in the task descriptor is the spsr
+	ldr r1, [r0] @ load the spsr from the current task descriptor into r1
+	msr spsr, r1 @ set the spsr from r1
+	@ now we need to restore task state from current task descriptor
+	add r0, r0, #4 @ bump the pointer from spsr to r[0] in register_set
+	ldmfd r0, {r0-r12, sp, lr, pc}^ @ load r0-r15 from register_set into registers and set cpsr
 
 
 @ syscall code.
