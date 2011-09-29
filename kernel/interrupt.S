@@ -6,18 +6,29 @@
 @ r1 is pointer to args
 asm_handle_swi:
 	@ swi was raised so we are in kernel mode
-	@ need to save user state
-	sub lr, lr, #4
-	stmfd sp!, {r0-r12, lr}
-	@ kernel stack contents: [r0], r1, ..., r12, lr_usr, ...
+	@ kernel stack contents: [td_current->registers], lr_svc, ...
 
-	@ now that r2 is saved we can use it
-	mrs r2, spsr @ copy spsr_usr into r2
-	stmfd sp!, {r2} @ push spsr_usr on stack
-	@ user stack contents: [spsr_usr], r0, ..., r12, lr_usr, ...
+	@ lr_svc is on the kernel stack so we can use it as scratch register
+	ldr lr, [sp] @ lr points to td_current->registers
+	stmfa lr, {r0-r12, sp, lr}^ @ stmfa will skip the first address (spsr)
 
-	ldr r0, [sp]
-	bl dump_registers
+	@ now that we saved r0-r12 we can use them
+	@ however we need to maintain the correct signature for handle_swi
+	@ lets keep request id in r0
+	mov r1, lr @ copy the pointer to td_current->registers from lr
+
+	bl handle_swi
+
+	bl dump_registers(PLT)
+
+	mrs r2, spsr @ copy spsr_usr into lr
+	str r2, [lr] @ put spsr_usr into td_current->registers
+
+	@ at this point td_current_registers is populated
+
+
+	stmfd sp!, {r0, r1} @ store request id and *args to kernel stack
+	@ kernel stack contents: [req_id], *args, td_current->registers, lr_svc, ...
 
 	ldr lr, [sp,#4]
 	add sp, sp, #4
@@ -50,7 +61,7 @@ asm_handle_swi:
 .global asm_switch_to_usermode
 asm_switch_to_usermode:
 	stmfd sp!, {r0, lr} @ push lr_svc on kernel stack
-	@ kernel stack contents: [r0], lr_svc, ...
+	@ kernel stack contents: [td_current->registers], lr_svc, ...
 	@ r0 is pointer to register_set of current task descriptor
 	@ the first thing in the task descriptor is the spsr
 	ldr r1, [r0] @ load the spsr from the current task descriptor into r1
