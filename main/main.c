@@ -10,6 +10,7 @@ static void task2() {
 	strcpy(str, "this message reflects the fact that this is task 2");
 	bwprintf(COM2, "malloc: %x\n", str);
 	bwprintf(COM2, "str: \"%s\"\n", str);
+	bwprintf(COM2, "exiting...\n");
 }
 
 static void task1() {
@@ -22,6 +23,7 @@ static void task1() {
 	Create(1, task2);
 	Create(1, task2);
 	Create(1, task2);
+	bwprintf(COM2, "exiting...\n");
 }
 
 int main(int argc, char* argv[]) {
