@@ -1,6 +1,7 @@
 #pragma once
 
 #include <util.h>
+#include <task.h>
 
 #define SYSCALL_CREATE 0
 #define SYSCALL_MYTID 1
@@ -12,6 +13,4 @@
 // asm
 void asm_handle_swi();
 int asm_syscall(int reqid, void** args);
-void asm_switch_to_usermode(memptr sp, memptr entry_point);
-void asm_usermode_wrapper(func_t entry_point);
-void asm_byebye();
+int asm_switch_to_usermode(register_set *reg);
