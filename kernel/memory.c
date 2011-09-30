@@ -9,7 +9,6 @@
 extern uint _KERNEL_MEM_START;
 
 static memptr kernel_heap;
-
 static stack *umpages;
 
 void mem_init() {
@@ -47,4 +46,8 @@ void* umalloc(uint size) { // requires size in bytes
 
 void* allocate_user_memory() {
 	return stack_pop(umpages);
+}
+
+void free_user_memory(memptr heapbase) {
+	stack_push(umpages, heapbase);
 }

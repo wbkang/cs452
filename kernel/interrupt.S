@@ -29,7 +29,7 @@ asm_handle_swi:
 
 	@ now user state is saved, need to branch to lr_svc
 	ldmfd sp!, {r0, lr}
-	ldmfd sp, {r0-r12, sp, lr}
+	ldmfd sp, {r1-r12, sp}
 	@add sp, sp, #60
 	bx lr
 
@@ -37,8 +37,8 @@ asm_handle_swi:
 @ r0 is pointer to register_set (task.h) of current task descriptor
 .global asm_switch_to_usermode
 asm_switch_to_usermode:
-	stmfd sp, {r0-r12, sp, lr}
-	sub sp, sp, #60
+	stmfd sp, {r1-r12, sp}
+	sub sp, sp, #52
 	stmfd sp!, {r0, lr} @ push lr_svc on kernel stack
 	@ kernel stack contents: [td_current->registers], lr_svc, ...
 

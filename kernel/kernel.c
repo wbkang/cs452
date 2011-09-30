@@ -24,7 +24,7 @@ static void install_interrupt_handlers() {
 }
 
 static void task_queue_init() {
-	TRACE("\tready queue initialized\n");
+	TRACE("\tready queue of size %d initialized\n", TASK_LIST_SIZE);
 	ready_queue = priorityq_new(TASK_LIST_SIZE, NUM_PRIORITY);
 }
 
@@ -87,8 +87,8 @@ int kernel_createtask(int priority, func_t code) {
 	td->registers.r[REG_PC] = (int) code;
 	td->registers.spsr = 0x10;
 	td->heap = (memptr) allocate_user_memory(); // top of allocated memory
-	td->stack = td->heap + (STACK_SIZE >> 2); // bottom of allocated memory
-	td->registers.r[REG_SP] = (int) td->stack;
+	td->heap_base = td->heap;
+	td->registers.r[REG_SP] = (int) td->heap + (STACK_SIZE >> 2);
 
 	priorityq_push(ready_queue, td, priority);
 
@@ -105,19 +105,19 @@ int kernel_myparenttid() {
 }
 
 void kernel_passtask() {
-	TRACE("kernel_passtask()\n");
-	priorityq_push(ready_queue, (task_descriptor *) td_current,
-			td_current->priority);
-	td_current = priorityq_pop(ready_queue); // grab next task
-	priorityq_push(ready_queue, (task_descriptor *) td_current,
-			td_current->priority); // schedule next task
+	//TRACE("kernel_passtask()\n");
+//	priorityq_push(ready_queue, (task_descriptor *) td_current,
+//			td_current->priority);
+//	td_current = priorityq_pop(ready_queue); // grab next task
+//	priorityq_push(ready_queue, (task_descriptor *) td_current,
+//			td_current->priority); // schedule next task
 }
 
 void kernel_runloop() {
 	register_set *reg;
 	while (!PRIORITYQ_EMPTY(ready_queue)) {
 		td_current = priorityq_pop(ready_queue);
-		TRACE("scheduling task with id %d and priority %d\n", td_current->id, td_current->priority);
+		//TRACE("scheduling task with id %d and priority %d\n", td_current->id, td_current->priority);
 		reg = &((task_descriptor *) td_current)->registers;
 		asm_switch_to_usermode(reg);
 		killme = FALSE;
@@ -131,6 +131,7 @@ void kernel_runloop() {
 
 void kernel_exittask() {
 	// TRACE("kernel_exittask() -- pq size:%d\n", ready_queue->len);
+	free_user_memory(td_current->heap_base);
 	td_free((task_descriptor *) td_current);
 	killme = TRUE;
 }

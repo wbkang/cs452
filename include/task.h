@@ -3,8 +3,6 @@
 #include <util.h>
 #include <hardware.h>
 
-#define TASK_LIST_SIZE 16
-
 #define REG_SP 13
 #define REG_LR 14
 #define REG_PC 15
@@ -20,7 +18,7 @@ typedef struct _tag_task_descriptor {
 		uint priority;
 		int parent_id; // should this be a pointer to the parent td?
 		register_set registers; // r0-r12, sp and lr
-		memptr stack;
+		memptr heap_base;
 		memptr heap;
 		struct _tag_task_descriptor *_prev;
 		struct _tag_task_descriptor *_next;
