@@ -1,6 +1,8 @@
 #pragma once
 
-int Create(int priority, void(*code)());
+#include <util.h>
+
+int Create(int priority, func_t code);
 
 int MyTid();
 
