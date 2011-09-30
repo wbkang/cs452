@@ -47,9 +47,9 @@ uint strlen(char *str) {
 	return i - str;
 }
 
+// @TODO implement this in assembly with ldm and stm
 void strcpy(char *dest, const char *src) {
-	while ((*dest++ = *src++))
-		;
+	while ((*dest++ = *src++));
 }
 
 uint strparseuint(char *str, int *idx) {
@@ -66,8 +66,9 @@ uint strparseuint(char *str, int *idx) {
 	return num;
 }
 
+// @TODO implement this in assembly with ldm and stm
 void* memcpy(void* destination, const void* source, uint num) {
-	char *dst = (char*)destination, *src = (char*)source;
+	char *dst = (char *) destination, *src = (char *) source;
 	while (num--) {
 		*dst++ = *src++;
 	}

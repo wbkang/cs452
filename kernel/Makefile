@@ -25,7 +25,7 @@ ARFLAGS = rcs
 #################
 TARGETLIB= kernel.a
 OBJS= util.o rawio.o string.o hardware.o task.o memory.o kernel.o interrupt.o heap.o stack.o syscall.o \
-priorityq.o queue.o
+priorityq.o queue.o scheduler.o
 ################
 
 

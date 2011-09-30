@@ -13,5 +13,5 @@ void errormsg(char* msg) {
 }
 
 void dump_registers(int r0, int r1, int r2, int r3) {
-	TRACE("dump_registers:\n\tr0: %x\n\tr1: %x\n\tr2: %x\n\tr3: %x\n", r0, r1, r2, r3);
+	TRACE("dump_registers:\n\tr0: %x\n\tr1: %x\n\tr2: %x\n\tr3: %x", r0, r1, r2, r3);
 }

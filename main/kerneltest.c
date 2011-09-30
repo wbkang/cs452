@@ -25,10 +25,10 @@ static void kerneltest_runner(int priority, void (*test)()) {
 
 void kerneltest_run() {
 	mem_reset();
-	TRACE("######## kerneltest ########\n\n");
+	TRACE("######## kerneltest ########");
 
 	kerneltest_runner(0, kerneltest_max_tasks);
 
-	TRACE("\n######## kerneltest done ########\n");
+	TRACE("######## kerneltest done ########");
 	mem_reset();
 }
