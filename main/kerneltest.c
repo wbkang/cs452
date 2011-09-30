@@ -7,8 +7,7 @@
 #include <rawio.h>
 #include <priorityq.h>
 
-
-void test_run() {
+void kerneltest_run() {
 	mem_reset();
 	TRACE("######## kerneltest ########\n\n");
 
