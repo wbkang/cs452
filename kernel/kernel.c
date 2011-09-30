@@ -24,7 +24,7 @@ static void install_interrupt_handlers() {
 }
 
 static void task_queue_init() {
-	TRACE("\tready queue initialized\n");
+	TRACE("\tready queue of size %d initialized\n", TASK_LIST_SIZE);
 	ready_queue = priorityq_new(TASK_LIST_SIZE, NUM_PRIORITY);
 }
 
@@ -33,7 +33,7 @@ void handle_swi(register_set *reg) {
 	void** args = (void**) reg->r[1];
 	int *rv = reg->r;
 
-	TRACE( ">handle_swi: req_no: %d\n", req_no);
+	//TRACE( ">handle_swi: req_no: %d\n", req_no);
 	// reginfo(reg);
 
 	switch (req_no) {
@@ -61,7 +61,7 @@ void handle_swi(register_set *reg) {
 			break;
 	}
 
-	TRACE(">handle_swi done:\n>\ttid: %d\n", td_current->id);
+	//TRACE(">handle_swi done:\n>\ttid: %d\n", td_current->id);
 	// reginfo(reg);
 }
 
@@ -105,7 +105,7 @@ int kernel_myparenttid() {
 }
 
 void kernel_passtask() {
-	TRACE("kernel_passtask()\n");
+	//TRACE("kernel_passtask()\n");
 //	priorityq_push(ready_queue, (task_descriptor *) td_current,
 //			td_current->priority);
 //	td_current = priorityq_pop(ready_queue); // grab next task
@@ -117,7 +117,7 @@ void kernel_runloop() {
 	register_set *reg;
 	while (!PRIORITYQ_EMPTY(ready_queue)) {
 		td_current = priorityq_pop(ready_queue);
-		TRACE("scheduling task with id %d and priority %d\n", td_current->id, td_current->priority);
+		//TRACE("scheduling task with id %d and priority %d\n", td_current->id, td_current->priority);
 		reg = &((task_descriptor *) td_current)->registers;
 		asm_switch_to_usermode(reg);
 		killme = FALSE;

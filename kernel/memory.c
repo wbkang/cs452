@@ -9,7 +9,6 @@
 extern uint _KERNEL_MEM_START;
 
 static memptr kernel_heap;
-
 static stack *umpages;
 
 void mem_init() {
