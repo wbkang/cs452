@@ -6,7 +6,7 @@
 
 #define TEST_START(name) TRACE("\t%s ... ", name)
 
-#define TEST_END(name) TRACE("looks good\n")
+#define TEST_END(name) TRACE("looks good")
 
 #define EXPECT(expected, got) { \
 	if (got != expected) { \

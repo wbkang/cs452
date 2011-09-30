@@ -1,10 +1,8 @@
 #include <memory.h>
 #include <util.h>
-#include <kernel.h>
 #include <stack.h>
-
-#include <hardware.h>
-#include <rawio.h>
+#include <scheduler.h>
+#include <syscall.h>
 
 extern uint _KERNEL_MEM_START;
 
@@ -17,7 +15,7 @@ void mem_init() {
 	// initialize user memory pages
 	umpages = stack_new(TASK_LIST_SIZE);
 	for (int i = TASK_LIST_SIZE - 1; i != -1; i--) {
-		stack_push(umpages, kmalloc(STACK_SIZE));
+		stack_push(umpages, (void*) (USER_MEM_START + STACK_SIZE * i));
 	}
 }
 
@@ -28,20 +26,43 @@ void mem_reset() {
 void* kmalloc(uint size) { // requires size in bytes
 	memptr rv = kernel_heap;
 	kernel_heap += (size + 3) >> 2; // round up to nearest word
+	ASSERT((int) kernel_heap < USER_MEM_START, "kernel heap overflow");
 	return rv;
 }
 
 void* umalloc(uint size) { // requires size in bytes
-	volatile task_descriptor *td = kernel_td_current();
+	volatile task_descriptor *td = scheduler_running();
 	uint rounded_up = (size + 3) >> 2; // round up to nearest word
 	memptr rv = td->heap;
 	td->heap += rounded_up;
-	/*TRACE("sp: %x, heap: %x, size:%d, roundedup:%d\n",
-			(uint) td->registers.r[REG_SP], (uint) td->heap, size,
-			rounded_up);*/
+	/*TRACE("sp: %x, heap: %x, size:%d, roundedup:%d",
+	 (uint) td->registers.r[REG_SP], (uint) td->heap, size,
+	 rounded_up);*/
 	ASSERT(((uint)td->registers.r[REG_SP]) > (uint)td->heap,
 			"user task ran out of memory");
 	return rv;
+}
+
+void* qmalloc(uint size) { // requires size in bytes
+	int mode;
+
+#ifndef __i386
+	__asm(
+			"mrs %[mode], cpsr" "\n\t"
+			"and %[mode], %[mode], #0x1f" "\n\t"
+			: [mode] "=r" (mode)
+	);
+#endif
+
+	switch (mode) {
+		case 0x10: // user
+			return malloc(size);
+		case 0x13: // service
+			return kmalloc(size);
+		default: // not handled
+			ERROR("unhandled processor mode in qmalloc");
+			return NULL;
+	}
 }
 
 void* allocate_user_memory() {

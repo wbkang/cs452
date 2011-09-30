@@ -14,7 +14,7 @@
 }
 
 heap *heap_new(int size) {
-	heap *h = kmalloc(sizeof(heap) + sizeof(heap_item) * size);
+	heap *h = qmalloc(sizeof(heap) + sizeof(heap_item) * size);
 	h->size = 0;
 	h->max_size = size;
 	return h;
