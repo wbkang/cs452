@@ -9,8 +9,8 @@
 
 void kerneltest_run() {
 	mem_reset();
-	TRACE("######## kerneltest ########\n\n");
+	TRACE("######## kerneltest ########\n");
 
-	TRACE("\n######## kerneltest done ########\n");
+	TRACE("\n######## kerneltest done ########");
 	mem_reset();
 }

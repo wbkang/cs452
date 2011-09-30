@@ -59,8 +59,6 @@ void kernel_passtask();
  */
 void kernel_exittask();
 
+void *kernel_malloc(uint size);
+
 void kernel_runloop();
-
-volatile task_descriptor *kernel_td_current();
-
-void kernel_driver(func_t code);

@@ -3,7 +3,9 @@
 .ident "human compiler (TM)"
 @ this code handles swi system call
 @ r0 is request id
-@ r1 is pointer to args
+@ r1 is a1
+@ r2 is a2
+@ r3 is *args
 asm_handle_swi:
 	@ <) swi was raised so we are in svc mode
 	@ <) sp_svc: [r0 (td_current->registers)], r1-r12, lr_svc, ...
