@@ -35,9 +35,9 @@ typedef char *va_list;
 // turn mask bits on/off in word based on flag (improve with orr/bic?)
 #define BIT_TOGGLE(word, mask, flag) ((word) ^= (-(flag) ^ (word)) & (mask))
 ///////////// DEBUG
-#define ASSERT_ENABLED 1
-#define TRACE_ENABLED 1
-#define TEST_ENABLED 1
+#define ASSERT_ENABLED 0
+#define TRACE_ENABLED 0
+#define TEST_ENABLED 0
 
 void errormsg(char*);
 void die();
