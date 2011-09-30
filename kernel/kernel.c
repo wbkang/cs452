@@ -87,8 +87,8 @@ int kernel_createtask(int priority, func_t code) {
 	td->registers.r[REG_PC] = (int) code;
 	td->registers.spsr = 0x10;
 	td->heap = (memptr) allocate_user_memory(); // top of allocated memory
-	td->stack = td->heap + (STACK_SIZE >> 2); // bottom of allocated memory
-	td->registers.r[REG_SP] = (int) td->stack;
+	td->heap_base = td->heap;
+	td->registers.r[REG_SP] = (int) td->heap + (STACK_SIZE >> 2);
 
 	priorityq_push(ready_queue, td, priority);
 
@@ -131,6 +131,7 @@ void kernel_runloop() {
 
 void kernel_exittask() {
 	TRACE("kernel_exittask() -- pq size:%d\n", ready_queue->len);
+	free_user_memory(td_current->heap_base);
 	td_free((task_descriptor *) td_current);
 	killme = TRUE;
 }
