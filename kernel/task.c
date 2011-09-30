@@ -2,7 +2,6 @@
 #include <memory.h>
 
 static struct _tag_task_descriptor_list {
-	//task_descriptor head_taken;
 	task_descriptor head_free;
 	task_descriptor td[TASK_LIST_SIZE];
 } task_descriptors;
@@ -20,21 +19,12 @@ static struct _tag_task_descriptor_list {
 }
 
 void td_init() {
-	// initialize taken queue
-	//task_descriptor *head_taken = &task_descriptors.head_taken;
-
-	//head_taken->_prev = head_taken;
-	//head_taken->_next = head_taken;
-
 	// initialize free queue
 	task_descriptor *head_free = &task_descriptors.head_free;
-
 	head_free->_prev = head_free;
 	head_free->_next = head_free;
-
 	// put the free descriptors in the free queue
 	task_descriptor *td = task_descriptors.td;
-
 	for (int i = TASK_LIST_SIZE - 1; i != -1; --i, ++td) {
 		td->id = i;
 		TD_APPEND(head_free, td);
@@ -43,11 +33,9 @@ void td_init() {
 
 task_descriptor *td_new() {
 	task_descriptor *td = task_descriptors.head_free._next;
-
 	if (td == td->_next) {
 		return NULL;
 	}
-
 	TD_REMOVE(td);
 	return td;
 }

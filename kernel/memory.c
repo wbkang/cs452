@@ -32,10 +32,13 @@ void* kmalloc(uint size) {
 void* umalloc(uint size) {
 	volatile task_descriptor *td = scheduler_running();
 	memptr rv = td->heap;
-	td->heap += NEXTHIGHESTWORD(size);
-	ASSERT(((uint)td->registers.r[REG_SP]) > (uint)td->heap,
-			"user task ran out of memory");
-	return rv;
+	memptr new_heap = rv + NEXTHIGHESTWORD(size);
+	if (((uint) td->registers.r[REG_SP]) > (uint) new_heap) {
+		return NULL;
+	} else {
+		td->heap = new_heap;
+		return rv;
+	}
 }
 
 void* qmalloc(uint size) { // requires size in bytes

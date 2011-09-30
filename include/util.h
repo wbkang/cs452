@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ts7200.h>
+
 ////////// TYPES
 
 typedef unsigned int uint;
@@ -31,9 +33,16 @@ typedef char *va_list;
 #define MAX(x, y) ( ( (x) > (y) ) ? (x) : (y) )
 #define MIN(x, y) ( ( (x) < (y) ) ? (x) : (y) )
 #define INSTALL_INTERRUPT_HANDLER(vec, jmp) { VMEM((vec) + 0x20) = (uint)(jmp); }
-#define ROUND_UP(x, num) ((((uint)x)+(num-1))&~(num-1))
-// turn mask bits on/off in word based on flag (improve with orr/bic?)
+// turn mask bits on/off in word based on flags
 #define BIT_TOGGLE(word, mask, flag) ((word) ^= (-(flag) ^ (word)) & (mask))
+
+// 2k clock, divide by 2 to get time in ms, with 6 ticks per 2000 ticks drift correction
+#define GET_TIME(time) { \
+    time = WORD ^ RAM(TIMER3_BASE + VAL_OFFSET); \
+    time += (3 * time) / 1000; \
+    time >>= 1; \
+}
+
 ///////////// DEBUG
 #define ASSERT_ENABLED 1
 #define TRACE_ENABLED 1
@@ -65,7 +74,7 @@ void die();
 }
 
 #if TRACE_ENABLED
-void bwprintf(int channel, char *fmt, ... );
+void bwprintf(int channel, char *fmt, ...);
 #define TRACE(...) { \
 	bwprintf(1, "[%s] ", __func__); \
 	bwprintf(1, __VA_ARGS__); \
