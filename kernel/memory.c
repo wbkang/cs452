@@ -72,5 +72,5 @@ void allocate_user_memory(task_descriptor *td) {
 }
 
 void free_user_memory(task_descriptor *td) {
-	stack_push(umpages, td->heapbase);
+	stack_push(umpages, td->heap_base);
 }
