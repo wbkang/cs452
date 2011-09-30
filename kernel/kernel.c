@@ -36,8 +36,6 @@ void handle_swi(register_set *reg) {
 	// TRACE( ">handle_swi: req_no: %d\n", req_no);
 	// reginfo(reg);
 
-	volatile task_descriptor *td_in = td_current;
-
 	switch (req_no) {
 		case SYSCALL_CREATE:
 			*rv = kernel_createtask((int) args[0], (func_t) (uint) args[1]);
@@ -61,10 +59,6 @@ void handle_swi(register_set *reg) {
 			TRACE("unknown system call %d (%x)\n", req_no, req_no);
 			die();
 			break;
-	}
-
-	if (td_in->id != td_current->id) {
-		*reg = td_current->registers;
 	}
 
 	// TRACE(">handle_swi done:\n>\ttid: %d\n", td_current->id);

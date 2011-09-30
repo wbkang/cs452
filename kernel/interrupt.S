@@ -18,8 +18,6 @@ asm_handle_swi:
 	@ store all registers
 	stmfa r2, {r0-r12, sp, lr}^ @ stmfa will skip the first address (spsr)
 
-	str r0, [r2, #4]
-
 	@ note r2 in td_current->registers contains garbage, write back real r2
 	ldr lr, [sp, #-4] @ grab the real r2 off of kurnel stack
 
