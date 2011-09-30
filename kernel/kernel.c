@@ -33,7 +33,7 @@ void handle_swi(register_set *reg) {
 	void** args = (void**) reg->r[1];
 	int *rv = reg->r;
 
-	//TRACE( ">handle_swi: req_no: %d\n", req_no);
+	// TRACE( ">handle_swi: req_no: %d\n", req_no);
 	// reginfo(reg);
 
 	switch (req_no) {
@@ -61,7 +61,7 @@ void handle_swi(register_set *reg) {
 			break;
 	}
 
-	//TRACE(">handle_swi done:\n>\ttid: %d\n", td_current->id);
+	// TRACE(">handle_swi done:\n>\ttid: %d\n", td_current->id);
 	// reginfo(reg);
 }
 
@@ -130,7 +130,7 @@ void kernel_runloop() {
 }
 
 void kernel_exittask() {
-	TRACE("kernel_exittask() -- pq size:%d\n", ready_queue->len);
+	// TRACE("kernel_exittask() -- pq size:%d\n", ready_queue->len);
 	free_user_memory(td_current->heap_base);
 	td_free((task_descriptor *) td_current);
 	killme = TRUE;
