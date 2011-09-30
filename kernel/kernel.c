@@ -14,25 +14,24 @@ static void install_interrupt_handlers() {
 }
 
 void kernel_init() {
+	TRACE("######## kernel_init ########");
 	install_interrupt_handlers();
 	mem_init();
 	td_init();
 	scheduler_init();
+	TRACE("######## kernel_init done ########");
 }
 
 void handle_swi(register_set *reg) {
-	int req_no = reg->r[0];
+	int *r0 = &reg->r[0];
+	int req_no = *r0;
 	int a1 = reg->r[1];
 	int a2 = reg->r[2];
 	// int *args = (int *) reg->r[3];
-	int *rv = reg->r;
-
-	// TRACE( ">handle_swi: req_no: %d", req_no);
-	// reginfo(reg);
 
 	switch (req_no) {
 		case SYSCALL_CREATE:
-			*rv = kernel_createtask(a1, (func_t) a2);
+			*r0 = kernel_createtask(a1, (func_t) a2);
 			if (*rv >= 0) {
 				scheduler_move2ready();
 			} else {
@@ -41,11 +40,11 @@ void handle_swi(register_set *reg) {
 			break;
 		case SYSCALL_MYTID:
 			scheduler_runmenext();
-			*rv = kernel_mytid();
+			*r0 = kernel_mytid();
 			break;
 		case SYSCALL_MYPARENTTID:
 			scheduler_runmenext();
-			*rv = kernel_myparenttid();
+			*r0 = kernel_myparenttid();
 			break;
 		case SYSCALL_PASS:
 			scheduler_move2ready();
@@ -55,16 +54,12 @@ void handle_swi(register_set *reg) {
 			break;
 		case SYSCALL_MALLOC:
 			scheduler_runmenext();
-			*rv = (int) umalloc((uint) a1);
+			*r0 = (int) umalloc((uint) a1);
 			break;
 		default:
 			ERROR("unknown system call %d (%x)\n", req_no, req_no);
-			die();
 			break;
 	}
-
-	// TRACE(">handle_swi done:\n>\ttid: %d", td_current->id);
-	// reginfo(reg);
 }
 
 void kernel_runloop() {
@@ -99,19 +94,11 @@ int kernel_createtask(int priority, func_t code) {
 	td->state = 0;
 	td->priority = priority;
 	td->parent_id = kernel_mytid();
-	/*for (int i = 0; i < 13; i++) {
-		td->registers.r[i] = 0xbeef0000 + i;
-	}*/
 	td->registers.r[REG_LR] = (int) Exit;
 	td->registers.r[REG_PC] = (int) code;
 	td->registers.spsr = 0x10;
-	td->heap_base = (memptr) allocate_user_memory(); // top of allocated memory
-	td->heap = td->heap_base;
-	td->registers.r[REG_SP] = (int) td->heap + (STACK_SIZE >> 2);
-
+	allocate_user_memory(td);
 	scheduler_ready(td);
-
-	// TRACE(">\tcreatetask tid:%d heap:%x pc:%x", td->id, td->heap, td->registers.r[REG_PC]);
 	return td->id;
 }
 

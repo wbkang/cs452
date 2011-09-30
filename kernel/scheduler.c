@@ -35,8 +35,9 @@ task_descriptor *scheduler_get() {
 }
 
 void scheduler_killme() {
-	free_user_memory(running->heap_base);
-	td_free((task_descriptor *) running);
+	task_descriptor *td = (task_descriptor *) running;
+	free_user_memory(td);
+	td_free(td);
 }
 
 void scheduler_move2ready() {
