@@ -26,14 +26,15 @@ SECTIONS
 
 	text .  : /* The actual instructions. */
 	{
+		_TextStart = .;
 		*(asm_functions)
 		*(.text)
+		_TextEnd = .;
 		*(.got)
 		*(.got.plt)
 		*(.rodata)
 		*(.glue_7)
 		*(.glue_7t)
-
 	} >ram
 	
 	debug . :

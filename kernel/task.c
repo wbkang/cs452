@@ -43,16 +43,21 @@ void td_init() {
 
 task_descriptor *td_new() {
 	task_descriptor *td = task_descriptors.head_free._next;
-	ASSERT(td != &task_descriptors.head_free, "no more empty task descriptors");
-	// TD_MOVE(&task_descriptors.head_taken, td);
+
+	if (td == td->_next) {
+		return NULL;
+	}
+
 	TD_REMOVE(td);
 	return td;
 }
 
 void td_free(task_descriptor *td) {
 	td->id += 1 << 16;
-	TD_REMOVE(td);
-	TD_APPEND(&task_descriptors.head_free, td);
+	if (td->id >= 0) {
+		TD_REMOVE(td);
+		TD_APPEND(&task_descriptors.head_free, td);
+	}
 }
 
 task_descriptor *td_find(uint id) {

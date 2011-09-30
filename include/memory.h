@@ -10,6 +10,8 @@
 // this is calculated in compile time.
 #define TASK_LIST_SIZE ((USER_MEM_END - USER_MEM_START) / 65536)
 
+extern int _TextStart;
+extern int _TextEnd;
 
 void mem_init();
 
