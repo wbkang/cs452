@@ -36,7 +36,7 @@ typedef char *va_list;
 #define BIT_TOGGLE(word, mask, flag) ((word) ^= (-(flag) ^ (word)) & (mask))
 ///////////// DEBUG
 #define ASSERT_ENABLED 1
-#define TRACE_ENABLED 1
+#define TRACE_ENABLED 0
 
 void errormsg(char*);
 void die();

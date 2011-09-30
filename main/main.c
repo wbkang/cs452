@@ -5,23 +5,18 @@
 #include <string.h>
 
 static void task2() {
-	bwprintf(COM2, "Hello, I'm task 2.\n");
-	char *str = malloc(1000);
-	strcpy(str, "this message reflects the fact that this is task 2");
-	bwprintf(COM2, "malloc: %x\n", str);
-	bwprintf(COM2, "str: \"%s\"\n", str);
+	bwprintf(COM2, "task id: %d, parent's task id: %d\n", MyTid(), MyParentsTid());
+	Pass();
+	bwprintf(COM2, "task id: %d, parent's task id: %d\n", MyTid(), MyParentsTid());
 }
 
 static void task1() {
-	bwprintf(COM2, "Hello, I'm task 1.\n");
-	char *str = malloc(1000);
-	strcpy(str, "this message assures you that task 1 is now running");
-	bwprintf(COM2, "malloc: %x\n", str);
-	bwprintf(COM2, "str: \"%s\"\n", str);
-	Create(1, task2);
-	Create(1, task2);
-	Create(1, task2);
-	Create(1, task2);
+	for (int i = 0; i < 5; i++) {
+		int priority = 2 * (i >> 1);
+		bwprintf(COM2, "Created: %d\n", Create(priority, task2));
+	}
+
+	bwprintf(COM2, "First: exiting\n");
 }
 
 int main(int argc, char* argv[]) {
@@ -31,7 +26,7 @@ int main(int argc, char* argv[]) {
 	kernel_init();
 	TRACE("\n######## kernel_init done ########\n");
 	//kernel_driver(task1);
-	kernel_createtask(0, task1);
+	kernel_createtask(1, task1);
 	kernel_runloop();
 //	ASM("swi 0");
 //	ASM("swi 1");
