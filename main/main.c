@@ -9,10 +9,11 @@ static void task2() {
 	bwprintf(COM2, "task id: %d, parent's task id: %d\n", MyTid(), MyParentsTid());
 	Pass();
 	bwprintf(COM2, "task id: %d, parent's task id: %d\n", MyTid(), MyParentsTid());
+	TRACE("Exiting %d", MyTid());
 }
 
 static void task1() {
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 4; i++) {
 		int priority = 2 * (i >> 1);
 		bwprintf(COM2, "Created: %d\n", Create(priority, task2));
 	}
