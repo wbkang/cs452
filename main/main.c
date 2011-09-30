@@ -24,6 +24,7 @@ int main(int argc, char* argv[]) {
 	raw_init();
 
 	test_run();
+	kerneltest_run();
 
 	TRACE("######## kernel_init ########\n\n");
 	kernel_init();
