@@ -98,7 +98,10 @@ void kerneltest_run() {
 	kerneltest_runner(MAX_PRIORITY, kerneltest_max_tasks);
 	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_exit);
 	kerneltest_runner(MAX_PRIORITY, kerneltest_myparenttid);
-	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_runner_retiretd);
+
+	if (LONG_TEST_ENABLED) {
+		kerneltest_runner(MAX_PRIORITY - 1, kerneltest_runner_retiretd);
+	}
 
 	TRACE("######## kerneltest done ########");
 	mem_reset();
