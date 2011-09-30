@@ -2,9 +2,6 @@
 #include <util.h>
 #include <memory.h>
 
-#include <hardware.h>
-#include <rawio.h>
-
 stack *stack_new(uint size) {
 	stack *s = (stack*) qmalloc(sizeof(stack) + sizeof(void*) * size);
 	s->top = s->arr;

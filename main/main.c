@@ -6,9 +6,11 @@
 #include <kerneltest.h>
 
 static void task2() {
-	bwprintf(COM2, "task id: %d, parent's task id: %d\n", MyTid(), MyParentsTid());
+	bwprintf(COM2, "task id: %d, parent's task id: %d\n", MyTid(),
+			MyParentsTid());
 	Pass();
-	bwprintf(COM2, "task id: %d, parent's task id: %d\n", MyTid(), MyParentsTid());
+	bwprintf(COM2, "task id: %d, parent's task id: %d\n", MyTid(),
+			MyParentsTid());
 	TRACE("Exiting %d", MyTid());
 }
 
@@ -20,7 +22,7 @@ static void task1() {
 	bwprintf(COM2, "First: exiting\n");
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 	raw_init();
 	test_run();
 	kerneltest_run();
@@ -29,4 +31,3 @@ int main(int argc, char* argv[]) {
 	kernel_runloop();
 	return 0;
 }
-

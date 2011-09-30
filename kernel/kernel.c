@@ -1,6 +1,5 @@
 #include <kernel.h>
 #include <assembly.h>
-#include <hardware.h>
 #include <util.h>
 #include <rawio.h>
 #include <task.h>
@@ -74,23 +73,12 @@ void kernel_runloop() {
 }
 
 int kernel_createtask(int priority, func_t code) {
-	if (priority < MIN_PRIORITY || priority > MAX_PRIORITY) {
-		return -1;
-	}
-
-	uint codeaddr = (uint)code;
-
-	// probabyly not in the text region
-	if (codeaddr < (uint)&_TextStart || codeaddr >= (uint)&_TextEnd ) {
-		return -3;
-	}
-
+	if (priority < MIN_PRIORITY || priority > MAX_PRIORITY) return -1;
+	uint entry = (uint) code;
+	// probably not in the text region
+	if (entry < (uint) &_TextStart || entry >= (uint) &_TextEnd) return -3;
 	task_descriptor* td = td_new();
-
-	if (!td) {
-		return -2;
-	}
-
+	if (!td) return -2;
 	td->state = 0;
 	td->priority = priority;
 	td->parent_id = kernel_mytid();
