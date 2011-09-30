@@ -5,7 +5,7 @@ queue* queue_new(uint size) {
 	ASSERT(size > 0, "queue size needs to be greater than 0");
 	// extra 1 is an implementation detail, need it to diff.
 	// empty and full states
-	queue *q = kmalloc(sizeof(queue) + sizeof(void*) * (size + 1));
+	queue *q = qmalloc(sizeof(queue) + sizeof(void*) * (size + 1));
 	q->head = 0;
 	q->tail = 0;
 	q->size = size + 1;

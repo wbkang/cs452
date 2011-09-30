@@ -2,7 +2,8 @@
 #include <memory.h>
 
 priorityq *priorityq_new(int size, int num_priorities) {
-	priorityq *pq = kmalloc(sizeof(priorityq) + sizeof(queue*) * num_priorities);
+	priorityq *pq = qmalloc(
+			sizeof(priorityq) + sizeof(queue*) * num_priorities);
 	pq->num_priorities = num_priorities;
 	pq->len = 0;
 	for (int i = 0; i < num_priorities; i++) {
@@ -26,7 +27,7 @@ void *priorityq_pop(priorityq *pq) {
 }
 
 void priorityq_push(priorityq *pq, void* item, uint priority) {
-	ASSERT(priority < pq->num_priorities, "priority too high");
+	ASSERT(priority < pq->num_priorities, "priority too high (%x)", priority);
 	pq->len++;
 	queue_push(pq->q[priority], item);
 }

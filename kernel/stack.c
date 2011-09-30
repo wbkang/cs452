@@ -6,7 +6,7 @@
 #include <rawio.h>
 
 stack *stack_new(uint size) {
-	stack *s = (stack*) kmalloc(sizeof(stack) + sizeof(void*) * size);
+	stack *s = (stack*) qmalloc(sizeof(stack) + sizeof(void*) * size);
 	s->top = s->arr;
 	s->min = s->top;
 	s->max = s->top + size;

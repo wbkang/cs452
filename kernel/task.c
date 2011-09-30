@@ -61,12 +61,12 @@ task_descriptor *td_find(uint id) {
 }
 
 void reginfo(register_set *reg) {
-	TRACE("reginfo:\n");
-	TRACE("\treg: %x\n", reg);
-	TRACE("\tspsr: %x\n", reg->spsr);
+	TRACE("reginfo:");
+	TRACE("\treg: %x", reg);
+	TRACE("\tspsr: %x", reg->spsr);
 	for (int i = 0; i < 13; i++) {
-		TRACE("\tr%d: %x\n", i, reg->r[i]);
-	}TRACE("\tsp: %x\n", reg->r[13]);
-	TRACE("\tlr: %x\n", reg->r[14]);
-	TRACE("\tpc: %x\n", reg->r[15]);
+		TRACE("\tr%d: %x", i, reg->r[i]);
+	}TRACE("\tsp: %x", reg->r[13]);
+	TRACE("\tlr: %x", reg->r[14]);
+	TRACE("\tpc: %x", reg->r[15]);
 }

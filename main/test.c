@@ -79,11 +79,11 @@ static void test_heap() {
 
 void test_run() {
 	mem_reset();
-	TRACE("######## diagnostics ########\n\n");
+	TRACE("######## diagnostics ########\n");
 	test_stack();
 	test_queue();
 	test_priorityq();
 	test_heap();
-	TRACE("\n######## diagnostics done ########\n");
+	TRACE("\n######## diagnostics done ########");
 	mem_reset();
 }
