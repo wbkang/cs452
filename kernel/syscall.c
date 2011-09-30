@@ -1,9 +1,5 @@
 #include <syscall.h>
 #include <assembly.h>
-#include <util.h>
-
-#include <hardware.h>
-#include <rawio.h>
 /*
  *
  * Usermode implementation of the system calls.

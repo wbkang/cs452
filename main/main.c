@@ -16,18 +16,13 @@ static void task1() {
 		int priority = 2 * (i >> 1);
 		bwprintf(COM2, "Created: %d\n", Create(priority, task2));
 	}
-
-	void* t = malloc(100);
-
 	bwprintf(COM2, "First: exiting\n");
 }
 
 int main(int argc, char* argv[]) {
 	raw_init();
 	test_run();
-	TRACE("######## kernel_init ########\n");
 	kernel_init();
-	TRACE("\n######## kernel_init done ########");
 	kernel_createtask(1, task1);
 	kernel_runloop();
 	return 0;

@@ -44,7 +44,7 @@ void* umalloc(uint size) { // requires size in bytes
 }
 
 void* qmalloc(uint size) { // requires size in bytes
-	int mode;
+	int mode = 0xdeadbeef;
 
 #ifndef __i386
 	__asm(
@@ -65,10 +65,12 @@ void* qmalloc(uint size) { // requires size in bytes
 	}
 }
 
-void* allocate_user_memory() {
-	return stack_pop(umpages);
+void allocate_user_memory(task_descriptor *td) {
+	td->heap_base = (memptr) stack_pop(umpages);
+	td->heap = td->heap_base;
+	td->registers.r[REG_SP] = (int) td->heap + (STACK_SIZE >> 2);
 }
 
-void free_user_memory(memptr heapbase) {
-	stack_push(umpages, heapbase);
+void free_user_memory(task_descriptor *td) {
+	stack_push(umpages, td->heapbase);
 }
