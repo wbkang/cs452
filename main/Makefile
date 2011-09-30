@@ -26,7 +26,7 @@ LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/
 %.o : %.c
 
 #################
-OBJS= main.o test.o
+OBJS= main.o test.o kerneltest.o
 ################
 
 
