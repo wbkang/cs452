@@ -52,6 +52,8 @@ void die();
 #define ASSERT(X,MSG)
 #endif
 
+#define ERROR(...) { bwprintf(1, "ERROR:" __VA_ARGS__); bwprintf(1, CRLF "File: " __FILE__ " line: " TOSTRING(__LINE__) CRLF); die(); }
+
 #if TRACE_ENABLED
 void bwprintf(int channel, char *fmt, ... );
 #define TRACE(...) { bwprintf(1, __VA_ARGS__); }
