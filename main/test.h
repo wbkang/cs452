@@ -15,5 +15,12 @@
 	} \
 }
 
+#define EXPECTMSG(expected, got, MSG) { \
+	if (got != expected) { \
+		bwprintf(COM2, "ERROR!!!\nExpected %d but got %d (%x) " MSG, expected, got, got); \
+		die(); \
+	} \
+}
+
 
 void test_run();

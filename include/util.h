@@ -53,7 +53,7 @@ void die();
 	} \
 }
 #else
-#define ASSERT(X,MSG)
+#define ASSERT(X,...)
 #endif
 
 #define ERROR(...) { \

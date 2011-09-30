@@ -33,7 +33,11 @@ void handle_swi(register_set *reg) {
 	switch (req_no) {
 		case SYSCALL_CREATE:
 			*rv = kernel_createtask(a1, (func_t) a2);
-			scheduler_move2ready();
+			if (*rv >= 0) {
+				scheduler_move2ready();
+			} else {
+				scheduler_runmenext();
+			}
 			break;
 		case SYSCALL_MYTID:
 			scheduler_runmenext();
@@ -75,8 +79,23 @@ void kernel_runloop() {
 }
 
 int kernel_createtask(int priority, func_t code) {
-	// < somehow test weather *code is valid >
+	if (priority < MIN_PRIORITY || priority > MAX_PRIORITY) {
+		return -1;
+	}
+
+	uint codeaddr = (uint)code;
+
+	// probabyly not in the text region
+	if (codeaddr < (uint)&_TextStart || codeaddr >= (uint)&_TextEnd ) {
+		return -3;
+	}
+
 	task_descriptor* td = td_new();
+
+	if (!td) {
+		return -2;
+	}
+
 	td->state = 0;
 	td->priority = priority;
 	td->parent_id = kernel_mytid();
