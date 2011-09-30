@@ -14,3 +14,5 @@ void* kmalloc(uint size);
 void* umalloc(uint size);
 
 void* allocate_user_memory();
+
+void free_user_memory(memptr heapbase);
