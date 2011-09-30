@@ -3,6 +3,7 @@
 #include <test.h>
 #include <syscall.h>
 #include <string.h>
+#include <kerneltest.h>
 
 static void task2() {
 	bwprintf(COM2, "task id: %d, parent's task id: %d\n", MyTid(), MyParentsTid());
@@ -21,7 +22,9 @@ static void task1() {
 
 int main(int argc, char* argv[]) {
 	raw_init();
+
 	test_run();
+
 	TRACE("######## kernel_init ########\n\n");
 	kernel_init();
 	TRACE("\n######## kernel_init done ########\n");
