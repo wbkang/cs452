@@ -3,8 +3,6 @@
 #include <util.h>
 #include <hardware.h>
 
-#define TASK_LIST_SIZE 16
-
 #define REG_SP 13
 #define REG_LR 14
 #define REG_PC 15
