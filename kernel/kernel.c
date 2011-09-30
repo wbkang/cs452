@@ -32,7 +32,7 @@ void handle_swi(register_set *reg) {
 	switch (req_no) {
 		case SYSCALL_CREATE:
 			*r0 = kernel_createtask(a1, (func_t) a2);
-			if (*rv >= 0) {
+			if (*r0 >= 0) {
 				scheduler_move2ready();
 			} else {
 				scheduler_runmenext();
