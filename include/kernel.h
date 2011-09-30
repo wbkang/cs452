@@ -2,8 +2,6 @@
 
 #include <task.h>
 
-#define NUM_PRIORITY 32
-
 void kernel_init();
 
 void handle_swi(register_set *reg);
@@ -59,11 +57,10 @@ void kernel_passtask();
  * owned by the task, primarily its memory and task descriptor are not
  * reclaimed.
  */
-
 void kernel_exittask();
 
 void kernel_runloop();
 
-volatile task_descriptor* kernel_td_current();
+volatile task_descriptor *kernel_td_current();
 
 void kernel_driver(func_t code);
