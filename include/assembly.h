@@ -13,4 +13,4 @@
 // asm
 void asm_handle_swi();
 int asm_syscall(int reqid, void** args);
-int asm_switch_to_usermode(register_set *reg);
+void asm_switch_to_usermode(register_set *reg);

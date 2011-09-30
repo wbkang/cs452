@@ -11,11 +11,13 @@
 
 volatile static task_descriptor *td_current;
 
-volatile task_descriptor* kernel_td_current() {
+volatile task_descriptor *kernel_td_current() {
 	return td_current;
 }
 
 static priorityq *ready_queue;
+
+static int killme;
 
 static void install_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
@@ -26,14 +28,13 @@ static void task_queue_init() {
 	ready_queue = priorityq_new(TASK_LIST_SIZE, NUM_PRIORITY);
 }
 
-void handle_swi(int req_no, register_set *reg) {
-	TRACE( ">handle_swi: req_no: %d\n", req_no);
-	reginfo(reg);
-
-	volatile task_descriptor *td_in = td_current;
-
+void handle_swi(register_set *reg) {
+	int req_no = reg->r[0];
+	void** args = (void**) reg->r[1];
 	int *rv = reg->r;
-	void* *args = (void* *) reg->r[1];
+
+	TRACE( ">handle_swi: req_no: %d\n", req_no);
+	// reginfo(reg);
 
 	switch (req_no) {
 		case SYSCALL_CREATE:
@@ -60,29 +61,9 @@ void handle_swi(int req_no, register_set *reg) {
 			break;
 	}
 
-	if (td_in->id != td_current->id) {
-		*reg = td_current->registers;
-	}
-
 	TRACE(">handle_swi done:\n>\ttid: %d\n", td_current->id);
-	reginfo(reg);
+	// reginfo(reg);
 }
-
-//void kernel_driver(func_t code) {
-//	task_descriptor* td = td_new();
-//	td->state = 0;
-//	td->priority = 0;
-//	td->parent_id = -1;
-//	td->registers.r[REG_LR] = (uint) Exit;
-//	td->heap = (memptr) allocate_user_memory(); // top of allocated memory
-//	td->stack = td->heap + (STACK_SIZE >> 2); // bottom of allocated memory
-//
-//	// priorityq_push(ready_queue, td, td->priority);
-//	td_current = td;
-//	asm_switch_to_usermode(td->stack, (memptr) (uint) code);
-//
-//	ASSERT(FALSE, "reached unreachable code...");
-//}
 
 void kernel_init() {
 	td_current = NULL;
@@ -99,10 +80,9 @@ int kernel_createtask(int priority, func_t code) {
 	td->state = 0;
 	td->priority = priority;
 	td->parent_id = kernel_mytid();
-	td->registers.r[0] = 1;
-	td->registers.r[1] = 2;
-	td->registers.r[2] = 3;
-	td->registers.r[3] = 4;
+	for (int i = 0; i < 13; i++) {
+		td->registers.r[i] = 0xbeef0000 + i;
+	}
 	td->registers.r[REG_LR] = (int) Exit;
 	td->registers.r[REG_PC] = (int) code;
 	td->registers.spsr = 0x10;
@@ -112,8 +92,7 @@ int kernel_createtask(int priority, func_t code) {
 
 	priorityq_push(ready_queue, td, priority);
 
-	TRACE(
-			">\tcreatetask tid:%d heap:%x pc:%x\n", td->id, td->heap, td->registers.r[REG_PC]);
+	// TRACE(">\tcreatetask tid:%d heap:%x pc:%x\n", td->id, td->heap, td->registers.r[REG_PC]);
 	return td->id;
 }
 
@@ -127,30 +106,31 @@ int kernel_myparenttid() {
 
 void kernel_passtask() {
 	TRACE("kernel_passtask()\n");
-	priorityq_push(ready_queue, (task_descriptor *) td_current,
-			td_current->priority);
-	td_current = priorityq_pop(ready_queue); // grab next task
-	priorityq_push(ready_queue, (task_descriptor *) td_current,
-			td_current->priority); // schedule next task
+//	priorityq_push(ready_queue, (task_descriptor *) td_current,
+//			td_current->priority);
+//	td_current = priorityq_pop(ready_queue); // grab next task
+//	priorityq_push(ready_queue, (task_descriptor *) td_current,
+//			td_current->priority); // schedule next task
 }
 
 void kernel_runloop() {
+	register_set *reg;
 	while (!PRIORITYQ_EMPTY(ready_queue)) {
 		td_current = priorityq_pop(ready_queue);
-		TRACE("q not empty, tid = %d\n", td_current->id);
-		register_set* reg = &((task_descriptor *) td_current)->registers;
-		TRACE("pc:%x\n", reg->r[REG_PC]);
-
-		int req_no = asm_switch_to_usermode(reg);
-//		__asm("mov r0, %[reg]\n\t"
-//				"bl asm_switch_to_usermode\n\t"
-//				: : [reg] "r" (reg));
-		TRACE("after switch\n");
-		handle_swi(req_no, reg);
+		TRACE("scheduling task with id %d and priority %d\n", td_current->id, td_current->priority);
+		reg = &((task_descriptor *) td_current)->registers;
+		asm_switch_to_usermode(reg);
+		killme = FALSE;
+		handle_swi(reg);
+		if (!killme) {
+			priorityq_push(ready_queue, (task_descriptor *) td_current,
+					td_current->priority);
+		}
 	}
 }
 
 void kernel_exittask() {
 	TRACE("kernel_exittask() -- pq size:%d\n", ready_queue->len);
 	td_free((task_descriptor *) td_current);
+	killme = TRUE;
 }
