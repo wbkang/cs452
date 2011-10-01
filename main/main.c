@@ -23,6 +23,7 @@ static void task1() {
 }
 
 int main(int argc, char *argv[]) {
+	TRACE("test");
 	raw_init();
 	test_run();
 	kerneltest_run();
