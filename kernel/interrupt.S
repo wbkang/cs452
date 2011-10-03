@@ -79,3 +79,18 @@ Exit:
 malloc:
 	swi 5
 	mov pc, lr
+
+.global asm_Send
+asm_Send:
+	swi 6
+	mov pc, lr
+
+.global Recieve
+Recieve:
+	swi 7
+	mov pc, lr
+
+.global Reply
+Reply:
+	swi 8
+	mov pc, lr
