@@ -3,23 +3,24 @@
 #include <stack.h>
 #include <scheduler.h>
 #include <syscall.h>
+#include <task.h>
 
 extern uint _KERNEL_MEM_START;
 static memptr kernel_heap;
 static stack *umpages;
 
-void mem_init() {
+void mem_init(uint task_list_size) {
 	// initialize kernel heap
 	kernel_heap = &_KERNEL_MEM_START;
 	// initialize user memory pages
-	umpages = stack_new(TASK_LIST_SIZE);
+	umpages = stack_new(task_list_size);
 	for (int i = TASK_LIST_SIZE - 1; i != -1; i--) {
 		stack_push(umpages, (void*) (USER_MEM_START + STACK_SIZE * i));
 	}
 }
 
 void mem_reset() {
-	mem_init();
+	kernel_heap = &_KERNEL_MEM_START;
 }
 
 void* kmalloc(uint size) {
@@ -30,7 +31,7 @@ void* kmalloc(uint size) {
 }
 
 void* umalloc(uint size) {
-	volatile task_descriptor *td = scheduler_running();
+	task_descriptor *td = scheduler_running();
 	memptr rv = td->heap;
 	memptr new_heap = rv + NEXTHIGHESTWORD(size);
 	if (((uint) td->registers.r[REG_SP]) > (uint) new_heap) {

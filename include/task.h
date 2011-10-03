@@ -2,10 +2,23 @@
 
 #include <util.h>
 #include <hardware.h>
+#include <memory.h>
 
 #define REG_SP 13
 #define REG_LR 14
 #define REG_PC 15
+
+#define TD_STATE_FREE 0
+#define TD_STATE_NEW 1
+#define TD_STATE_READY 2
+#define TD_STATE_RUNNING 3
+#define TD_STATE_RETIRED 4
+#define TD_STATE_WAITING_FOR_SEND 5
+#define TD_STATE_WAITING_FOR_RECIEVE 6
+#define TD_STATE_WAITING_FOR_REPLY 7
+
+// this is calculated at compile time.
+#define TASK_LIST_SIZE ((USER_MEM_END - USER_MEM_START) / STACK_SIZE)
 
 typedef struct _tag_register_set {
 		int spsr;
@@ -24,34 +37,30 @@ typedef struct _tag_task_descriptor {
 		struct _tag_task_descriptor *_next;
 } task_descriptor;
 
-/*
- * The task descriptor list must support the following operations in O(1)
- * 		return a pointer to a free task descriptor
- * 		given a pointer to a task descriptor, free that descriptor for later use
- * 	Furthermore, the list must only use static memory.
- *
- * 	I chose to implement the list as a doubly linked list.
- *
- * 	Using static memory means that all possible descriptors must be initialized
- * 	at the beginning and then given out and taken back during execution.
- *
- * 	To do this I use two doubly linked lists. One stores the taken descriptors,
- * 	and the other stores the free ones. The required operations simply move the
- * 	descriptors from one list to another.
- *
- * 	During initialization the taken list is initialized to empty, while the free
- * 	list is populated with the maximum number of dummy descriptors.
- *
- * 	The first two task descriptors are sentinel values. The first one is the
- * 	head of the taken list, and the second one is the head of the free list.
- */
+#define TD_INDEX(tid) ((tid) & 0xFFFF)
 
-/*
- * I just realized that I could have used a stack as well. To remove from the
- * middle you simply memcpy the top of the stack to the middle and pop. This
- * will be simpler and use less space, but there will be a cost of memcpy on
- * every delete.
- */
+#define TD_IMPOSSIBLE(tid) (tid < 0 || (TD_INDEX(tid) >= TASK_LIST_SIZE))
+
+#define TD_REMOVE(td) { \
+	(td)->_prev->_next = (td)->_next; \
+	(td)->_next->_prev = (td)->_prev; \
+}
+
+#define TD_CLOSE(td) { \
+	(td)->_prev = (td); \
+	(td)->_next = (td); \
+}
+
+#define TD_PUSH(head, td) { \
+	(td)->_prev = (head); \
+	(td)->_next = (td)->_prev->_next; \
+	(td)->_prev->_next = (td); \
+	(td)->_next->_prev = (td); \
+}
+
+#define TD_PEEK(td) ((td)->_prev)
+
+#define TD_EMPTYLIST(td) (TD_PEEK(td) == td)
 
 void td_init();
 
@@ -60,5 +69,7 @@ task_descriptor *td_new();
 void td_free(task_descriptor *td);
 
 task_descriptor *td_find(uint id);
+
+task_descriptor *td_pop(task_descriptor *head);
 
 void reginfo(register_set *reg);
