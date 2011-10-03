@@ -26,8 +26,10 @@ void handle_swi(register_set *reg) {
 	int *r0 = &reg->r[0];
 	int a1 = *r0;
 	int a2 = reg->r[1];
-	// int a3 = reg->r[2];
-	// int *args = (int *) reg->r[4];
+	int a3 = reg->r[2];
+	int a4 = reg->r[3];
+
+	int msglen, replylen;
 
 	switch (req_no) {
 		case SYSCALL_CREATE:
@@ -55,6 +57,17 @@ void handle_swi(register_set *reg) {
 		case SYSCALL_MALLOC:
 			scheduler_runmenext();
 			*r0 = (int) umalloc((uint) a1);
+			break;
+		case SYSCALL_SEND:
+			msglen = a4 & 0xFFFF;
+			replylen = ((uint ) a4) >> 16;
+			*r0 = kernel_send(a1, (char *) a2, msglen, (char *) a3, replylen);
+			break;
+		case SYSCALL_RECIEVE:
+			*r0 = kernel_recieve((int *) a1, (char *) a2, a3);
+			break;
+		case SYSCALL_REPLY:
+			*r0 = kernel_reply(a1, (char *) a2, a3);
 			break;
 		default:
 			ERROR("unknown system call %d (%x)\n", req_no, req_no);
@@ -99,4 +112,27 @@ int kernel_mytid() {
 int kernel_myparenttid() {
 	volatile task_descriptor *td = scheduler_running();
 	return td ? td->parent_id : 0xdeadbeef;
+}
+
+int kernel_send(int tid, char *msg, int msglen, char *reply, int replylen) {
+	TRACE("tid: %d (%x)", tid, tid);
+	TRACE("msg: %s (%x)", msg, msg);
+	TRACE("msglen: %d, (%x)", msglen, msglen);
+	TRACE("reply: %s (%x)", reply, reply);
+	TRACE("replylen: %d, (%x)", replylen, replylen);
+	return 0xdeadface;
+}
+
+int kernel_recieve(int *tid, char *msg, int msglen) {
+	TRACE("tid: %d (%x)", tid);
+	TRACE("msg: %s (%x)", msg, msg);
+	TRACE("msglen: %d, (%x)", msglen, msglen);
+	return 0xdeadface;
+}
+
+int kernel_reply(int tid, char *reply, int replylen) {
+	TRACE("tid: %d (%x)", tid);
+	TRACE("reply: %s (%x)", reply, reply);
+	TRACE("replylen: %d, (%x)", replylen, replylen);
+	return 0xdeadface;
 }

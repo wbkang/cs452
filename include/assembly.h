@@ -9,6 +9,9 @@
 #define SYSCALL_PASS 3
 #define SYSCALL_EXIT 4
 #define SYSCALL_MALLOC 5
+#define SYSCALL_SEND 6
+#define SYSCALL_RECIEVE 7
+#define SYSCALL_REPLY 8
 
 // asm
 void asm_handle_swi();
@@ -27,3 +30,9 @@ void Pass();
 void Exit();
 
 void* malloc(uint size);
+
+int asm_Send(int tid, char *msg, char *reply, int lengths);
+
+int Recieve(int *tid, char *msg, int msglen);
+
+int Reply(int tid, char *reply, int replylen);

@@ -11,11 +11,17 @@ static struct _tag_task_descriptor_list {
 	(td)->_next->_prev = (td)->_prev; \
 }
 
-#define TD_APPEND(ref, td) { \
-	(td)->_prev = (ref); \
+#define TD_PUSH(head, td) { \
+	(td)->_prev = (head); \
 	(td)->_next = (td)->_prev->_next; \
 	(td)->_prev->_next = (td); \
 	(td)->_next->_prev = (td); \
+}
+
+#define TD_POP(head, td) { \
+	task_descriptor *td = head->prev; \
+	TD_REMOVE(td); \
+	return td; \
 }
 
 void td_init() {
@@ -27,7 +33,7 @@ void td_init() {
 	task_descriptor *td = task_descriptors.td;
 	for (int i = TASK_LIST_SIZE - 1; i != -1; --i, ++td) {
 		td->id = i;
-		TD_APPEND(head_free, td);
+		TD_PUSH(head_free, td);
 	}
 }
 
@@ -44,7 +50,7 @@ void td_free(task_descriptor *td) {
 	td->id += 0x10000; // increment generation
 	TD_REMOVE(td);
 	if (td->id >= 0) {
-		TD_APPEND(&task_descriptors.head_free, td);
+		TD_PUSH(&task_descriptors.head_free, td);
 	}
 }
 

@@ -15,10 +15,6 @@ else
 	exit 1
 fi
 
-if [ ! -z "$3" ]; then
-	echo -e "\n" 1>&2
-fi
-
 CURCS=`$HG log | head -1 | awk '{ print $2 }' | cut -d ":" -f 2`
 echo "Current changeset: $CURCS"
 
