@@ -22,11 +22,12 @@ void kernel_init() {
 }
 
 void handle_swi(register_set *reg) {
+	int req_no = VMEM(reg->r[REG_PC] - 4) & 0xFFFFFF;
 	int *r0 = &reg->r[0];
-	int req_no = *r0;
-	int a1 = reg->r[1];
-	int a2 = reg->r[2];
-	// int *args = (int *) reg->r[3];
+	int a1 = *r0;
+	int a2 = reg->r[1];
+	// int a3 = reg->r[2];
+	// int *args = (int *) reg->r[4];
 
 	switch (req_no) {
 		case SYSCALL_CREATE:
