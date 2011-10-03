@@ -1,12 +1,22 @@
 #!/bin/sh
 
+#set -x
+
+if [ ! -z "$3" ]; then
+	exec 1>/dev/null
+fi
+
 if which hg; then
 	HG=hg
 elif which /usr/bin/hg; then
 	HG=/usr/bin/hg
-else 
+else
 	echo "Mercurial not found!"
 	exit 1
+fi
+
+if [ ! -z "$3" ]; then
+	echo -e "\n" 1>&2
 fi
 
 CURCS=`$HG log | head -1 | awk '{ print $2 }' | cut -d ":" -f 2`
@@ -33,7 +43,7 @@ if [ $? -ne 0 ]; then
 		hg update;
 		./clean.sh;
 		./build.sh;
-	"	
+	"
 	exit 0;
 fi
 
@@ -44,10 +54,10 @@ $HG update -C $CURCS
 $HG revert -a -r $TEMPCS
 echo "***You may start editing your files again***"
 
-$HG push -f -r $TEMPCS 
+$HG push -f -r $TEMPCS
 $HG strip -f $TEMPCS
 
-echo "***Starting a remote build...***"
+echo "***Starting a remote build...***" 1>&2
 ssh $PKOPT $REMOTEUSER@$REMOTEHOST \
 "
 	[ -f cs452.sh ] && source cs452.sh;
@@ -58,5 +68,6 @@ ssh $PKOPT $REMOTEUSER@$REMOTEHOST \
 	hg update `hg parent | grep changeset: | awk '{print $2}' | cut -d ':' -f 1`
 	hg strip $TEMPCS > /dev/null;
 "
-
-
+if [ $? -eq 0 ]; then
+	echo "***Done!***" 1>&2
+fi
