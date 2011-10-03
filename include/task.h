@@ -16,8 +16,8 @@ typedef struct _tag_task_descriptor {
 		int id;
 		uint state;
 		uint priority;
-		int parent_id; // should this be a pointer to the parent td?
-		register_set registers; // r0-r12, sp and lr
+		int parent_id;
+		register_set registers;
 		memptr heap_base;
 		memptr heap;
 		struct _tag_task_descriptor *_prev;
@@ -55,7 +55,7 @@ typedef struct _tag_task_descriptor {
 
 void td_init();
 
-task_descriptor* td_new();
+task_descriptor *td_new();
 
 void td_free(task_descriptor *td);
 

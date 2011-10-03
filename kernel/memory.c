@@ -41,7 +41,7 @@ void* umalloc(uint size) {
 	}
 }
 
-void* qmalloc(uint size) { // requires size in bytes
+void* qmalloc(uint size) {
 	int mode = 0xdeadbeef;
 
 #ifndef __i386
@@ -66,6 +66,9 @@ void* qmalloc(uint size) { // requires size in bytes
 void allocate_user_memory(task_descriptor *td) {
 	td->heap_base = (memptr) stack_pop(umpages);
 	td->heap = td->heap_base;
+	// add stack size to get stack pointer address.
+	// this will technically point to the next tasks heap,
+	// but since its a full stack it will increment before pushing
 	td->registers.r[REG_SP] = ((int) td->heap) + BYTES2WORDS(STACK_SIZE);
 }
 
