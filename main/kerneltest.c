@@ -36,7 +36,7 @@ static void kerneltest_max_tasks() {
 	EXPECTMSG(-3, tid, "Should return -3 for an invalid code");
 
 	TRACE("Testing Create with maximum number of tasks.");
-	for (int i = 0; i <TASK_LIST_SIZE-1; i++) {
+	for (int i = 0; i < TASK_LIST_SIZE-1; i++) {
 		tid = Create(i % (MAX_PRIORITY / 2), kerneltest_max_tasks_run);
 		ASSERT(tid >= 0, "Task ID invalid %d", tid);
 	}
@@ -48,7 +48,7 @@ static void kerneltest_max_tasks() {
 
 static void kerneltest_exit() {
 	TRACE("Testing whether a task frees resource after running.");
-	for (int i = 0; i <TASK_LIST_SIZE * 2; i++) {
+	for (int i = 0; i < TASK_LIST_SIZE * 2; i++) {
 		int tid = Create(MAX_PRIORITY, Exit);
 		ASSERT(tid >= 0, "Task ID invalid %d", tid);
 	}
@@ -67,7 +67,7 @@ static void kerneltest_myparenttid() {
 	last_run_tid = mytid;
 
 	if (mypriority >= MIN_PRIORITY) {
-		ASSERT(Create(mypriority-1, kerneltest_myparenttid) >= 0, "create task failed!?");
+		ASSERT(Create(mypriority - 1, kerneltest_myparenttid) >= 0, "create task failed!?");
 	}
 }
 

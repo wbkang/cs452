@@ -33,7 +33,7 @@ void td_init() {
 
 task_descriptor *td_new() {
 	task_descriptor *td = task_descriptors.head_free._next;
-	if (td == td->_next) {
+	if (td == td->_next) { // ran out
 		return NULL;
 	}
 	TD_REMOVE(td);
@@ -41,15 +41,15 @@ task_descriptor *td_new() {
 }
 
 void td_free(task_descriptor *td) {
-	td->id += 1 << 16;
+	td->id += 0x10000; // increment generation
+	TD_REMOVE(td);
 	if (td->id >= 0) {
-		TD_REMOVE(td);
 		TD_APPEND(&task_descriptors.head_free, td);
 	}
 }
 
 task_descriptor *td_find(uint id) {
-	task_descriptor *td = &task_descriptors.td[id & 0x0000FFFF];
+	task_descriptor *td = &task_descriptors.td[id & 0xFFFF];
 	return td->id == id ? td : NULL;
 }
 
@@ -59,7 +59,8 @@ void reginfo(register_set *reg) {
 	TRACE("\tspsr: %x", reg->spsr);
 	for (int i = 0; i < 13; i++) {
 		TRACE("\tr%d: %x", i, reg->r[i]);
-	}TRACE("\tsp: %x", reg->r[13]);
+	}
+	TRACE("\tsp: %x", reg->r[13]);
 	TRACE("\tlr: %x", reg->r[14]);
 	TRACE("\tpc: %x", reg->r[15]);
 }

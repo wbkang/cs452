@@ -10,10 +10,8 @@ void raw_init() {
 	uart_stopbits(COM1, 2);
 	uart_databits(COM1, 8);
 	uart_parity(COM1, OFF);
-
 	// init COM2
 	uart_fifo(COM2, OFF);
-
 }
 
 int raw_isrxempty(int channel) {
@@ -29,8 +27,7 @@ int raw_getc(int channel) {
 int raw_istxready(int channel) {
 	CHECK_COM(channel);
 	int flags = VMEM(UART_BASE(channel) + UART_FLAG_OFFSET);
-	return !(flags & TXFF_MASK)
-			&& (channel == COM2 || (channel == COM1 && (flags & CTS_MASK)));
+	return !(flags & TXFF_MASK) && (channel == COM2 || (channel == COM1 && (flags & CTS_MASK)));
 }
 
 void raw_putc(int channel, char c) {
@@ -42,14 +39,13 @@ void bwputc(int channel, char c) {
 	CHECK_COM(channel);
 	int base = UART_BASE(channel);
 	memptr flags = (memptr) (base + UART_FLAG_OFFSET);
-	while (*flags & TXFF_MASK)
-		;
+	while (*flags & TXFF_MASK);
 	VMEM(base + UART_DATA_OFFSET) = c;
 }
 
 void bwputx(int channel, char c) {
-	bwputc(channel, char2hex(c / 16));
-	bwputc(channel, char2hex(c % 16));
+	bwputc(channel, char2hex(c >> 4)); // c / 16
+	bwputc(channel, char2hex(c & 0xF)); // c % 16
 }
 
 void bwputr(int channel, uint reg) {
@@ -62,34 +58,28 @@ void bwputr(int channel, uint reg) {
 }
 
 void bwputstr(int channel, char *str) {
-	while (*str)
-		bwputc(channel, *str++);
+	while (*str) bwputc(channel, *str++);
 }
 
 void bwputw(int channel, int n, char fc, char *bf) {
 	char ch;
 	char *p = bf;
-	while (*p++ && n > 0)
-		n--;
-	while (n-- > 0)
-		bwputc(channel, fc);
-	while ((ch = *bf++))
-		bwputc(channel, ch);
+	while (*p++ && n > 0) n--;
+	while (n-- > 0) bwputc(channel, fc);
+	while ((ch = *bf++)) bwputc(channel, ch);
 }
 
 int bwgetc(int channel) {
 	CHECK_COM(channel);
 	int base = UART_BASE(channel);
 	memptr flags = (memptr) (base + UART_FLAG_OFFSET);
-	while (!(*flags & RXFF_MASK))
-		;
+	while (!(*flags & RXFF_MASK));
 	return (char) VMEM(base + UART_DATA_OFFSET);
 }
 
 char bwa2i(char ch, char **src, int base, int *nump) { // only for bwformat
 	int num, digit;
 	char *p;
-
 	p = *src;
 	num = 0;
 	while ((digit = char2digit(ch)) >= 0) {
@@ -107,7 +97,6 @@ void bwformat(int channel, char *fmt, va_list va) {
 	char bf[12];
 	char ch, lz;
 	int w;
-
 	while ((ch = *(fmt++))) {
 		if (ch != '%') bwputc(channel, ch);
 		else {

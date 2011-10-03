@@ -77,7 +77,7 @@ int kernel_createtask(int priority, func_t code) {
 	uint entry = (uint) code;
 	// probably not in the text region
 	if (entry < (uint) &_TextStart || entry >= (uint) &_TextEnd) return -3;
-	task_descriptor* td = td_new();
+	task_descriptor *td = td_new();
 	if (!td) return -2;
 	td->state = 0;
 	td->priority = priority;
