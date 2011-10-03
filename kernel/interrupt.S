@@ -2,10 +2,6 @@
 .global asm_handle_swi
 .ident "human compiler (TM)"
 @ this code handles swi system call
-@ r0 is request id
-@ r1 is a1
-@ r2 is a2
-@ r3 is *args
 asm_handle_swi:
 	@ <) swi was raised so we are in svc mode
 	@ <) sp_svc: [r0 (td_current->registers)], r1-r12, lr_svc, ...
@@ -53,11 +49,33 @@ asm_switch_to_usermode:
 
 
 @ syscall code.
-@ r0 : request id
-@ r1 : arguments array
-.global asm_syscall
-asm_syscall:
+
+.global Create
+Create:
 	swi 0
-	@return
 	mov pc, lr
 
+.global MyTid
+MyTid:
+	swi 1
+	mov pc, lr
+
+.global MyParentsTid
+MyParentsTid:
+	swi 2
+	mov pc, lr
+
+.global Pass
+Pass:
+	swi 3
+	mov pc, lr
+
+.global Exit
+Exit:
+	swi 4
+	mov pc, lr
+
+.global malloc
+malloc:
+	swi 5
+	mov pc, lr
