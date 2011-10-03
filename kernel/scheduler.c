@@ -2,7 +2,7 @@
 #include <priorityq.h>
 #include <memory.h>
 
-volatile static task_descriptor *running;
+static task_descriptor *running;
 static priorityq *ready_queue;
 static int reschedule;
 
@@ -13,11 +13,12 @@ void scheduler_init() {
 	ready_queue = priorityq_new(TASK_LIST_SIZE, NUM_PRIORITY);
 }
 
-volatile task_descriptor *scheduler_running() {
+task_descriptor *scheduler_running() {
 	return running;
 }
 
 void scheduler_ready(task_descriptor *td) {
+	td->state = TD_STATE_READY;
 	priorityq_push(ready_queue, td, td->priority);
 }
 
@@ -28,6 +29,7 @@ int scheduler_empty() {
 task_descriptor *scheduler_get() {
 	if (reschedule) {
 		running = priorityq_pop(ready_queue);
+		running->state = TD_STATE_RUNNING;
 	} else {
 		reschedule = TRUE;
 	}
@@ -35,14 +37,14 @@ task_descriptor *scheduler_get() {
 }
 
 void scheduler_killme() {
-	task_descriptor *td = (task_descriptor *) running;
-	free_user_memory(td);
-	td_free(td);
+	free_user_memory(running);
+	td_free(running);
+	running = NULL;
 }
 
 void scheduler_move2ready() {
 	ASSERT(running, "no task running to move to ready");
-	scheduler_ready((task_descriptor *) running);
+	scheduler_ready(running);
 }
 
 void scheduler_runmenext() {

@@ -8,7 +8,7 @@
 
 void scheduler_init();
 
-volatile task_descriptor *scheduler_running();
+task_descriptor *scheduler_running();
 
 void scheduler_ready(task_descriptor *td);
 
@@ -21,3 +21,5 @@ void scheduler_killme();
 void scheduler_move2ready();
 
 void scheduler_runmenext();
+
+// void scheduler_put(task_descriptor *list, task_descriptor *td);

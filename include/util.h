@@ -35,7 +35,8 @@ typedef char *va_list;
 #define INSTALL_INTERRUPT_HANDLER(vec, jmp) { VMEM((vec) + 0x20) = (uint)(jmp); }
 // turn mask bits on/off in word based on flags
 #define BIT_TOGGLE(word, mask, flag) ((word) ^= (-(flag) ^ (word)) & (mask))
-
+#define BYTES2WORDS(x) ((x) >> 2)
+#define NEXTHIGHESTWORD(x) BYTES2WORDS((x) + 3)
 // 2k clock, divide by 2 to get time in ms, with 6 ticks per 2000 ticks drift correction
 #define GET_TIME(time) { \
     time = WORD ^ RAM(TIMER3_BASE + VAL_OFFSET); \
