@@ -41,9 +41,7 @@ void int2str(int num, char *bf) {
 
 uint strlen(char *str) {
 	char *i = str;
-	while (*i) {
-		i++;
-	}
+	while (*i) i++;
 	return i - str;
 }
 

@@ -66,7 +66,7 @@ static void kerneltest_myparenttid() {
 
 	last_run_tid = mytid;
 
-	if (mypriority >= MIN_PRIORITY) {
+	if (mypriority > MIN_PRIORITY) {
 		ASSERT(Create(mypriority - 1, kerneltest_myparenttid) >= 0, "create task failed!?");
 	}
 }

@@ -31,8 +31,8 @@ void Exit();
 
 void* malloc(uint size);
 
-int asm_Send(int tid, char *msg, char *reply, int lengths);
+int asm_Send(int tid, void* msg, char *reply, int lengths);
 
-int Recieve(int *tid, char *msg, int msglen);
+int Recieve(int *tid, void* msg, int msglen);
 
-int Reply(int tid, char *reply, int replylen);
+int Reply(int tid, void* reply, int replylen);
