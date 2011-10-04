@@ -10,8 +10,6 @@
 #include <string.h>
 #include <nameserver.h>
 
-static int name_server_id;
-
 static void install_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
 }
@@ -33,7 +31,7 @@ void handle_swi(register_set *reg) {
 	int a3 = reg->r[2];
 	int a4 = reg->r[3];
 
-	int msglen, replylen;
+	int msglen, replylen, rv;
 
 	switch (req_no) {
 		case SYSCALL_CREATE:
@@ -71,22 +69,19 @@ void handle_swi(register_set *reg) {
 			}
 			break;
 		case SYSCALL_RECIEVE:
-			*r0 = kernel_recieve((int *) a1, (void*) a2, a3);
-			if (*r0 < 0) {
+			rv = kernel_recieve((int *) a1, (void*) a2, a3);
+			if (rv < 0) {
+				*r0 =  rv; // write the error
 				scheduler_runmenext();
 			}
 			break;
 		case SYSCALL_REPLY:
-			*r0 = kernel_reply(a1, (char *) a2, a3);
+			*r0 = kernel_reply(a1, (void*) a2, a3);
 			break;
-		case SYSCALL_REGISTERAS:
-			*r0 = kernel_registeras((char *) a1);
+		case SYSCALL_NAMESERVERTID:
+			scheduler_runmenext();
+			*r0 = get_nameserver();
 			break;
-		case SYSCALL_WHOIS:
-			*r0 = kernel_whois((char *) a1);
-			break;
-		case SYSCALL_RETURN:
-			*r0 = kernel_return(a1, a2);
 		default:
 			ERROR("unknown system call %d (%x)\n", req_no, req_no);
 			break;
@@ -94,6 +89,8 @@ void handle_swi(register_set *reg) {
 }
 
 void kernel_runloop() {
+	kernel_createtask(NAMESERVER_PRIORITY, nameserver);
+
 	task_descriptor *td;
 	register_set *reg;
 	while (!scheduler_empty()) {
@@ -169,10 +166,6 @@ int transfer_reply(task_descriptor *sender, task_descriptor *reciever) {
 }
 
 int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen) {
-	TRACE("tid: %d (%x)", tid, tid);
-	TRACE("msg: %s (%x)", msg, msg);
-	TRACE("msglen: %d, (%x)", msglen, msglen);
-
 	if (TD_IMPOSSIBLE(tid)) return -1;
 	task_descriptor *reciever = td_find(tid);
 	if (!reciever) return -2;
@@ -185,37 +178,19 @@ int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen) {
 int kernel_recieve(int *tid, void* msg, int msglen) {
 	task_descriptor *reciever = scheduler_running();
 	task_descriptor *sender = td_pop(reciever);
+
+	if (sender) TRACE("sender id: %d", sender->id);
+
 	if (sender) return transfer_msg(sender, reciever);
 	scheduler_wait4send(reciever);
 	return 0; // will return later
 }
 
 int kernel_reply(int tid, void* reply, int replylen) {
-	TRACE("tid: %d (%x)", tid);
-	TRACE("reply: %s (%x)", reply, reply);
-	TRACE("replylen: %d, (%x)", replylen, replylen);
-
 	if (TD_IMPOSSIBLE(tid)) return -1;
 	task_descriptor *sender = td_find(tid);
 	if (!sender) return -2;
 	if (sender->state != TD_STATE_WAITING4REPLY) return -3;
 	task_descriptor *reciever = scheduler_running();
 	return transfer_reply(sender, reciever);
-}
-
-int kernel_registeras(char *name) { // mimic send
-	int tid = name_server->id;
-	void* msg = (void*) name;
-	int msglen = strlen(name);
-	void* reply = NULL;
-	int replylen = 0;
-	return kernel_send(tid, msg, msglen, reply, replylen);
-}
-
-int kernel_whois(char *name) {
-	return 0;
-}
-
-int kernel_return(int tid, int rv) { // mimic recieve
-	return 0;
 }

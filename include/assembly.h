@@ -12,6 +12,7 @@
 #define SYSCALL_SEND 6
 #define SYSCALL_RECIEVE 7
 #define SYSCALL_REPLY 8
+#define SYSCALL_NAMESERVERTID 9
 
 // asm
 void asm_handle_swi();
@@ -36,3 +37,5 @@ int asm_Send(int tid, void* msg, char *reply, int lengths);
 int Recieve(int *tid, void* msg, int msglen);
 
 int Reply(int tid, void* reply, int replylen);
+
+int NameServerTid();

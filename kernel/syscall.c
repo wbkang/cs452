@@ -1,4 +1,5 @@
 #include <syscall.h>
+#include <string.h>
 #include <nameserver.h>
 
 #define MAX_MSG_LEN 0xFFFF
@@ -10,18 +11,22 @@ int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
 	return asm_Send(tid, msg, reply, lengths);
 }
 
-int RegisterAs(char *name) {
-	int len = strlen(name);
-	name[len] = 4;
+int RegisterAs(char *name) { // wrapper for send
+	nameserver_request req;
+	req.n = NAMESERVER_REQUEST_REGISTERAS;
+	ASSERT(NAMESERVER_MAX_NAME_LEN >= strlen(name) + 1, "name too long");
+	strcpy(req.str, name);
 	int rv;
-	Send(name_server_id, name, len + 1, &rv, sizeof rv);
+	Send(NameServerTid(), (void*) &req, sizeof req, (void*) &rv, sizeof rv);
 	return rv;
 }
 
-int WhoIs(char *name) {
-	int len = strlen(name);
-	name[len] = 2;
+int WhoIs(char *name) { // wrapper for send
+	nameserver_request req;
+	req.n = NAMESERVER_REQUEST_WHOIS;
+	ASSERT(NAMESERVER_MAX_NAME_LEN >= strlen(name) + 1, "name too long");
+	strcpy(req.str, name);
 	int rv;
-	Send(name_server_id, name, len + 1, &rv, sizeof rv);
+	Send(NameServerTid(), (void*) &req, sizeof req, (void*) &rv, sizeof rv);
 	return rv;
 }
