@@ -178,9 +178,6 @@ int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen) {
 int kernel_recieve(int *tid, void* msg, int msglen) {
 	task_descriptor *reciever = scheduler_running();
 	task_descriptor *sender = td_pop(reciever);
-
-	if (sender) TRACE("sender id: %d", sender->id);
-
 	if (sender) return transfer_msg(sender, reciever);
 	scheduler_wait4send(reciever);
 	return 0; // will return later
