@@ -20,8 +20,14 @@ void *kernel_malloc(uint size);
 
 void kernel_runloop();
 
-int kernel_send(int tid, char *msg, int msglen, char *reply, int replylen);
+int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen);
 
-int kernel_recieve(int *tid, char *msg, int msglen);
+int kernel_recieve(int *tid, void* msg, int msglen);
 
-int kernel_reply(int tid, char *reply, int replylen);
+int kernel_reply(int tid, void* reply, int replylen);
+
+int kernel_registeras(char *name);
+
+int kernel_whois(char *name);
+
+int kernel_return(int tid, int rv);

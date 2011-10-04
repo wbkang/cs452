@@ -24,28 +24,28 @@ ARFLAGS = rcs
 %.o : %.c
 #################
 TARGETLIB= kernel.a
-OBJS= util.o rawio.o string.o hardware.o task.o memory.o kernel.o interrupt.o heap.o stack.o syscall.o \
-priorityq.o queue.o scheduler.o
+OBJS= util.o rawio.o string.o hardware.o task.o memory.o kernel.o interrupt.o \
+	heap.o stack.o syscall.o priorityq.o queue.o scheduler.o nameserver.o
 ################
 
 
 all : $(TARGETLIB)
 
-%.a : $(OBJS) 
+%.a : $(OBJS)
 	@echo "[AR]\t$< -> $@"
 	@$(AR) $(ARFLAGS) $@ $(OBJS)
 
 interrupt.o : interrupt.S
 	@echo "[AS]\t$< -> $@"
 	@$(AS) $(ASFLAGS) -o $@ $<
-	
+
 %.o : %.s
 	@echo "[AS]\t$< -> $@"
 	@$(AS) $(ASFLAGS) -o $@ $<
 
 %.s : %.c
 	@echo "[CC]\t$< -> $@"
-	@$(XCC) -S $(CFLAGS)  $< 
+	@$(XCC) -S $(CFLAGS)  $<
 
 
 clean:

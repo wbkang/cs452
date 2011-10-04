@@ -8,6 +8,9 @@
 #include <syscall.h>
 #include <scheduler.h>
 #include <string.h>
+#include <nameserver.h>
+
+static int name_server_id;
 
 static void install_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
@@ -62,13 +65,13 @@ void handle_swi(register_set *reg) {
 		case SYSCALL_SEND:
 			msglen = SENDER_MSGLEN(a4);
 			replylen = SENDER_REPLYLEN(a4);
-			*r0 = kernel_send(a1, (char *) a2, msglen, (char *) a3, replylen);
+			*r0 = kernel_send(a1, (void*) a2, msglen, (void*) a3, replylen);
 			if (*r0 < 0) {
 				scheduler_runmenext();
 			}
 			break;
 		case SYSCALL_RECIEVE:
-			*r0 = kernel_recieve((int *) a1, (char *) a2, a3);
+			*r0 = kernel_recieve((int *) a1, (void*) a2, a3);
 			if (*r0 < 0) {
 				scheduler_runmenext();
 			}
@@ -76,6 +79,14 @@ void handle_swi(register_set *reg) {
 		case SYSCALL_REPLY:
 			*r0 = kernel_reply(a1, (char *) a2, a3);
 			break;
+		case SYSCALL_REGISTERAS:
+			*r0 = kernel_registeras((char *) a1);
+			break;
+		case SYSCALL_WHOIS:
+			*r0 = kernel_whois((char *) a1);
+			break;
+		case SYSCALL_RETURN:
+			*r0 = kernel_return(a1, a2);
 		default:
 			ERROR("unknown system call %d (%x)\n", req_no, req_no);
 			break;
@@ -127,8 +138,8 @@ int transfer_msg(task_descriptor *sender, task_descriptor *reciever) {
 	int reciever_msglen = reciever->registers.r[2];
 	int len = MIN(sender_msglen, reciever_msglen);
 	// set up message buffers
-	char *sender_msg = (char *) sender->registers.r[1];
-	char *reciever_msg = (char *) reciever->registers.r[1];
+	void* sender_msg = (void*) sender->registers.r[1];
+	void* reciever_msg = (void*) reciever->registers.r[1];
 	memcpy(reciever_msg, sender_msg, len);
 	// make sender wait for reply
 	scheduler_wait4reply(sender);
@@ -145,8 +156,8 @@ int transfer_reply(task_descriptor *sender, task_descriptor *reciever) {
 	int reciever_replylen = reciever->registers.r[2];
 	int len = MIN(sender_replylen, reciever_replylen);
 	// set up message buffers
-	char *sender_reply = (char *) sender->registers.r[2];
-	char *reciever_reply = (char *) reciever->registers.r[1];
+	void* sender_reply = (void*) sender->registers.r[2];
+	void* reciever_reply = (void*) reciever->registers.r[1];
 	memcpy(sender_reply, reciever_reply, len);
 	// make sender ready to run
 	sender->registers.r[0] = len; // return to sender
@@ -157,7 +168,7 @@ int transfer_reply(task_descriptor *sender, task_descriptor *reciever) {
 	return 0;
 }
 
-int kernel_send(int tid, char *msg, int msglen, char *reply, int replylen) {
+int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen) {
 	TRACE("tid: %d (%x)", tid, tid);
 	TRACE("msg: %s (%x)", msg, msg);
 	TRACE("msglen: %d, (%x)", msglen, msglen);
@@ -171,7 +182,7 @@ int kernel_send(int tid, char *msg, int msglen, char *reply, int replylen) {
 	return 0; // will return later
 }
 
-int kernel_recieve(int *tid, char *msg, int msglen) {
+int kernel_recieve(int *tid, void* msg, int msglen) {
 	task_descriptor *reciever = scheduler_running();
 	task_descriptor *sender = td_pop(reciever);
 	if (sender) return transfer_msg(sender, reciever);
@@ -179,7 +190,7 @@ int kernel_recieve(int *tid, char *msg, int msglen) {
 	return 0; // will return later
 }
 
-int kernel_reply(int tid, char *reply, int replylen) {
+int kernel_reply(int tid, void* reply, int replylen) {
 	TRACE("tid: %d (%x)", tid);
 	TRACE("reply: %s (%x)", reply, reply);
 	TRACE("replylen: %d, (%x)", replylen, replylen);
@@ -190,4 +201,21 @@ int kernel_reply(int tid, char *reply, int replylen) {
 	if (sender->state != TD_STATE_WAITING4REPLY) return -3;
 	task_descriptor *reciever = scheduler_running();
 	return transfer_reply(sender, reciever);
+}
+
+int kernel_registeras(char *name) { // mimic send
+	int tid = name_server->id;
+	void* msg = (void*) name;
+	int msglen = strlen(name);
+	void* reply = NULL;
+	int replylen = 0;
+	return kernel_send(tid, msg, msglen, reply, replylen);
+}
+
+int kernel_whois(char *name) {
+	return 0;
+}
+
+int kernel_return(int tid, int rv) { // mimic recieve
+	return 0;
 }
