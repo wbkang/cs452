@@ -41,21 +41,22 @@ typedef struct _tag_task_descriptor {
 
 #define TD_IMPOSSIBLE(tid) (tid < 0 || (TD_INDEX(tid) >= TASK_LIST_SIZE))
 
-#define TD_REMOVE(td) { \
-	(td)->_prev->_next = (td)->_next; \
-	(td)->_next->_prev = (td)->_prev; \
-}
-
 #define TD_CLOSE(td) { \
 	(td)->_prev = (td); \
 	(td)->_next = (td); \
 }
 
+#define TD_REMOVE(td) { \
+	(td)->_prev->_next = (td)->_next; \
+	(td)->_next->_prev = (td)->_prev; \
+	TD_CLOSE(td); \
+}
+
 #define TD_PUSH(head, td) { \
 	(td)->_prev = (head); \
-	(td)->_next = (td)->_prev->_next; \
-	(td)->_prev->_next = (td); \
+	(td)->_next = (head)->_next; \
 	(td)->_next->_prev = (td); \
+	(head)->_next = (td); \
 }
 
 #define TD_PEEK(td) ((td)->_prev)

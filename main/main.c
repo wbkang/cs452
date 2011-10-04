@@ -21,24 +21,21 @@ static void task1() {
 }
 
 static void reciever() {
+	TRACE("my task id is: %d", MyTid());
 	int tid;
 	int msglen = 1024;
 	char msg[msglen];
-
 	char *reply = "yo, message recieved";
 	int replylen = strlen(reply) + 1;
-	int len;
-
-	for (;;) {
-		len = Recieve(&tid, msg, msglen);
-		TRACE("got msg from task %d (%x)", tid, tid);
-		TRACE("msg: %s (%x)", msg, msg);
-		Reply(tid, reply, replylen);
-	}
+	TRACE("recieving...");
+	Recieve(&tid, msg, msglen);
+	TRACE("got msg from task %d (%x)", tid, tid);
+	TRACE("msg: %s (%x)", msg, msg);
+	Reply(tid, reply, replylen);
 }
 
 static void driver() {
-	int tid1 = Create(1, reciever);
+	/*int tid1 = Create(1, reciever);
 
 	TRACE("created task with id %d", tid1);
 
@@ -55,7 +52,13 @@ static void driver() {
 		TRACE("ERROR: %d (%x)", len, len);
 	} else {
 		TRACE("reply: %s (%x)", reply, reply);
-	}
+	}*/
+
+	TRACE("my task id is: %d", MyTid());
+	char *name = "X";
+	int rv = RegisterAs(name);
+	TRACE("RegisterAs returned %s (%x)", rv, rv);
+	TRACE("WhoIs %s: %d", name, WhoIs(name));
 }
 
 int main(int argc, char *argv[]) {
@@ -63,7 +66,8 @@ int main(int argc, char *argv[]) {
 	test_run();
 	kerneltest_run();
 	kernel_init();
-	kernel_createtask(7, driver);
+	kernel_createtask(0, reciever);
+	kernel_createtask(0, driver);
 	kernel_runloop();
 	return 0;
 }

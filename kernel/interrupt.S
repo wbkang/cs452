@@ -94,3 +94,8 @@ Recieve:
 Reply:
 	swi 8
 	mov pc, lr
+
+.global NameServerTid
+NameServerTid:
+	swi 9
+	mov pc, lr

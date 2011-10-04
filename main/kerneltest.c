@@ -36,7 +36,7 @@ static void kerneltest_max_tasks() {
 	EXPECTMSG(-3, tid, "Should return -3 for an invalid code");
 
 	TRACE("Testing Create with maximum number of tasks.");
-	for (int i = 0; i < TASK_LIST_SIZE-1; i++) {
+	for (int i = 0; i < TASK_LIST_SIZE - 2; i++) {
 		tid = Create(i % (MAX_PRIORITY / 2), kerneltest_max_tasks_run);
 		ASSERT(tid >= 0, "Task ID invalid %d", tid);
 	}
