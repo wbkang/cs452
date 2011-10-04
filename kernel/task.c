@@ -45,6 +45,7 @@ task_descriptor *td_find(uint id) {
 
 task_descriptor *td_pop(task_descriptor *head) {
 	task_descriptor *td = head->_prev;
+	if (td == head) return NULL;
 	TD_REMOVE(td);
 	return td;
 }

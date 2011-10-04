@@ -9,17 +9,6 @@
 #include <scheduler.h>
 #include <string.h>
 
-static task_descriptor *waiting_on_send;
-static task_descriptor *waiting_on_reply;
-
-void scheduler_put(task_descriptor *list, task_descriptor *td) {
-	if (!list) {
-		list = td;
-	} else {
-		TD_PUSH(list, td);
-	}
-}
-
 static void install_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
 }
@@ -32,9 +21,6 @@ void kernel_init() {
 	scheduler_init();
 	TRACE("######## kernel_init done ########");
 }
-
-#define SENDER_MSGLEN(a4) ((a4) & 0xFFFF)
-#define SENDER_REPLYLEN(a4) (((uint ) a4) >> 16)
 
 void handle_swi(register_set *reg) {
 	int req_no = VMEM(reg->r[REG_PC] - 4) & 0xFFFFFF;
@@ -88,7 +74,6 @@ void handle_swi(register_set *reg) {
 			}
 			break;
 		case SYSCALL_REPLY:
-			scheduler_move2ready();
 			*r0 = kernel_reply(a1, (char *) a2, a3);
 			break;
 		default:
@@ -135,6 +120,43 @@ int kernel_myparenttid() {
 	return td ? td->parent_id : 0xdeadbeef;
 }
 
+int transfer_msg(task_descriptor *sender, task_descriptor *reciever) {
+	*((int *) reciever->registers.r[0]) = sender->id;
+	// set up lengths
+	int sender_msglen = SENDER_MSGLEN(sender->registers.r[3]);
+	int reciever_msglen = reciever->registers.r[2];
+	int len = MIN(sender_msglen, reciever_msglen);
+	// set up message buffers
+	char *sender_msg = (char *) sender->registers.r[1];
+	char *reciever_msg = (char *) reciever->registers.r[1];
+	memcpy(reciever_msg, sender_msg, len);
+	// make sender wait for reply
+	scheduler_wait4reply(sender);
+	// make reciever ready to run
+	reciever->registers.r[0] = len; // return to reciever
+	scheduler_ready(reciever);
+	// return copied bytes
+	return len;
+}
+
+int transfer_reply(task_descriptor *sender, task_descriptor *reciever) {
+	// set up lengths
+	int sender_replylen = SENDER_REPLYLEN(sender->registers.r[3]);
+	int reciever_replylen = reciever->registers.r[2];
+	int len = MIN(sender_replylen, reciever_replylen);
+	// set up message buffers
+	char *sender_reply = (char *) sender->registers.r[2];
+	char *reciever_reply = (char *) reciever->registers.r[1];
+	memcpy(sender_reply, reciever_reply, len);
+	// make sender ready to run
+	sender->registers.r[0] = len; // return to sender
+	scheduler_ready(sender);
+	// make reciever ready to run
+	scheduler_ready(reciever);
+	// return 0 implying no error
+	return 0;
+}
+
 int kernel_send(int tid, char *msg, int msglen, char *reply, int replylen) {
 	TRACE("tid: %d (%x)", tid, tid);
 	TRACE("msg: %s (%x)", msg, msg);
@@ -144,50 +166,17 @@ int kernel_send(int tid, char *msg, int msglen, char *reply, int replylen) {
 	task_descriptor *reciever = td_find(tid);
 	if (!reciever) return -2;
 	task_descriptor *sender = scheduler_running();
-
-	if (reciever->state == TD_STATE_WAITING_FOR_SEND) {
-		// set up args
-		int *reciever_tid = &reciever->registers.r[0];
-		char *reciever_msg = (char *) reciever->registers.r[1];
-		int reciever_msglen = reciever->registers.r[2];
-		int len = MIN(reciever_msglen, msglen);
-		// copy the msg to the reciever
-		*reciever_tid = tid;
-		memcpy(reciever_msg, msg, len);
-		// wait for reply
-		sender->state = TD_STATE_WAITING_FOR_REPLY;
-		scheduler_put(waiting_on_reply, sender);
-		// ready reciever
-		scheduler_ready(reciever);
-		return len;
-	} else {
-		sender->state = TD_STATE_WAITING_FOR_RECIEVE;
-		TD_PUSH(reciever, sender);
-		return 0;
-	}
+	if (reciever->state == TD_STATE_WAITING4SEND) return transfer_msg(sender, reciever);
+	scheduler_wait4recieve(reciever, sender);
+	return 0; // will return later
 }
 
 int kernel_recieve(int *tid, char *msg, int msglen) {
 	task_descriptor *reciever = scheduler_running();
-
-	if (TD_EMPTYLIST(reciever)) { // nobody waiting to send
-		reciever->state = TD_STATE_WAITING_FOR_SEND;
-		scheduler_put(waiting_on_send, reciever);
-		return 0;
-	} else {
-		task_descriptor *sender = td_pop(reciever);
-		*tid = sender->id;
-		char *sender_msg = (char *) sender->registers.r[1];
-		int sender_msglen = SENDER_MSGLEN(sender->registers.r[3]);
-		int len = MIN(sender_msglen, msglen);
-		memcpy(msg, sender_msg, len);
-		// wait for reply
-		sender->state = TD_STATE_WAITING_FOR_REPLY;
-		scheduler_put(waiting_on_reply, sender);
-		// schedule reciever
-		scheduler_ready(reciever);
-		return len;
-	}
+	task_descriptor *sender = td_pop(reciever);
+	if (sender) return transfer_msg(sender, reciever);
+	scheduler_wait4send(reciever);
+	return 0; // will return later
 }
 
 int kernel_reply(int tid, char *reply, int replylen) {
@@ -198,13 +187,7 @@ int kernel_reply(int tid, char *reply, int replylen) {
 	if (TD_IMPOSSIBLE(tid)) return -1;
 	task_descriptor *sender = td_find(tid);
 	if (!sender) return -2;
-	if (sender->state != TD_STATE_WAITING_FOR_REPLY) return -3;
-
-	char *sender_reply = (char *) sender->registers.r[2];
-	int sender_replylen = SENDER_REPLYLEN(sender->registers.r[3]);
-
-	memcpy(sender_reply, reply, MIN(sender_replylen, replylen));
-	TD_REMOVE(sender); // remove from any list
-	scheduler_ready(sender);
-	return 0;
+	if (sender->state != TD_STATE_WAITING4REPLY) return -3;
+	task_descriptor *reciever = scheduler_running();
+	return transfer_reply(sender, reciever);
 }
