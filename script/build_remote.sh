@@ -29,13 +29,13 @@ echo "Copying..."
 
 FILES=$($HG status -A | grep -v "^I" | awk '{ print $2 }' | grep -v '\.o' | sed 's/\\/\//g')
 
-tar cjf - $FILES  | ssh $PKOPT $REMOTEUSER@$REMOTEHOST \
+tar cf - $FILES | bzip2 | ssh $PKOPT $REMOTEUSER@$REMOTEHOST \
 "
 	[ -f ~/cs452.sh ] && source cs452.sh;
 	cd cs452/kernel && \rm -rf *;
 	tar xjf -;
 	echo "Building..."
 	./clean.sh $SILENCER;
-	./build.sh $SILENCER; 
+	./build.sh $SILENCER;
 "
 
