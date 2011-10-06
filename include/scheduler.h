@@ -18,8 +18,8 @@ void scheduler_runmenext();
 
 void scheduler_ready(task_descriptor *td);
 
-void scheduler_wait4send(task_descriptor *reciever);
+void scheduler_wait4send(task_descriptor *receiver);
 
-void scheduler_wait4recieve(task_descriptor *source, task_descriptor *td);
+void scheduler_wait4receive(task_descriptor *source, task_descriptor *td);
 
 void scheduler_wait4reply(task_descriptor *sender);

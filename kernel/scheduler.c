@@ -56,13 +56,13 @@ void scheduler_ready(task_descriptor *td) {
 	priorityq_push(ready_queue, td, td->priority);
 }
 
-void scheduler_wait4send(task_descriptor *reciever) {
-	TD_REMOVE(reciever);
-	reciever->state = TD_STATE_WAITING4SEND;
-	TD_PUSH(&waiting4send, reciever);
+void scheduler_wait4send(task_descriptor *receiver) {
+	TD_REMOVE(receiver);
+	receiver->state = TD_STATE_WAITING4SEND;
+	TD_PUSH(&waiting4send, receiver);
 }
 
-void scheduler_wait4recieve(task_descriptor *source, task_descriptor *td) {
+void scheduler_wait4receive(task_descriptor *source, task_descriptor *td) {
 	TD_REMOVE(td);
 	td->state = TD_STATE_WAITING4RECIEVE;
 	TD_PUSH(source, td);
