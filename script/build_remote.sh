@@ -1,12 +1,13 @@
 #!/bin/sh
 
 #set -x
+cd ..
 
-if [ ! -z "$3" ]; then
-	exec 1>/dev/null
+if [ "$1" = "pbakhila" ]; then
+	SILENCER=">/dev/null"
 fi
 
-if which hg; then
+if which hg > /dev/null; then
 	HG=hg
 elif which /usr/bin/hg; then
 	HG=/usr/bin/hg
@@ -14,9 +15,6 @@ else
 	echo "Mercurial not found!"
 	exit 1
 fi
-
-CURCS=`$HG log | head -1 | awk '{ print $2 }' | cut -d ":" -f 2`
-echo "Current changeset: $CURCS"
 
 REMOTEUSER=$1
 REMOTEHOST=linux024.student.cs.uwaterloo.ca
@@ -27,43 +25,17 @@ if [ ! -z "$PRIVATEKEY" ]; then
 	PKOPT="-i $PRIVATEKEY"
 fi
 
-echo "***Do not edit***"
-$HG commit -m "temp"
+echo "Copying..."
 
-if [ $? -ne 0 ]; then
-	echo "Just running remote build only"
-	ssh $PKOPT $REMOTEUSER@$REMOTEHOST \
-	"
-		[ -f cs452.sh ] && source cs452.sh;
-		cd cs452/kernel;
-		hg update;
-		./clean.sh;
-		./build.sh;
-	"
-	exit 0;
-fi
+FILES=$($HG status -A | grep -v "^I" | awk '{ print $2 }' | grep -v '\.o' | sed 's/\\/\//g')
 
-TEMPCS=`$HG log | head -1 | awk '{ print $2 }' | cut -d ":" -f 2`
-echo "The new temporary changeset: $TEMPCS"
-
-$HG update -C $CURCS
-$HG revert -a -r $TEMPCS
-echo "***You may start editing your files again***"
-
-$HG push -f -r $TEMPCS ssh://$REMOTEUSER@$REMOTEHOST/cs452/kernel
-$HG strip -f $TEMPCS
-
-echo "***Starting a remote build...***" 1>&2
-ssh $PKOPT $REMOTEUSER@$REMOTEHOST \
+tar cjf - $FILES  | ssh $PKOPT $REMOTEUSER@$REMOTEHOST \
 "
-	[ -f cs452.sh ] && source cs452.sh;
-	cd cs452/kernel;
-	hg update -C $TEMPCS  > /dev/null;
-	./clean.sh;
-	./build.sh;
-	hg update `hg parent | grep changeset: | awk '{print $2}' | cut -d ':' -f 1`
-	hg strip $TEMPCS > /dev/null;
+	[ -f ~/cs452.sh ] && source cs452.sh;
+	cd cs452/kernel && \rm -rf *;
+	tar xjf -;
+	echo "Building..."
+	./clean.sh $SILENCER;
+	./build.sh $SILENCER; 
 "
-if [ $? -eq 0 ]; then
-	echo "***Done!***" 1>&2
-fi
+
