@@ -20,22 +20,22 @@ static void task1() {
 	bwprintf(COM2, "First: exiting\n");
 }
 
-static void reciever() {
+static void receiver() {
 	TRACE("my task id is: %d", MyTid());
 	int tid;
 	int msglen = 1024;
 	char msg[msglen];
-	char *reply = "yo, message recieved";
+	char *reply = "yo, message received";
 	int replylen = strlen(reply) + 1;
 	TRACE("recieving...");
-	Recieve(&tid, msg, msglen);
+	Receive(&tid, msg, msglen);
 	TRACE("got msg from task %d (%x)", tid, tid);
 	TRACE("msg: %s (%x)", msg, msg);
 	Reply(tid, reply, replylen);
 }
 
 static void driver() {
-	/*int tid1 = Create(1, reciever);
+	/*int tid1 = Create(1, receiver);
 
 	TRACE("created task with id %d", tid1);
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 	test_run();
 	kerneltest_run();
 	kernel_init();
-	kernel_createtask(0, reciever);
+	kernel_createtask(0, receiver);
 	kernel_createtask(0, driver);
 	kernel_runloop();
 	return 0;

@@ -5,7 +5,7 @@
 
 void nameserver() {
 	bwprintf(COM2, "setting nameserver tid to %d\n", MyTid());
-	// recieve args
+	// receive args
 	int id;
 	nameserver_request req;
 	// internal args
@@ -21,7 +21,7 @@ void nameserver() {
 
 	for (;;) {
 		bwprintf(COM2, "recieving...\n");
-		len = Recieve(&id, (void*) &req, sizeof(req));
+		len = Receive(&id, (void*) &req, sizeof(req));
 		if (len != sizeof(req)) {
 			rv = -3; // error during copying
 		} else {

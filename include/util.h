@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ts7200.h>
+#include <constants.h>
 
 ////////// TYPES
 
@@ -22,10 +23,6 @@ typedef char *va_list;
 		         (((ap) = (ap) + __va_argsiz(t)), *((t*) (void*) ((ap) - __va_argsiz(t))))
 
 ///////////// USEFUL MACROS
-#define TRUE 1
-#define FALSE 0
-#define NULL 0
-#define CRLF "\r\n"
 #define MEM(x) (*(memptr)(x))
 #define VMEM(x) (*(volatile memptr)(x))
 #define STRINGIFY(x) #x
