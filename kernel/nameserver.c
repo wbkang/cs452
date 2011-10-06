@@ -3,15 +3,18 @@
 #include <rawio.h>
 #include <hardware.h>
 
+#define NUM_ASCII_PRINTABLE (0x7e - 0x20 + 1)
+#define ASCII_PRINTABLE_START 0x20
+
 void nameserver() {
 	bwprintf(COM2, "setting nameserver tid to %d\n", MyTid());
 	// receive args
 	int id;
-	nameserver_request req;
+	int req;
 	// internal args
 	int len;
 	int rv;
-	int hashsize = 26 * 26;
+	int hashsize = NUM_ASCII_PRINTABLE * NUM_ASCII_PRINTABLE; // two ASCII printable chars
 	int mem[hashsize];
 	int name;
 
@@ -20,14 +23,20 @@ void nameserver() {
 	}
 
 	for (;;) {
-		bwprintf(COM2, "recieving...\n");
+		bwprintf(COM2, "receiving...\n");
 		len = Receive(&id, (void*) &req, sizeof(req));
+		int reqno = GET_NAMESERVER_REQNUM(req);
+		char reqname[3];
+		reqname[0] = req >> 24;
+		reqname[1] = (req >> 16);
+		reqname[2] = '\0';
+
 		if (len != sizeof(req)) {
 			rv = -3; // error during copying
 		} else {
-			bwprintf(COM2, "[request] id: %d, str: '%s'\n", id, req.str);
-			name = (int) (req.str[0] - 'a') * 27 + (req.str[1] - 'a');
-			switch (req.n) {
+			bwprintf(COM2, "[request] id: %d, str: '%s' %x\n", id, reqname, req);
+			name = (int) (reqname[0] - ASCII_PRINTABLE_START) * NUM_ASCII_PRINTABLE + (reqname[1] - ASCII_PRINTABLE_START);
+			switch (reqno) {
 				case NAMESERVER_REQUEST_REGISTERAS:
 					if (mem[name] == -1) {
 						mem[name] = id;

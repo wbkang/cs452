@@ -68,7 +68,7 @@ void handle_swi(register_set *reg) {
 			*r0 = kernel_send(a1, (void*) a2, msglen, (void*) a3, replylen);
 			if (*r0 < 0) scheduler_runmenext();
 			break;
-		case SYSCALL_RECIEVE:
+		case SYSCALL_RECEIVE:
 			rv = kernel_receive((int *) a1, (void*) a2, a3);
 			if (rv < 0) {
 				*r0 =  rv; // write the error

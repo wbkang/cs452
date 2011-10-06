@@ -12,21 +12,17 @@ int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
 }
 
 int RegisterAs(char *name) { // wrapper for send
-	if (strlen(name) != 2 || name[0] < 'a' || name[0] > 'z' || name[1] < 'a' || name[1] > 'z') return -3;
-	nameserver_request req;
-	req.n = NAMESERVER_REQUEST_REGISTERAS;
-	memcpy(req.str, name, 2);
+	if (strlen(name) != NAMESERVER_NAME_LEN || !NAMESERVER_VALID_NAME(name)) return -3;
+	int msg = MAKE_NAMESERVER_REQ(NAMESERVER_REQUEST_REGISTERAS, name);
 	int rv;
-	Send(NameServerTid(), (void*) &req, sizeof req, (void*) &rv, sizeof rv);
+	Send(NameServerTid(), (void*) &msg, sizeof msg, (void*) &rv, sizeof rv);
 	return rv;
 }
 
 int WhoIs(char *name) { // wrapper for send
-	if (strlen(name) != 2 || name[0] < 'a' || name[0] > 'z' || name[1] < 'a' || name[1] > 'z') return -3;
-	nameserver_request req;
-	req.n = NAMESERVER_REQUEST_WHOIS;
-	memcpy(req.str, name, 2);
+	if (strlen(name) != NAMESERVER_NAME_LEN || !NAMESERVER_VALID_NAME(name)) return -3;
+	int msg = MAKE_NAMESERVER_REQ(NAMESERVER_REQUEST_WHOIS, name);
 	int rv;
-	Send(NameServerTid(), (void*) &req, sizeof req, (void*) &rv, sizeof rv);
+	Send(NameServerTid(), (void*) &msg, sizeof msg, (void*) &rv, sizeof rv);
 	return rv;
 }
