@@ -43,7 +43,7 @@ typedef char *va_list;
 
 ///////////// DEBUG
 #define ASSERT_ENABLED 1
-#define TRACE_ENABLED 1
+#define TRACE_ENABLED 0
 #define TEST_ENABLED 1
 #define LONG_TEST_ENABLED 0
 
@@ -81,6 +81,12 @@ void bwprintf(int channel, char *fmt, ...);
 #else
 #define TRACE(...)
 #endif
+
+#define PRINT(...) { \
+	bwprintf(1, "[%s] ", __func__); \
+	bwprintf(1, __VA_ARGS__); \
+	bwprintf(1, "\n"); \
+}
 
 #define CHECK_COM(_c) ASSERT((_c) == COM1 ||  (_c) == COM2, "Invalid channel " #_c)
 
