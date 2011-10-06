@@ -85,8 +85,8 @@ asm_Send:
 	swi 6
 	mov pc, lr
 
-.global Recieve
-Recieve:
+.global Receive
+Receive:
 	swi 7
 	mov pc, lr
 
