@@ -17,12 +17,12 @@ static void install_interrupt_handlers() {
 }
 
 void kernel_init() {
-	TRACE("######## kernel_init ########");
+	// TRACE("######## start ########");
 	install_interrupt_handlers();
 	mem_init(TASK_LIST_SIZE);
 	td_init();
 	scheduler_init();
-	TRACE("######## kernel_init done ########");
+	// TRACE("######## end ########");
 }
 
 void handle_swi(register_set *reg) {
