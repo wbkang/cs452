@@ -26,7 +26,7 @@ LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/
 %.o : %.c
 
 #################
-OBJS= main.o test.o kerneltest.o
+OBJS= main.o test.o kerneltest.o rpsserver.o task1.o
 ################
 
 
@@ -42,7 +42,7 @@ main.elf : $(OBJS)
 
 %.s : %.c
 	@echo "[CC]\t$< -> $@"
-	@$(XCC) -S $(CFLAGS)  $< 
+	@$(XCC) -S $(CFLAGS)  $<
 
 clean:
 	@echo "[rm]\tCleaning"
