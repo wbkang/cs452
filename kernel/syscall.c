@@ -11,17 +11,21 @@ int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
 }
 
 int RegisterAs(char *name) { // wrapper for send
-	if (!NAMESERVER_VALID_NAME(name)) return -3;
+	if (!NAMESERVER_VALID_NAME(name)) return -4;
 	int msg = NAMESERVER_REQ(NAMESERVER_REQUEST_REGISTERAS, name);
 	int rv;
-	Send(NameServerTid(), (void*) &msg, sizeof msg, (void*) &rv, sizeof rv);
+	int len = Send(NameServerTid(), (void*) &msg, sizeof msg, (void*) &rv, sizeof rv);
+	if (len < 0) return len;
+	if (len != sizeof rv) return -3;
 	return rv;
 }
 
 int WhoIs(char *name) { // wrapper for send
-	if (!NAMESERVER_VALID_NAME(name)) return -3;
+	if (!NAMESERVER_VALID_NAME(name)) return -4;
 	int msg = NAMESERVER_REQ(NAMESERVER_REQUEST_WHOIS, name);
 	int rv;
-	Send(NameServerTid(), (void*) &msg, sizeof msg, (void*) &rv, sizeof rv);
+	int len = Send(NameServerTid(), (void*) &msg, sizeof msg, (void*) &rv, sizeof rv);
+	if (len < 0) return len;
+	if (len != sizeof rv) return -3;
 	return rv;
 }
