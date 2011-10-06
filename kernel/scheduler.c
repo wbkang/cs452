@@ -64,7 +64,7 @@ void scheduler_wait4send(task_descriptor *receiver) {
 
 void scheduler_wait4receive(task_descriptor *source, task_descriptor *td) {
 	TD_REMOVE(td);
-	td->state = TD_STATE_WAITING4RECIEVE;
+	td->state = TD_STATE_WAITING4RECEIVE;
 	TD_PUSH(source, td);
 }
 

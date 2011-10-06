@@ -27,7 +27,7 @@ static void receiver() {
 	char msg[msglen];
 	char *reply = "yo, message received";
 	int replylen = strlen(reply) + 1;
-	TRACE("recieving...");
+	TRACE("receiving...");
 	Receive(&tid, msg, msglen);
 	TRACE("got msg from task %d (%x)", tid, tid);
 	TRACE("msg: %s (%x)", msg, msg);
@@ -57,7 +57,7 @@ static void driver() {
 	TRACE("my task id is: %d", MyTid());
 	char *name = "ab";
 	int rv = RegisterAs(name);
-	TRACE("RegisterAs returned %s (%x)", rv, rv);
+	TRACE("RegisterAs returned %d (%x)", rv, rv);
 	TRACE("WhoIs %s: %d", name, WhoIs(name));
 }
 

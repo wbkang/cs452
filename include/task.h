@@ -14,7 +14,7 @@
 #define TD_STATE_RUNNING 3
 #define TD_STATE_RETIRED 4
 #define TD_STATE_WAITING4SEND 5
-#define TD_STATE_WAITING4RECIEVE 6
+#define TD_STATE_WAITING4RECEIVE 6
 #define TD_STATE_WAITING4REPLY 7
 
 // this is calculated at compile time.
