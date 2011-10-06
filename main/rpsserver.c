@@ -49,7 +49,7 @@ void rps_server() {
 			}
 		}
 		Reply(player, (void*) &rv, sizeof rv);
-	}j
+	}
 }
 
 int rps_send(int server, rps_server_req *req) {
