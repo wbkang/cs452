@@ -1,4 +1,5 @@
 #include <syscall.h>
+#include <assembly.h>
 #include <nameserver.h>
 
 #define MAX_MSG_LEN 0xFFFF

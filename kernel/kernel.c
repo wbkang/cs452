@@ -22,6 +22,7 @@ void kernel_init() {
 	mem_init(TASK_LIST_SIZE);
 	td_init();
 	scheduler_init();
+	nameserver_tid = kernel_createtask(MAX_PRIORITY - 1, nameserver);
 	// TRACE("######## end ########");
 }
 
@@ -89,8 +90,6 @@ void handle_swi(register_set *reg) {
 }
 
 void kernel_runloop() {
-	nameserver_tid = kernel_createtask(NAMESERVER_PRIORITY, nameserver);
-
 	task_descriptor *td;
 	register_set *reg;
 	while (!scheduler_empty()) {

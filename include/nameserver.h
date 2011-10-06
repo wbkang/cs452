@@ -1,3 +1,4 @@
+#pragma once
 #include <constants.h>
 #include <string.h>
 
@@ -22,7 +23,7 @@
 
 #define NAMESERVER_REQ(reqno, name) (((int)(name)[0]) << 24 | ((int)(name)[1]) << 16) | (reqno)
 #define NAMESERVER_GET_REQNO(req) ((req) & 0xffff)
-#define NAMESERVER_GET_NAME(req) (((req >> 24) & 0xff) - ASCII_PRINTABLE_START) * NUM_ASCII_PRINTABLE | (((req >> 16) & 0xff) - ASCII_PRINTABLE_START);
+#define NAMESERVER_GET_NAME(req) (((req >> 24) & 0xff) - ASCII_PRINTABLE_START) * NUM_ASCII_PRINTABLE + (((req >> 16) & 0xff) - ASCII_PRINTABLE_START);
 
 // name server request numbers
 #define NAMESERVER_REQUEST_REGISTERAS 0
