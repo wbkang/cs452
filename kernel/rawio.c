@@ -1,3 +1,4 @@
+#include <rawio.h>
 #include <util.h>
 #include <ts7200.h>
 #include <string.h>

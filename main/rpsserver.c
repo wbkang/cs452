@@ -5,5 +5,5 @@
 
 void rpsserver() {
 	RegisterAs("rp");
-	TRACE("rps server herp derp");
+	PRINT("herp derp");
 }

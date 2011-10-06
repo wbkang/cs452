@@ -46,6 +46,7 @@ typedef char *va_list;
 #define TRACE_ENABLED 0
 #define TEST_ENABLED 1
 #define LONG_TEST_ENABLED 0
+void bwprintf(int channel, char *fmt, ... );
 
 void errormsg(char*);
 void die();
