@@ -21,13 +21,14 @@ void nameserver() {
 		} else {
 			reqno = NAMESERVER_GET_REQNO(req);
 			name = NAMESERVER_GET_NAME(req);
-			/*bwprintf(COM2, "[nsrequest] ");
-			bwprintf(COM2, "req: %x, ", req, req);
-			bwprintf(COM2, "type: %s, ", reqno ? "whois" : "reg");
-			bwprintf(COM2, "tid: %d, ", tid);
-			bwprintf(COM2, "name: %d, ", name);
-			bwprintf(COM2, "mem: %d, ", mem[name]);
-			bwprintf(COM2, "str: %c%c\n", req >> 24, req >> 16);*/
+
+//			bwprintf(COM2, "[nsrequest] ");
+//			bwprintf(COM2, "req: %x, ", req, req);
+//			bwprintf(COM2, "type: %s, ", reqno ? "whois" : "reg");
+//			bwprintf(COM2, "tid: %d, ", tid);
+//			bwprintf(COM2, "name: %d, ", name);
+//			bwprintf(COM2, "mem: %d, ", mem[name]);
+//			bwprintf(COM2, "str: %c%c\n", req >> 24, req >> 16);
 			switch (reqno) {
 				case NAMESERVER_REQUEST_REGISTERAS:
 					mem[name] = tid;
