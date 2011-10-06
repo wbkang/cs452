@@ -13,7 +13,6 @@ void scheduler_init() {
 	reschedule = TRUE;
 	TD_CLOSE(&waiting4send);
 	TD_CLOSE(&waiting4reply);
-	TRACE("\tready queue of size %d initialized", TASK_LIST_SIZE);
 	ready_queue = priorityq_new(TASK_LIST_SIZE, NUM_PRIORITY);
 }
 

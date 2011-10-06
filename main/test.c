@@ -8,7 +8,6 @@
 #include <priorityq.h>
 
 static void test_stack() {
-	TEST_START("stack");
 	int size = 111;
 	stack *s = stack_new(size);
 	void *got, *expected;
@@ -20,11 +19,9 @@ static void test_stack() {
 		expected = (void *) (1 << i);
 		EXPECT(expected, got);
 	}
-	TEST_END("stack");
 }
 
 static void test_queue() {
-	TEST_START("queue");
 	int size = 111;
 	queue *q = queue_new(size);
 	void *got, *expected;
@@ -37,11 +34,9 @@ static void test_queue() {
 		expected = (void *) (1 << i);
 		EXPECT(expected, got);
 	}
-	TEST_END("queue");
 }
 
 static void test_priorityq() {
-	TEST_START("priority queue");
 	int size = 111;
 	int num_priorities = 32;
 	priorityq *pq = priorityq_new(size, num_priorities);
@@ -58,11 +53,9 @@ static void test_priorityq() {
 			EXPECT(expected, got);
 		}
 	}
-	TEST_END("priority queue");
 }
 
 static void test_heap() {
-	TEST_START("heap");
 	int size = 111;
 	heap *h = heap_new(size);
 	void *got, *expected;
@@ -74,16 +67,15 @@ static void test_heap() {
 		expected = (void *) i;
 		EXPECT(expected, got);
 	}
-	TEST_END("heap");
 }
 
 void test_run() {
 	mem_reset();
-	TRACE("######## diagnostics ########");
+	// TRACE("######## start ########");
 	test_stack();
 	test_queue();
 	test_priorityq();
 	test_heap();
-	TRACE("######## diagnostics done ########");
+	// TRACE("######## end ########");
 	mem_reset();
 }

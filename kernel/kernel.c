@@ -17,12 +17,12 @@ static void install_interrupt_handlers() {
 }
 
 void kernel_init() {
-	TRACE("######## kernel_init ########");
+	// TRACE("######## start ########");
 	install_interrupt_handlers();
 	mem_init(TASK_LIST_SIZE);
 	td_init();
 	scheduler_init();
-	TRACE("######## kernel_init done ########");
+	// TRACE("######## end ########");
 }
 
 void handle_swi(register_set *reg) {
@@ -70,8 +70,8 @@ void handle_swi(register_set *reg) {
 			break;
 		case SYSCALL_RECIEVE:
 			rv = kernel_recieve((int *) a1, (void*) a2, a3);
-			if (rv < 0) {
-				*r0 =  rv; // write the error
+			if (rv < 0) { // return the error
+				*r0 =  rv;
 				scheduler_runmenext();
 			}
 			break;

@@ -21,7 +21,7 @@ static void kerneltest_max_tasks_run() {
 }
 
 static void kerneltest_max_tasks() {
-	TRACE("Testing Create with invalid priorities.");
+	// TRACE("Testing Create with invalid priorities.");
 	last_run_priority = MAX_PRIORITY;
 
 	int tid = Create(MIN_PRIORITY - 1, kerneltest_max_tasks_run);
@@ -29,25 +29,25 @@ static void kerneltest_max_tasks() {
 	tid = Create(MAX_PRIORITY + 1, kerneltest_max_tasks_run);
 	EXPECTMSG(-1, tid, "Should return -1 for an invalid priority");
 
-	TRACE("Testing Create with invalid code.");
+	// TRACE("Testing Create with invalid code.");
 	tid = Create(1, NULL);
 	EXPECTMSG(-3, tid, "Should return -3 for an invalid code");
 	tid = Create(1, (func_t )0xdeadbeef);
 	EXPECTMSG(-3, tid, "Should return -3 for an invalid code");
 
-	TRACE("Testing Create with maximum number of tasks.");
+	// TRACE("Testing Create with maximum number of tasks.");
 	for (int i = 0; i < TASK_LIST_SIZE - 2; i++) {
 		tid = Create(i % (MAX_PRIORITY / 2), kerneltest_max_tasks_run);
 		ASSERT(tid >= 0, "Task ID invalid %d", tid);
 	}
 
-	TRACE("Testing Create with no more task descriptor.");
+	// TRACE("Testing Create with no more task descriptor.");
 	tid = Create(MIN_PRIORITY, kerneltest_max_tasks_run);
 	EXPECTMSG(-2, tid, "Should return -2 when we used up ALL the task descriptors");
 }
 
 static void kerneltest_exit() {
-	TRACE("Testing whether a task frees resource after running.");
+	// TRACE("Testing whether a task frees resource after running.");
 	for (int i = 0; i < TASK_LIST_SIZE * 2; i++) {
 		int tid = Create(MAX_PRIORITY, Exit);
 		ASSERT(tid >= 0, "Task ID invalid %d", tid);
@@ -55,7 +55,7 @@ static void kerneltest_exit() {
 }
 
 static void kerneltest_myparenttid() {
-	TRACE("Testing parenttid relationship.");
+	// TRACE("Testing parenttid relationship.");
 	int mytid = MyTid();
 	int myparenttid = MyParentsTid();
 	int mypriority = td_find(mytid)->priority;
@@ -71,8 +71,8 @@ static void kerneltest_myparenttid() {
 	}
 }
 
-static void kerneltest_runner_retiretd() {
-	TRACE("Testing the retirement of lower tid from generational # exhaustion.");
+static void kerneltest_retiretd() {
+	// TRACE("Testing the retirement of lower tid from generational # exhaustion.");
 	for (int i = 0; i < 0x8000; i++) {
 		ASSERT(Create(MAX_PRIORITY, Exit) >= 0, "Create task failed");
 	}
@@ -90,20 +90,39 @@ static void kerneltest_runner(int priority, func_t test) {
 	mem_reset();
 }
 
+static void kerneltest_nameserver() {
+	int mytid = MyTid();
+	// invalid name
+	EXPECT(-3, RegisterAs(""));
+	EXPECT(-3, RegisterAs("o"));
+	EXPECT(-3, RegisterAs("big"));
+	EXPECT(-3, RegisterAs("this is clearly too long"));
+	EXPECT(-3, RegisterAs("a,"));
+	EXPECT(-3, RegisterAs("z^"));
+	// name taken, reserved
+	EXPECT(0, RegisterAs("aa"));
+	EXPECT(-5, RegisterAs("aa"));
+	EXPECT(mytid, WhoIs("aa"));
+	EXPECT(0, RegisterAs("fa"));
+	EXPECT(mytid, WhoIs("fa"));
+	EXPECT(-5, RegisterAs("fa"));
+	EXPECT(0, RegisterAs("ch"));
+	EXPECT(-5, RegisterAs("ch"));
+	EXPECT(-5, WhoIs("pp"));
+	// unregistered tid
+	EXPECT(-5, WhoIs("zz"));
+	EXPECT(-5, WhoIs("wa"));
+}
 
 void kerneltest_run() {
 	mem_reset();
-	TRACE("######## kerneltest ########");
-
+	// TRACE("######## start ########");
 	kerneltest_runner(MAX_PRIORITY, kerneltest_max_tasks);
 	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_exit);
 	kerneltest_runner(MAX_PRIORITY, kerneltest_myparenttid);
-
-	if (LONG_TEST_ENABLED) {
-		kerneltest_runner(MAX_PRIORITY - 1, kerneltest_runner_retiretd);
-	}
-
-	TRACE("######## kerneltest done ########");
+	if (LONG_TEST_ENABLED) kerneltest_runner(MAX_PRIORITY - 1, kerneltest_retiretd);
+	kerneltest_runner(MAX_PRIORITY, kerneltest_nameserver);
+	// TRACE("######## end ########");
 	mem_reset();
 }
 
