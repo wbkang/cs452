@@ -69,7 +69,7 @@ void handle_swi(register_set *reg) {
 			}
 			break;
 		case SYSCALL_RECIEVE:
-			rv = kernel_recieve((int *) a1, (void*) a2, a3);
+			rv = kernel_receive((int *) a1, (void*) a2, a3);
 			if (rv < 0) {
 				*r0 =  rv; // write the error
 				scheduler_runmenext();
@@ -128,58 +128,58 @@ int kernel_myparenttid() {
 	return td ? td->parent_id : 0xdeadbeef;
 }
 
-int transfer_msg(task_descriptor *sender, task_descriptor *reciever) {
-	*((int *) reciever->registers.r[0]) = sender->id;
+int transfer_msg(task_descriptor *sender, task_descriptor *receiver) {
+	*((int *) receiver->registers.r[0]) = sender->id;
 	// set up lengths
 	int sender_msglen = SENDER_MSGLEN(sender->registers.r[3]);
-	int reciever_msglen = reciever->registers.r[2];
-	int len = MIN(sender_msglen, reciever_msglen);
+	int receiver_msglen = receiver->registers.r[2];
+	int len = MIN(sender_msglen, receiver_msglen);
 	// set up message buffers
 	void* sender_msg = (void*) sender->registers.r[1];
-	void* reciever_msg = (void*) reciever->registers.r[1];
-	memcpy(reciever_msg, sender_msg, len);
+	void* receiver_msg = (void*) receiver->registers.r[1];
+	memcpy(receiver_msg, sender_msg, len);
 	// make sender wait for reply
 	scheduler_wait4reply(sender);
-	// make reciever ready to run
-	reciever->registers.r[0] = len; // return to reciever
-	scheduler_ready(reciever);
+	// make receiver ready to run
+	receiver->registers.r[0] = len; // return to receiver
+	scheduler_ready(receiver);
 	// return copied bytes
 	return len;
 }
 
-int transfer_reply(task_descriptor *sender, task_descriptor *reciever) {
+int transfer_reply(task_descriptor *sender, task_descriptor *receiver) {
 	// set up lengths
 	int sender_replylen = SENDER_REPLYLEN(sender->registers.r[3]);
-	int reciever_replylen = reciever->registers.r[2];
-	int len = MIN(sender_replylen, reciever_replylen);
+	int receiver_replylen = receiver->registers.r[2];
+	int len = MIN(sender_replylen, receiver_replylen);
 	// set up message buffers
 	void* sender_reply = (void*) sender->registers.r[2];
-	void* reciever_reply = (void*) reciever->registers.r[1];
-	memcpy(sender_reply, reciever_reply, len);
+	void* receiver_reply = (void*) receiver->registers.r[1];
+	memcpy(sender_reply, receiver_reply, len);
 	// make sender ready to run
 	sender->registers.r[0] = len; // return to sender
 	scheduler_ready(sender);
-	// make reciever ready to run
-	scheduler_ready(reciever);
+	// make receiver ready to run
+	scheduler_ready(receiver);
 	// return 0 implying no error
 	return 0;
 }
 
 int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen) {
 	if (TD_IMPOSSIBLE(tid)) return -1;
-	task_descriptor *reciever = td_find(tid);
-	if (!reciever) return -2;
+	task_descriptor *receiver = td_find(tid);
+	if (!receiver) return -2;
 	task_descriptor *sender = scheduler_running();
-	if (reciever->state == TD_STATE_WAITING4SEND) return transfer_msg(sender, reciever);
-	scheduler_wait4recieve(reciever, sender);
+	if (receiver->state == TD_STATE_WAITING4SEND) return transfer_msg(sender, receiver);
+	scheduler_wait4receive(receiver, sender);
 	return 0; // will return later
 }
 
-int kernel_recieve(int *tid, void* msg, int msglen) {
-	task_descriptor *reciever = scheduler_running();
-	task_descriptor *sender = td_pop(reciever);
-	if (sender) return transfer_msg(sender, reciever);
-	scheduler_wait4send(reciever);
+int kernel_receive(int *tid, void* msg, int msglen) {
+	task_descriptor *receiver = scheduler_running();
+	task_descriptor *sender = td_pop(receiver);
+	if (sender) return transfer_msg(sender, receiver);
+	scheduler_wait4send(receiver);
 	return 0; // will return later
 }
 
@@ -188,6 +188,6 @@ int kernel_reply(int tid, void* reply, int replylen) {
 	task_descriptor *sender = td_find(tid);
 	if (!sender) return -2;
 	if (sender->state != TD_STATE_WAITING4REPLY) return -3;
-	task_descriptor *reciever = scheduler_running();
-	return transfer_reply(sender, reciever);
+	task_descriptor *receiver = scheduler_running();
+	return transfer_reply(sender, receiver);
 }

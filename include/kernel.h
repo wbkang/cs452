@@ -22,6 +22,6 @@ void kernel_runloop();
 
 int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen);
 
-int kernel_recieve(int *tid, void* msg, int msglen);
+int kernel_receive(int *tid, void* msg, int msglen);
 
 int kernel_reply(int tid, void* reply, int replylen);

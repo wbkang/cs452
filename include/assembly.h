@@ -23,7 +23,7 @@ void* malloc(uint size);
 
 int asm_Send(int tid, void* msg, char *reply, int lengths);
 
-int Recieve(int *tid, void* msg, int msglen);
+int Receive(int *tid, void* msg, int msglen);
 
 int Reply(int tid, void* reply, int replylen);
 
