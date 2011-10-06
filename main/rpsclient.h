@@ -1,3 +1,5 @@
 #pragma once
 
-void rpsclient();
+#include <rpsserver.h>
+
+void rps_client();
