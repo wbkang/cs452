@@ -2,10 +2,6 @@
 
 #include <task.h>
 
-#define NUM_PRIORITY 32
-#define MAX_PRIORITY (NUM_PRIORITY - 1)
-#define MIN_PRIORITY 0
-
 void scheduler_init();
 
 task_descriptor *scheduler_running();
