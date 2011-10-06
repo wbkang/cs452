@@ -4,20 +4,22 @@
 #include <rawio.h>
 #include <util.h>
 
-#define TEST_START(name) TRACE("\t%s ... ", name)
+#define TEST_START() TRACE("[%s] test start", __func__)
 
-#define TEST_END(name) TRACE("looks good")
+#define TEST_END() TRACE("[%s] test end", __func__)
 
 #define EXPECT(expected, got) { \
-	if (got != expected) { \
-		bwprintf(COM2, "ERROR!!!\nExpected %d but got %d (%x)", expected, got, got); \
+	int __e = (int)expected; int __g = (int)got; \
+	if (__e != __g) { \
+		PRINT(__FILE__ ":" TOSTRING(__LINE__) " ERROR!!!Expected %d but got %d (%x)", __e, __g, __g); \
 		die(); \
 	} \
 }
 
 #define EXPECTMSG(expected, got, MSG) { \
-	if (got != expected) { \
-		bwprintf(COM2, "ERROR!!!\nExpected %d but got %d (%x) " MSG, expected, got, got); \
+	int __e = (int)expected; int __g = (int)got; \
+	if (__g != __e) { \
+		PRINT(__FILE__ ":" TOSTRING(__LINE__) " ERROR!!!Expected %d but got %d (%x) " MSG, __e, __g, __g); \
 		die(); \
 	} \
 }
