@@ -50,7 +50,7 @@ $HG update -C $CURCS
 $HG revert -a -r $TEMPCS
 echo "***You may start editing your files again***"
 
-$HG push -f -r $TEMPCS
+$HG push -f -r $TEMPCS ssh://$REMOTEUSER@$REMOTEHOST/cs452/kernel
 $HG strip -f $TEMPCS
 
 echo "***Starting a remote build...***" 1>&2
