@@ -14,7 +14,7 @@ static void kerneltest_max_tasks_run() {
 	int myparenttid = MyParentsTid();
 	int mypriority = td_find(mytid)->priority;
 
-	EXPECTMSG(0, myparenttid, "Wrong parent Tid");
+	EXPECTMSG(1, myparenttid, "Wrong parent Tid");
 	ASSERT(mytid > 0, "Wrong Tid");
 
 	ASSERT(last_run_priority >= mypriority, "Priority violated. mypriority: %d, last_run_priority: %d", mypriority, last_run_priority);
@@ -60,7 +60,7 @@ static void kerneltest_myparenttid() {
 	int myparenttid = MyParentsTid();
 	int mypriority = td_find(mytid)->priority;
 
-	if (last_run_tid != 0){
+	if (last_run_tid != 1){
 		EXPECTMSG(last_run_tid, myparenttid, "parent tid relationship wrong!");
 	}
 
@@ -74,9 +74,8 @@ static void kerneltest_myparenttid() {
 
 static void kerneltest_runner(int priority, func_t test) {
 	kernel_init();
-	last_run_tid = 0;
 	last_run_priority = 0;
-	kernel_createtask(priority, test);
+	last_run_tid = kernel_createtask(priority, test);
 	kernel_runloop();
 	mem_reset();
 }
