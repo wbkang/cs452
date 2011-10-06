@@ -55,7 +55,6 @@ static void kerneltest_exit() {
 }
 
 static void kerneltest_myparenttid() {
-	TRACE("Testing parenttid relationship.");
 	int mytid = MyTid();
 	int myparenttid = MyParentsTid();
 	int mypriority = td_find(mytid)->priority;
