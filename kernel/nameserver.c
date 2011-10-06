@@ -35,16 +35,12 @@ void nameserver() {
 			name = (int) req.str[0];
 			switch (req.n) {
 				case NAMESERVER_REQUEST_REGISTERAS:
-					if (mem[name] == -1) {
-						mem[name] = id;
-						rv = 0;
-					} else {
-						rv = -4; // name already taken
-					}
+					mem[name] = id;
+					rv = 0;
 					break;
 				case NAMESERVER_REQUEST_WHOIS:
 					if (mem[name] == -1) {
-						rv = -6; // name not registered
+						rv = -3; // name not registered
 					} else {
 						rv = mem[name];
 					}
