@@ -10,6 +10,8 @@
 #include <string.h>
 #include <nameserver.h>
 
+static int nameserver_tid;
+
 static void install_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
 }
@@ -64,9 +66,7 @@ void handle_swi(register_set *reg) {
 			msglen = SENDER_MSGLEN(a4);
 			replylen = SENDER_REPLYLEN(a4);
 			*r0 = kernel_send(a1, (void*) a2, msglen, (void*) a3, replylen);
-			if (*r0 < 0) {
-				scheduler_runmenext();
-			}
+			if (*r0 < 0) scheduler_runmenext();
 			break;
 		case SYSCALL_RECIEVE:
 			rv = kernel_recieve((int *) a1, (void*) a2, a3);
@@ -80,7 +80,7 @@ void handle_swi(register_set *reg) {
 			break;
 		case SYSCALL_NAMESERVERTID:
 			scheduler_runmenext();
-			*r0 = get_nameserver();
+			*r0 = nameserver_tid;
 			break;
 		default:
 			ERROR("unknown system call %d (%x)\n", req_no, req_no);
@@ -89,7 +89,7 @@ void handle_swi(register_set *reg) {
 }
 
 void kernel_runloop() {
-	kernel_createtask(NAMESERVER_PRIORITY, nameserver);
+	nameserver_tid = kernel_createtask(NAMESERVER_PRIORITY, nameserver);
 
 	task_descriptor *td;
 	register_set *reg;

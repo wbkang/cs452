@@ -3,25 +3,19 @@
 #include <rawio.h>
 #include <hardware.h>
 
-static int nameserver_tid;
-
-int get_nameserver() {
-	return nameserver_tid;
-}
-
 void nameserver() {
-	nameserver_tid = MyTid();
-	bwprintf(COM2, "setting nameserver tid to %d\n", nameserver_tid);
+	bwprintf(COM2, "setting nameserver tid to %d\n", MyTid());
 	// recieve args
 	int id;
 	nameserver_request req;
 	// internal args
 	int len;
 	int rv;
-	int mem[255];
+	int hashsize = 26 * 26;
+	int mem[hashsize];
 	int name;
 
-	for (int i = 0; i < 255; i++) {
+	for (int i = 0; i < hashsize; i++) {
 		mem[i] = -1;
 	}
 
@@ -32,7 +26,7 @@ void nameserver() {
 			rv = -3; // error during copying
 		} else {
 			bwprintf(COM2, "[request] id: %d, str: '%s'\n", id, req.str);
-			name = (int) req.str[0];
+			name = (int) (req.str[0] - 'a') * 27 + (req.str[1] - 'a');
 			switch (req.n) {
 				case NAMESERVER_REQUEST_REGISTERAS:
 					if (mem[name] == -1) {
