@@ -12,20 +12,20 @@ int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
 }
 
 int RegisterAs(char *name) { // wrapper for send
+	if (strlen(name) != 2 || name[0] < 'a' || name[0] > 'z' || name[1] < 'a' || name[1] > 'z') return -3;
 	nameserver_request req;
 	req.n = NAMESERVER_REQUEST_REGISTERAS;
-	ASSERT(NAMESERVER_MAX_NAME_LEN >= strlen(name) + 1, "name too long");
-	strcpy(req.str, name);
+	memcpy(req.str, name, 2);
 	int rv;
 	Send(NameServerTid(), (void*) &req, sizeof req, (void*) &rv, sizeof rv);
 	return rv;
 }
 
 int WhoIs(char *name) { // wrapper for send
+	if (strlen(name) != 2 || name[0] < 'a' || name[0] > 'z' || name[1] < 'a' || name[1] > 'z') return -3;
 	nameserver_request req;
 	req.n = NAMESERVER_REQUEST_WHOIS;
-	ASSERT(NAMESERVER_MAX_NAME_LEN >= strlen(name) + 1, "name too long");
-	strcpy(req.str, name);
+	memcpy(req.str, name, 2);
 	int rv;
 	Send(NameServerTid(), (void*) &req, sizeof req, (void*) &rv, sizeof rv);
 	return rv;

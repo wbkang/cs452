@@ -55,7 +55,7 @@ static void driver() {
 	}*/
 
 	TRACE("my task id is: %d", MyTid());
-	char *name = "X";
+	char *name = "ab";
 	int rv = RegisterAs(name);
 	TRACE("RegisterAs returned %s (%x)", rv, rv);
 	TRACE("WhoIs %s: %d", name, WhoIs(name));

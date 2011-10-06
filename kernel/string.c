@@ -17,8 +17,7 @@ void uint2str(uint num, uint base, char *bf) {
 	int dgt;
 	uint d = 1;
 
-	while ((num / d) >= base)
-		d *= base;
+	while ((num / d) >= base) d *= base;
 	while (d != 0) {
 		dgt = num / d;
 		num %= d;
@@ -55,9 +54,7 @@ uint strparseuint(char *str, int *idx) {
 	int digit;
 	for (;;) {
 		digit = char2digit(str[*idx]);
-		if (digit < 0 || digit > 10) {
-			break;
-		}
+		if (digit < 0 || digit > 10) break;
 		num = num * 10 + digit;
 		(*idx)++;
 	}
@@ -66,10 +63,9 @@ uint strparseuint(char *str, int *idx) {
 
 // @TODO implement this in assembly with ldm and stm
 void* memcpy(void* destination, const void* source, uint num) {
-	char *dst = (char *) destination, *src = (char *) source;
-	while (num--) {
-		*dst++ = *src++;
-	}
+	char *dst = (char *) destination;
+	char *src = (char *) source;
+	while (num--) *dst++ = *src++;
 	return destination;
 }
 

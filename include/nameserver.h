@@ -8,6 +8,4 @@ typedef struct _tag_nameserver_request {
 	char str[NAMESERVER_MAX_NAME_LEN];
 } nameserver_request;
 
-int get_nameserver();
-
 void nameserver();
