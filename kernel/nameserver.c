@@ -17,7 +17,7 @@ void nameserver() {
 
 	for (;;) {
 		if (Receive(&tid, (void*) &req, sizeof(req)) != sizeof(req)) {
-			rv = -4; // error during copying
+			rv = -3; // error during copying
 		} else {
 			reqno = NAMESERVER_GET_REQNO(req);
 			name = NAMESERVER_GET_NAME(req);
@@ -30,12 +30,8 @@ void nameserver() {
 			bwprintf(COM2, "str: %c%c\n", req >> 24, req >> 16);*/
 			switch (reqno) {
 				case NAMESERVER_REQUEST_REGISTERAS:
-					if (mem[name] == -1) {
-						mem[name] = tid;
-						rv = 0;
-					} else {
-						rv = -5; // name already taken
-					}
+					mem[name] = tid;
+					rv = 0;
 					break;
 				case NAMESERVER_REQUEST_WHOIS:
 					if (mem[name] == -1) {
