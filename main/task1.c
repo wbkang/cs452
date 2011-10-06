@@ -4,6 +4,6 @@
 #include <rpsclient.h>
 
 void task1() {
-	Create(0, rpsserver);
-	for (int i = 0; i < 4; i++) Create(0, rpsclient);
+	Create(1, rps_server);
+	for (int i = 0; i < 2; i++) Create(0, rps_client);
 }

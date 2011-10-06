@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
 	test_run();
 	kerneltest_run();
 	kernel_init();
-	kernel_createtask(0, task1);
+	kernel_createtask(MAX_PRIORITY, task1);
 	kernel_runloop();
 	return 0;
 }
