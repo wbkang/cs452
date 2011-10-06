@@ -4,51 +4,50 @@
 #include <hardware.h>
 
 void nameserver() {
-	bwprintf(COM2, "setting nameserver tid to %d\n", MyTid());
+	#define IDX(s) (((s[0] - 'a') * 26) | (s[1] - 'a'))
 	// recieve args
-	int id;
+	int tid;
 	nameserver_request req;
 	// internal args
-	int len;
-	int rv;
-	int hashsize = 26 * 26;
-	int mem[hashsize];
+	int maxidx = IDX("zz"); // minidx = IDX("aa") = 0
+	int mem[maxidx + 1];
 	int name;
-
-	for (int i = 0; i < hashsize; i++) {
-		mem[i] = -1;
-	}
+	for (name = 0; name <= maxidx; name++) mem[name] = -1;
+	int rv;
 
 	for (;;) {
-		bwprintf(COM2, "recieving...\n");
-		len = Recieve(&id, (void*) &req, sizeof(req));
-		if (len != sizeof(req)) {
-			rv = -3; // error during copying
+		if (Recieve(&tid, (void*) &req, sizeof(req)) != sizeof(req)) {
+			rv = -4; // error during copying
 		} else {
-			bwprintf(COM2, "[request] id: %d, str: '%s'\n", id, req.str);
-			name = (int) (req.str[0] - 'a') * 27 + (req.str[1] - 'a');
+			name = IDX(req.str);
+			/*bwprintf(COM2, "[nsrequest] ");
+			bwprintf(COM2, "type: %s, ", req.n ? "whois" : "reg");
+			bwprintf(COM2, "tid: %d, ", tid);
+			bwprintf(COM2, "name: %d, ", name);
+			bwprintf(COM2, "mem: %d, ", mem[name]);
+			bwprintf(COM2, "str: %c%c\n", req.str[0], req.str[1]);*/
 			switch (req.n) {
 				case NAMESERVER_REQUEST_REGISTERAS:
 					if (mem[name] == -1) {
-						mem[name] = id;
+						mem[name] = tid;
 						rv = 0;
 					} else {
-						rv = -4; // name already taken
+						rv = -5; // name already taken
 					}
 					break;
 				case NAMESERVER_REQUEST_WHOIS:
 					if (mem[name] == -1) {
-						rv = -6; // name not registered
+						rv = -5; // name not registered
 					} else {
 						rv = mem[name];
 					}
 					break;
 				default:
-					rv = -5; // incorrect nameserver command
+					rv = -6; // incorrect nameserver command
 					break;
 			}
 		}
-		bwprintf(COM2, "rv: %d (%x)\n", rv, rv);
-		Reply(id, (void*) &rv, sizeof rv);
+		//bwprintf(COM2, "rv: %d (%x)\n", rv, rv);
+		Reply(tid, (void*) &rv, sizeof rv);
 	}
 }
