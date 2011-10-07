@@ -138,6 +138,34 @@ static void kerneltest_nameserver_testallnames() {
 	}
 }
 
+static void kerneltest_receive() {
+	int parent;
+	int reply = 10000;
+	int buf;
+
+	for (int i = 0 ; i < 1000; i++) {
+		EXPECT(sizeof buf, Receive(&parent, (char*)&buf, sizeof buf));
+		EXPECT(MyParentsTid(), parent);
+		EXPECT(reply - 10000, buf);
+		EXPECT(0, Reply(parent, (char*)&reply, sizeof reply));
+		reply++;
+	}
+}
+
+static void kerneltest_send() {
+	TEST_START();
+	int num = 0;
+	int reply = 0;
+	int rcvtid = Create(MAX_PRIORITY - 2, kerneltest_receive);
+
+	for(int i = 0; i < 1000; i++) {
+		EXPECT(sizeof num, Send(rcvtid, (char*)&num, sizeof num, (char*)&reply, sizeof reply));
+		EXPECT(num + 10000, reply);
+		num++;
+	}
+	TEST_END();
+}
+
 void kerneltest_run() {
 	TEST_START();
 	mem_reset();
@@ -146,6 +174,7 @@ void kerneltest_run() {
 	kerneltest_runner(MAX_PRIORITY, kerneltest_myparenttid);
 	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_nameserver);
 	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_nameserver_testallnames);
+	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_send);
 	mem_reset();
 	TEST_END();
 }

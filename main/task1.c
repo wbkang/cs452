@@ -2,8 +2,9 @@
 #include <syscall.h>
 #include <rpsserver.h>
 #include <rpsclient.h>
+#include <perfmon.h>
 
 void task1() {
-	Create(1, rps_server);
-	for (int i = 0; i < 4; i++) Create(2, rps_client);
+	Create(MAX_PRIORITY - 2, perfmon);
+	//for (int i = 0; i < 2; i++) Create(0, rps_client);
 }
