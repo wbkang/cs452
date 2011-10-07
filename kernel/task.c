@@ -54,9 +54,7 @@ void reginfo(register_set *reg) {
 	TRACE("reginfo:");
 	TRACE("\treg: %x", reg);
 	TRACE("\tspsr: %x", reg->spsr);
-	for (int i = 0; i < 13; i++) {
-		TRACE("\tr%d: %x", i, reg->r[i]);
-	}
+	for (int i = 0; i < 13; i++) TRACE("\tr%d: %x", i, reg->r[i]);
 	TRACE("\tsp: %x", reg->r[13]);
 	TRACE("\tlr: %x", reg->r[14]);
 	TRACE("\tpc: %x", reg->r[15]);
