@@ -17,14 +17,14 @@ int main(int argc, char *argv[]) {
 				"mov r0, #1\n\t"
 				"bl bwputr\n\t"
 				"mrc p15, 0, r0, c1, c0, 0\n\t"
-				"ldr r1, =0x40000000\n\t"
+				"ldr r1, =0x40001004\n\t"
 				"orr r0, r0, r1\n\t"
 				"mcr p15, 0, r0, c1, c0, 0\n\t" : : : "r0", "r1");
 #endif
 	test_run();
 	kerneltest_run();
 	kernel_init();
-	kernel_createtask(MIN_PRIORITY, task1);
+	kernel_createtask(MAX_PRIORITY, task1);
 	kernel_runloop();
 	return 0;
 }
