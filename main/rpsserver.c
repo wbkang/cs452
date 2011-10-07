@@ -42,17 +42,18 @@ int rps_player_exists(rps_server_game *game, int player) {
 int rps_do_signup(rps_server_game *game, int player) {
 	// ("signup");
 	if (rps_player_exists(game, player)) return 0; // already in a game
+	int rv = 0;
 	for (int i = 0; i < RPS_SERVER_MAX_GAMES; i += 1) {
 		if (game[i].state == RPS_GAME_GOOD && game[i].player[0] != -1 && game[i].player[1] == -1) {
+			Reply(game[i].player[0], (void*) &rv, sizeof rv); // unblock player1
 			game[i].player[1] = player;
-			// PRINT("player %d got matched with player %d", game[i].player[0], game[i].player[1]);
-			return 0;
+			return 0; // unblock player2
 		}
 	}
 	for (int i = 0; i < RPS_SERVER_MAX_GAMES; i += 1) {
 		if (game[i].state == RPS_GAME_GOOD && game[i].player[0] == -1) {
 			game[i].player[0] = player;
-			return 0;
+			return 1;
 		}
 	}
 	return RPS_ERROR_FULL;
