@@ -20,8 +20,8 @@ void rps_client() {
 	for (int i = 0; i < 4; i++) {
 		move = random() % 3;
 		rv = rps_play(server, move);
-		if (rv == 1 || rv == 2 || rv == 3) {
-			PRINT("Player %d: played %s and %s", MyTid(), move == 0 ? "ROCK" : move == 1 ? "PAPER" : "SCISSORS", rv == 1 ? "LOST" : rv == 2 ? "WON" : "TIED");
+		if (rv == RPS_MOVE_ROCK || rv == RPS_MOVE_PAPER || rv == RPS_MOVE_SCISSORS) {
+			PRINT("Player %d: played %s and %s", MyTid(), move == RPS_MOVE_ROCK ? "ROCK" : move == RPS_MOVE_PAPER ? "PAPER" : "SCISSORS", rv == RPS_RV_LOSS ? "LOST" : rv == RPS_RV_WIN ? "WON" : "TIED");
 		} else {
 			PRINT("server responded with error %d", rv);
 			break;
