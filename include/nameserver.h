@@ -30,3 +30,5 @@
 #define NAMESERVER_REQUEST_WHOIS 1
 
 void nameserver();
+
+int nameserver_send(char reqno, char *name);

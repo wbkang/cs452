@@ -1,5 +1,4 @@
 #include <memory.h>
-#include <util.h>
 #include <stack.h>
 #include <scheduler.h>
 #include <syscall.h>
@@ -34,30 +33,23 @@ void* umalloc(uint size) {
 	task_descriptor *td = scheduler_running();
 	memptr rv = td->heap;
 	memptr new_heap = rv + NEXTHIGHESTWORD(size);
-	if (((uint) td->registers.r[REG_SP]) > (uint) new_heap) {
-		return NULL;
-	} else {
-		td->heap = new_heap;
-		return rv;
-	}
+	if ((uint) td->registers.r[REG_SP] > (uint) new_heap) return NULL;
+	td->heap = new_heap;
+	return rv;
 }
 
 void* qmalloc(uint size) {
 	int mode = 0xdeadbeef;
-
-#ifndef __i386
-	__asm(
+	#ifndef __i386
+		__asm(
 			"mrs %[mode], cpsr" "\n\t"
 			"and %[mode], %[mode], #0x1f" "\n\t"
 			: [mode] "=r" (mode)
-	);
-#endif
-
+		);
+	#endif
 	switch (mode) {
-		case 0x10: // user
-			return malloc(size);
-		case 0x13: // service
-			return kmalloc(size);
+		case 0x10: return malloc(size); // user
+		case 0x13: return kmalloc(size); // service
 		default: // not handled
 			ERROR("unhandled processor mode in qmalloc");
 			return NULL;
@@ -70,7 +62,7 @@ void allocate_user_memory(task_descriptor *td) {
 	// add stack size to get stack pointer address.
 	// this will technically point to the next tasks heap,
 	// but since its a full stack it will increment before pushing
-	td->registers.r[REG_SP] = ((int) td->heap) + BYTES2WORDS(STACK_SIZE);
+	td->registers.r[REG_SP] = BYTES2WORDS(STACK_SIZE) + (int) td->heap;
 }
 
 void free_user_memory(task_descriptor *td) {

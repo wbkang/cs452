@@ -31,7 +31,7 @@ static void test_queue() {
 	for (int i = 0; i < size; i++) {
 		queue_push(q, (void*) (1 << i));
 	}
-	ASSERT(QUEUE_FULL(q), "ERROR!!!\nInserted max no of items yet not full!");
+	ASSERT(queue_full(q), "ERROR!!!\nInserted max no of items yet not full!");
 	for (int i = 0; i < size; i++) {
 		got = queue_pop(q);
 		expected = (void *) (1 << i);

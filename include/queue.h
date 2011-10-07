@@ -3,22 +3,20 @@
 #include <util.h>
 
 typedef struct _tag_queue {
-		uint head;
-		uint tail;
-		uint size;
-		void* arr[];
+		void** head;
+		void** tail;
+		void** max;
+		void* min[];
 } queue;
 
-#define QUEUE_MEMSIZE(sz) (sizeof(queue)+ (sz))
+queue *queue_new(uint size);
 
-#define QUEUE_EMPTY(q) ((q)->head == (q)->tail)
+inline void** queue_increment(queue *q, void** p);
 
-#define QUEUE_INCREMENT(q, i) (((i) + 1 < (q)->size) ? (i) + 1 : 0)
+inline int queue_empty(queue *q);
 
-#define QUEUE_FULL(q) (QUEUE_INCREMENT((q), (q)->tail) == (q)->head)
+inline int queue_full(queue *q);
 
-queue* queue_new(uint size);
+inline void queue_push(queue *q, void* item);
 
-void queue_push(queue *q, void* item);
-
-void *queue_pop(queue *q);
+inline void* queue_pop(queue *q);

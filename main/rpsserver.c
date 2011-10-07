@@ -8,15 +8,15 @@ typedef struct _tag_rps_server_req {
 	int move;
 } rps_server_req;
 
-#define RPS_SERVER_SIGNUP 0
-#define RPS_SERVER_PLAY 1
-#define RPS_SERVER_QUIT 2
-
 typedef struct _tag_rps_server_game {
 	char state;
 	int player[2];
 	int move[2];
 } rps_server_game;
+
+#define RPS_SERVER_SIGNUP 0
+#define RPS_SERVER_PLAY 1
+#define RPS_SERVER_QUIT 2
 
 #define RPS_GAME_GOOD 0
 #define RPS_GAME_DEAD 1

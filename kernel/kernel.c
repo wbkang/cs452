@@ -22,7 +22,7 @@ void kernel_init() {
 	mem_init(TASK_LIST_SIZE);
 	td_init();
 	scheduler_init();
-	nameserver_tid = kernel_createtask(MAX_PRIORITY - 1, nameserver);
+	nameserver_tid = kernel_createtask(MAX_PRIORITY, nameserver);
 	// TRACE("######## end ########");
 }
 
@@ -33,9 +33,6 @@ void handle_swi(register_set *reg) {
 	int a2 = reg->r[1];
 	int a3 = reg->r[2];
 	int a4 = reg->r[3];
-
-	int msglen, replylen, rv;
-
 	switch (req_no) {
 		case SYSCALL_CREATE:
 			*r0 = kernel_createtask(a1, (func_t) a2);
@@ -71,19 +68,21 @@ void handle_swi(register_set *reg) {
 			scheduler_runmenext();
 			*r0 = (int) umalloc((uint) a1);
 			break;
-		case SYSCALL_SEND:
-			msglen = SENDER_MSGLEN(a4);
-			replylen = SENDER_REPLYLEN(a4);
+		case SYSCALL_SEND: {
+			int msglen = SENDER_MSGLEN(a4);
+			int replylen = SENDER_REPLYLEN(a4);
 			*r0 = kernel_send(a1, (void*) a2, msglen, (void*) a3, replylen);
 			if (*r0 < 0) scheduler_runmenext();
 			break;
-		case SYSCALL_RECEIVE:
-			rv = kernel_receive((int *) a1, (void*) a2, a3);
-			if (rv < 0) {
-				*r0 =  rv; // write the error
+		}
+		case SYSCALL_RECEIVE: {
+			int rv = kernel_receive((int *) a1, (void*) a2, a3);
+			if (rv < 0) { // write the error
+				*r0 =  rv;
 				scheduler_runmenext();
 			}
 			break;
+		}
 		case SYSCALL_REPLY:
 			*r0 = kernel_reply(a1, (void*) a2, a3);
 			break;
@@ -108,7 +107,7 @@ void kernel_runloop() {
 	}
 }
 
-int kernel_createtask(int priority, func_t code) {
+inline int kernel_createtask(int priority, func_t code) {
 	if (priority < MIN_PRIORITY || priority > MAX_PRIORITY) return -1;
 	uint entry = (uint) code;
 	// probably not in the text region
@@ -125,17 +124,17 @@ int kernel_createtask(int priority, func_t code) {
 	return td->id;
 }
 
-int kernel_mytid() {
+inline int kernel_mytid() {
 	task_descriptor *td = scheduler_running();
 	return td ? td->id : 0xdeadbeef;
 }
 
-int kernel_myparenttid() {
+inline int kernel_myparenttid() {
 	task_descriptor *td = scheduler_running();
 	return td ? td->parent_id : 0xdeadbeef;
 }
 
-int transfer_msg(task_descriptor *sender, task_descriptor *receiver) {
+inline int transfer_msg(task_descriptor *sender, task_descriptor *receiver) {
 	*((int *) receiver->registers.r[0]) = sender->id;
 	// set up lengths
 	int sender_msglen = SENDER_MSGLEN(sender->registers.r[3]);
@@ -154,7 +153,7 @@ int transfer_msg(task_descriptor *sender, task_descriptor *receiver) {
 	return len;
 }
 
-int transfer_reply(task_descriptor *sender, task_descriptor *receiver) {
+inline int transfer_reply(task_descriptor *sender, task_descriptor *receiver) {
 	// set up lengths
 	int sender_replylen = SENDER_REPLYLEN(sender->registers.r[3]);
 	int receiver_replylen = receiver->registers.r[2];
@@ -165,7 +164,7 @@ int transfer_reply(task_descriptor *sender, task_descriptor *receiver) {
 	memcpy(sender_reply, receiver_reply, len);
 	// make sender ready to run
 	sender->registers.r[0] = len; // return to sender
-	TD_REMOVE(sender);
+	td_list_remove(sender);
 	scheduler_ready(sender);
 	// make receiver ready to run
 	scheduler_ready(receiver);
@@ -173,20 +172,20 @@ int transfer_reply(task_descriptor *sender, task_descriptor *receiver) {
 	return 0;
 }
 
-int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen) {
-	if (TD_IMPOSSIBLE(tid)) return -1;
+inline int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen) {
+	if (td_impossible(tid)) return -1;
 	task_descriptor *receiver = td_find(tid);
 	if (!receiver) return -2;
 	task_descriptor *sender = scheduler_running();
 	if (receiver->state == TD_STATE_WAITING4SEND) {
-		TD_REMOVE(receiver);
+		td_list_remove(receiver);
 		return transfer_msg(sender, receiver);
 	}
 	scheduler_wait4receive(receiver, sender);
 	return 0; // will return later
 }
 
-int kernel_receive(int *tid, void* msg, int msglen) {
+inline int kernel_receive(int *tid, void* msg, int msglen) {
 	task_descriptor *receiver = scheduler_running();
 	task_descriptor *sender = td_pop(receiver);
 	if (sender) return transfer_msg(sender, receiver);
@@ -194,8 +193,8 @@ int kernel_receive(int *tid, void* msg, int msglen) {
 	return 0; // will return later
 }
 
-int kernel_reply(int tid, void* reply, int replylen) {
-	if (TD_IMPOSSIBLE(tid)) return -1;
+inline int kernel_reply(int tid, void* reply, int replylen) {
+	if (td_impossible(tid)) return -1;
 	task_descriptor *sender = td_find(tid);
 	if (!sender) return -2;
 	if (sender->state != TD_STATE_WAITING4REPLY) return -3;

@@ -8,20 +8,18 @@ void nameserver() {
 	int tid;
 	int req;
 	// internal args
-	int hashsize = NUM_ASCII_PRINTABLE * NUM_ASCII_PRINTABLE; // two printable chars
+	int hashsize = NUM_ASCII_PRINTABLE * NUM_ASCII_PRINTABLE; // two chars
 	int mem[hashsize];
 	for (int i = 0; i < hashsize; i++) mem[i] = -1;
 	int name;
 	int reqno;
 	int rv;
-
 	for (;;) {
 		if (Receive(&tid, (void*) &req, sizeof(req)) != sizeof(req)) {
 			rv = -3; // error during copying
 		} else {
 			reqno = NAMESERVER_GET_REQNO(req);
 			name = NAMESERVER_GET_NAME(req);
-
 //			bwprintf(COM2, "[nsrequest] ");
 //			bwprintf(COM2, "req: %x, ", req, req);
 //			bwprintf(COM2, "type: %s, ", reqno ? "whois" : "reg");
@@ -49,4 +47,14 @@ void nameserver() {
 		// bwprintf(COM2, "rv: %d (%x)\n", rv, rv);
 		Reply(tid, (void*) &rv, sizeof rv);
 	}
+}
+
+int nameserver_send(char reqno, char *name) {
+	if (!NAMESERVER_VALID_NAME(name)) return -4;
+	int msg = NAMESERVER_REQ(reqno, name);
+	int rv;
+	int len = Send(NameServerTid(), (void*) &msg, sizeof msg, (void*) &rv, sizeof rv);
+	if (len < 0) return len;
+	if (len != sizeof rv) return -3;
+	return rv;
 }
