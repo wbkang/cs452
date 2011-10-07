@@ -26,9 +26,7 @@ typedef struct _tag_rps_server_game {
 int rps_find_player(rps_server_game *game, int player, int *g, int *p) {
 	for (*g = 0; *g < RPS_SERVER_MAX_GAMES; (*g)++) {
 		for (*p = 0; *p < 2; (*p)++) {
-			if (game[*g].player[*p] == player) {
-				return 0;
-			}
+			if (game[*g].player[*p] == player) return 0;
 		}
 	}
 	return RPS_ERROR_NOTSIGNEDUP;
@@ -40,7 +38,6 @@ int rps_player_exists(rps_server_game *game, int player) {
 }
 
 int rps_do_signup(rps_server_game *game, int player) {
-	// ("signup");
 	if (rps_player_exists(game, player)) return 0; // already in a game
 	int rv = 0;
 	for (int i = 0; i < RPS_SERVER_MAX_GAMES; i += 1) {
@@ -59,34 +56,24 @@ int rps_do_signup(rps_server_game *game, int player) {
 	return RPS_ERROR_FULL;
 }
 
-static int rps_outcome[3][3] = {{3, 1, 2}, {2, 3, 1}, {1, 2, 3}};
-
 int rps_do_play(rps_server_game *game, int player, int move) {
-	//PRINT("player %d played %s", player, move == 0 ? "ROCK" : move == 1 ? "PAPER" : "SCISSORS");
+	static int rps_outcome[3][3] = {{3, 1, 2}, {2, 3, 1}, {1, 2, 3}};
 	int g, p;
 	int rv = rps_find_player(game, player, &g, &p);
 	if (rv < 0) return rv;
-
 	if (game[g].state != RPS_GAME_GOOD) return RPS_ERROR_OPPONENTQUIT;
-
 	game[g].move[p] = move;
-
 	if (game[g].move[p ^ 1] == -1) return 1; // wait for the other player
-
 	for (int i = 0; i < 2; i++) {
 		rv = rps_outcome[game[g].move[i]][game[g].move[i ^ 1]];
 		Reply(game[g].player[i], (void*) &rv, sizeof rv);
 	}
-
 	for (int i = 0; i < 2; i++) game[g].move[i] = -1;
-
-	bwgetc(COM2);
-
+	bwgetc(COM2); // pause
 	return 1; // do not return
 }
 
 int rps_do_quit(rps_server_game *game, int player) {
-	//PRINT("quit");
 	int g, p;
 	int rv = rps_find_player(game, player, &g, &p);
 	if (rv < 0) return rv;
@@ -97,15 +84,11 @@ int rps_do_quit(rps_server_game *game, int player) {
 }
 
 void rps_server() {
-	//PRINT("start");
 	RegisterAs(RPS_SERVER_NAME);
-
 	rps_server_game games[RPS_SERVER_MAX_GAMES];
-
 	int player;
 	rps_server_req req;
 	int rv;
-
 	// initialize games
 	for (int g = 0; g < RPS_SERVER_MAX_GAMES; g++) {
 		games[g].state = RPS_GAME_GOOD;
@@ -114,7 +97,6 @@ void rps_server() {
 			games[g].move[p] = -1;
 		}
 	}
-
 	for (;;) {
 		rv = 0;
 		if (sizeof(req) != Receive(&player, (void*) &req, sizeof(req))) {
