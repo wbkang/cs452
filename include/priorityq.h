@@ -4,9 +4,9 @@
 #include <util.h>
 
 typedef struct _tag_priorityq {
-		int num_priorities;
-		int len;
-		queue *q[];
+	int num_priorities;
+	int len;
+	queue *q[];
 } priorityq;
 
 priorityq *priorityq_new(int size, int num_priorities);

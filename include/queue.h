@@ -3,10 +3,10 @@
 #include <util.h>
 
 typedef struct _tag_queue {
-		void** head;
-		void** tail;
-		void** max;
-		void* min[];
+	void** head;
+	void** tail;
+	void** max;
+	void* min[];
 } queue;
 
 queue *queue_new(uint size);

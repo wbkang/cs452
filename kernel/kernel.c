@@ -36,11 +36,8 @@ void handle_swi(register_set *reg) {
 	switch (req_no) {
 		case SYSCALL_CREATE:
 			*r0 = kernel_createtask(a1, (func_t) a2);
-			if (*r0 < 0) {
-				scheduler_runmenext();
-			} else {
-				scheduler_move2ready();
-			}
+			if (*r0 < 0) scheduler_runmenext();
+			else scheduler_move2ready();
 			break;
 		case SYSCALL_MYTID:
 			scheduler_runmenext();
@@ -54,14 +51,7 @@ void handle_swi(register_set *reg) {
 			scheduler_move2ready();
 			break;
 		case SYSCALL_EXIT: {
-			// return -2 to receive blocked senders
-			task_descriptor *receiver = scheduler_running();
-			task_descriptor *sender;
-			while ((sender = td_pop(receiver))) {
-				sender->registers.r[0] = -2;
-				scheduler_ready(sender);
-			}
-			scheduler_killme(); // suicide
+			kernel_exit();
 			break;
 		}
 		case SYSCALL_MALLOC:
@@ -69,9 +59,7 @@ void handle_swi(register_set *reg) {
 			*r0 = (int) umalloc((uint) a1);
 			break;
 		case SYSCALL_SEND: {
-			int msglen = SENDER_MSGLEN(a4);
-			int replylen = SENDER_REPLYLEN(a4);
-			*r0 = kernel_send(a1, (void*) a2, msglen, (void*) a3, replylen);
+			*r0 = kernel_send(a1, (void*) a2, SENDER_MSGLEN(a4), (void*) a3, SENDER_REPLYLEN(a4));
 			if (*r0 < 0) scheduler_runmenext();
 			break;
 		}
@@ -132,6 +120,19 @@ inline int kernel_mytid() {
 inline int kernel_myparenttid() {
 	task_descriptor *td = scheduler_running();
 	return td ? td->parent_id : 0xdeadbeef;
+}
+
+inline void kernel_exit() {
+	// return -2 to receive blocked senders
+	task_descriptor *receiver = scheduler_running();
+	task_descriptor *sender;
+	while ((sender = td_pop(receiver))) {
+		sender->registers.r[0] = -2;
+		scheduler_ready(sender);
+	}
+	// suicide
+	free_user_memory(receiver);
+	td_free(receiver);
 }
 
 inline int transfer_msg(task_descriptor *sender, task_descriptor *receiver) {
