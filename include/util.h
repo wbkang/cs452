@@ -9,6 +9,10 @@ typedef unsigned int uint;
 typedef uint *memptr;
 typedef void (*func_t)();
 
+////////// .c
+
+uint random();
+
 ////////// VAR ARG
 typedef char *va_list;
 

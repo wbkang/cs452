@@ -38,4 +38,3 @@ tar cf - $FILES | bzip2 | ssh $PKOPT $REMOTEUSER@$REMOTEHOST \
 	./clean.sh $SILENCER;
 	./build.sh $SILENCER;
 "
-
