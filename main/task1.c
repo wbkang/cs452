@@ -5,6 +5,6 @@
 #include <perfmon.h>
 
 void task1() {
-	Create(MAX_PRIORITY, perfmon);
-	//for (int i = 0; i < 2; i++) Create(0, rps_client);
+	Create(1, rps_server);
+	for (int i = 0; i < 4; i++) Create(1, rps_client);
 }
