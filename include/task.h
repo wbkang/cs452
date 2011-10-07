@@ -21,20 +21,20 @@
 #define TASK_LIST_SIZE ((USER_MEM_END - USER_MEM_START) / STACK_SIZE)
 
 typedef struct _tag_register_set {
-		int spsr;
-		int r[16]; // r0-r12, sp, lr, pc
+	int spsr;
+	int r[16]; // r0-r12, sp, lr, pc
 } register_set;
 
 typedef struct _tag_task_descriptor {
-		int id;
-		uint state;
-		uint priority;
-		int parent_id;
-		register_set registers;
-		memptr heap_base;
-		memptr heap;
-		struct _tag_task_descriptor *_prev;
-		struct _tag_task_descriptor *_next;
+	int id;
+	uint state;
+	uint priority;
+	int parent_id;
+	register_set registers;
+	memptr heap_base;
+	memptr heap;
+	struct _tag_task_descriptor *_prev;
+	struct _tag_task_descriptor *_next;
 } task_descriptor;
 
 #define TD_INDEX(tid) ((tid) & 0xFFFF)

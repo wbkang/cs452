@@ -59,13 +59,10 @@ static void kerneltest_myparenttid() {
 	int mytid = MyTid();
 	int myparenttid = MyParentsTid();
 	int mypriority = td_find(mytid)->priority;
-
 	if (last_run_tid != 1){
 		EXPECTMSG(last_run_tid, myparenttid, "parent tid relationship wrong!");
 	}
-
 	last_run_tid = mytid;
-
 	if (mypriority > MIN_PRIORITY) {
 		ASSERT(Create(mypriority - 1, kerneltest_myparenttid) >= 0, "create task failed!?");
 	}
@@ -121,11 +118,9 @@ static void kerneltest_nameserver() {
 
 static void kerneltest_nameserver_testallnames() {
 	// Exhaustive test testing every possible names.
-	if (LONG_TEST_ENABLED)
-	{
+	if (LONG_TEST_ENABLED) {
 		char name[3];
 		name[2] = '\0';
-
 		for (char first = ASCII_PRINTABLE_START; first <= ASCII_PRINTABLE_END; first++) {
 			for (char second = ASCII_PRINTABLE_START; second <= ASCII_PRINTABLE_END; second++) {
 				name[0] = first;
