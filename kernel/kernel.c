@@ -157,6 +157,7 @@ int transfer_reply(task_descriptor *sender, task_descriptor *receiver) {
 	memcpy(sender_reply, receiver_reply, len);
 	// make sender ready to run
 	sender->registers.r[0] = len; // return to sender
+	TD_REMOVE(sender);
 	scheduler_ready(sender);
 	// make receiver ready to run
 	scheduler_ready(receiver);
@@ -169,7 +170,10 @@ int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen) {
 	task_descriptor *receiver = td_find(tid);
 	if (!receiver) return -2;
 	task_descriptor *sender = scheduler_running();
-	if (receiver->state == TD_STATE_WAITING4SEND) return transfer_msg(sender, receiver);
+	if (receiver->state == TD_STATE_WAITING4SEND) {
+		TD_REMOVE(receiver);
+		return transfer_msg(sender, receiver);
+	}
 	scheduler_wait4receive(receiver, sender);
 	return 0; // will return later
 }

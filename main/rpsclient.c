@@ -2,24 +2,28 @@
 #include <syscall.h>
 #include <rawio.h>
 #include <hardware.h>
+#include <util.h>
 
 void rps_client() {
-	PRINT("starting... my tid: %d", MyTid());
 	int server = WhoIs(RPS_SERVER_NAME);
-	PRINT("got rps tid %d", server);
-	int rv;
+	int move, rv;
 
-	PRINT("signing up...");
 	rv = rps_signup(server);
-	PRINT("server replied: %d", rv);
+	if (rv < 0) {
+		PRINT("unabled to sign up");
+		return;
+	}
 
-	rv = rps_play(server, RPS_MOVE_ROCK);
-	PRINT("played: %d", rv);
-	rv = rps_play(server, RPS_MOVE_PAPER);
-	PRINT("played: %d", rv);
-	rv = rps_play(server, RPS_MOVE_SCISSORS);
-	PRINT("played: %d", rv);
+	for (int i = 0; i < 4; i++) {
+		move = random() % 3;
+		rv = rps_play(server, move);
+		if (rv == 1 || rv == 2 || rv == 3) {
+			PRINT("player %d: played: %s, got: %s", MyTid(), move == 0 ? "ROCK" : move == 1 ? "PAPER" : "SCISSORS", rv == 1 ? "LOSS" : rv == 2 ? "WIN" : "TIE");
+		} else {
+			PRINT("server responded with error %d", rv);
+			break;
+		}
+	}
 
-	PRINT("quitting");
 	rps_quit(server);
 }
