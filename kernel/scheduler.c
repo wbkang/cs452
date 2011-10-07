@@ -30,14 +30,7 @@ task_descriptor *scheduler_get() {
 	return running;
 }
 
-void scheduler_killme() {
-	free_user_memory(running);
-	td_free(running);
-	running = NULL;
-}
-
 inline void scheduler_move2ready() {
-	ASSERT(running, "no task running to move to ready");
 	scheduler_ready(running);
 }
 

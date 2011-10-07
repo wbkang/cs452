@@ -20,6 +20,8 @@ inline void kernel_exittask();
 
 inline void *kernel_malloc(uint size);
 
+inline void kernel_exit();
+
 inline int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen);
 
 inline int kernel_receive(int *tid, void* msg, int msglen);
