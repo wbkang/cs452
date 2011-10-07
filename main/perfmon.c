@@ -3,8 +3,9 @@
 #include <constants.h>
 #include <util.h>
 
-#define MSG_SIZE 4
+#define MSG_SIZE 64
 #define SENDER_FIRST 0
+
 #define ITERATION 10000
 #define SENDER_PRIORITY (MIN_PRIORITY + 1)
 #define RECEIVER_PRIORITY SENDER_PRIORITY
