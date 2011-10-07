@@ -12,6 +12,10 @@
 #define RPS_MOVE_PAPER 1
 #define RPS_MOVE_SCISSORS 2
 
+#define RPS_RV_LOSS 1
+#define RPS_RV_WIN 2
+#define RPS_RV_TIE 3
+
 void rps_server();
 
 int rps_signup(int server);

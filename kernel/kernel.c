@@ -56,9 +56,17 @@ void handle_swi(register_set *reg) {
 		case SYSCALL_PASS:
 			scheduler_move2ready();
 			break;
-		case SYSCALL_EXIT:
-			scheduler_killme();
+		case SYSCALL_EXIT: {
+			// return -2 to receive blocked senders
+			task_descriptor *receiver = scheduler_running();
+			task_descriptor *sender;
+			while ((sender = td_pop(receiver))) {
+				sender->registers.r[0] = -2;
+				scheduler_ready(sender);
+			}
+			scheduler_killme(); // suicide
 			break;
+		}
 		case SYSCALL_MALLOC:
 			scheduler_runmenext();
 			*r0 = (int) umalloc((uint) a1);
