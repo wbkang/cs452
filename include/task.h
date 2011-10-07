@@ -37,37 +37,19 @@ typedef struct _tag_task_descriptor {
 	struct _tag_task_descriptor *_next;
 } task_descriptor;
 
-#define TD_INDEX(tid) ((tid) & 0xFFFF)
-
-#define TD_IMPOSSIBLE(tid) (tid < 0 || (TD_INDEX(tid) >= TASK_LIST_SIZE))
-
-#define TD_UNLINK(td) { \
-	(td)->_prev->_next = (td)->_next; \
-	(td)->_next->_prev = (td)->_prev; \
-}
-
-#define TD_CLOSE(td) { \
-	(td)->_prev = (td); \
-	(td)->_next = (td); \
-}
-
-#define TD_REMOVE(td) { \
-	TD_UNLINK(td); \
-	TD_CLOSE(td); \
-}
-
-#define TD_PUSH(head, td) { \
-	(td)->_prev = (head); \
-	(td)->_next = (head)->_next; \
-	(td)->_next->_prev = (td); \
-	(head)->_next = (td); \
-}
-
-#define TD_PEEK(td) ((td)->_prev)
-
-#define TD_EMPTYLIST(td) (TD_PEEK(td) == td)
-
 void td_init();
+
+inline int td_index(int tid);
+
+inline int td_impossible(int tid);
+
+inline int td_list_empty(task_descriptor *td);
+
+inline void td_list_close(task_descriptor *td);
+
+inline void td_list_remove(task_descriptor *td);
+
+inline void td_list_push(task_descriptor *head, task_descriptor *td);
 
 task_descriptor *td_new();
 

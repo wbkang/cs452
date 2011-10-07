@@ -5,11 +5,11 @@
 #define SENDER_MSGLEN(a4) ((a4) & 0xFFFF)
 #define SENDER_REPLYLEN(a4) (((uint ) a4) >> 16)
 
-int Send(int tid, char *msg, int msglen, char *reply, int replylen);
+inline int Send(int tid, char *msg, int msglen, char *reply, int replylen);
 
-int RegisterAs(char *name);
+inline int RegisterAs(char *name);
 
-int WhoIs(char *name);
+inline int WhoIs(char *name);
 
 int Create(int priority, func_t code);
 
