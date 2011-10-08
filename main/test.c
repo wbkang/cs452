@@ -67,7 +67,7 @@ static void test_heap() {
 	heap *h = heap_new(size);
 	void *got, *expected;
 	for (int i = 0; i < size; i++) {
-		heap_max_insert(h, (void *) i, 11 * i);
+		heap_insert_max(h, (void *) i, 11 * i);
 	}
 	for (int i = size - 1; i != -1; i--) {
 		got = heap_extract_max(h);
