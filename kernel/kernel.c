@@ -9,6 +9,7 @@
 #include <scheduler.h>
 #include <string.h>
 #include <nameserver.h>
+#include <timeserver.h>
 
 static int nameserver_tid;
 
@@ -17,13 +18,11 @@ static void install_interrupt_handlers() {
 }
 
 void kernel_init() {
-	// TRACE("######## start ########");
 	install_interrupt_handlers();
 	mem_init(TASK_LIST_SIZE);
 	td_init();
 	scheduler_init();
 	nameserver_tid = kernel_createtask(MAX_PRIORITY, nameserver);
-	// TRACE("######## end ########");
 }
 
 void handle_swi(register_set *reg) {
@@ -98,8 +97,7 @@ void kernel_runloop() {
 inline int kernel_createtask(int priority, func_t code) {
 	if (priority < MIN_PRIORITY || priority > MAX_PRIORITY) return -1;
 	uint entry = (uint) code;
-	// probably not in the text region
-	if (entry < (uint) &_TextStart || entry >= (uint) &_TextEnd) return -3;
+	if (entry < (uint) &_TextStart || entry >= (uint) &_TextEnd) return -3; // in text region?
 	task_descriptor *td = td_new();
 	if (!td) return -2;
 	td->priority = priority;
