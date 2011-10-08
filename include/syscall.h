@@ -11,12 +11,6 @@ inline int RegisterAs(char *name);
 
 inline int WhoIs(char *name);
 
-inline int Time();
-
-inline int Delay(int ticks);
-
-inline int DelayUntil(int ticks);
-
 int Create(int priority, func_t code);
 
 int MyTid();
@@ -34,3 +28,9 @@ int Receive(int *tid, void* msg, int msglen);
 int Reply(int tid, void* reply, int replylen);
 
 int NameServerTid();
+
+int Time();
+
+int Delay(int ticks);
+
+int DelayUntil(int ticks);

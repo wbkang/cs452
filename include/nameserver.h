@@ -31,4 +31,6 @@
 
 void nameserver();
 
-int nameserver_send(char reqno, char *name);
+inline int nameserver_registeras(char *name);
+
+inline int nameserver_whois(char *name);

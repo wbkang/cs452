@@ -11,22 +11,22 @@ inline int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
 	return asm_Send(tid, msg, reply, (((uint) replylen) << 16) | msglen);
 }
 
-inline int RegisterAs(char *name) {
-	return nameserver_send(NAMESERVER_REQUEST_REGISTERAS, name);
+int RegisterAs(char *name) {
+	return nameserver_registeras(name);
 }
 
-inline int WhoIs(char *name) {
-	return nameserver_send(NAMESERVER_REQUEST_WHOIS, name);
+int WhoIs(char *name) {
+	return nameserver_whois(name);
 }
 
-inline int Time() {
+int Time() {
 	return timeserver_time();
 }
 
-inline int Delay(int ticks) {
+int Delay(int ticks) {
 	return timeserver_delay(ticks);
 }
 
-inline int DelayUntil(int ticks) {
+int DelayUntil(int ticks) {
 	return timeserver_delayuntil(ticks);
 }
