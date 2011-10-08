@@ -20,7 +20,7 @@ inline int scheduler_empty() {
 	return reschedule && priorityq_empty(ready_queue);
 }
 
-task_descriptor *scheduler_get() {
+inline task_descriptor *scheduler_get() {
 	if (reschedule) {
 		running = priorityq_pop(ready_queue);
 		running->state = TD_STATE_RUNNING;

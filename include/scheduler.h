@@ -8,7 +8,7 @@ inline task_descriptor *scheduler_running();
 
 inline int scheduler_empty();
 
-task_descriptor *scheduler_get();
+inline task_descriptor *scheduler_get();
 
 inline void scheduler_move2ready();
 

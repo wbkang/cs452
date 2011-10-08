@@ -11,6 +11,12 @@ inline int RegisterAs(char *name);
 
 inline int WhoIs(char *name);
 
+inline int Time();
+
+inline int Delay(int ticks);
+
+inline int DelayUntil(int ticks);
+
 int Create(int priority, func_t code);
 
 int MyTid();

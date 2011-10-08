@@ -32,7 +32,7 @@ inline uint heap_swap(heap *h, uint i, uint j) {
 }
 
 inline int heap_put(heap *h, void *data, int key) {
-	if (h->size >= h->max_size) return -1;
+	ASSERT(h->size < h->max_size, "full");
 	uint i = h->size;
 	h->arr[i].data = data;
 	h->arr[i].key = key;
@@ -56,21 +56,15 @@ inline void heap_bubbleup_max(heap *h, uint i) {
 	}
 }
 
-int heap_insert_min(heap *h, void* data, int key) {
-	int i = heap_put(h, data, key);
-	if (i < 0) return i;
-	heap_bubbleup_min(h, i);
-	return 0;
+void heap_insert_min(heap *h, void* data, int key) {
+	heap_bubbleup_min(h, heap_put(h, data, key));
 }
 
-int heap_insert_max(heap *h, void* data, int key) {
-	int i = heap_put(h, data, key);
-	if (i < 0) return i;
-	heap_bubbleup_max(h, i);
-	return 0;
+void heap_insert_max(heap *h, void* data, int key) {
+	heap_bubbleup_max(h, heap_put(h, data, key));
 }
 
-void heap_heapify_min(heap *h, uint i) {
+inline void heap_heapify_min(heap *h, uint i) {
 	for (;;) {
 		uint left = heap_leftchild(i);
 		if (left >= h->size) return; // no left child => no right child
@@ -91,7 +85,7 @@ void heap_heapify_min(heap *h, uint i) {
 	}
 }
 
-void heap_heapify_max(heap *h, uint i) {
+inline void heap_heapify_max(heap *h, uint i) {
 	for (;;) {
 		uint left = heap_leftchild(i);
 		if (left >= h->size) return; // no left child => no right child
@@ -114,22 +108,24 @@ void heap_heapify_max(heap *h, uint i) {
 
 void* heap_extract_min(heap *h) {
 	heap_item *top = heap_peek(h);
-	if (top == NULL) return NULL;
+	ASSERT(top, "empty");
 	h->size--;
 	void* rv = top->data;
-	if (h->size == 0) return rv;
-	*top = h->arr[h->size];
-	heap_heapify_min(h, 0);
+	if (h->size == 0) {
+		*top = h->arr[h->size];
+		heap_heapify_min(h, 0);
+	}
 	return rv;
 }
 
 void* heap_extract_max(heap *h) {
 	heap_item *top = heap_peek(h);
-	if (top == NULL) return NULL;
+	ASSERT(top, "empty");
 	h->size--;
 	void* rv = top->data;
-	if (h->size == 0) return rv;
-	*top = h->arr[h->size];
-	heap_heapify_max(h, 0);
+	if (h->size > 0) {
+		*top = h->arr[h->size];
+		heap_heapify_max(h, 0);
+	}
 	return rv;
 }

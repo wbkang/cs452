@@ -10,13 +10,13 @@ stack *stack_new(uint size) {
 }
 
 inline void stack_push(stack *s, void* item) {
-	ASSERT(s->top != s->max, "pushing a full stack");
+	ASSERT(s->top != s->max, "full");
 	*s->top = item;
 	s->top++;
 }
 
 inline void* stack_pop(stack *s) {
-	ASSERT(s->top != s->min, "popping an empty stack");
+	ASSERT(s->top != s->min, "empty");
 	s->top--;
 	return *s->top;
 }
