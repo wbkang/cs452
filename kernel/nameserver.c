@@ -49,7 +49,7 @@ void nameserver() {
 	}
 }
 
-int nameserver_send(char reqno, char *name) {
+inline int nameserver_send(char reqno, char *name) {
 	if (!NAMESERVER_VALID_NAME(name)) return -4;
 	int msg = NAMESERVER_REQ(reqno, name);
 	int rv;
@@ -57,4 +57,12 @@ int nameserver_send(char reqno, char *name) {
 	if (len < 0) return len;
 	if (len != sizeof rv) return -3;
 	return rv;
+}
+
+inline int nameserver_registeras(char *name) {
+	return nameserver_send(NAMESERVER_REQUEST_REGISTERAS, name);
+}
+
+inline int nameserver_whois(char *name) {
+	return nameserver_send(NAMESERVER_REQUEST_WHOIS, name);
 }
