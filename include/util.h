@@ -40,7 +40,7 @@ typedef char *va_list;
 #define NEXTHIGHESTWORD(x) BYTES2WORDS((x) + 3)
 // 2k clock, divide by 2 to get time in ms, with 6 ticks per 2000 ticks drift correction
 #define GET_TIME(time) { \
-    time = WORD ^ RAM(TIMER3_BASE + VAL_OFFSET); \
+    time = ~VMEM(TIMER3_BASE + VAL_OFFSET); \
     time += (3 * time) / 1000; \
     time >>= 1; \
 }

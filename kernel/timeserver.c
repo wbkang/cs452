@@ -2,6 +2,7 @@
 #include <syscall.h>
 #include <heap.h>
 #include <task.h>
+#include <util.h>
 
 typedef struct _tag_timeserver_req {
 	char no;
@@ -19,7 +20,7 @@ inline void unblock(int tid, int rv) {
 
 inline void timeserver_do_tick(timeserver_state *state) {
 	// grab the time
-	// state->time = ...
+	state->time = ~0 - ~VMEM(TIMER3_BASE + VAL_OFFSET);
 	// unblock waiting tasks
 	for (;;) {
 		heap_item *item = heap_peek(state->tasks);
@@ -40,9 +41,16 @@ inline void timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks
 
 void timeserver() {
 	RegisterAs(TIMESERVER_NAME);
+	// init timer 3
+	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
+	VMEM(TIMER3_BASE + LDR_OFFSET) = ~0;
+	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~MODE_MASK; // free run mode
+	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~CLKSEL_MASK; // 2k clock
+	VMEM(TIMER3_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
 	// init state
 	timeserver_state state;
 	state.tasks = heap_new(TASK_LIST_SIZE);
+	state.time = 0;
 	// init com arguments
 	int tid;
 	timeserver_req req;
