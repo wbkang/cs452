@@ -2,7 +2,7 @@
 
 #include <util.h>
 
-#define SENDER_MSGLEN(a4) ((a4) & 0xFFFF)
+#define SENDER_MSGLEN(a4) ((a4) & 0xffff)
 #define SENDER_REPLYLEN(a4) (((uint ) a4) >> 16)
 
 inline int Send(int tid, char *msg, int msglen, char *reply, int replylen);

@@ -26,7 +26,7 @@ void kernel_init() {
 }
 
 void handle_swi(register_set *reg) {
-	int req_no = VMEM(reg->r[REG_PC] - 4) & 0xFFFFFF;
+	int req_no = VMEM(reg->r[REG_PC] - 4) & 0xffffff;
 	int *r0 = &reg->r[0];
 	int a1 = *r0;
 	int a2 = reg->r[1];
