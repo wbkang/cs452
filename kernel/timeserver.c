@@ -13,36 +13,29 @@ typedef struct _tag_timeserver_state {
 	uint time; // in ticks, 1 tick = 50ms
 } timeserver_state;
 
-inline int timeserver_do_tick(timeserver_state *state) {
+inline void unblock(int tid, int rv) {
+	Reply(tid, (void*) &rv, sizeof rv);
+}
+
+inline void timeserver_do_tick(timeserver_state *state) {
 	// grab the time
 	// state->time = ...
 	// unblock waiting tasks
-	int rv = 0;
 	for (;;) {
 		heap_item *item = heap_peek(state->tasks);
-		if (item == NULL || item->key > state->time) return 0;
+		if (item == NULL || item->key > state->time) break; // rest of tasks must wait longer
 		int tid = (int) heap_extract_min(state->tasks);
-		Reply(tid, (void*) &rv, sizeof rv); // unblock and return 0
+		unblock(tid, 0);
 	}
 }
 
-inline int timeserver_do_time(timeserver_state *state) {
-	return state->time;
+inline void timeserver_do_time(timeserver_state *state, int tid) {
+	unblock(tid, state->time);
 }
 
-inline int timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks) {
+inline void timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks) {
 	if (ticks < 0) ticks = 0;
 	heap_insert_max(state->tasks, (void*) tid, ticks);
-	return TIMESERVER_DONTUNBLOCK;
-}
-
-inline int timeserver_switchboard(timeserver_state *state, int tid, timeserver_req *req) {
-	switch (req->no) {
-		case TIMESERVER_TICK: return timeserver_do_tick(state);
-		case TIMESERVER_TIME: return timeserver_do_time(state);
-		case TIMESERVER_DELAYUNTIL: return timeserver_do_delayuntil(state, tid, req->ticks);
-		default: return TIMESERVER_ERROR_BADREQNO;
-	}
 }
 
 void timeserver() {
@@ -53,16 +46,26 @@ void timeserver() {
 	// init com arguments
 	int tid;
 	timeserver_req req;
-	int rv;
 	// serve
 	for (;;) {
 		int msglen = Receive(&tid, (void*) &req, sizeof(req));
 		if (msglen == sizeof(req)) {
-			rv = timeserver_switchboard(&state, tid, &req);
+			switch (req.no) {
+				case TIMESERVER_TICK:
+					timeserver_do_tick(&state);
+					break;
+				case TIMESERVER_TIME:
+					timeserver_do_time(&state, tid);
+					break;
+				case TIMESERVER_DELAYUNTIL:
+					timeserver_do_delayuntil(&state, tid, req.ticks);
+					break;
+				default:
+					unblock(tid, TIMESERVER_ERROR_BADREQNO);
+			}
 		} else {
-			rv = TIMESERVER_ERROR_BADDATA;
+			unblock(tid, TIMESERVER_ERROR_BADDATA);
 		}
-		if (rv <= 0) Reply(tid, (void*) &rv, sizeof rv); // return error / normal exit
 	}
 }
 

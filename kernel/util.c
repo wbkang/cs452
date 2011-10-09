@@ -19,5 +19,7 @@ static uint random_seed;
 
 uint random() {
 	random_seed = random_seed * 1103515245 + 12345;
-	return (uint) (random_seed / 65536) % 32768;
+	// return (random_seed / 65536) % 32768;
+	// return (random_seed >> 16) & 32767;
+	return (random_seed << 1) >> 17;
 }

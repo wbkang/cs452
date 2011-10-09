@@ -6,9 +6,8 @@
 #define MAX_MSG_LEN 0xffff
 
 inline int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
-	ASSERT(msglen ^ 0xffff0000, "message length out of bounds");
-	ASSERT(replylen ^ 0xffff0000, "reply length out of bounds");
-	return asm_Send(tid, msg, reply, (((uint) replylen) << 16) | msglen);
+	if ((msglen | replylen) ^ 0xffff0000) return -3;
+	return asm_Send(tid, msg, reply, (replylen << 16) | msglen);
 }
 
 int RegisterAs(char *name) {
