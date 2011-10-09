@@ -20,7 +20,7 @@ inline void unblock(int tid, int rv) {
 
 inline void timeserver_do_tick(timeserver_state *state) {
 	// grab the time
-	state->time = ~0 - ~VMEM(TIMER3_BASE + VAL_OFFSET);
+	state->time = ~VMEM(TIMER3_BASE + VAL_OFFSET);
 	// unblock waiting tasks
 	for (;;) {
 		heap_item *item = heap_peek(state->tasks);
