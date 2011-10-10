@@ -101,6 +101,7 @@ void* memcpy(void* destination, const void* source, uint num) {
 	return destination;
 }
 
+// copy 4 bytes at a time
 void *memcpy2(void *dst, void const *src, uint len) {
     int *plDst = (int *) dst;
     int const *plSrc = (int const *) src;
@@ -108,6 +109,30 @@ void *memcpy2(void *dst, void const *src, uint len) {
         while (len & ~3) { // len >= 4
             *plDst++ = *plSrc++;
             len -= 4;
+        }
+    }
+    char *pcDst = (char *) plDst;
+    char const *pcSrc = (char const *) plSrc;
+    while (len--) {
+        *pcDst++ = *pcSrc++;
+    }
+    return dst;
+}
+
+#define MEMCPY_BLOCK_SIZE 16 // must be a power of two
+
+typedef struct _tag_memcpy_block {
+	char fill[MEMCPY_BLOCK_SIZE];
+} memcpy_block;
+
+// copy MEMCPY_BLOCK_SIZE bytes at a time
+void *memcpy3(void *dst, void const *src, uint len) {
+    memcpy_block *plDst = (memcpy_block *) dst;
+    memcpy_block const *plSrc = (memcpy_block const *) src;
+    if ((((int) src | (int) dst) & (MEMCPY_BLOCK_SIZE - 1)) == 0) { // aligned
+        while (len & ~(MEMCPY_BLOCK_SIZE - 1)) { // len >= MEMCPY_BLOCK_SIZE
+            *plDst++ = *plSrc++;
+            len -= MEMCPY_BLOCK_SIZE;
         }
     }
     char *pcDst = (char *) plDst;
