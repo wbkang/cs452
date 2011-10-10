@@ -49,6 +49,18 @@ void strcpy(char *dest, const char *src) {
 	while ((*dest++ = *src++));
 }
 
+int memcmp(const void *p1, const void *p2, uint count) {
+	int cmp = 0;
+	char* ptr1 = (char*)p1;
+	char* ptr2 = (char*)p2;
+
+	while (count --> 0 && cmp == 0) {
+		cmp = *(ptr1++) - *(ptr2++);
+	}
+
+	return cmp;
+}
+
 uint strparseuint(char *str, int *idx) {
 	uint num = 0;
 	int digit;
@@ -63,8 +75,29 @@ uint strparseuint(char *str, int *idx) {
 
 // @TODO implement this in assembly with ldm and stm
 void* memcpy(void* destination, const void* source, uint num) {
-	char *dst = (char *) destination;
-	char *src = (char *) source;
-	while (num--) *dst++ = *src++;
+	register char *dst = (char *) destination;
+	register char *src = (char *) source;
+	register int n = (num + 15) >> 4;
+
+	switch(num & 15) {
+		case 0:	do { *dst++ = *src++;
+		case 15:	*dst++ = *src++;
+		case 14:	*dst++ = *src++;
+		case 13:	*dst++ = *src++;
+		case 12:	*dst++ = *src++;
+		case 11:	*dst++ = *src++;
+		case 10:	*dst++ = *src++;
+		case 9:		*dst++ = *src++;
+		case 8:		*dst++ = *src++;
+		case 7:		*dst++ = *src++;
+		case 6:		*dst++ = *src++;
+		case 5:		*dst++ = *src++;
+		case 4:		*dst++ = *src++;
+		case 3:		*dst++ = *src++;
+		case 2:		*dst++ = *src++;
+		case 1:		*dst++ = *src++;
+		} while (--n > 0);
+	}
+
 	return destination;
 }

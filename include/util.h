@@ -7,6 +7,7 @@
 
 typedef unsigned int uint;
 typedef uint *memptr;
+typedef uint volatile * volatile vmemptr;
 typedef void (*func_t)();
 
 ////////// .c
@@ -27,8 +28,7 @@ typedef char *va_list;
 		         (((ap) = (ap) + __va_argsiz(t)), *((t*) (void*) ((ap) - __va_argsiz(t))))
 
 ///////////// USEFUL MACROS
-#define MEM(x) (*(memptr)(x))
-#define VMEM(x) (*(volatile memptr)(x))
+#define VMEM(x) (*(vmemptr)(x))
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #define MAX(x, y) ( ( (x) > (y) ) ? (x) : (y) )
@@ -41,12 +41,10 @@ typedef char *va_list;
 // 2k clock, divide by 2 to get time in ms, with 6 ticks per 2000 ticks drift correction
 #define GET_TIME(time) { \
     time = ~VMEM(TIMER3_BASE + VAL_OFFSET); \
-    time += (3 * time) / 1000; \
-    time >>= 1; \
 }
 
 ///////////// DEBUG
-#define ASSERT_ENABLED 1
+#define ASSERT_ENABLED 0
 #define TRACE_ENABLED 0
 #define TEST_ENABLED 1
 #define LONG_TEST_ENABLED 0

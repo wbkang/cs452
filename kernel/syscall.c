@@ -6,7 +6,7 @@
 #define MAX_MSG_LEN 0xffff
 
 inline int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
-	if ((msglen | replylen) ^ 0xffff0000) return -3;
+	if ((msglen | replylen) & 0xffff0000) return -3;
 	return asm_Send(tid, msg, reply, (replylen << 16) | msglen);
 }
 
