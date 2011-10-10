@@ -40,7 +40,7 @@ static void sender() {
 }
 
 static void receiver() {
-	int tid, msglen;
+	int tid;
 	char buf[MSG_SIZE];
 	while(TRUE) {
 		Receive(&tid, buf, MSG_SIZE);
@@ -48,11 +48,15 @@ static void receiver() {
 	}
 }
 
-void perfmon() {
+static void setup_timer() {
 	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~ENABLE_MASK;
 	VMEM(TIMER3_BASE + LDR_OFFSET)= 0xffffffff;
 	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~MODE_MASK;
 	VMEM(TIMER3_BASE + CRTL_OFFSET) |= CLKSEL_MASK;
 	VMEM(TIMER3_BASE + CRTL_OFFSET) |= ENABLE_MASK;
+}
+
+void perfmon() {
+	setup_timer();
 	Create(SENDER_PRIORITY, sender);
 }
