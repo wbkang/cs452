@@ -1,5 +1,6 @@
 #include <priorityq.h>
 #include <memory.h>
+inline static nlz(register unsigned int x);
 
 #define LT(n) n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n
 
@@ -104,4 +105,33 @@ inline void* priorityq_pop2(priorityq *pq) {
 inline void priorityq_push2(priorityq *pq, void* item, uint priority) {
 	pq->len |= 1 << priority;
 	queue_push(pq->q[priority], item);
+}
+
+// from hacker's delight
+inline static nlz(register unsigned int x) {
+	register int y, m, n;
+
+	y = -(x >> 16);
+	m = (y >> 16) & 16;
+	n = 16 - m;
+	x = x >> m;
+
+	y = x - 0x100;
+	m = (y >> 16) & 8;
+	n = n + m;
+	x = x << m;
+
+	y = x - 0x1000;
+	m = (y >> 16) & 4;
+	n = n + m;
+	x = x << m;
+
+	y = x - 0x4000;
+	m = (y >> 16) & 2;
+	n = n + m;
+	x = x << m;
+
+	y = x >> 14;
+	m = y & ~(y >> 1);
+	return n + 2 - m;
 }

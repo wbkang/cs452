@@ -85,17 +85,17 @@ static void kerneltest_nameserver_overwrite() {
 static void kerneltest_nameserver() {
 	TEST_START();
 	// invalid name
-	EXPECT(-4, RegisterAs(""));
-	EXPECT(-4, RegisterAs("o"));
-	EXPECT(-4, RegisterAs("big"));
-	EXPECT(-4, RegisterAs("this is clearly too long"));
-	EXPECT(-4, WhoIs(""));
-	EXPECT(-4, WhoIs("o"));
-	EXPECT(-4, WhoIs("big"));
-	EXPECT(-4, WhoIs("this is clearly too long"));
+	EXPECT(NAMESERVER_ERROR_BADNAME, RegisterAs(""));
+	EXPECT(NAMESERVER_ERROR_BADNAME, RegisterAs("o"));
+	EXPECT(NAMESERVER_ERROR_BADNAME, RegisterAs("big"));
+	EXPECT(NAMESERVER_ERROR_BADNAME, RegisterAs("this is clearly too long"));
+	EXPECT(NAMESERVER_ERROR_BADNAME, WhoIs(""));
+	EXPECT(NAMESERVER_ERROR_BADNAME, WhoIs("o"));
+	EXPECT(NAMESERVER_ERROR_BADNAME, WhoIs("big"));
+	EXPECT(NAMESERVER_ERROR_BADNAME, WhoIs("this is clearly too long"));
 
 	// make sure this name was never registered
-	EXPECT(-5, WhoIs("aa"));
+	EXPECT(NAMESERVER_ERROR_NOTREGISTERED, WhoIs("aa"));
 	// try registering
 	EXPECT(0, RegisterAs("aa"));
 	EXPECT(MyTid(), WhoIs("aa"));
@@ -133,6 +133,34 @@ static void kerneltest_nameserver_testallnames() {
 	}
 }
 
+static void kerneltest_receive() {
+	int parent;
+	int reply = 10000;
+	int buf;
+
+	for (int i = 0 ; i < 1000; i++) {
+		EXPECT(sizeof buf, Receive(&parent, (char*)&buf, sizeof buf));
+		EXPECT(MyParentsTid(), parent);
+		EXPECT(reply - 10000, buf);
+		EXPECT(0, Reply(parent, (char*)&reply, sizeof reply));
+		reply++;
+	}
+}
+
+static void kerneltest_send() {
+	TEST_START();
+	int num = 0;
+	int reply = 0;
+	int rcvtid = Create(MAX_PRIORITY - 2, kerneltest_receive);
+
+	for(int i = 0; i < 1000; i++) {
+		EXPECT(sizeof num, Send(rcvtid, (char*)&num, sizeof num, (char*)&reply, sizeof reply));
+		EXPECT(num + 10000, reply);
+		num++;
+	}
+	TEST_END();
+}
+
 void kerneltest_run() {
 	TEST_START();
 	mem_reset();
@@ -141,6 +169,7 @@ void kerneltest_run() {
 	kerneltest_runner(MAX_PRIORITY, kerneltest_myparenttid);
 	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_nameserver);
 	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_nameserver_testallnames);
+	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_send);
 	mem_reset();
 	TEST_END();
 }

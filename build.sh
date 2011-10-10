@@ -15,7 +15,7 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-ELF=/u/cs452/tftp/ARM/s.elf
+ELF=/u/cs452/tftp/ARM/sh.elf
 
 cp -f main/main.elf $ELF
 chgrp -f cs452_sf $ELF 

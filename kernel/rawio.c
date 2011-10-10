@@ -39,7 +39,7 @@ void raw_putc(int channel, char c) {
 void bwputc(int channel, char c) {
 	CHECK_COM(channel);
 	int base = UART_BASE(channel);
-	memptr flags = (memptr) (base + UART_FLAG_OFFSET);
+	vmemptr flags = (vmemptr) (base + UART_FLAG_OFFSET);
 	while (*flags & TXFF_MASK);
 	VMEM(base + UART_DATA_OFFSET) = c;
 }
@@ -73,7 +73,7 @@ void bwputw(int channel, int n, char fc, char *bf) {
 int bwgetc(int channel) {
 	CHECK_COM(channel);
 	int base = UART_BASE(channel);
-	memptr flags = (memptr) (base + UART_FLAG_OFFSET);
+	vmemptr flags = (memptr) (base + UART_FLAG_OFFSET);
 	while (!(*flags & RXFF_MASK));
 	return (char) VMEM(base + UART_DATA_OFFSET);
 }
