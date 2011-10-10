@@ -103,42 +103,40 @@ void* memcpy(void* destination, const void* source, uint num) {
 
 // copy 4 bytes at a time
 void *memcpy2(void *dst, void const *src, uint len) {
-    int *plDst = (int *) dst;
-    int const *plSrc = (int const *) src;
-    if ((((int) src | (int) dst) & 3) == 0) { // aligned
-        while (len & ~3) { // len >= 4
-            *plDst++ = *plSrc++;
-            len -= 4;
+    int *bdst = (int *) dst;
+    int const *bsrc = (int const *) src;
+    if ((((int) src | (int) dst) & (sizeof(int) - 1)) == 0) { // aligned
+        while (len >= sizeof(int)) {
+            *bdst++ = *bsrc++;
+            len -= sizeof(int);
         }
     }
-    char *pcDst = (char *) plDst;
-    char const *pcSrc = (char const *) plSrc;
+    char *ldst = (char *) bdst;
+    char const *lsrc = (char const *) bsrc;
     while (len--) {
-        *pcDst++ = *pcSrc++;
+        *ldst++ = *lsrc++;
     }
     return dst;
 }
 
-#define MEMCPY_BLOCK_SIZE 16 // must be a power of two
-
-typedef struct _tag_memcpy_block {
-	char fill[MEMCPY_BLOCK_SIZE];
+typedef struct _tag_memcpy_block { // sizeof must be a power of two
+	char fill[4];
 } memcpy_block;
 
 // copy MEMCPY_BLOCK_SIZE bytes at a time
 void *memcpy3(void *dst, void const *src, uint len) {
-    memcpy_block *plDst = (memcpy_block *) dst;
-    memcpy_block const *plSrc = (memcpy_block const *) src;
-    if ((((int) src | (int) dst) & (MEMCPY_BLOCK_SIZE - 1)) == 0) { // aligned
-        while (len & ~(MEMCPY_BLOCK_SIZE - 1)) { // len >= MEMCPY_BLOCK_SIZE
-            *plDst++ = *plSrc++;
-            len -= MEMCPY_BLOCK_SIZE;
+    memcpy_block *bdst = (memcpy_block *) dst;
+    memcpy_block const *bsrc = (memcpy_block const *) src;
+    if ((((int) src | (int) dst) & (sizeof(memcpy_block) - 1)) == 0) { // aligned
+        while (len >= sizeof(memcpy_block)) {
+            *bdst++ = *bsrc++;
+            len -= sizeof(memcpy_block);
         }
     }
-    char *pcDst = (char *) plDst;
-    char const *pcSrc = (char const *) plSrc;
+    char *ldst = (char *) bdst;
+    char const *lsrc = (char const *) bsrc;
     while (len--) {
-        *pcDst++ = *pcSrc++;
+        *ldst++ = *lsrc++;
     }
     return dst;
 }
