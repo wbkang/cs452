@@ -2,51 +2,88 @@
 #include <syscall.h>
 #include <rawio.h>
 #include <hardware.h>
+#include <constants.h>
+
+typedef struct _tag_nameserver_req {
+	char no;
+	char ch[2];
+} nameserver_req;
 
 void nameserver() {
-	// receive args
-	int tid;
-	int req;
-	// internal args
-	int hashsize = NUM_ASCII_PRINTABLE * NUM_ASCII_PRINTABLE; // two printable chars
+	// init state
+	int hashsize = NUM_ASCII_PRINTABLE * NUM_ASCII_PRINTABLE; // two chars
+	ASSERT(hashsize < STACK_SIZE / sizeof(int), "not enough user memory");
 	int mem[hashsize];
 	for (int i = 0; i < hashsize; i++) mem[i] = -1;
-	int name;
-	int reqno;
+	// init com args
+	int tid;
+	nameserver_req req;
+	// serve
 	int rv;
-
 	for (;;) {
-		if (Receive(&tid, (void*) &req, sizeof(req)) != sizeof(req)) {
-			rv = -3; // error during copying
-		} else {
-			reqno = NAMESERVER_GET_REQNO(req);
-			name = NAMESERVER_GET_NAME(req);
-
+		int msglen = Receive(&tid, (void*) &req, sizeof(req));
+		if (msglen == sizeof(req)) {
+			int idx = req.ch[0] * NUM_ASCII_PRINTABLE + req.ch[1] - (NUM_ASCII_PRINTABLE + 1) * ASCII_PRINTABLE_START;
 //			bwprintf(COM2, "[nsrequest] ");
-//			bwprintf(COM2, "req: %x, ", req, req);
-//			bwprintf(COM2, "type: %s, ", reqno ? "whois" : "reg");
+//			bwprintf(COM2, "req: %x, ", req.no);
+//			bwprintf(COM2, "type: %s, ", req.no ? "whois" : "reg");
 //			bwprintf(COM2, "tid: %d, ", tid);
-//			bwprintf(COM2, "name: %d, ", name);
-//			bwprintf(COM2, "mem: %d, ", mem[name]);
-//			bwprintf(COM2, "str: %c%c\n", req >> 24, req >> 16);
-			switch (reqno) {
-				case NAMESERVER_REQUEST_REGISTERAS:
-					mem[name] = tid;
+//			bwprintf(COM2, "name: %d, ", idx);
+//			bwprintf(COM2, "mem: %d, ", mem[idx]);
+//			bwprintf(COM2, "str: %c%c\n", req.ch[0], req.ch[1]);
+			switch (req.no) {
+				case NAMESERVER_REGISTERAS:
+					mem[idx] = tid;
 					rv = 0;
 					break;
-				case NAMESERVER_REQUEST_WHOIS:
-					if (mem[name] == -1) {
-						rv = -5; // name not registered
+				case NAMESERVER_WHOIS:
+					if (mem[idx] == -1) {
+						rv = NAMESERVER_ERROR_NOTREGISTERED;
 					} else {
-						rv = mem[name];
+						rv = mem[idx];
 					}
 					break;
 				default:
-					rv = -6; // incorrect nameserver command
+					rv = NAMESERVER_ERROR_BADREQNO;
 					break;
 			}
+		} else {
+			rv = NAMESERVER_ERROR_BADDATA;
 		}
 		// bwprintf(COM2, "rv: %d (%x)\n", rv, rv);
 		Reply(tid, (void*) &rv, sizeof rv);
 	}
+}
+
+inline int nameserver_goodchar(char ch) {
+	return ASCII_PRINTABLE_START <= ch && ch <= ASCII_PRINTABLE_END;
+}
+
+inline int nameserver_validname(char *name) {
+	return name && nameserver_goodchar(name[0]) && nameserver_goodchar(name[1]) && name[2] == '\0';
+}
+
+inline int nameserver_send(char reqno, char *name) {
+	if (!nameserver_validname(name)) return NAMESERVER_ERROR_BADNAME;
+	nameserver_req req;
+	req.no = reqno;
+	req.ch[0] = name[0];
+	req.ch[1] = name[1];
+	int rv;
+	int len = Send(NameServerTid(), (void*) &req, sizeof req, (void*) &rv, sizeof rv);
+	if (len < 0) return len;
+	if (len != sizeof rv) return NAMESERVER_ERROR_BADDATA;
+	return rv;
+}
+
+/*
+ * API
+ */
+
+inline int nameserver_registeras(char *name) {
+	return nameserver_send(NAMESERVER_REGISTERAS, name);
+}
+
+inline int nameserver_whois(char *name) {
+	return nameserver_send(NAMESERVER_WHOIS, name);
 }

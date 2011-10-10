@@ -1,32 +1,31 @@
 #include <syscall.h>
 #include <assembly.h>
 #include <nameserver.h>
+#include <timeserver.h>
 
-#define MAX_MSG_LEN 0xFFFF
+#define MAX_MSG_LEN 0xffff
 
-int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
-	ASSERT(msglen > 0 && msglen <= MAX_MSG_LEN, "message length out of bounds");
-	ASSERT(replylen > 0 && replylen <= MAX_MSG_LEN, "reply length out of bounds");
-	uint lengths = (((uint) replylen) << 16) | msglen;
-	return asm_Send(tid, msg, reply, lengths);
+inline int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
+	if ((msglen | replylen) ^ 0xffff0000) return -3;
+	return asm_Send(tid, msg, reply, (replylen << 16) | msglen);
 }
 
-int RegisterAs(char *name) { // wrapper for send
-	if (!NAMESERVER_VALID_NAME(name)) return -4;
-	int msg = NAMESERVER_REQ(NAMESERVER_REQUEST_REGISTERAS, name);
-	int rv;
-	int len = Send(NameServerTid(), (void*) &msg, sizeof msg, (void*) &rv, sizeof rv);
-	if (len < 0) return len;
-	if (len != sizeof rv) return -3;
-	return rv;
+int RegisterAs(char *name) {
+	return nameserver_registeras(name);
 }
 
-int WhoIs(char *name) { // wrapper for send
-	if (!NAMESERVER_VALID_NAME(name)) return -4;
-	int msg = NAMESERVER_REQ(NAMESERVER_REQUEST_WHOIS, name);
-	int rv;
-	int len = Send(NameServerTid(), (void*) &msg, sizeof msg, (void*) &rv, sizeof rv);
-	if (len < 0) return len;
-	if (len != sizeof rv) return -3;
-	return rv;
+int WhoIs(char *name) {
+	return nameserver_whois(name);
+}
+
+int Time() {
+	return timeserver_time();
+}
+
+int Delay(int ticks) {
+	return timeserver_delay(ticks);
+}
+
+int DelayUntil(int ticks) {
+	return timeserver_delayuntil(ticks);
 }

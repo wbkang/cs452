@@ -6,22 +6,24 @@ void kernel_init();
 
 void handle_swi(register_set *reg);
 
-int kernel_createtask(int priority, func_t code);
-
-int kernel_mytid();
-
-int kernel_myparenttid();
-
-void kernel_passtask();
-
-void kernel_exittask();
-
-void *kernel_malloc(uint size);
-
 void kernel_runloop();
 
-int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen);
+inline int kernel_createtask(int priority, func_t code);
 
-int kernel_receive(int *tid, void* msg, int msglen);
+inline int kernel_mytid();
 
-int kernel_reply(int tid, void* reply, int replylen);
+inline int kernel_myparenttid();
+
+inline void kernel_passtask();
+
+inline void kernel_exittask();
+
+inline void *kernel_malloc(uint size);
+
+inline void kernel_exit();
+
+inline int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen);
+
+inline int kernel_receive(int *tid, void* msg, int msglen);
+
+inline int kernel_reply(int tid, void* reply, int replylen);

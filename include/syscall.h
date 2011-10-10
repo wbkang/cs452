@@ -2,14 +2,14 @@
 
 #include <util.h>
 
-#define SENDER_MSGLEN(a4) ((a4) & 0xFFFF)
+#define SENDER_MSGLEN(a4) ((a4) & 0xffff)
 #define SENDER_REPLYLEN(a4) (((uint ) a4) >> 16)
 
-int Send(int tid, char *msg, int msglen, char *reply, int replylen);
+inline int Send(int tid, char *msg, int msglen, char *reply, int replylen);
 
-int RegisterAs(char *name);
+inline int RegisterAs(char *name);
 
-int WhoIs(char *name);
+inline int WhoIs(char *name);
 
 int Create(int priority, func_t code);
 
@@ -28,3 +28,9 @@ int Receive(int *tid, void* msg, int msglen);
 int Reply(int tid, void* reply, int replylen);
 
 int NameServerTid();
+
+int Time();
+
+int Delay(int ticks);
+
+int DelayUntil(int ticks);
