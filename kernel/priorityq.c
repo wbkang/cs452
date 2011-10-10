@@ -1,5 +1,6 @@
 #include <priorityq.h>
 #include <memory.h>
+inline static nlz(register unsigned int x);
 
 priorityq *priorityq_new(int size, int num_priorities) {
 	priorityq *pq = qmalloc(sizeof(priorityq) + sizeof(queue*) * num_priorities);
@@ -29,4 +30,33 @@ inline void priorityq_push(priorityq *pq, void* item, uint priority) {
 	ASSERT(priority < pq->num_priorities, "priority too high (%x)", priority);
 	pq->len++;
 	queue_push(pq->q[priority], item);
+}
+
+// from hacker's delight
+inline static nlz(register unsigned int x) {
+	register int y, m, n;
+
+	y = -(x >> 16);
+	m = (y >> 16) & 16;
+	n = 16 - m;
+	x = x >> m;
+
+	y = x - 0x100;
+	m = (y >> 16) & 8;
+	n = n + m;
+	x = x << m;
+
+	y = x - 0x1000;
+	m = (y >> 16) & 4;
+	n = n + m;
+	x = x << m;
+
+	y = x - 0x4000;
+	m = (y >> 16) & 2;
+	n = n + m;
+	x = x << m;
+
+	y = x >> 14;
+	m = y & ~(y >> 1);
+	return n + 2 - m;
 }
