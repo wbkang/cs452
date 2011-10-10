@@ -5,7 +5,7 @@
 
 typedef struct _tag_priorityq {
 	int num_priorities;
-	int len;
+	int state;
 	queue *q[];
 } priorityq;
 

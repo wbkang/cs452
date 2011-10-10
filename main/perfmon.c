@@ -68,7 +68,7 @@ static void context_switch() {
 	GET_TIME(end_time);
 
 	int elapsed_time = end_time - start_time;
-	PRINT("START TIME: %d, END TIME: %d, diff: %d", start_time, end_time, end_time - start_time);
+	PRINT("START TIME: %d, END TIME: %d, diff: %d", start_time, end_time, elapsed_time);
 //		PRINT("Time elapsed: %dms. %d per iteration. %d iterations in total.",
 //				elapsed_time, elapsed_time / ITERATION, ITERATION);
 }
