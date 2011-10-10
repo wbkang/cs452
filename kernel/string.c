@@ -73,7 +73,6 @@ uint strparseuint(char *str, int *idx) {
 	return num;
 }
 
-// @TODO implement this in assembly with ldm and stm
 void* memcpy(void* destination, const void* source, uint num) {
 	register char *dst = (char *) destination;
 	register char *src = (char *) source;
@@ -100,4 +99,21 @@ void* memcpy(void* destination, const void* source, uint num) {
 	}
 
 	return destination;
+}
+
+void *memcpy2(void *dst, void const *src, uint len) {
+    int *plDst = (int *) dst;
+    int const *plSrc = (int const *) src;
+    if ((((int) src | (int) dst) & 3) == 0) { // aligned
+        while (len & ~3) { // len >= 4
+            *plDst++ = *plSrc++;
+            len -= 4;
+        }
+    }
+    char *pcDst = (char *) plDst;
+    char const *pcSrc = (char const *) plSrc;
+    while (len--) {
+        *pcDst++ = *pcSrc++;
+    }
+    return dst;
 }
