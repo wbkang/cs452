@@ -85,17 +85,17 @@ static void kerneltest_nameserver_overwrite() {
 static void kerneltest_nameserver() {
 	TEST_START();
 	// invalid name
-	EXPECT(-4, RegisterAs(""));
-	EXPECT(-4, RegisterAs("o"));
-	EXPECT(-4, RegisterAs("big"));
-	EXPECT(-4, RegisterAs("this is clearly too long"));
-	EXPECT(-4, WhoIs(""));
-	EXPECT(-4, WhoIs("o"));
-	EXPECT(-4, WhoIs("big"));
-	EXPECT(-4, WhoIs("this is clearly too long"));
+	EXPECT(NAMESERVER_ERROR_BADNAME, RegisterAs(""));
+	EXPECT(NAMESERVER_ERROR_BADNAME, RegisterAs("o"));
+	EXPECT(NAMESERVER_ERROR_BADNAME, RegisterAs("big"));
+	EXPECT(NAMESERVER_ERROR_BADNAME, RegisterAs("this is clearly too long"));
+	EXPECT(NAMESERVER_ERROR_BADNAME, WhoIs(""));
+	EXPECT(NAMESERVER_ERROR_BADNAME, WhoIs("o"));
+	EXPECT(NAMESERVER_ERROR_BADNAME, WhoIs("big"));
+	EXPECT(NAMESERVER_ERROR_BADNAME, WhoIs("this is clearly too long"));
 
 	// make sure this name was never registered
-	EXPECT(-5, WhoIs("aa"));
+	EXPECT(NAMESERVER_ERROR_NOTREGISTERED, WhoIs("aa"));
 	// try registering
 	EXPECT(0, RegisterAs("aa"));
 	EXPECT(MyTid(), WhoIs("aa"));
