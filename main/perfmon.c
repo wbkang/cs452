@@ -74,6 +74,9 @@ static void context_switch() {
 }
 void perfmon() {
 	setup_timer();
-	Create(SENDER_PRIORITY, sender);
+//	Create(MAX_PRIORITY, sender);
+//	Create(MIN_PRIORITY, sender);
+//	Create(MIN_PRIORITY, context_switch);
+	Create(MAX_PRIORITY, context_switch);
 	Create(MIN_PRIORITY, context_switch);
 }
