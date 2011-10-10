@@ -65,8 +65,20 @@ inline int log2p(register unsigned int v) {
 	return i;
 }
 
+inline int log2ppp(register unsigned int v) {
+	register unsigned int r; // result of log2(v) will go here
+	register unsigned int shift;
+
+	r =     (v > 0xFFFF) << 4; v >>= r;
+	shift = (v > 0xFF  ) << 3; v >>= shift; r |= shift;
+	shift = (v > 0xF   ) << 2; v >>= shift; r |= shift;
+	shift = (v > 0x3   ) << 1; v >>= shift; r |= shift;
+	                                        r |= (v >> 1);
+	return r;
+}
+
 inline int priorityq_maxpp(priorityq *pq) {
-	return log2(pq->len);
+	return log2ppp(pq->len);
 }
 
 inline int priorityq_maxppp(priorityq *pq) {
@@ -83,26 +95,28 @@ inline int priorityq_maxppp(priorityq *pq) {
 	return r;
 }
 
+//inline void* priorityq_pop(priorityq *pq) {
+//	ASSERT(!priorityq_empty(pq), "popping an empty priority queue");
+//	pq->len--;
+//	return queue_pop(pq->q[priorityq_maxp(pq)]);
+//}
+//
+//inline void priorityq_push(priorityq *pq, void* item, uint priority) {
+//	ASSERT(priority < pq->num_priorities, "priority too high (%x)", priority);
+//	pq->len++;
+//	queue_push(pq->q[priority], item);
+//}
+
 inline void* priorityq_pop(priorityq *pq) {
-	ASSERT(!priorityq_empty(pq), "popping an empty priority queue");
-	pq->len--;
-	return queue_pop(pq->q[priorityq_maxp(pq)]);
+	uint p = priorityq_maxp(pq);
+	queue *q = pq->q[p];
+	ASSERT(!queue_empty(q), "queue is actually not empty! priority: %d, len: %x", p, pq->len);
+	void *rv = queue_pop(q);
+	if (queue_empty(q)) pq->len &= ~(1 << p);
+	return rv;
 }
 
 inline void priorityq_push(priorityq *pq, void* item, uint priority) {
-	ASSERT(priority < pq->num_priorities, "priority too high (%x)", priority);
-	pq->len++;
-	queue_push(pq->q[priority], item);
-}
-
-inline void* priorityq_pop2(priorityq *pq) {
-	uint p = priorityq_maxp(pq);
-	queue *q = pq->q[p];
-	if (queue_empty(q)) pq->len |= ~(1 << p);
-	return queue_pop(q);
-}
-
-inline void priorityq_push2(priorityq *pq, void* item, uint priority) {
 	pq->len |= 1 << priority;
 	queue_push(pq->q[priority], item);
 }
