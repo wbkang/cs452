@@ -8,15 +8,15 @@ typedef struct _tag_rps_server_req {
 	int move;
 } rps_server_req;
 
-#define RPS_SERVER_SIGNUP 0
-#define RPS_SERVER_PLAY 1
-#define RPS_SERVER_QUIT 2
-
 typedef struct _tag_rps_server_game {
 	char state;
 	int player[2];
 	int move[2];
 } rps_server_game;
+
+#define RPS_SERVER_SIGNUP 0
+#define RPS_SERVER_PLAY 1
+#define RPS_SERVER_QUIT 2
 
 #define RPS_GAME_GOOD 0
 #define RPS_GAME_DEAD 1
@@ -99,7 +99,8 @@ void rps_server() {
 	}
 	for (;;) {
 		rv = 0;
-		if (sizeof(req) != Receive(&player, (void*) &req, sizeof(req))) {
+		int msglen = Receive(&player, (void*) &req, sizeof(req));
+		if (msglen == sizeof(req)) {
 			rv = RPS_ERROR_BADDATA;
 		} else {
 			switch (req.no) {
@@ -121,12 +122,16 @@ void rps_server() {
 	}
 }
 
-int rps_send(int server, rps_server_req *req) {
+inline int rps_send(int server, rps_server_req *req) {
 	int rv;
 	int len = Send(server, (void*) req, sizeof(rps_server_req), (void*) &rv, sizeof rv);
 	if (len != sizeof rv) return RPS_ERROR_BADDATA;
 	return rv;
 }
+
+/*
+ * API
+ */
 
 int rps_signup(int server) {
 	rps_server_req req;

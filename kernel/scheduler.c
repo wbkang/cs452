@@ -12,53 +12,46 @@ void scheduler_init() {
 	ready_queue = priorityq_new(TASK_LIST_SIZE, NUM_PRIORITY);
 }
 
-task_descriptor *scheduler_running() {
+inline task_descriptor *scheduler_running() {
 	return running;
 }
 
-int scheduler_empty() {
-	return reschedule && PRIORITYQ_EMPTY(ready_queue);
+inline int scheduler_empty() {
+	return reschedule && priorityq_empty(ready_queue);
 }
 
-task_descriptor *scheduler_get() {
+inline task_descriptor *scheduler_get() {
 	if (reschedule) {
 		running = priorityq_pop(ready_queue);
 		running->state = TD_STATE_RUNNING;
 	} else {
 		reschedule = TRUE;
 	}
-	return (task_descriptor *) running;
+	return running;
 }
 
-void scheduler_killme() {
-	free_user_memory(running);
-	td_free(running);
-	running = NULL;
-}
-
-void scheduler_move2ready() {
-	ASSERT(running, "no task running to move to ready");
+inline void scheduler_move2ready() {
 	scheduler_ready(running);
 }
 
-void scheduler_runmenext() {
+inline void scheduler_runmenext() {
 	reschedule = FALSE;
 }
 
-void scheduler_ready(task_descriptor *td) {
+inline void scheduler_ready(task_descriptor *td) {
 	td->state = TD_STATE_READY;
 	priorityq_push(ready_queue, td, td->priority);
 }
 
-void scheduler_wait4send(task_descriptor *receiver) {
+inline void scheduler_wait4send(task_descriptor *receiver) {
 	receiver->state = TD_STATE_WAITING4SEND;
 }
 
-void scheduler_wait4receive(task_descriptor *receiver, task_descriptor *sender) {
+inline void scheduler_wait4receive(task_descriptor *receiver, task_descriptor *sender) {
 	sender->state = TD_STATE_WAITING4RECEIVE;
-	TD_PUSH(receiver, sender);
+	td_list_push(receiver, sender);
 }
 
-void scheduler_wait4reply(task_descriptor *sender) {
+inline void scheduler_wait4reply(task_descriptor *sender) {
 	sender->state = TD_STATE_WAITING4REPLY;
 }
