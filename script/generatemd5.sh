@@ -10,4 +10,7 @@ fi
 cd ..
 FILES=$($HG status -A | grep -v "^I" | awk '{ print $2 }' | grep -v '\.o' | sed 's/\\/\//g')
 
-echo $FILES | xargs md5sum
+
+echo $FILES | xargs md5sum | sed 's/\*//g'
+echo -n "Total lines of code (c, h, S): "
+wc -l `/bin/find . -name '*.[chS]'` | tail -1
