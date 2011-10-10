@@ -11,7 +11,7 @@ typedef struct _tag_timeserver_req {
 
 typedef struct _tag_timeserver_state {
 	heap *tasks;
-	uint time; // in ticks, 1 tick = 50ms
+	uint time; // in ticks, 1 tick = 10ms, will overflow every (2^32-1)*10 ms = 1.36 years
 } timeserver_state;
 
 inline void unblock(int tid, int rv) {
@@ -20,7 +20,8 @@ inline void unblock(int tid, int rv) {
 
 inline void timeserver_do_tick(timeserver_state *state) {
 	// grab the time
-	state->time = ~VMEM(TIMER3_BASE + VAL_OFFSET);
+	state->time += ~VMEM(TIMER3_BASE + VAL_OFFSET) / 20; // # of 10ms
+	VMEM(TIMER3_BASE + LDR_OFFSET) = ~0;
 	// unblock waiting tasks
 	for (;;) {
 		heap_item *item = heap_peek(state->tasks);
