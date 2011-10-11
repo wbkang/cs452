@@ -110,7 +110,7 @@ void *memcpy2(void *dst, void const *src, uint len) {
 }
 
 typedef struct _tag_memcpy_block { // sizeof must be a power of two
-	char fill[4];
+	char fill[8];
 } memcpy_block;
 
 // copy MEMCPY_BLOCK_SIZE bytes at a time
