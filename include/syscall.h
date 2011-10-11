@@ -34,3 +34,5 @@ int Time();
 int Delay(int ticks);
 
 int DelayUntil(int ticks);
+
+int AwaitEvent(int eventid);

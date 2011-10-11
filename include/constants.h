@@ -28,6 +28,7 @@
 #define SYSCALL_RECEIVE 7
 #define SYSCALL_REPLY 8
 #define SYSCALL_NAMESERVERTID 9
+#define SYSCALL_AWAITEVENT 10
 
 /*
  * Memory constants.
