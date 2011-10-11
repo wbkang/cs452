@@ -19,7 +19,17 @@
 	#define	CLKSEL_MASK	0x00000008
 #define CLR_OFFSET	0x0000000c	// no data, WO
 
-
+#define VIC1 0x800B0000
+#define VIC2 0x800C0000
+	#define IRQSTATUS_OFFSET 0x0 	// one bit for each int source
+	#define RAWINTR_OFFSET 0x08		// not masked raw intr input
+	#define	INTSELECT_OFFSET 0x0c 	// 0 IRQ, 1: FIQ
+	#define INTENABLE_OFFSET 0x10	// 0 is masked, 1 is enabled
+	#define INTENCLR_OFFSET 0x14 	// WO, clears bits in INTENABLE
+	#define SOFTINT_OFFSET 0x18		// asserts software interrupt
+	#define SOFTINTCLR_OFFSET 0x1c	// WO, clears bits in SOFTINT
+	#define PROTECTTION_OFFSET 0x20 // 0 means allow user mode access
+	#define VECTADDR_OFFSET 0x30 	// vectored irq. do not use
 
 #define LED_ADDRESS	0x80840020
 	#define LED_NONE	0x0
