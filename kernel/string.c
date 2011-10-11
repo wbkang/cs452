@@ -73,36 +73,8 @@ uint strparseuint(char *str, int *idx) {
 	return num;
 }
 
-void* memcpy(void* destination, const void* source, uint num) {
-	register char *dst = (char *) destination;
-	register char *src = (char *) source;
-	register int n = (num + 15) >> 4;
-
-	switch(num & 15) {
-		case 0:	do { *dst++ = *src++;
-		case 15:	*dst++ = *src++;
-		case 14:	*dst++ = *src++;
-		case 13:	*dst++ = *src++;
-		case 12:	*dst++ = *src++;
-		case 11:	*dst++ = *src++;
-		case 10:	*dst++ = *src++;
-		case 9:		*dst++ = *src++;
-		case 8:		*dst++ = *src++;
-		case 7:		*dst++ = *src++;
-		case 6:		*dst++ = *src++;
-		case 5:		*dst++ = *src++;
-		case 4:		*dst++ = *src++;
-		case 3:		*dst++ = *src++;
-		case 2:		*dst++ = *src++;
-		case 1:		*dst++ = *src++;
-		} while (--n > 0);
-	}
-
-	return destination;
-}
-
 // copy 4 bytes at a time
-void *memcpy2(void *dst, void const *src, uint len) {
+void *memcpy(void *dst, void const *src, uint len) {
     int *bdst = (int *) dst;
     int const *bsrc = (int const *) src;
     if ((((int) src | (int) dst) & (sizeof(int) - 1)) == 0) { // aligned
@@ -115,6 +87,24 @@ void *memcpy2(void *dst, void const *src, uint len) {
     char const *lsrc = (char const *) bsrc;
     while (len--) {
         *ldst++ = *lsrc++;
+    }
+    return dst;
+}
+
+void *memcpy2(void *dst, void const *src, uint len) {
+    if ((((int) src | (int) dst | len) & (sizeof(int) - 1)) == 0) { // aligned
+		int *bdst = (int *) dst;
+		int const *bsrc = (int const *) src;
+        while (len >= sizeof(int)) {
+            *bdst++ = *bsrc++;
+            len -= sizeof(int);
+        }
+    } else {
+	    char *ldst = (char *) dst;
+	    char const *lsrc = (char const *) src;
+	    while (len--) {
+	        *ldst++ = *lsrc++;
+	    }
     }
     return dst;
 }
