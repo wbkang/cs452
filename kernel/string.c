@@ -91,24 +91,6 @@ void *memcpy(void *dst, void const *src, uint len) {
     return dst;
 }
 
-void *memcpy2(void *dst, void const *src, uint len) {
-    if ((((int) src | (int) dst | len) & (sizeof(int) - 1)) == 0) { // aligned
-		int *bdst = (int *) dst;
-		int const *bsrc = (int const *) src;
-        while (len >= sizeof(int)) {
-            *bdst++ = *bsrc++;
-            len -= sizeof(int);
-        }
-    } else {
-	    char *ldst = (char *) dst;
-	    char const *lsrc = (char const *) src;
-	    while (len--) {
-	        *ldst++ = *lsrc++;
-	    }
-    }
-    return dst;
-}
-
 typedef struct _tag_memcpy_block { // sizeof must be a power of two
 	char fill[8];
 } memcpy_block;
