@@ -119,3 +119,8 @@ Reply:
 NameServerTid:
 	swi 9
 	mov pc, lr
+
+.global AwaitEvent
+AwaitEvent:
+	swi 10
+	mov pc, lr
