@@ -25,6 +25,8 @@ asm_handle_swi:
 	@ restore kernel state
 	add sp, sp, #4
 	@ <) sp_svc: (td_current->registers), [r4], r5-r11, lr_svc, ...
+
+	mrs r0, cpsr @ return cpsr
 	ldmfd sp!, {r4-r11, pc}
 
 
