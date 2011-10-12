@@ -162,6 +162,7 @@ static void kerneltest_send() {
 }
 
 void kerneltest_run() {
+#if TEST_ENABLED
 	TEST_START();
 	mem_reset();
 	kerneltest_runner(MAX_PRIORITY, kerneltest_max_tasks);
@@ -172,5 +173,6 @@ void kerneltest_run() {
 	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_send);
 	mem_reset();
 	TEST_END();
+#endif
 }
 
