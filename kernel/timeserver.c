@@ -3,6 +3,8 @@
 #include <heap.h>
 #include <task.h>
 #include <util.h>
+#include <constants.h>
+#include <ts7200.h>
 
 typedef struct _tag_timeserver_req {
 	char no;
@@ -18,15 +20,15 @@ inline void unblock(int tid, int rv) {
 	Reply(tid, (void*) &rv, sizeof rv);
 }
 
+static inline int timeserver_tick();
+
 void timenotifier() {
-	int timeserver = WhoIs(TIMESERVER_NAME);
-	int tid;
-	for (;;) {
-		Receive(&tid, NULL, 0);
-		if (tid == timeserver) break;
-	}
+	int timeserver = WhoIs(NAME_TIMESERVER);
+	ASSERT(timeserver >= 0, "cant find time server");
+	Send(timeserver, NULL, 0, NULL, 0);
 	for (;;) {
 		int rv = AwaitEvent(TC1UI);
+		VMEM(TIMER1_BASE + CLR_OFFSET) = 1; // clear hardware interrupt status
 		ASSERT(rv >= 0, "incorrect AwaitEvent return value");
 		timeserver_tick();
 	}
@@ -34,8 +36,7 @@ void timenotifier() {
 
 inline void timeserver_do_tick(timeserver_state *state) {
 	// grab the time
-	state->time += ~VMEM(TIMER3_BASE + VAL_OFFSET) / 20; // # of 10ms
-	VMEM(TIMER3_BASE + LDR_OFFSET) = ~0;
+	state->time++;
 	// unblock waiting tasks
 	for (;;) {
 		heap_item *item = heap_peek(state->tasks);
@@ -55,13 +56,15 @@ inline void timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks
 }
 
 void timeserver() {
-	RegisterAs(TIMESERVER_NAME);
+	RegisterAs(NAME_TIMESERVER);
+	int notifier = Create(PRIORITY_TIMENOTIFIER, timenotifier);
+	TRACE("coming out of creating notifier");
 	// init timer 3
-	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
-	VMEM(TIMER3_BASE + LDR_OFFSET) = ~0;
-	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~MODE_MASK; // free run mode
-	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~CLKSEL_MASK; // 2k clock
-	VMEM(TIMER3_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
+	VMEM(TIMER1_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
+	VMEM(TIMER1_BASE + LDR_OFFSET) = 508 * TIMESERVER_RATE;
+	VMEM(TIMER1_BASE + CRTL_OFFSET) |= MODE_MASK; // pre-load mode
+	VMEM(TIMER1_BASE + CRTL_OFFSET) |= CLKSEL_MASK; // 508k clock
+	VMEM(TIMER1_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
 	// init state
 	timeserver_state state;
 	state.tasks = heap_new(TASK_LIST_SIZE);
@@ -70,8 +73,13 @@ void timeserver() {
 	int tid;
 	timeserver_req req;
 	// serve
+	do {
+		Receive(&tid, NULL, 0);
+	} while (tid != notifier);
+	Reply(notifier, NULL, 0);
 	for (;;) {
 		int msglen = Receive(&tid, (void*) &req, sizeof(req));
+		bwputc(1, '#');
 		if (msglen == sizeof(req)) {
 			switch (req.no) {
 				case TIMESERVER_TICK:
@@ -94,7 +102,7 @@ void timeserver() {
 }
 
 inline int timeserver_send(timeserver_req *req) {
-	int server = WhoIs(TIMESERVER_NAME);
+	int server = WhoIs(NAME_TIMESERVER);
 	if (server < 0) return server;
 	int rv;
 	int len = Send(server, (void*) req, sizeof(timeserver_req), (void*) &rv, sizeof rv);
@@ -106,7 +114,7 @@ inline int timeserver_send(timeserver_req *req) {
  * API
  */
 
-inline int timeserver_tick() {
+static inline int timeserver_tick() {
 	timeserver_req req;
 	req.no = TIMESERVER_TICK;
 	return timeserver_send(&req);
