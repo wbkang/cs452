@@ -32,6 +32,7 @@
 	#define VECTADDR_OFFSET 0x30 	// vectored irq. do not use
 
 // interrupt source #
+#define INT_MASK(irq) (1<<(irq))
 #define TC1UI 4
 #define TC2UI 5
 #define UART1RXINTR1 23
@@ -40,6 +41,8 @@
 #define UART2TXINTR1 26
 #define UART3RXINTR1 27
 #define UART3TXINTR1 28
+
+#define NUM_IRQS 32
 
 #define LED_ADDRESS	0x80840020
 	#define LED_NONE	0x0

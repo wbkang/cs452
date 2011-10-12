@@ -16,6 +16,7 @@
 #define TD_STATE_WAITING4SEND 5
 #define TD_STATE_WAITING4RECEIVE 6
 #define TD_STATE_WAITING4REPLY 7
+#define TD_STATE_WAITING4EVENT 8
 
 // this is calculated at compile time.
 #define TASK_LIST_SIZE ((USER_MEM_END - USER_MEM_START) / STACK_SIZE)
