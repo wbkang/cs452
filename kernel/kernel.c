@@ -12,19 +12,20 @@
 #include <timeserver.h>
 
 static int nameserver_tid;
+static int idleserver_tid;
 static task_descriptor* awaiting_event[NUM_IRQS];
 
 static inline int kernel_mytid();
 static inline int kernel_myparenttid();
 static inline void kernel_exit();
-static inline int kernel_send(int tid, void* msg, int msglen, void* reply,
-		int replylen);
+static inline int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen);
 static inline int kernel_receive(int *tid, void* msg, int msglen);
 static inline int kernel_reply(int tid, void* reply, int replylen);
 static inline int kernel_awaitevent(int irq);
 static inline void handle_swi(register_set *reg);
 static inline void handle_hwi(int isr);
 static inline void kernel_irq(int irq);
+static inline void kernel_idleserver() { for (;;) {Pass();} }
 
 static void install_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
@@ -44,7 +45,8 @@ void kernel_init() {
 		awaiting_event[i] = NULL;
 	}
 
-	nameserver_tid = kernel_createtask(MAX_PRIORITY, nameserver);
+	nameserver_tid = kernel_createtask(PRIORITY_NAMESERVER, nameserver);
+	idleserver_tid = kernel_createtask(PRIORITY_IDLESERVER, kernel_idleserver);
 }
 
 static inline void handle_swi(register_set *reg) {
