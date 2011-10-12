@@ -198,7 +198,6 @@ inline int transfer_reply(task_descriptor *sender, task_descriptor *receiver) {
 	memcpy(sender_reply, receiver_reply, len);
 	// make sender ready to run
 	sender->registers.r[0] = len; // return to sender
-	td_list_remove(sender);
 	scheduler_ready(sender);
 	// make receiver ready to run
 	scheduler_ready(receiver);
