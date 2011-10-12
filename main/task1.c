@@ -6,7 +6,7 @@
 
 #define RPS_SERVER 0
 #define PERFMON 1
-#define INT_TEST 1
+#define INT_TEST 0
 
 void task1() {
 #if RPS_SERVER
