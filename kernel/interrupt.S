@@ -4,12 +4,12 @@
 @ this code handles swi system call
 asm_handle_swi:
 	@ <) swi was raised so we are in svc mode
-	@ <) sp_svc: [r0 (td_current->registers)], r1-r12, lr_svc, ...
+	@ <) sp_svc: [(td_current->registers)], r4-r11, lr_svc, ...
 	@ <) now lr_svc = pc_usr
 
 	@ need a scratch register, lets use lr
 	stmfd sp!, {lr}
-	@ <) sp_svc: [lr], r0 (td_current->registers), r1-r12, lr_svc, ...
+	@ <) sp_svc: [lr], (td_current->registers), r4-r11, lr_svc, ...
 
 	@ store user state
 	ldr lr, [sp, #4] @ pointer to td_current->registers
@@ -19,29 +19,13 @@ asm_handle_swi:
 	str r0, [lr]
 	@ store pc
 	ldmfd sp!, {r0}
+	@ <) sp_svc: [(td_current->registers)], r4-r11, lr_svc, ...
 	str r0, [lr, #4*16]
 
 	@ restore kernel state
-	ldmfd sp!, {r0-r12, pc}
-
-asm_handle_swi_noip:
-	@ <) swi was raised so we are in svc mode
-	@ <) sp_svc: [r0 (td_current->registers)], r1-r12, lr_svc, ...
-	@ <) now lr_svc = pc_usr
-
-	@ store user state
-	ldr ip, [sp] @ get a pointer to td_current->registers
-	stmfa ip, {r0-r12, sp, lr}^ @ stmfa will skip the first item (spsr)
-	str lr, [ip, #4*16] @ inject, freeing lr_svc for use
-
-	@ inject spsr into td_current->registers.spsr
-	mrs lr, spsr @ copy
-	str lr, [ip] @ inject
-
-	@ <) task state is completely saved
-
-	@ restore kernel state
-	ldmfd sp!, {r0-r12, pc} @ restore kernel state
+	add sp, sp, #4
+	@ <) sp_svc: (td_current->registers), [r4], r5-r11, lr_svc, ...
+	ldmfd sp!, {r4-r11, pc}
 
 
 @ this code switches to the usermode
@@ -49,8 +33,8 @@ asm_handle_swi_noip:
 .global asm_switch_to_usermode
 asm_switch_to_usermode:
 	@ save kernel state on stack
-	stmfd sp!, {r0-r12, lr}
-	@ <) sp_svc: [r0 (td_current->registers)], r1-r12, lr_svc, ...
+	stmfd sp!, {r0, r4-r11, lr}
+	@ <) sp_svc: [(td_current->registers)], r4-r11, lr_svc, ...
 
 	@ <) all registers are saved, can be trashed
 
@@ -65,13 +49,17 @@ asm_switch_to_usermode:
 	beq copy_sp_svc		@ go to copy_sp_svc
 
 	@ else, currently we are in svc copy sp_svc to sp_irq
-	msr cpsr,  #0xd2	@ switch to irq
+	mov r1, #0xd2
+	msr cpsr, r1		@ switch to irq
 	mov sp, r2			@ put sp_irq
+	@mov r1, #0xd3		@ go back to sp_svc
+	@msr cpsr, r1
 	b restore_user_stuff
 
 	@ we are in irq mode, so switch to svc and save sp_irq to sp_svc
 	copy_sp_svc:
-	msr cpsr, #0xd3
+	mov r1, #0xd3
+	msr cpsr, r1
 	mov sp, r2
 
 	restore_user_stuff:

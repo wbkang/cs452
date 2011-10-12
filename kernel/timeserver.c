@@ -61,6 +61,7 @@ void timeserver() {
 		if (msglen == sizeof(req)) {
 			switch (req.no) {
 				case TIMESERVER_TICK:
+					unblock(tid, 0); // unblock notifier
 					timeserver_do_tick(&state);
 					break;
 				case TIMESERVER_TIME:
