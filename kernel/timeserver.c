@@ -18,6 +18,20 @@ inline void unblock(int tid, int rv) {
 	Reply(tid, (void*) &rv, sizeof rv);
 }
 
+void timenotifier() {
+	int timeserver = WhoIs(TIMESERVER_NAME);
+	int tid;
+	for (;;) {
+		Receive(&tid, NULL, 0);
+		if (tid == timeserver) break;
+	}
+	for (;;) {
+		int rv = AwaitEvent(TC1UI);
+		ASSERT(rv >= 0, "incorrect AwaitEvent return value");
+		timeserver_tick();
+	}
+}
+
 inline void timeserver_do_tick(timeserver_state *state) {
 	// grab the time
 	state->time += ~VMEM(TIMER3_BASE + VAL_OFFSET) / 20; // # of 10ms
