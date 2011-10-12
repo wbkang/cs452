@@ -79,7 +79,6 @@ void timeserver() {
 	Reply(notifier, NULL, 0);
 	for (;;) {
 		int msglen = Receive(&tid, (void*) &req, sizeof(req));
-		bwputc(1, '#');
 		if (msglen == sizeof(req)) {
 			switch (req.no) {
 				case TIMESERVER_TICK:
