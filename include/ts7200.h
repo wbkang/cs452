@@ -28,8 +28,18 @@
 	#define INTENCLR_OFFSET 0x14 	// WO, clears bits in INTENABLE
 	#define SOFTINT_OFFSET 0x18		// asserts software interrupt
 	#define SOFTINTCLR_OFFSET 0x1c	// WO, clears bits in SOFTINT
-	#define PROTECTTION_OFFSET 0x20 // 0 means allow user mode access
+	#define PROTECTION_OFFSET 0x20 // 0 means allow user mode access
 	#define VECTADDR_OFFSET 0x30 	// vectored irq. do not use
+
+// interrupt source #
+#define TC1UI 4
+#define TC2UI 5
+#define UART1RXINTR1 23
+#define UART1TXINTR1 24
+#define UART2RXINTR1 25
+#define UART2TXINTR1 26
+#define UART3RXINTR1 27
+#define UART3TXINTR1 28
 
 #define LED_ADDRESS	0x80840020
 	#define LED_NONE	0x0
