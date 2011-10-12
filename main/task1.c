@@ -8,6 +8,14 @@
 #define PERFMON 1
 #define INT_TEST 0
 
+#if INT_TEST
+static void trigger_interrupt() {
+	PRINT("before triggering software interrupt.");
+	VMEM(VIC1 + SOFTINT_OFFSET) = INT_MASK(TC1UI);
+	PRINT("after triggering software interrupt.");
+}
+#endif
+
 void task1() {
 #if RPS_SERVER
 	Create(1, rps_server);
@@ -20,8 +28,9 @@ void task1() {
 
 #if INT_TEST
 	// this turns on software interrupt #5 and enables interrupt #5
-	VMEM(VIC1 + SOFTINT_OFFSET) = 0x10;
-	VMEM(VIC1 + INTENABLE_OFFSET) = 0x10;
-	PRINT("RETURNED FROM INTERRUPT");
+	Create(0, trigger_interrupt);
+	PRINT("waiting for software interrupt");
+	int retval = AwaitEvent(TC1UI);
+	PRINT("returned from awaitevent, retval: %d", retval);
 #endif
 }

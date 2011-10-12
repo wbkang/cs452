@@ -12,6 +12,19 @@
 #include <timeserver.h>
 
 static int nameserver_tid;
+static task_descriptor* awaiting_event[NUM_IRQS];
+
+static inline int kernel_mytid();
+static inline int kernel_myparenttid();
+static inline void kernel_exit();
+static inline int kernel_send(int tid, void* msg, int msglen, void* reply,
+		int replylen);
+static inline int kernel_receive(int *tid, void* msg, int msglen);
+static inline int kernel_reply(int tid, void* reply, int replylen);
+static inline int kernel_awaitevent(int irq);
+static inline void handle_swi(register_set *reg);
+static inline void handle_hwi(int isr);
+static inline void kernel_irq(int irq);
 
 static void install_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
@@ -26,10 +39,15 @@ void kernel_init() {
 	mem_init(TASK_LIST_SIZE);
 	td_init();
 	scheduler_init();
+
+	for (int i = 0; i < NUM_IRQS; i++) {
+		awaiting_event[i] = NULL;
+	}
+
 	nameserver_tid = kernel_createtask(MAX_PRIORITY, nameserver);
 }
 
-void handle_swi(register_set *reg) {
+static inline void handle_swi(register_set *reg) {
 	int req_no = VMEM(reg->r[REG_PC] - 4) & 0xffffff;
 	int *r0 = &reg->r[0];
 	int a1 = *r0;
@@ -37,56 +55,63 @@ void handle_swi(register_set *reg) {
 	int a3 = reg->r[2];
 	int a4 = reg->r[3];
 	switch (req_no) {
-		case SYSCALL_CREATE:
-			*r0 = kernel_createtask(a1, (func_t) a2);
-			if (*r0 < 0) scheduler_runmenext();
-			else scheduler_move2ready();
-			break;
-		case SYSCALL_MYTID:
+	case SYSCALL_CREATE:
+		*r0 = kernel_createtask(a1, (func_t) a2);
+		if (*r0 < 0)
 			scheduler_runmenext();
-			*r0 = kernel_mytid();
-			break;
-		case SYSCALL_MYPARENTTID:
-			scheduler_runmenext();
-			*r0 = kernel_myparenttid();
-			break;
-		case SYSCALL_PASS:
+		else
 			scheduler_move2ready();
-			break;
-		case SYSCALL_EXIT: {
-			kernel_exit();
-			break;
-		}
-		case SYSCALL_MALLOC:
+		break;
+	case SYSCALL_MYTID:
+		scheduler_runmenext();
+		*r0 = kernel_mytid();
+		break;
+	case SYSCALL_MYPARENTTID:
+		scheduler_runmenext();
+		*r0 = kernel_myparenttid();
+		break;
+	case SYSCALL_PASS:
+		scheduler_move2ready();
+		break;
+	case SYSCALL_EXIT: {
+		kernel_exit();
+		break;
+	}
+	case SYSCALL_MALLOC:
+		scheduler_runmenext();
+		*r0 = (int) umalloc((uint) a1);
+		break;
+	case SYSCALL_SEND: {
+		*r0 = kernel_send(a1, (void*) a2, SENDER_MSGLEN(a4), (void*) a3,
+				SENDER_REPLYLEN(a4));
+		if (*r0 < 0)
 			scheduler_runmenext();
-			*r0 = (int) umalloc((uint) a1);
-			break;
-		case SYSCALL_SEND: {
-			*r0 = kernel_send(a1, (void*) a2, SENDER_MSGLEN(a4), (void*) a3, SENDER_REPLYLEN(a4));
-			if (*r0 < 0) scheduler_runmenext();
-			break;
-		}
-		case SYSCALL_RECEIVE: {
-			int rv = kernel_receive((int *) a1, (void*) a2, a3);
-			if (rv < 0) { // write the error
-				*r0 =  rv;
-				scheduler_runmenext();
-			}
-			break;
-		}
-		case SYSCALL_REPLY:
-			*r0 = kernel_reply(a1, (void*) a2, a3);
-			break;
-		case SYSCALL_NAMESERVERTID:
+		break;
+	}
+	case SYSCALL_RECEIVE: {
+		int rv = kernel_receive((int *) a1, (void*) a2, a3);
+		if (rv < 0) { // write the error
+			*r0 = rv;
 			scheduler_runmenext();
-			*r0 = nameserver_tid;
-			break;
-		case SYSCALL_AWAITEVENT:
-			PRINT("AwaitEvent(%d);", a1);
-			break;
-		default:
-			ERROR("unknown system call %d (%x)\n", req_no, req_no);
-			break;
+		}
+		break;
+	}
+	case SYSCALL_REPLY:
+		*r0 = kernel_reply(a1, (void*) a2, a3);
+		break;
+	case SYSCALL_NAMESERVERTID:
+		scheduler_runmenext();
+		*r0 = nameserver_tid;
+		break;
+	case SYSCALL_AWAITEVENT:
+		*r0 = kernel_awaitevent(a1);
+		if (*r0 < 0) {
+			scheduler_runmenext();
+		}
+		break;
+	default:
+		ERROR("unknown system call %d (%x)\n", req_no, req_no);
+		break;
 	}
 }
 
@@ -95,17 +120,9 @@ void kernel_runloop() {
 	while (!scheduler_empty()) {
 		reg = &scheduler_get()->registers;
 		int cpsr = asm_switch_to_usermode(reg);
-
 		if ((cpsr & 0x1f) == 0x12) {
-			int irq = VMEM(VIC1 + IRQSTATUS_OFFSET);
-			// we should handle the interrupt requests here one by one.
-			// i.e. unblock the ones waiting for the events.
-
-			// for example this turns off the interrupt #4
-			PRINT("Exciting! we just had an irq: %x", irq);
-			VMEM(VIC1 + SOFTINTCLR_OFFSET) = 0x10;
+			handle_hwi(VMEM(VIC1 + IRQSTATUS_OFFSET));
 			reg->r[REG_PC] -= 4;
-			scheduler_move2ready();
 		} else {
 			handle_swi(reg);
 		}
@@ -128,17 +145,17 @@ inline int kernel_createtask(int priority, func_t code) {
 	return td->id;
 }
 
-inline int kernel_mytid() {
+static inline int kernel_mytid() {
 	task_descriptor *td = scheduler_running();
 	return td ? td->id : -1;
 }
 
-inline int kernel_myparenttid() {
+static inline int kernel_myparenttid() {
 	task_descriptor *td = scheduler_running();
 	return td ? td->parent_id : -1;
 }
 
-inline void kernel_exit() {
+static inline void kernel_exit() {
 	// return -2 to receive blocked senders
 	task_descriptor *receiver = scheduler_running();
 	task_descriptor *sender;
@@ -202,19 +219,58 @@ inline int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen
 	return 0; // will return later
 }
 
-inline int kernel_receive(int *tid, void* msg, int msglen) {
+static inline int kernel_receive(int *tid, void* msg, int msglen) {
 	task_descriptor *receiver = scheduler_running();
 	task_descriptor *sender = td_pop(receiver);
-	if (sender) return transfer_msg(sender, receiver);
+	if (sender)
+		return transfer_msg(sender, receiver);
 	scheduler_wait4send(receiver);
 	return 0; // will return later
 }
 
-inline int kernel_reply(int tid, void* reply, int replylen) {
-	if (td_impossible(tid)) return -1;
+static inline int kernel_reply(int tid, void* reply, int replylen) {
+	if (td_impossible(tid))
+		return -1;
 	task_descriptor *sender = td_find(tid);
 	if (!sender) return -2;
 	if (sender->state != TD_STATE_WAITING4REPLY) return -3;
 	task_descriptor *receiver = scheduler_running();
 	return transfer_reply(sender, receiver);
+}
+
+static inline int kernel_awaitevent(int irq) {
+	if (irq == TC1UI || irq == TC2UI || irq == UART1RXINTR1
+			|| irq == UART1TXINTR1 || irq == UART2RXINTR1
+			|| irq == UART2TXINTR1) {
+		ASSERT(!awaiting_event[irq], "There's tid:%x already waiting for irq:%d", awaiting_event[irq]->id, irq);
+		task_descriptor *cur_task = scheduler_running();
+		TRACE("await event irq: %d, cur_task: %d, irqmask: %d", irq, cur_task->id, INT_MASK(irq));
+		VMEM(VIC1 + INTENABLE_OFFSET) = INT_MASK(irq);
+		awaiting_event[irq] = cur_task;
+		scheduler_wait4event(cur_task);
+		return 0;
+	}
+
+	return -1;
+}
+
+static inline void handle_hwi(int isr) {
+	TRACE("Exciting! we just had a hwi isr: %d", isr);
+	if (isr & INT_MASK(TC1UI)) kernel_irq(TC1UI);
+	if (isr & INT_MASK(TC2UI)) kernel_irq(TC2UI);
+	if (isr & INT_MASK(UART1RXINTR1)) kernel_irq(UART1RXINTR1);
+	if (isr & INT_MASK(UART1TXINTR1)) kernel_irq(UART1TXINTR1);
+	if (isr & INT_MASK(UART2RXINTR1)) kernel_irq(UART2RXINTR1);
+	if (isr & INT_MASK(UART2TXINTR1)) kernel_irq(UART2TXINTR1);
+	scheduler_move2ready();
+}
+
+static inline void kernel_irq(int irq) {
+	task_descriptor *td = awaiting_event[irq];
+	ASSERT(td, "Awaiting event for irq #%d is null", irq);
+
+	VMEM(VIC1 + SOFTINTCLR_OFFSET) = INT_MASK(irq); // this is for testing
+	VMEM(VIC1 + INTENCLR_OFFSET) = INT_MASK(irq); // real interrupt masking
+	awaiting_event[irq] = NULL;
+	scheduler_ready(td);
 }
