@@ -268,8 +268,6 @@ static inline void handle_hwi(int isr) {
 static inline void kernel_irq(int irq) {
 	task_descriptor *td = awaiting_event[irq];
 	ASSERT(td, "Awaiting event for irq #%d is null", irq);
-
-	VMEM(VIC1 + SOFTINTCLR_OFFSET) = INT_MASK(irq); // this is for testing
 	VMEM(VIC1 + INTENCLR_OFFSET) = INT_MASK(irq); // real interrupt masking
 	awaiting_event[irq] = NULL;
 	scheduler_ready(td);
