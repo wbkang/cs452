@@ -15,6 +15,10 @@ static int nameserver_tid;
 
 static void install_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
+	INSTALL_INTERRUPT_HANDLER(HWI_VECTOR, asm_handle_swi);
+	VMEM(VIC1 + PROTECTION_OFFSET) = 0;
+	VMEM(VIC1 + INTSELECT_OFFSET) = 0;
+	VMEM(VIC1 + INTENCLR_OFFSET) = 0xffffffff;
 }
 
 void kernel_init() {
@@ -93,7 +97,23 @@ void kernel_runloop() {
 		td = scheduler_get();
 		reg = &td->registers;
 		asm_switch_to_usermode(reg);
-		handle_swi(reg);
+
+		int irq = VMEM(VIC1 + IRQSTATUS_OFFSET);
+
+		// if interrupt
+		if (irq) {
+			// we should handle the interrupt requests here one by one.
+			// i.e. unblock the ones waiting for the events.
+
+			// for example this turns off the interrupt #4
+			PRINT("Exciting! we just had an irq: %x", irq);
+			VMEM(VIC1 + SOFTINTCLR_OFFSET) = 0x10;
+			reg->r[REG_PC] -= 4;
+			scheduler_move2ready();
+		}
+		else {
+			handle_swi(reg);
+		}
 	}
 }
 
@@ -107,7 +127,7 @@ inline int kernel_createtask(int priority, func_t code) {
 	td->parent_id = kernel_mytid();
 	td->registers.r[REG_LR] = (int) Exit;
 	td->registers.r[REG_PC] = (int) code;
-	td->registers.spsr = 0x10;
+	td->registers.spsr = 0x50;
 	allocate_user_memory(td);
 	scheduler_ready(td);
 	return td->id;
