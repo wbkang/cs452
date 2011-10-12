@@ -12,7 +12,7 @@ void scheduler_init() {
 	ready_queue = priorityq_new(TASK_LIST_SIZE, NUM_PRIORITY);
 }
 
-inline task_descriptor *scheduler_running() {
+task_descriptor *scheduler_running() {
 	return running;
 }
 
@@ -54,4 +54,8 @@ inline void scheduler_wait4receive(task_descriptor *receiver, task_descriptor *s
 
 inline void scheduler_wait4reply(task_descriptor *sender) {
 	sender->state = TD_STATE_WAITING4REPLY;
+}
+
+void scheduler_wait4event(task_descriptor *td) {
+	td->state = TD_STATE_WAITING4EVENT;
 }
