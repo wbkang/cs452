@@ -18,7 +18,7 @@ static void install_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(HWI_VECTOR, asm_handle_swi);
 	VMEM(VIC1 + PROTECTION_OFFSET) = 0;
 	VMEM(VIC1 + INTSELECT_OFFSET) = 0;
-	VMEM(VIC1 + INTENCLR_OFFSET) = 0xffffffff;
+	VMEM(VIC1 + INTENCLR_OFFSET) = ~0;
 }
 
 void kernel_init() {
@@ -91,17 +91,13 @@ void handle_swi(register_set *reg) {
 }
 
 void kernel_runloop() {
-	task_descriptor *td;
 	register_set *reg;
 	while (!scheduler_empty()) {
-		td = scheduler_get();
-		reg = &td->registers;
-		asm_switch_to_usermode(reg);
+		reg = &scheduler_get()->registers;
+		int cpsr = asm_switch_to_usermode(reg);
 
-		int irq = VMEM(VIC1 + IRQSTATUS_OFFSET);
-
-		// if interrupt
-		if (irq) {
+		if ((cpsr & 0x1f) == 0x12) {
+			int irq = VMEM(VIC1 + IRQSTATUS_OFFSET);
 			// we should handle the interrupt requests here one by one.
 			// i.e. unblock the ones waiting for the events.
 
@@ -110,8 +106,7 @@ void kernel_runloop() {
 			VMEM(VIC1 + SOFTINTCLR_OFFSET) = 0x10;
 			reg->r[REG_PC] -= 4;
 			scheduler_move2ready();
-		}
-		else {
+		} else {
 			handle_swi(reg);
 		}
 	}
