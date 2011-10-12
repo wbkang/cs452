@@ -65,17 +65,13 @@ asm_switch_to_usermode:
 	beq copy_sp_svc		@ go to copy_sp_svc
 
 	@ else, currently we are in svc copy sp_svc to sp_irq
-	mov r1, #0xd2
-	msr cpsr, r1		@ switch to irq
+	msr cpsr,  #0xd2	@ switch to irq
 	mov sp, r2			@ put sp_irq
-	@mov r1, #0xd3		@ go back to sp_svc
-	@msr cpsr, r1
 	b restore_user_stuff
 
 	@ we are in irq mode, so switch to svc and save sp_irq to sp_svc
 	copy_sp_svc:
-	mov r1, #0xd3
-	msr cpsr, r1
+	msr cpsr, #0xd3
 	mov sp, r2
 
 	restore_user_stuff:
