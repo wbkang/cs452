@@ -73,23 +73,6 @@ uint strparseuint(char *str, int *idx) {
 	return num;
 }
 
-void *memcpy2(void *dst, void const *src, uint len) {
-    int *bdst = (int *) dst;
-    int const *bsrc = (int const *) src;
-    if ((((int) src | (int) dst) & (sizeof(int) - 1)) == 0) { // aligned
-        while (len >= sizeof(int)) {
-            *bdst++ = *bsrc++;
-            len -= sizeof(int);
-        }
-    }
-    char *ldst = (char *) bdst;
-    char const *lsrc = (char const *) bsrc;
-    while (len--) {
-        *ldst++ = *lsrc++;
-    }
-    return dst;
-}
-
 void *memcpy(void *dst, void const *src, uint len) {
     int *to = (int *) dst;
     int const *from = (int const *) src;
@@ -110,24 +93,20 @@ void *memcpy(void *dst, void const *src, uint len) {
     char *ldst = (char *) to;
     char const *lsrc = (char const *) from;
     len &= 3;
+    ASSERT(len == 0, "unaligned! src: %x, dst: %x, len: %d", src, dst, len);
     while (len--) {
         *ldst++ = *lsrc++;
     }
     return dst;
 }
 
-typedef struct _tag_memcpy_block { // sizeof must be a power of two
-	char fill[8];
-} memcpy_block;
-
-// copy MEMCPY_BLOCK_SIZE bytes at a time
-void *memcpy3(void *dst, void const *src, uint len) {
-    memcpy_block *bdst = (memcpy_block *) dst;
-    memcpy_block const *bsrc = (memcpy_block const *) src;
-    if ((((int) src | (int) dst) & (sizeof(memcpy_block) - 1)) == 0) { // aligned
-        while (len >= sizeof(memcpy_block)) {
+void *memcpy2(void *dst, void const *src, uint len) {
+    int *bdst = (int *) dst;
+    int const *bsrc = (int const *) src;
+    if ((((int) src | (int) dst) & (sizeof(int) - 1)) == 0) { // aligned
+        while (len >= sizeof(int)) {
             *bdst++ = *bsrc++;
-            len -= sizeof(memcpy_block);
+            len -= sizeof(int);
         }
     }
     char *ldst = (char *) bdst;
