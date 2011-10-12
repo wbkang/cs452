@@ -77,6 +77,9 @@ void handle_swi(register_set *reg) {
 			scheduler_runmenext();
 			*r0 = nameserver_tid;
 			break;
+		case SYSCALL_AWAITEVENT:
+			PRINT("AwaitEvent(%d);", a1);
+			break;
 		default:
 			ERROR("unknown system call %d (%x)\n", req_no, req_no);
 			break;
@@ -112,12 +115,12 @@ inline int kernel_createtask(int priority, func_t code) {
 
 inline int kernel_mytid() {
 	task_descriptor *td = scheduler_running();
-	return td ? td->id : 0xdeadbeef;
+	return td ? td->id : -1;
 }
 
 inline int kernel_myparenttid() {
 	task_descriptor *td = scheduler_running();
-	return td ? td->parent_id : 0xdeadbeef;
+	return td ? td->parent_id : -1;
 }
 
 inline void kernel_exit() {

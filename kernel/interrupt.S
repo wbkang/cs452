@@ -7,12 +7,32 @@ asm_handle_swi:
 	@ <) sp_svc: [r0 (td_current->registers)], r1-r12, lr_svc, ...
 	@ <) now lr_svc = pc_usr
 
-	@ inject pc_usr into td_current->registers.r[15]
-	ldr ip, [sp] @ get a pointer to td_current->registers
-	str lr, [ip, #4*16] @ inject, freeing lr_svc for use
+	@ need a scratch register, lets use lr
+	stmfd sp!, {lr}
+	@ <) sp_svc: [lr], r0 (td_current->registers), r1-r12, lr_svc, ...
 
 	@ store user state
+	ldr lr, [sp, #4] @ pointer to td_current->registers
+	stmfa lr, {r0-r12, sp, lr}^ @ stmfa will skip spsr
+	@ store cpsr
+	mrs r0, spsr
+	str r0, [lr]
+	@ store pc
+	ldmfd sp!, {r0}
+	str r0, [lr, #4*16]
+
+	@ restore kernel state
+	ldmfd sp!, {r0-r12, pc}
+
+asm_handle_swi_noip:
+	@ <) swi was raised so we are in svc mode
+	@ <) sp_svc: [r0 (td_current->registers)], r1-r12, lr_svc, ...
+	@ <) now lr_svc = pc_usr
+
+	@ store user state
+	ldr ip, [sp] @ get a pointer to td_current->registers
 	stmfa ip, {r0-r12, sp, lr}^ @ stmfa will skip the first item (spsr)
+	str lr, [ip, #4*16] @ inject, freeing lr_svc for use
 
 	@ inject spsr into td_current->registers.spsr
 	mrs lr, spsr @ copy
@@ -98,4 +118,9 @@ Reply:
 .global NameServerTid
 NameServerTid:
 	swi 9
+	mov pc, lr
+
+.global AwaitEvent
+AwaitEvent:
+	swi 10
 	mov pc, lr

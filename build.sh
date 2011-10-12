@@ -2,7 +2,7 @@
 
 LIBS=kernel
 
-mkdir -p lib; 
+mkdir -p lib;
 
 for i in $LIBS; do
 	(cd $i;  make; cp $i.a ../lib/lib$i.a);
@@ -15,10 +15,10 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-ELF=/u/cs452/tftp/ARM/sh.elf
+ELF=/u/cs452/tftp/ARM/s.elf
 
 cp -f main/main.elf $ELF
-chgrp -f cs452_sf $ELF 
+chgrp -f cs452_sf $ELF
 chmod -f 776 $ELF
 
 echo Deployed

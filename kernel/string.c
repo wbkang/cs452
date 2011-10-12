@@ -91,13 +91,12 @@ void *memcpy(void *dst, void const *src, uint len) {
     return dst;
 }
 
-#if 0
 typedef struct _tag_memcpy_block { // sizeof must be a power of two
 	char fill[8];
 } memcpy_block;
 
 // copy MEMCPY_BLOCK_SIZE bytes at a time
-void *memcpy(void *dst, void const *src, uint len) {
+void *memcpy3(void *dst, void const *src, uint len) {
     memcpy_block *bdst = (memcpy_block *) dst;
     memcpy_block const *bsrc = (memcpy_block const *) src;
     if ((((int) src | (int) dst) & (sizeof(memcpy_block) - 1)) == 0) { // aligned
@@ -113,4 +112,3 @@ void *memcpy(void *dst, void const *src, uint len) {
     }
     return dst;
 }
-#endif
