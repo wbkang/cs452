@@ -16,6 +16,20 @@
 #define MIN_PRIORITY 0
 
 /*
+ * Sever names
+ */
+
+#define NAME_TIMESERVER "00"
+
+/*
+ * Server priorities
+ */
+
+#define PRIORITY_NAMESERVER MAX_PRIORITY
+#define PRIORITY_TIMESERVER MAX_PRIORITY
+#define PRIORITY_TIMENOTIFIER MAX_PRIORITY
+
+/*
  * System call constants
  */
 #define SYSCALL_CREATE 0

@@ -1,6 +1,6 @@
 #pragma once
 
-#define TIMESERVER_NAME "ts"
+#include <constants.h>
 
 #define TIMESERVER_TICK 0
 #define TIMESERVER_TIME 1
@@ -9,9 +9,9 @@
 #define TIMESERVER_ERROR_BADREQNO -1
 #define TIMESERVER_ERROR_BADDATA -2
 
-void timeserver();
+#define TIMESERVER_RATE 10 // ms
 
-inline int timeserver_tick();
+void timeserver();
 
 inline int timeserver_time();
 

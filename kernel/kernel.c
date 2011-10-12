@@ -250,7 +250,6 @@ static inline int kernel_awaitevent(int irq) {
 		scheduler_wait4event(cur_task);
 		return 0;
 	}
-
 	return -1;
 }
 
