@@ -160,7 +160,7 @@ static inline int kernel_myparenttid() {
 static inline void kernel_exit() {
 	task_descriptor *receiver = scheduler_running();
 	task_descriptor *sender;
-	while ((sender = td_pop(receiver))) {
+	while ((sender = td_list_pop(receiver))) {
 		sender->registers.r[0] = -2;
 		scheduler_ready(sender);
 	}
@@ -220,7 +220,7 @@ inline int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen
 
 static inline int kernel_receive(int *tid, void* msg, int msglen) {
 	task_descriptor *receiver = scheduler_running();
-	task_descriptor *sender = td_pop(receiver);
+	task_descriptor *sender = td_list_pop(receiver);
 	if (sender) return transfer_msg(sender, receiver);
 	scheduler_wait4send(receiver);
 	return 0; // will return later
