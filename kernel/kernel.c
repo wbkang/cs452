@@ -16,6 +16,8 @@ static int exitkernel, errno;
 static int nameserver_tid;
 static int idleserver_tid;
 static task_descriptor *eventblocked[NUM_IRQS];
+static uint old_swi_vector;
+static uint old_hwi_vector;
 
 static inline int kernel_mytid();
 static inline int kernel_myparenttid();
@@ -29,12 +31,34 @@ static inline void handle_hwi(int isr);
 static inline void kernel_irq(int irq);
 static inline void kernel_idleserver() { for (;;) Pass(); }
 
+static void flush_dcache() {
+	for (int seg =0 ; seg < 8; seg++) {
+		for (int index =0 ; index < 64; index++) {
+			__asm volatile ("mcr p15, 0, %[input], c7, c14, 2\n\t" : : [input] "r" (seg * index));
+		}
+	}
+	__asm volatile ("mcr p15, 0, r0, c7, c5, 0\n\t" : : : "r0");
+}
+
 static void install_interrupt_handlers() {
+	old_swi_vector = READ_INTERRUPT_HANDLER(SWI_VECTOR);
+	old_hwi_vector = READ_INTERRUPT_HANDLER(HWI_VECTOR);
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
 	INSTALL_INTERRUPT_HANDLER(HWI_VECTOR, asm_handle_swi);
 	VMEM(VIC1 + PROTECTION_OFFSET) = 0;
 	VMEM(VIC1 + INTSELECT_OFFSET) = 0;
 	VMEM(VIC1 + INTENCLR_OFFSET) = ~0;
+	flush_dcache();
+}
+
+static void uninstall_interrupt_handlers() {
+	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, old_swi_vector);
+	INSTALL_INTERRUPT_HANDLER(HWI_VECTOR, old_hwi_vector);
+	VMEM(VIC1 + INTENCLR_OFFSET) = ~0;
+	VMEM(TIMER1_BASE + CRTL_OFFSET) &= ~ENABLE_MASK;
+	VMEM(TIMER2_BASE + CRTL_OFFSET) &= ~ENABLE_MASK;
+	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~ENABLE_MASK;
+	flush_dcache();
 }
 
 void kernel_init() {
@@ -128,6 +152,8 @@ int kernel_run() {
 			handle_swi(reg);
 		}
 	}
+
+	uninstall_interrupt_handlers();
 	return errno;
 }
 
@@ -236,20 +262,25 @@ static inline int kernel_reply(int tid, void* reply, int replylen) {
 }
 
 static inline int kernel_awaitevent(int irq) {
-	if (irq & IRQS) {
-		ASSERT(!eventblocked[irq], "wait slot for irq %d not empty (%d)", eventblocked[irq]->id, irq);
-		task_descriptor *cur_task = scheduler_running();
-		TRACE("await event irq: %d, cur_task: %d, irqmask: %d", irq, cur_task->id, INT_MASK(irq));
-		VMEM(VIC1 + INTENABLE_OFFSET) = INT_MASK(irq);
-		eventblocked[irq] = cur_task;
-		scheduler_wait4event(cur_task);
-		return 0;
+	switch(irq) {
+		case TC1UI:
+		case TC2UI:
+		case UART1RXINTR1:
+		case UART1TXINTR1:
+		case UART2RXINTR1:
+		case UART2TXINTR1:
+			ASSERT(!eventblocked[irq], "wait slot for irq %d not empty (%d)", eventblocked[irq]->id, irq);
+			task_descriptor *cur_task = scheduler_running();
+			VMEM(VIC1 + INTENABLE_OFFSET) = INT_MASK(irq);
+			eventblocked[irq] = cur_task;
+			scheduler_wait4event(cur_task);
+			return 0;
+		default:
+			return -1;
 	}
-	return -1;
 }
 
 static inline void handle_hwi(int isr) {
-	TRACE("Exciting! we just had a hwi isr: %d", isr);
 	if (isr & INT_MASK(TC1UI)) kernel_irq(TC1UI);
 	if (isr & INT_MASK(TC2UI)) kernel_irq(TC2UI);
 	if (isr & INT_MASK(UART1RXINTR1)) kernel_irq(UART1RXINTR1);

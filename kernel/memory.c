@@ -33,7 +33,7 @@ void* umalloc(uint size) {
 	task_descriptor *td = scheduler_running();
 	memptr rv = td->heap;
 	memptr new_heap = rv + NEXTHIGHESTWORD(size);
-	if ((uint) td->registers.r[REG_SP] > (uint) new_heap) return NULL;
+	ASSERT((uint) td->registers.r[REG_SP] > (uint) new_heap, "No more memory");
 	td->heap = new_heap;
 	return rv;
 }

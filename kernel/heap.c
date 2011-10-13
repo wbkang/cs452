@@ -3,6 +3,7 @@
 
 heap *heap_new(int size) {
 	heap *h = qmalloc(sizeof(heap) + sizeof(heap_item) * size);
+	ASSERT(h, "out of memory");
 	h->size = 0;
 	h->max_size = size;
 	return h;
