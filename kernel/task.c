@@ -48,10 +48,17 @@ inline void td_list_push(task_descriptor *head, task_descriptor *td) {
 	head->_next = td;
 }
 
+task_descriptor *td_list_pop(task_descriptor *head) {
+	task_descriptor *td = head->_prev;
+	if (td == head) return NULL;
+	td_list_remove(td);
+	return td;
+}
+
 task_descriptor *td_new() {
 	task_descriptor *head = &task_descriptors.head_free;
 	if (td_list_empty(head)) return NULL;
-	task_descriptor *rv = td_pop(head);
+	task_descriptor *rv = td_list_pop(head);
 	td_list_close(rv);
 	rv->state = TD_STATE_NEW;
 	return rv;
@@ -59,7 +66,6 @@ task_descriptor *td_new() {
 
 void td_free(task_descriptor *td) {
 	td->id += 0x10000; // increment generation
-	td_list_remove(td);
 	if (td->id >= 0) {
 		td_list_push(&task_descriptors.head_free, td);
 		td->state = TD_STATE_FREE;
@@ -73,13 +79,6 @@ task_descriptor *td_find(uint id) {
 	if (i >= TASK_LIST_SIZE) return NULL;
 	task_descriptor *td = task_descriptors.td + i;
 	return td->id == id ? td : NULL;
-}
-
-task_descriptor *td_pop(task_descriptor *head) {
-	task_descriptor *td = head->_prev;
-	if (td == head) return NULL;
-	td_list_remove(td);
-	return td;
 }
 
 void reginfo(register_set *reg) {
