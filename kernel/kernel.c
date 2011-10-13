@@ -11,13 +11,11 @@
 #include <nameserver.h>
 #include <timeserver.h>
 
+static int exitkernel, errno;
+
 static int nameserver_tid;
 static int idleserver_tid;
 static task_descriptor* eventblocked[NUM_IRQS];
-
-#define NUM_SERVERS 4
-static int num_running_tasks;
-static int canexit;
 
 static inline int kernel_mytid();
 static inline int kernel_myparenttid();
@@ -45,8 +43,7 @@ void kernel_init() {
 	td_init();
 	scheduler_init();
 	for (int i = 0; i < NUM_IRQS; i++) eventblocked[i] = NULL;
-	num_running_tasks = 0;
-	canexit = FALSE;
+	exitkernel = FALSE;
 	nameserver_tid = kernel_createtask(PRIORITY_NAMESERVER, nameserver);
 	idleserver_tid = kernel_createtask(PRIORITY_IDLESERVER, kernel_idleserver);
 }
@@ -59,66 +56,70 @@ static inline void handle_swi(register_set *reg) {
 	int a3 = reg->r[2];
 	int a4 = reg->r[3];
 	switch (req_no) {
-	case SYSCALL_CREATE:
-		*r0 = kernel_createtask(a1, (func_t) a2);
-		if (*r0 < 0) scheduler_runmenext();
-		else scheduler_move2ready();
-		break;
-	case SYSCALL_MYTID:
-		scheduler_runmenext();
-		*r0 = kernel_mytid();
-		break;
-	case SYSCALL_MYPARENTTID:
-		scheduler_runmenext();
-		*r0 = kernel_myparenttid();
-		break;
-	case SYSCALL_PASS:
-		scheduler_move2ready();
-		break;
-	case SYSCALL_EXIT: {
-		kernel_exit();
-		break;
-	}
-	case SYSCALL_MALLOC:
-		scheduler_runmenext();
-		*r0 = (int) umalloc((uint) a1);
-		break;
-	case SYSCALL_SEND: {
-		*r0 = kernel_send(a1, (void*) a2, SENDER_MSGLEN(a4), (void*) a3, SENDER_REPLYLEN(a4));
-		if (*r0 < 0) scheduler_runmenext();
-		break;
-	}
-	case SYSCALL_RECEIVE: {
-		int rv = kernel_receive((int *) a1, (void*) a2, a3);
-		if (rv < 0) { // write the error
-			*r0 = rv;
+		case SYSCALL_CREATE:
+			*r0 = kernel_createtask(a1, (func_t) a2);
+			if (*r0 < 0) scheduler_runmenext();
+			else scheduler_move2ready();
+			break;
+		case SYSCALL_MYTID:
 			scheduler_runmenext();
-		}
-		break;
-	}
-	case SYSCALL_REPLY:
-		*r0 = kernel_reply(a1, (void*) a2, a3);
-		break;
-	case SYSCALL_NAMESERVERTID:
-		scheduler_runmenext();
-		*r0 = nameserver_tid;
-		break;
-	case SYSCALL_AWAITEVENT:
-		*r0 = kernel_awaitevent(a1);
-		if (*r0 < 0) {
+			*r0 = kernel_mytid();
+			break;
+		case SYSCALL_MYPARENTTID:
 			scheduler_runmenext();
+			*r0 = kernel_myparenttid();
+			break;
+		case SYSCALL_PASS:
+			scheduler_move2ready();
+			break;
+		case SYSCALL_EXIT: {
+			kernel_exit();
+			break;
 		}
-		break;
-	default:
-		ERROR("unknown system call %d (%x)\n", req_no, req_no);
-		break;
+		case SYSCALL_MALLOC:
+			scheduler_runmenext();
+			*r0 = (int) umalloc((uint) a1);
+			break;
+		case SYSCALL_SEND: {
+			*r0 = kernel_send(a1, (void*) a2, SENDER_MSGLEN(a4), (void*) a3, SENDER_REPLYLEN(a4));
+			if (*r0 < 0) scheduler_runmenext();
+			break;
+		}
+		case SYSCALL_RECEIVE: {
+			int rv = kernel_receive((int *) a1, (void*) a2, a3);
+			if (rv < 0) { // write the error
+				*r0 = rv;
+				scheduler_runmenext();
+			}
+			break;
+		}
+		case SYSCALL_REPLY:
+			*r0 = kernel_reply(a1, (void*) a2, a3);
+			break;
+		case SYSCALL_NAMESERVERTID:
+			scheduler_runmenext();
+			*r0 = nameserver_tid;
+			break;
+		case SYSCALL_AWAITEVENT:
+			*r0 = kernel_awaitevent(a1);
+			if (*r0 < 0) {
+				scheduler_runmenext();
+			}
+			break;
+		case SYSCALL_EXITKERNEL:
+			errno = a1;
+			exitkernel = TRUE;
+			break;
+		default:
+			ERROR("unknown system call %d (%x)\n", req_no, req_no);
+			break;
 	}
 }
 
-void kernel_runloop() {
-	register_set *reg;
-	while (!scheduler_empty()) {
-		reg = &scheduler_get()->registers;
+int kernel_runloop() {
+	while (!exitkernel) {
+		ASSERT(!scheduler_empty(), "no task to schedule");
+		register_set *reg = &scheduler_get()->registers;
 		int cpsr = asm_switch_to_usermode(reg);
 		if ((cpsr & 0x1f) == 0x12) {
 			handle_hwi(VMEM(VIC1 + IRQSTATUS_OFFSET));
@@ -126,15 +127,8 @@ void kernel_runloop() {
 		} else {
 			handle_swi(reg);
 		}
-		if (canexit) {
-			if (num_running_tasks == NUM_SERVERS) {
-				PRINT("No more non-server tasks; exiting...");
-				break;
-			}
-		} else if (num_running_tasks > NUM_SERVERS) {
-			canexit = TRUE;
-		}
 	}
+	return errno;
 }
 
 inline int kernel_createtask(int priority, func_t code) {
@@ -150,7 +144,6 @@ inline int kernel_createtask(int priority, func_t code) {
 	td->registers.spsr = 0x50;
 	allocate_user_memory(td);
 	scheduler_ready(td);
-	++num_running_tasks;
 	return td->id;
 }
 
@@ -173,7 +166,6 @@ static inline void kernel_exit() {
 	}
 	free_user_memory(receiver);
 	td_free(receiver);
-	--num_running_tasks;
 }
 
 inline int transfer_msg(task_descriptor *sender, task_descriptor *receiver) {

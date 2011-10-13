@@ -43,6 +43,7 @@
 #define SYSCALL_REPLY 8
 #define SYSCALL_NAMESERVERTID 9
 #define SYSCALL_AWAITEVENT 10
+#define SYSCALL_EXITKERNEL 11
 
 /*
  * Memory constants.
