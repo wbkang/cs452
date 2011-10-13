@@ -18,6 +18,4 @@ void task1() {
 #if PERFMON
 	Create(1, perfmon);
 #endif
-
-	for (;;) bwputc(1, '.');
 }

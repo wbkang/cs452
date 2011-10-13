@@ -56,6 +56,6 @@ inline void scheduler_wait4reply(task_descriptor *sender) {
 	sender->state = TD_STATE_WAITING4REPLY;
 }
 
-void scheduler_wait4event(task_descriptor *td) {
+inline void scheduler_wait4event(task_descriptor *td) {
 	td->state = TD_STATE_WAITING4EVENT;
 }
