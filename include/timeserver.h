@@ -1,6 +1,7 @@
 #pragma once
 
 #include <constants.h>
+#include <util.h>
 
 #define TIMESERVER_TICK 0
 #define TIMESERVER_TIME 1

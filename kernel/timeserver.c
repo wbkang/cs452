@@ -112,15 +112,15 @@ inline int timeserver_send(timeserver_req *req) {
 	return rv;
 }
 
-/*
- * API
- */
-
 static inline int timeserver_tick() {
 	timeserver_req req;
 	req.no = TIMESERVER_TICK;
 	return timeserver_send(&req);
 }
+
+/*
+ * API
+ */
 
 inline int timeserver_time() {
 	timeserver_req req;
