@@ -34,6 +34,7 @@ typedef char *va_list;
 #define MAX(x, y) ( ( (x) > (y) ) ? (x) : (y) )
 #define MIN(x, y) ( ( (x) < (y) ) ? (x) : (y) )
 #define INSTALL_INTERRUPT_HANDLER(vec, jmp) { VMEM((vec) + 0x20) = (uint)(jmp); }
+#define READ_INTERRUPT_HANDLER(vec) VMEM((vec) + 0x20)
 // turn mask bits on/off in word based on flags
 #define BIT_TOGGLE(word, mask, flag) ((word) ^= (-(flag) ^ (word)) & (mask))
 #define BYTES2WORDS(x) ((x) >> 2)

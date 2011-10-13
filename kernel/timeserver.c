@@ -52,6 +52,8 @@ inline void timeserver_do_time(timeserver_state *state, int tid) {
 
 inline void timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks) {
 	if (ticks < 0) ticks = 0;
+	ASSERT(state, "state is invalid");
+	ASSERT(state->tasks, "state->tasks is invalid");
 	heap_insert_min(state->tasks, (void*) tid, ticks);
 }
 
@@ -67,6 +69,7 @@ void timeserver() {
 	// init state
 	timeserver_state state;
 	state.tasks = heap_new(TASK_LIST_SIZE);
+	ASSERT(state.tasks, "no memory");
 	state.time = 0;
 	// init com arguments
 	int tid;
