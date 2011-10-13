@@ -34,7 +34,7 @@ void timenotifier() {
 	}
 }
 
-inline void timeserver_do_tick(timeserver_state *state, int tid) {
+inline void timeserver_do_tick(volatile timeserver_state *state, int tid) {
 	unblock(tid, 0); // unblock notifier
 	state->time++;
 	// unblock waiting tasks
@@ -46,11 +46,11 @@ inline void timeserver_do_tick(timeserver_state *state, int tid) {
 	}
 }
 
-inline void timeserver_do_time(timeserver_state *state, int tid) {
+inline void timeserver_do_time(volatile timeserver_state *state, int tid) {
 	unblock(tid, state->time);
 }
 
-inline void timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks) {
+inline void timeserver_do_delayuntil(volatile timeserver_state *state, int tid, int ticks) {
 	if (ticks < 0) ticks = 0;
 	heap_insert_min(state->tasks, (void*) tid, ticks);
 }
@@ -109,15 +109,15 @@ inline int timeserver_send(timeserver_req *req) {
 	return rv;
 }
 
-/*
- * API
- */
-
 static inline int timeserver_tick() {
 	timeserver_req req;
 	req.no = TIMESERVER_TICK;
 	return timeserver_send(&req);
 }
+
+/*
+ * API
+ */
 
 inline int timeserver_time() {
 	timeserver_req req;
