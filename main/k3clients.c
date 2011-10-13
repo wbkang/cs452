@@ -3,28 +3,32 @@
 #include <syscall.h>
 #include <util.h>
 
-#define PRINTF(...) { \
-	bwprintf(1, "[%d\t] ", Time()); \
+#define PRINTF(timeserver, ...) { \
+	bwprintf(1, "[%d\t] ", Time(timeserver)); \
 	bwprintf(1, __VA_ARGS__); \
 	bwprintf(1, "\n"); \
 }
 
-#define SAY(name, ...) { \
-	bwprintf(1, "[%d\t] ", Time()); \
-	for (int i = 0; i < 2 * (name - 3); i++) bwprintf(1, "\t"); \
-	bwprintf(1, "{%d} ", name); \
-	bwprintf(1, __VA_ARGS__); \
-	bwprintf(1, "\n"); \
-}
+//#define SAY(timeserver, name, ...) { \
+//	bwprintf(1, "[%d\t] ", Time(timeserver)); \
+//	for (int i = 0; i < 2 * (name - 3); i++) bwprintf(1, "\t"); \
+//	bwprintf(1, "{%d} ", name); \
+//	bwprintf(1, __VA_ARGS__); \
+//	bwprintf(1, "\n"); \
+//}
+
+#define SAY(name, ...)
+
 
 static inline void do_stuff(int name, int delay_time, int delays) {
-	SAY(name, "started");
+	int timeserver = WhoIs(NAME_TIMESERVER);
+	SAY(timeserver, name, "started");
 	for(int i = 0; i < delays; i++) {
-		SAY(name, "delay %d for %d ticks", i + 1, delay_time);
-		Delay(delay_time);
-		SAY(name, "back from delay %d", i + 1);
+		SAY(timeserver, name, "delay %d for %d ticks", i + 1, delay_time);
+		Delay(delay_time, timeserver);
+		SAY(timeserver, name, "back from delay %d", i + 1);
 	}
-	SAY(name, "exited");
+	SAY(timeserver, name, "exited");
 	Send(MyParentsTid(), NULL, 0, NULL, 0);
 }
 
@@ -45,7 +49,8 @@ static void t6() {
 }
 
 void k3main() {
-	PRINTF("Entering main");
+	int timeserver = WhoIs(NAME_TIMESERVER);
+	PRINTF(timeserver, "Entering main");
 	Create(6, t3);
 	Create(5, t4);
 	Create(4, t5);
@@ -58,6 +63,6 @@ void k3main() {
 		Reply(tid, NULL, 0);
 	}
 
-	PRINTF("Exiting main");
+	PRINTF(timeserver, "Exiting main");
 	ExitKernel(0);
 }
