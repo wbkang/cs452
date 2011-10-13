@@ -9,16 +9,13 @@
 	bwprintf(1, "\n"); \
 }
 
-//#define SAY(timeserver, name, ...) { \
-//	bwprintf(1, "[%d\t] ", Time(timeserver)); \
-//	for (int i = 0; i < 2 * (name - 3); i++) bwprintf(1, "\t"); \
-//	bwprintf(1, "{%d} ", name); \
-//	bwprintf(1, __VA_ARGS__); \
-//	bwprintf(1, "\n"); \
-//}
-
-#define SAY(name, ...)
-
+#define SAY(timeserver, name, ...) { \
+	bwprintf(1, "[%d\t] ", Time(timeserver)); \
+	for (int i = 0; i < 2 * (name - 3); i++) bwprintf(1, "\t"); \
+	bwprintf(1, "{%d} ", name); \
+	bwprintf(1, __VA_ARGS__); \
+	bwprintf(1, "\n"); \
+}
 
 static inline void do_stuff(int name, int delay_time, int delays) {
 	int timeserver = WhoIs(NAME_TIMESERVER);
