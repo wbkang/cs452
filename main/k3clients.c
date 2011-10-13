@@ -3,17 +3,29 @@
 #include <syscall.h>
 #include <util.h>
 
-#define PRINTF(...) { bwprintf(1, "[%d\t]\t", Time()); bwprintf(1, __VA_ARGS__); bwprintf(1, "\n");}
+#define PRINTF(...) { \
+	bwprintf(1, "[%d\t] ", Time()); \
+	bwprintf(1, __VA_ARGS__); \
+	bwprintf(1, "\n"); \
+}
+
+#define SAY(name, ...) { \
+	bwprintf(1, "[%d\t] ", Time()); \
+	for (int i = 0; i < 2 * (name - 3); i++) bwprintf(1, "\t"); \
+	bwprintf(1, "{%d} ", name); \
+	bwprintf(1, __VA_ARGS__); \
+	bwprintf(1, "\n"); \
+}
 
 static inline void do_stuff(int name, int delay_time, int delays) {
-	PRINTF("Task %d Entering", name);
+	SAY(name, "started");
 	for(int i = 0; i < delays; i++) {
-		PRINTF("Task %d Delay %d #%d", name, delay_time, i+1);
+		SAY(name, "delay %d for %d ticks", i + 1, delay_time);
 		Delay(delay_time);
-		PRINTF("Task %d Returned from Delay", name);
+		SAY(name, "back from delay %d", i + 1);
 	}
 	Send(MyParentsTid(), NULL, 0, NULL, 0);
-	PRINTF("Task %d Exiting", name);
+	SAY(name, "exited");
 }
 
 static void t3() {
@@ -32,19 +44,17 @@ static void t6() {
 	do_stuff(6, 71, 3);
 }
 
-
 void k3main() {
 	PRINTF("Entering main");
-	int t3tid = Create(6, t3);
-	int t4tid = Create(5, t4);
-	int t5tid = Create(4, t5);
-	int t6tid = Create(3, t6);
+	Create(6, t3);
+	Create(5, t4);
+	Create(4, t5);
+	Create(3, t6);
 
-	for (int i =0; i < 4; i++) {
+	for (int i = 0; i < 4; i++) {
 		int tid;
-		int retval;
-		retval = Receive(&tid, NULL, 0);
-		ASSERT(retval >= 0, "oops");
+		int rv = Receive(&tid, NULL, 0);
+		ASSERT(rv >= 0, "oops");
 		Reply(tid, NULL, 0);
 	}
 

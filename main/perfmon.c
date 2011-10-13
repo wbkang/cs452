@@ -56,7 +56,6 @@ static void setup_timer() {
 	VMEM(TIMER3_BASE + CRTL_OFFSET) |= ENABLE_MASK;
 }
 
-
 static void context_switch() {
 	uint start_time;
 	uint end_time;
