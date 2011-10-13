@@ -28,7 +28,7 @@ static inline int kernel_awaitevent(int irq);
 static inline void handle_swi(register_set *reg);
 static inline void handle_hwi(int isr);
 static inline void kernel_irq(int irq);
-static inline void kernel_idleserver() { for (;;) Pass(); }
+static inline void kernel_idleserver() { for (;;); }
 
 static void flush_dcache() {
 	for (int seg =0 ; seg < 8; seg++) {
@@ -64,14 +64,12 @@ void uptime_init() {
 	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
 	VMEM(TIMER3_BASE + LDR_OFFSET) = ~0;
 	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~MODE_MASK; // free-running mode
-	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~CLKSEL_MASK; // 1994hz clock
+	VMEM(TIMER3_BASE + CRTL_OFFSET) |= CLKSEL_MASK; // 508Khz clock
 	VMEM(TIMER3_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
 }
 
 inline uint uptime() {
-    uint t = ~VMEM(TIMER3_BASE + VAL_OFFSET);
-    t += (t + t + t) / 1000;
-	return t >> 1;
+    return t = ~VMEM(TIMER3_BASE + VAL_OFFSET);
 }
 
 void kernel_init() {
@@ -192,13 +190,13 @@ int kernel_run() {
 	}
 	int up = uptime();
 	int percent = (1000 * idletime) / up;
-	PRINT("uptime: %dms, idletime: %dms (%d.%d%%)", up, idletime, percent / 10, percent % 10);
+	PRINT("uptime: %dms, idletime: %dms (%d.%d%%)", up / 508, idletime / 508, percent / 10, percent % 10);
 	uninstall_interrupt_handlers();
 	return errno;
 }
 
 inline int kernel_createtask(int priority, func_t code) {
-	if (priority < MIN_PRIORITY || priority > MAX_PRIORITY) return -1;
+	if (priority < 0 || priority > MAX_PRIORITY) return -1;
 	uint entry = (uint) code;
 	if (entry < (uint) &_TextStart || entry >= (uint) &_TextEnd) return -3; // in text region?
 	task_descriptor *td = td_new();

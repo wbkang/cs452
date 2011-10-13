@@ -21,6 +21,7 @@ inline void unblock(int tid, int rv) {
 }
 
 static inline int timeserver_tick();
+inline void timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks);
 
 void timenotifier() {
 	int timeserver = WhoIs(NAME_TIMESERVER);
@@ -48,6 +49,10 @@ inline void timeserver_do_tick(timeserver_state *state, int tid) {
 
 inline void timeserver_do_time(timeserver_state *state, int tid) {
 	unblock(tid, state->time);
+}
+
+inline void timeserver_do_delay(timeserver_state *state, int tid, int ticks) {
+	timeserver_do_delayuntil(state, tid, state->time + ticks);
 }
 
 inline void timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks) {
@@ -89,6 +94,9 @@ void timeserver() {
 				case TIMESERVER_TIME:
 					timeserver_do_time(&state, tid);
 					break;
+				case TIMESERVER_DELAY:
+					timeserver_do_delay(&state, tid, req.ticks);
+					break;
 				case TIMESERVER_DELAYUNTIL:
 					timeserver_do_delayuntil(&state, tid, req.ticks);
 					break;
@@ -127,9 +135,10 @@ inline int timeserver_time(int timeserver) {
 }
 
 inline int timeserver_delay(int ticks, int timeserver) {
-	int time = timeserver_time(timeserver);
-	if (time < 0) return time;
-	return timeserver_delayuntil(time + ticks, timeserver);
+	timeserver_req req;
+	req.no = TIMESERVER_DELAY;
+	req.ticks = ticks;
+	return timeserver_send(&req, timeserver);
 }
 
 inline int timeserver_delayuntil(int ticks, int timeserver) {
