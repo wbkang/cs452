@@ -69,7 +69,7 @@ void uptime_init() {
 }
 
 inline uint uptime() {
-    return t = ~VMEM(TIMER3_BASE + VAL_OFFSET);
+    return ~VMEM(TIMER3_BASE + VAL_OFFSET);
 }
 
 void kernel_init() {
