@@ -9,7 +9,6 @@
 #include <scheduler.h>
 #include <string.h>
 #include <nameserver.h>
-#include <timeserver.h>
 
 static int exitkernel, errno;
 
@@ -35,6 +34,20 @@ static void install_interrupt_handlers() {
 	VMEM(VIC1 + PROTECTION_OFFSET) = 0;
 	VMEM(VIC1 + INTSELECT_OFFSET) = 0;
 	VMEM(VIC1 + INTENCLR_OFFSET) = ~0;
+}
+
+void uptime_init() {
+	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
+	VMEM(TIMER3_BASE + LDR_OFFSET) = ~0;
+	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~MODE_MASK; // free-running mode
+	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~CLKSEL_MASK; // 1994hz clock
+	VMEM(TIMER3_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
+}
+
+inline uint uptime() {
+    uint t = ~VMEM(TIMER3_BASE + VAL_OFFSET);
+    t += (t + t + t) / 1000;
+	return t >> 1;
 }
 
 void kernel_init() {
@@ -116,10 +129,34 @@ static inline void handle_swi(register_set *reg) {
 	}
 }
 
+static inline void handle_hwi(int isr) {
+	TRACE("Exciting! we just had a hwi isr: %d", isr);
+	if (isr & INT_MASK(TC1UI)) kernel_irq(TC1UI);
+	if (isr & INT_MASK(TC2UI)) kernel_irq(TC2UI);
+	if (isr & INT_MASK(UART1RXINTR1)) kernel_irq(UART1RXINTR1);
+	if (isr & INT_MASK(UART1TXINTR1)) kernel_irq(UART1TXINTR1);
+	if (isr & INT_MASK(UART2RXINTR1)) kernel_irq(UART2RXINTR1);
+	if (isr & INT_MASK(UART2TXINTR1)) kernel_irq(UART2TXINTR1);
+	scheduler_move2ready();
+}
+
+static inline void kernel_irq(int irq) {
+	task_descriptor *td = eventblocked[irq];
+	ASSERT(td, "Awaiting event for irq #%d is null", irq);
+	VMEM(VIC1 + INTENCLR_OFFSET) = INT_MASK(irq); // real interrupt masking
+	eventblocked[irq] = NULL;
+	scheduler_ready(td);
+}
+
 int kernel_run() {
+	uptime_init();
+	int time_idle_start = 0;
+	int idletime = 0;
 	while (!exitkernel) {
 		ASSERT(!scheduler_empty(), "no task to schedule");
-		register_set *reg = &scheduler_get()->registers;
+		task_descriptor *td = scheduler_get();
+		if (td->id == idleserver_tid) time_idle_start = uptime();
+		register_set *reg = &td->registers;
 		int cpsr = asm_switch_to_usermode(reg);
 		if ((cpsr & 0x1f) == 0x12) {
 			handle_hwi(VMEM(VIC1 + IRQSTATUS_OFFSET));
@@ -127,7 +164,11 @@ int kernel_run() {
 		} else {
 			handle_swi(reg);
 		}
+		if (td->id == idleserver_tid) idletime += uptime() - time_idle_start;
 	}
+	int up = uptime();
+	int percent = (1000 * idletime) / up;
+	PRINT("uptime: %dms, idletime: %dms (%d.%d%%)", up, idletime, percent / 10, percent % 10);
 	return errno;
 }
 
@@ -246,23 +287,4 @@ static inline int kernel_awaitevent(int irq) {
 		return 0;
 	}
 	return -1;
-}
-
-static inline void handle_hwi(int isr) {
-	TRACE("Exciting! we just had a hwi isr: %d", isr);
-	if (isr & INT_MASK(TC1UI)) kernel_irq(TC1UI);
-	if (isr & INT_MASK(TC2UI)) kernel_irq(TC2UI);
-	if (isr & INT_MASK(UART1RXINTR1)) kernel_irq(UART1RXINTR1);
-	if (isr & INT_MASK(UART1TXINTR1)) kernel_irq(UART1TXINTR1);
-	if (isr & INT_MASK(UART2RXINTR1)) kernel_irq(UART2RXINTR1);
-	if (isr & INT_MASK(UART2TXINTR1)) kernel_irq(UART2TXINTR1);
-	scheduler_move2ready();
-}
-
-static inline void kernel_irq(int irq) {
-	task_descriptor *td = eventblocked[irq];
-	ASSERT(td, "Awaiting event for irq #%d is null", irq);
-	VMEM(VIC1 + INTENCLR_OFFSET) = INT_MASK(irq); // real interrupt masking
-	eventblocked[irq] = NULL;
-	scheduler_ready(td);
 }
