@@ -2,6 +2,7 @@
 #include <syscall.h>
 #include <timeserver.h>
 #include <perfmon.h>
+#include <k3clients.h>
 
 #define RPS_SERVER 0
 #define PERFMON 0
@@ -18,4 +19,6 @@ void task1() {
 #if PERFMON
 	Create(1, perfmon);
 #endif
+
+	Create(10, k3main);
 }

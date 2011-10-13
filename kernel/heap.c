@@ -111,7 +111,7 @@ void* heap_extract_min(heap *h) {
 	ASSERT(top, "empty");
 	h->size--;
 	void* rv = top->data;
-	if (h->size == 0) {
+	if (h->size > 0) {
 		*top = h->arr[h->size];
 		heap_heapify_min(h, 0);
 	}

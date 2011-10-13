@@ -34,8 +34,8 @@ void timenotifier() {
 	}
 }
 
-inline void timeserver_do_tick(timeserver_state *state) {
-	// grab the time
+inline void timeserver_do_tick(timeserver_state *state, int tid) {
+	unblock(tid, 0); // unblock notifier
 	state->time++;
 	// unblock waiting tasks
 	for (;;) {
@@ -52,7 +52,7 @@ inline void timeserver_do_time(timeserver_state *state, int tid) {
 
 inline void timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks) {
 	if (ticks < 0) ticks = 0;
-	heap_insert_max(state->tasks, (void*) tid, ticks);
+	heap_insert_min(state->tasks, (void*) tid, ticks);
 }
 
 void timeserver() {
@@ -81,8 +81,7 @@ void timeserver() {
 		if (msglen == sizeof(req)) {
 			switch (req.no) {
 				case TIMESERVER_TICK:
-					unblock(tid, 0); // unblock notifier
-					timeserver_do_tick(&state);
+					timeserver_do_tick(&state, tid);
 					break;
 				case TIMESERVER_TIME:
 					timeserver_do_time(&state, tid);
@@ -91,7 +90,9 @@ void timeserver() {
 					timeserver_do_delayuntil(&state, tid, req.ticks);
 					break;
 				default:
+					ASSERT(FALSE, "WTF timeserver received some garbage");
 					unblock(tid, TIMESERVER_ERROR_BADREQNO);
+					break;
 			}
 		} else {
 			unblock(tid, TIMESERVER_ERROR_BADDATA);
