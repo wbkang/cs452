@@ -15,7 +15,7 @@ static int exitkernel, errno;
 
 static int nameserver_tid;
 static int idleserver_tid;
-static task_descriptor* eventblocked[NUM_IRQS];
+static task_descriptor *eventblocked[NUM_IRQS];
 
 static inline int kernel_mytid();
 static inline int kernel_myparenttid();
@@ -116,7 +116,7 @@ static inline void handle_swi(register_set *reg) {
 	}
 }
 
-int kernel_runloop() {
+int kernel_run() {
 	while (!exitkernel) {
 		ASSERT(!scheduler_empty(), "no task to schedule");
 		register_set *reg = &scheduler_get()->registers;

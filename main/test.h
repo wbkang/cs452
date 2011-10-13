@@ -4,9 +4,9 @@
 #include <rawio.h>
 #include <util.h>
 
-#define TEST_START() TRACE("[%s] test start", __func__)
+#define TEST_START() { if (TEST_REALLY_ENABLED) { TRACE("[%s] test start", __func__)
 
-#define TEST_END() TRACE("[%s] test end", __func__)
+#define TEST_END() TRACE("[%s] test end", __func__) } }
 
 #define EXPECT(expected, got) { \
 	int __e = (int)expected; int __g = (int)got; \
