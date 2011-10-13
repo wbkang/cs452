@@ -14,8 +14,8 @@
 
 void timeserver();
 
-inline int timeserver_time();
+inline int timeserver_time(int timeserver);
 
-inline int timeserver_delay(int ticks);
+inline int timeserver_delay(int ticks, int timeserver);
 
-inline int timeserver_delayuntil(int ticks);
+inline int timeserver_delayuntil(int ticks, int timeserver);

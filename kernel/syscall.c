@@ -16,14 +16,14 @@ int WhoIs(char *name) {
 	return nameserver_whois(name);
 }
 
-int Time() {
-	return timeserver_time();
+int Time(int timeserver) {
+	return timeserver_time(timeserver);
 }
 
-int Delay(int ticks) {
-	return timeserver_delay(ticks);
+int Delay(int ticks, int timeserver) {
+	return timeserver_delay(ticks, timeserver);
 }
 
-int DelayUntil(int ticks) {
-	return timeserver_delayuntil(ticks);
+int DelayUntil(int ticks, int timeserver) {
+	return timeserver_delayuntil(ticks, timeserver);
 }

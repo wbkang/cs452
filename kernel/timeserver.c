@@ -30,7 +30,7 @@ void timenotifier() {
 		int rv = AwaitEvent(TC1UI);
 		VMEM(TIMER1_BASE + CLR_OFFSET) = 1; // clear hardware interrupt status
 		ASSERT(rv >= 0, "incorrect AwaitEvent return value");
-		timeserver_tick();
+		timeserver_tick(timeserver);
 	}
 }
 
@@ -103,40 +103,38 @@ void timeserver() {
 	}
 }
 
-inline int timeserver_send(timeserver_req *req) {
-	int server = WhoIs(NAME_TIMESERVER);
-	if (server < 0) return server;
+inline int timeserver_send(timeserver_req *req, int server) {
 	int rv;
 	int len = Send(server, (void*) req, sizeof(timeserver_req), (void*) &rv, sizeof rv);
 	if (len != sizeof rv) return TIMESERVER_ERROR_BADDATA;
 	return rv;
 }
 
-static inline int timeserver_tick() {
+static inline int timeserver_tick(int timeserver) {
 	timeserver_req req;
 	req.no = TIMESERVER_TICK;
-	return timeserver_send(&req);
+	return timeserver_send(&req, timeserver);
 }
 
 /*
  * API
  */
 
-inline int timeserver_time() {
+inline int timeserver_time(int timeserver) {
 	timeserver_req req;
 	req.no = TIMESERVER_TIME;
-	return timeserver_send(&req);
+	return timeserver_send(&req, timeserver);
 }
 
-inline int timeserver_delay(int ticks) {
-	int time = timeserver_time();
+inline int timeserver_delay(int ticks, int timeserver) {
+	int time = timeserver_time(timeserver);
 	if (time < 0) return time;
-	return timeserver_delayuntil(time + ticks);
+	return timeserver_delayuntil(time + ticks, timeserver);
 }
 
-inline int timeserver_delayuntil(int ticks) {
+inline int timeserver_delayuntil(int ticks, int timeserver) {
 	timeserver_req req;
 	req.no = TIMESERVER_DELAYUNTIL;
 	req.ticks = ticks;
-	return timeserver_send(&req);
+	return timeserver_send(&req, timeserver);
 }

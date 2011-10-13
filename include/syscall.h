@@ -45,11 +45,11 @@ int Reply(int tid, void* reply, int replylen);
 
 int NameServerTid();
 
-int Time();
+int Time(int timeserver);
 
-int Delay(int ticks);
+int Delay(int ticks, int timeserver);
 
-int DelayUntil(int ticks);
+int DelayUntil(int ticks, int timeserver);
 
 int AwaitEvent(int eventid);
 
