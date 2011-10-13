@@ -13,7 +13,7 @@
 
 static int nameserver_tid;
 static int idleserver_tid;
-static task_descriptor* awaiting_event[NUM_IRQS];
+static task_descriptor* eventblocked[NUM_IRQS];
 
 static inline int kernel_mytid();
 static inline int kernel_myparenttid();
@@ -40,11 +40,7 @@ void kernel_init() {
 	mem_init(TASK_LIST_SIZE);
 	td_init();
 	scheduler_init();
-
-	for (int i = 0; i < NUM_IRQS; i++) {
-		awaiting_event[i] = NULL;
-	}
-
+	for (int i = 0; i < NUM_IRQS; i++) eventblocked[i] = NULL;
 	nameserver_tid = kernel_createtask(PRIORITY_NAMESERVER, nameserver);
 	idleserver_tid = kernel_createtask(PRIORITY_IDLESERVER, kernel_idleserver);
 }
