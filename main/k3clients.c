@@ -3,6 +3,11 @@
 #include <syscall.h>
 #include <util.h>
 
+typedef struct {
+	int delay_time;
+	int delays;
+} delay_info;
+
 #define PRINTF(timeserver, ...) { \
 	bwprintf(1, "[%d\t] ", Time(timeserver)); \
 	bwprintf(1, __VA_ARGS__); \
@@ -11,47 +16,48 @@
 
 #define SAY(timeserver, name, ...) { \
 	bwprintf(1, "[%d\t] ", Time(timeserver)); \
-	for (int i = 0; i < 2 * (name - 3); i++) bwprintf(1, "\t"); \
+	for (int i = 0; i < 2 * (name - 6); i++) bwprintf(1, "\t"); \
 	bwprintf(1, "{%d} ", name); \
 	bwprintf(1, __VA_ARGS__); \
 	bwprintf(1, "\n"); \
 }
 
-static inline void do_stuff(int name, int delay_time, int delays) {
+static inline void client_task() {
+	int tid;
+	delay_info arg;
+	Send(MyParentsTid(), NULL, 0, &arg, sizeof arg);
+	int mytid = MyTid();
+	int delay_time = arg.delay_time;
+	int delays = arg.delays;
+
 	int timeserver = WhoIs(NAME_TIMESERVER);
-	SAY(timeserver, name, "started");
+	SAY(timeserver, mytid, "started");
 	for(int i = 0; i < delays; i++) {
-		SAY(timeserver, name, "delay %d for %d ticks", i + 1, delay_time);
+		SAY(timeserver, mytid, "delay %d for %d ticks", i + 1, delay_time);
 		Delay(delay_time, timeserver);
-		SAY(timeserver, name, "back from delay %d", i + 1);
+		SAY(timeserver, mytid, "back from delay %d", i + 1);
 	}
-	SAY(timeserver, name, "exited");
+	SAY(timeserver, mytid, "exited");
 	Send(MyParentsTid(), NULL, 0, NULL, 0);
-}
-
-static void t3() {
-	do_stuff(3, 10, 20);
-}
-
-static void t4() {
-	do_stuff(4, 23, 9);
-}
-
-static void t5() {
-	do_stuff(5, 33, 6);
-}
-
-static void t6() {
-	do_stuff(6, 71, 3);
 }
 
 void k3main() {
 	int timeserver = WhoIs(NAME_TIMESERVER);
 	PRINTF(timeserver, "Entering main");
-	Create(6, t3);
-	Create(5, t4);
-	Create(4, t5);
-	Create(3, t6);
+
+	int delayinfo[4][3] = {
+			{6, 10, 20}, {5, 23, 9}, {4, 33, 6}, {3, 71, 3}
+	};
+
+	for (int i = 0; i < 4; i++) {
+		int tid;
+		delay_info info;
+		Create(delayinfo[i][0], client_task);
+		Receive(&tid, NULL, 0);
+		info.delay_time = delayinfo[i][1];
+		info.delays = delayinfo[i][2];
+		Reply(tid, &info, sizeof info);
+	}
 
 	for (int i = 0; i < 4; i++) {
 		int tid;
