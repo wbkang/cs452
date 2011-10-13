@@ -15,6 +15,10 @@ static int nameserver_tid;
 static int idleserver_tid;
 static task_descriptor* eventblocked[NUM_IRQS];
 
+#define NUM_SERVERS 4
+static int num_running_tasks;
+static int canexit;
+
 static inline int kernel_mytid();
 static inline int kernel_myparenttid();
 static inline void kernel_exit();
@@ -25,7 +29,7 @@ static inline int kernel_awaitevent(int irq);
 static inline void handle_swi(register_set *reg);
 static inline void handle_hwi(int isr);
 static inline void kernel_irq(int irq);
-static inline void kernel_idleserver() { for (;;) {Pass();} }
+static inline void kernel_idleserver() { for (;;) Pass(); }
 
 static void install_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
@@ -41,6 +45,8 @@ void kernel_init() {
 	td_init();
 	scheduler_init();
 	for (int i = 0; i < NUM_IRQS; i++) eventblocked[i] = NULL;
+	num_running_tasks = 0;
+	canexit = FALSE;
 	nameserver_tid = kernel_createtask(PRIORITY_NAMESERVER, nameserver);
 	idleserver_tid = kernel_createtask(PRIORITY_IDLESERVER, kernel_idleserver);
 }
@@ -120,6 +126,14 @@ void kernel_runloop() {
 		} else {
 			handle_swi(reg);
 		}
+		if (canexit) {
+			if (num_running_tasks == NUM_SERVERS) {
+				PRINT("No more non-server tasks; exiting...");
+				break;
+			}
+		} else if (num_running_tasks > NUM_SERVERS) {
+			canexit = TRUE;
+		}
 	}
 }
 
@@ -136,6 +150,7 @@ inline int kernel_createtask(int priority, func_t code) {
 	td->registers.spsr = 0x50;
 	allocate_user_memory(td);
 	scheduler_ready(td);
+	++num_running_tasks;
 	return td->id;
 }
 
@@ -158,6 +173,7 @@ static inline void kernel_exit() {
 	}
 	free_user_memory(receiver);
 	td_free(receiver);
+	--num_running_tasks;
 }
 
 inline int transfer_msg(task_descriptor *sender, task_descriptor *receiver) {

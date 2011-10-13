@@ -45,8 +45,8 @@ typedef char *va_list;
 
 ///////////// DEBUG
 #define ASSERT_ENABLED 1
-#define TRACE_ENABLED 1
-#define TEST_ENABLED 1
+#define TRACE_ENABLED 0
+#define TEST_ENABLED 0
 #define LONG_TEST_ENABLED 0
 void bwprintf(int channel, char *fmt, ... );
 
