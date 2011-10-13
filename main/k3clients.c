@@ -24,8 +24,8 @@ static inline void do_stuff(int name, int delay_time, int delays) {
 		Delay(delay_time);
 		SAY(name, "back from delay %d", i + 1);
 	}
-	Send(MyParentsTid(), NULL, 0, NULL, 0);
 	SAY(name, "exited");
+	Send(MyParentsTid(), NULL, 0, NULL, 0);
 }
 
 static void t3() {
@@ -59,4 +59,5 @@ void k3main() {
 	}
 
 	PRINTF("Exiting main");
+	ExitKernel(0);
 }

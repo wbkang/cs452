@@ -138,3 +138,8 @@ NameServerTid:
 AwaitEvent:
 	swi 10
 	mov pc, lr
+
+.global ExitKernel
+ExitKernel:
+	swi 11
+	mov pc, lr

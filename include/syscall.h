@@ -36,3 +36,5 @@ int Delay(int ticks);
 int DelayUntil(int ticks);
 
 int AwaitEvent(int eventid);
+
+void ExitKernel(int errno);
