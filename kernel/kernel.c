@@ -12,13 +12,12 @@
 #include <timeserver.h>
 
 static int nameserver_tid;
-static task_descriptor* awaiting_event[NUM_IRQS];
+static task_descriptor *eventblocked[NUM_IRQS];
 
 static inline int kernel_mytid();
 static inline int kernel_myparenttid();
 static inline void kernel_exit();
-static inline int kernel_send(int tid, void* msg, int msglen, void* reply,
-		int replylen);
+static inline int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen);
 static inline int kernel_receive(int *tid, void* msg, int msglen);
 static inline int kernel_reply(int tid, void* reply, int replylen);
 static inline int kernel_awaitevent(int irq);
@@ -39,11 +38,7 @@ void kernel_init() {
 	mem_init(TASK_LIST_SIZE);
 	td_init();
 	scheduler_init();
-
-	for (int i = 0; i < NUM_IRQS; i++) {
-		awaiting_event[i] = NULL;
-	}
-
+	for (int i = 0; i < NUM_IRQS; i++) eventblocked[i] = NULL;
 	nameserver_tid = kernel_createtask(MAX_PRIORITY, nameserver);
 }
 
@@ -57,10 +52,8 @@ static inline void handle_swi(register_set *reg) {
 	switch (req_no) {
 	case SYSCALL_CREATE:
 		*r0 = kernel_createtask(a1, (func_t) a2);
-		if (*r0 < 0)
-			scheduler_runmenext();
-		else
-			scheduler_move2ready();
+		if (*r0 < 0) scheduler_runmenext();
+		else scheduler_move2ready();
 		break;
 	case SYSCALL_MYTID:
 		scheduler_runmenext();
@@ -82,10 +75,8 @@ static inline void handle_swi(register_set *reg) {
 		*r0 = (int) umalloc((uint) a1);
 		break;
 	case SYSCALL_SEND: {
-		*r0 = kernel_send(a1, (void*) a2, SENDER_MSGLEN(a4), (void*) a3,
-				SENDER_REPLYLEN(a4));
-		if (*r0 < 0)
-			scheduler_runmenext();
+		*r0 = kernel_send(a1, (void*) a2, SENDER_MSGLEN(a4), (void*) a3, SENDER_REPLYLEN(a4));
+		if (*r0 < 0) scheduler_runmenext();
 		break;
 	}
 	case SYSCALL_RECEIVE: {
@@ -138,7 +129,7 @@ inline int kernel_createtask(int priority, func_t code) {
 	td->priority = priority;
 	td->parent_id = kernel_mytid();
 	td->registers.r[REG_LR] = (int) Exit;
-	td->registers.r[REG_PC] = (int) code;
+	td->registers.r[REG_PC] = entry;
 	td->registers.spsr = 0x50;
 	allocate_user_memory(td);
 	scheduler_ready(td);
@@ -156,14 +147,12 @@ static inline int kernel_myparenttid() {
 }
 
 static inline void kernel_exit() {
-	// return -2 to receive blocked senders
 	task_descriptor *receiver = scheduler_running();
 	task_descriptor *sender;
 	while ((sender = td_pop(receiver))) {
 		sender->registers.r[0] = -2;
 		scheduler_ready(sender);
 	}
-	// suicide
 	free_user_memory(receiver);
 	td_free(receiver);
 }
@@ -221,15 +210,13 @@ inline int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen
 static inline int kernel_receive(int *tid, void* msg, int msglen) {
 	task_descriptor *receiver = scheduler_running();
 	task_descriptor *sender = td_pop(receiver);
-	if (sender)
-		return transfer_msg(sender, receiver);
+	if (sender) return transfer_msg(sender, receiver);
 	scheduler_wait4send(receiver);
 	return 0; // will return later
 }
 
 static inline int kernel_reply(int tid, void* reply, int replylen) {
-	if (td_impossible(tid))
-		return -1;
+	if (td_impossible(tid)) return -1;
 	task_descriptor *sender = td_find(tid);
 	if (!sender) return -2;
 	if (sender->state != TD_STATE_WAITING4REPLY) return -3;
@@ -238,14 +225,12 @@ static inline int kernel_reply(int tid, void* reply, int replylen) {
 }
 
 static inline int kernel_awaitevent(int irq) {
-	if (irq == TC1UI || irq == TC2UI || irq == UART1RXINTR1
-			|| irq == UART1TXINTR1 || irq == UART2RXINTR1
-			|| irq == UART2TXINTR1) {
-		ASSERT(!awaiting_event[irq], "There's tid:%x already waiting for irq:%d", awaiting_event[irq]->id, irq);
+	if (irq & IRQS) {
+		ASSERT(!eventblocked[irq], "wait slot for irq %d not empty (%d)", eventblocked[irq]->id, irq);
 		task_descriptor *cur_task = scheduler_running();
 		TRACE("await event irq: %d, cur_task: %d, irqmask: %d", irq, cur_task->id, INT_MASK(irq));
 		VMEM(VIC1 + INTENABLE_OFFSET) = INT_MASK(irq);
-		awaiting_event[irq] = cur_task;
+		eventblocked[irq] = cur_task;
 		scheduler_wait4event(cur_task);
 		return 0;
 	}
@@ -264,9 +249,9 @@ static inline void handle_hwi(int isr) {
 }
 
 static inline void kernel_irq(int irq) {
-	task_descriptor *td = awaiting_event[irq];
+	task_descriptor *td = eventblocked[irq];
 	ASSERT(td, "Awaiting event for irq #%d is null", irq);
 	VMEM(VIC1 + INTENCLR_OFFSET) = INT_MASK(irq); // real interrupt masking
-	awaiting_event[irq] = NULL;
+	eventblocked[irq] = NULL;
 	scheduler_ready(td);
 }

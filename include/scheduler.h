@@ -22,4 +22,4 @@ inline void scheduler_wait4receive(task_descriptor *receiver, task_descriptor *s
 
 inline void scheduler_wait4reply(task_descriptor *sender);
 
-void scheduler_wait4event(task_descriptor *td);
+inline void scheduler_wait4event(task_descriptor *td);

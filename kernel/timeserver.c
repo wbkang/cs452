@@ -58,7 +58,6 @@ inline void timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks
 void timeserver() {
 	RegisterAs(NAME_TIMESERVER);
 	int notifier = Create(PRIORITY_TIMENOTIFIER, timenotifier);
-	TRACE("coming out of creating notifier");
 	// init timer 3
 	VMEM(TIMER1_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
 	VMEM(TIMER1_BASE + LDR_OFFSET) = 508 * TIMESERVER_RATE;
