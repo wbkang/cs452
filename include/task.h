@@ -52,12 +52,12 @@ inline void td_list_remove(task_descriptor *td);
 
 inline void td_list_push(task_descriptor *head, task_descriptor *td);
 
+task_descriptor *td_list_pop(task_descriptor *head);
+
 task_descriptor *td_new();
 
 void td_free(task_descriptor *td);
 
 task_descriptor *td_find(uint id);
-
-task_descriptor *td_pop(task_descriptor *head);
 
 void reginfo(register_set *reg);

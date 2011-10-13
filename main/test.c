@@ -78,14 +78,10 @@ static void test_heap() {
 }
 
 void test_run() {
-#if TEST_ENABLED
-	TEST_START();
 	mem_reset();
 	test_stack();
 	test_queue();
 	test_priorityq();
 	test_heap();
 	mem_reset();
-	TEST_END();
-#endif
 }

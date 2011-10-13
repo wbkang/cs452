@@ -21,5 +21,5 @@ int main(int argc, char *argv[]) {
 	kerneltest_run();
 	kernel_init();
 	kernel_createtask(0, task1);
-	return kernel_runloop();
+	return kernel_run();
 }
