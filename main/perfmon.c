@@ -28,18 +28,15 @@ static void sender() {
 	PRINT("Sender test starting");
 	int rcvtid = Create(SENDER_PRIORITY + (SENDER_FIRST ? -1 : 0), receiver);
 	ASSERT(rcvtid >= 0, "oops");
-	char buf[MSG_SIZE]
-#if MSG_SIZE == 64
-	= "012345678901234567890123456789012345678901234567890123456789123";
-#else
-	= "123";
-#endif
+	char buf[MSG_SIZE];
+	for (int i = 0; i < MSG_SIZE; i++) {
+		buf[i] = '0' + (i % 10);
+	}
+	buf[MSG_SIZE - 1] = '\0';
 	char replybuf[MSG_SIZE];
 	uint start_time = timer();
 	for (int i = ITERATION; i > 0; --i) {
-		//PRINT("sending to receiver");
 		Send(rcvtid, buf, MSG_SIZE, replybuf, MSG_SIZE);
-		//PRINT("sent");
 	}
 	uint end_time = timer();
 	int elapsed_time = end_time - start_time;

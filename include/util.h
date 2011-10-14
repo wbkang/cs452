@@ -24,8 +24,7 @@ typedef char *va_list;
 
 #define va_end(ap)  ((void)0)
 
-#define va_arg(ap, t)   \
-		         (((ap) = (ap) + __va_argsiz(t)), *((t*) (void*) ((ap) - __va_argsiz(t))))
+#define va_arg(ap, t) (((ap) = (ap) + __va_argsiz(t)), *((t*) (void*) ((ap) - __va_argsiz(t))))
 
 ///////////// USEFUL MACROS
 #define VMEM(x) (*(vmemptr)(x))
@@ -39,9 +38,11 @@ typedef char *va_list;
 #define BIT_TOGGLE(word, mask, flag) ((word) ^= (-(flag) ^ (word)) & (mask))
 #define BYTES2WORDS(x) ((x) >> 2)
 #define NEXTHIGHESTWORD(x) BYTES2WORDS((x) + 3)
+#define LIKELY(x) __builtin_expect((x), 1)
+#define UNLIKELY(x) __builtin_expect((x), 0)
 
 ///////////// DEBUG
-#define ASSERT_ENABLED 1
+#define ASSERT_ENABLED 0
 #define TRACE_ENABLED 1
 #define TEST_ENABLED 1
 #define KERNELTEST_ENABLED 0
@@ -51,7 +52,7 @@ typedef char *va_list;
 #define LONG_TEST_ENABLED 0
 void bwprintf(int channel, char *fmt, ... );
 
-void errormsg(char*);
+void errormsg(char *);
 void die();
 
 #if ASSERT_ENABLED
