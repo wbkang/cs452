@@ -79,11 +79,13 @@ void timeserver() {
 	// init com arguments
 	int tid;
 	timeserver_req req;
-	// serve
+	// sync up with notifier
 	do {
 		Receive(&tid, NULL, 0);
+		ASSERT(tid == notifier, "no the notifier %d (%x)", tid, tid);
+		Reply(tid, NULL, 0);
 	} while (tid != notifier);
-	Reply(notifier, NULL, 0);
+	// serve
 	for (;;) {
 		int msglen = Receive(&tid, (void*) &req, sizeof(req));
 		if (msglen == sizeof(req)) {
@@ -135,6 +137,7 @@ inline int timeserver_time(int timeserver) {
 }
 
 inline int timeserver_delay(int ticks, int timeserver) {
+	ASSERT(ticks > 0, "negative ticks");
 	timeserver_req req;
 	req.no = TIMESERVER_DELAY;
 	req.ticks = ticks;
@@ -142,6 +145,7 @@ inline int timeserver_delay(int ticks, int timeserver) {
 }
 
 inline int timeserver_delayuntil(int ticks, int timeserver) {
+	ASSERT(ticks > 0, "negative ticks");
 	timeserver_req req;
 	req.no = TIMESERVER_DELAYUNTIL;
 	req.ticks = ticks;

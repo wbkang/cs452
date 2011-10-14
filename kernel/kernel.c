@@ -164,8 +164,8 @@ static inline void handle_hwi(int isr) {
 
 static inline void kernel_irq(int irq) {
 	task_descriptor *td = eventblocked[irq];
-	ASSERT(td, "Awaiting event for irq #%d is null", irq);
-	VMEM(VIC1 + INTENCLR_OFFSET) = INT_MASK(irq); // real interrupt masking
+	ASSERT(td, "No task is event blocked on irq #%d", irq);
+	VMEM(VIC1 + INTENCLR_OFFSET) = INT_MASK(irq);
 	eventblocked[irq] = NULL;
 	scheduler_ready(td);
 }

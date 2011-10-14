@@ -74,11 +74,16 @@ uint strparseuint(char *str, int *idx) {
 }
 
 void *memcpy(void *dst, void const *src, uint len) {
-    int *to = (int *) dst;
-    int const *from = (int const *) src;
-    if ((((int) src | (int) dst) & 3) == 0) { // aligned
-		register int n = ((len >> 2) + 7) >> 3;
-		switch ((len >> 2) & 7) {
+	if (len == 0) return dst;
+	ASSERT(((int) src & 3) == 0, "src unaligned: %x", src);
+	ASSERT(((int) dst & 3) == 0, "dst unaligned: %x", src);
+	ASSERT((len & 3) == 0, "length unaligned: %d (%x)", len, len);
+    // if ((((int) src | (int) dst) & 3) == 0) { // aligned
+	    int *to = (int *) dst;
+	    int const *from = (int const *) src;
+	    uint words = len >> 2;
+		int n = words >> 3;
+		switch (words & 7) {
 			case 0:	do {	*to++ = *from++;
 			case 7:			*to++ = *from++;
 			case 6:			*to++ = *from++;
@@ -87,20 +92,47 @@ void *memcpy(void *dst, void const *src, uint len) {
 			case 3:			*to++ = *from++;
 			case 2:			*to++ = *from++;
 			case 1:			*to++ = *from++;
-					} while(--n > 0);
+					} while(n-- > 0);
 		}
-    }
-    char *ldst = (char *) to;
-    char const *lsrc = (char const *) from;
-    len &= 3;
-    ASSERT(len == 0, "unaligned! src: %x, dst: %x, len: %d", src, dst, len);
-    while (len--) {
-        *ldst++ = *lsrc++;
-    }
+    // } else {
+	   //  char *ldst = (char *) dst;
+	   //  char const *lsrc = (char const *) src;
+	   //  while (len--) {
+	   //      *ldst++ = *lsrc++;
+	   //  }
+    // }
     return dst;
 }
 
 void *memcpy2(void *dst, void const *src, uint len) {
+	if (len == 0) return dst;
+    if ((((int) src | (int) dst) & 3) == 0) { // aligned
+	    int *to = (int *) dst;
+	    int const *from = (int const *) src;
+	    uint words = len >> 2;
+		int n = words >> 3;
+		switch (words & 7) {
+			case 0:	do {	*to++ = *from++;
+			case 7:			*to++ = *from++;
+			case 6:			*to++ = *from++;
+			case 5:			*to++ = *from++;
+			case 4:			*to++ = *from++;
+			case 3:			*to++ = *from++;
+			case 2:			*to++ = *from++;
+			case 1:			*to++ = *from++;
+					} while(n-- > 0);
+		}
+    } else {
+	    char *ldst = (char *) dst;
+	    char const *lsrc = (char const *) src;
+	    while (len--) {
+	        *ldst++ = *lsrc++;
+	    }
+    }
+    return dst;
+}
+
+void *memcpy3(void *dst, void const *src, uint len) {
     int *bdst = (int *) dst;
     int const *bsrc = (int const *) src;
     if ((((int) src | (int) dst) & (sizeof(int) - 1)) == 0) { // aligned
