@@ -175,26 +175,6 @@ static void kerneltest_send() {
 	TEST_END();
 }
 
-static void kerneltest_memcpy() {
-	TEST_START();
-	int size = 1024;
-	int test_size;
-	int numtests = 100;
-	int data[size];
-	int dest[size];
-	for (int i = 0; i < numtests; i++) {
-		test_size = random() % size;
-		for (int j = 0; j < test_size; j++) {
-			data[j] = random();
-		}
-		memcpy(dest, data, 4 * test_size);
-		for (int j = 0; j < test_size; j++) {
-			EXPECT(data[j], dest[j]);
-		}
-	}
-	TEST_END();
-}
-
 void kerneltest_run() {
 	TEST_START();
 	mem_reset();
@@ -204,7 +184,6 @@ void kerneltest_run() {
 	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_nameserver);
 	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_nameserver_testallnames);
 	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_send);
-	kerneltest_runner(MAX_PRIORITY, kerneltest_memcpy);
 	mem_reset();
 	TEST_END();
 }

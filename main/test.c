@@ -6,6 +6,7 @@
 #include <stack.h>
 #include <rawio.h>
 #include <priorityq.h>
+#include <string.h>
 
 static void test_stack() {
 	TEST_START();
@@ -77,11 +78,32 @@ static void test_heap() {
 	TEST_END();
 }
 
+static void test_memcpy() {
+	TEST_START();
+	int size = 1024;
+	int numtests = 100;
+	struct _tag_memcpy_test_data {
+		int data[size];
+	} src, dst;
+	for (int i = 0; i < numtests; i++) {
+		int test_size = random() % size;
+		for (int j = 0; j < test_size; j++) {
+			src.data[j] = random();
+		}
+		memcpy(dst.data, src.data, 4 * test_size);
+		for (int j = 0; j < test_size; j++) {
+			EXPECT(src.data[j], dst.data[j]);
+		}
+	}
+	TEST_END();
+}
+
 void test_run() {
 	mem_reset();
 	test_stack();
 	test_queue();
 	test_priorityq();
 	test_heap();
+	test_memcpy();
 	mem_reset();
 }
