@@ -5,8 +5,9 @@
 #include <util.h>
 
 #define TEST_START() { if (TEST_REALLY_ENABLED) { TRACE("[%s] test start", __func__)
-
 #define TEST_END() TRACE("[%s] test end", __func__) } }
+#define KTEST_START() { if (KTEST_REALLY_ENABLED) { TRACE("[%s] ktest start", __func__)
+#define KTEST_END() TRACE("[%s] ktest end", __func__) } }
 
 #define EXPECT(expected, got) { \
 	int __e = (int)expected; int __g = (int)got; \

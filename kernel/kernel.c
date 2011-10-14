@@ -152,7 +152,6 @@ static inline void handle_swi(register_set *reg) {
 }
 
 static inline void handle_hwi(int isr) {
-	TRACE("Exciting! we just had a hwi isr: %d", isr);
 	if (isr & INT_MASK(TC1UI)) kernel_irq(TC1UI);
 	if (isr & INT_MASK(TC2UI)) kernel_irq(TC2UI);
 	if (isr & INT_MASK(UART1RXINTR1)) kernel_irq(UART1RXINTR1);
