@@ -60,18 +60,6 @@ static void uninstall_interrupt_handlers() {
 	flush_dcache();
 }
 
-void uptime_init() {
-	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
-	VMEM(TIMER3_BASE + LDR_OFFSET) = ~0;
-	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~MODE_MASK; // free-running mode
-	VMEM(TIMER3_BASE + CRTL_OFFSET) |= CLKSEL_MASK; // 508Khz clock
-	VMEM(TIMER3_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
-}
-
-inline uint uptime() {
-    return ~VMEM(TIMER3_BASE + VAL_OFFSET);
-}
-
 void kernel_init() {
 	install_interrupt_handlers();
 	mem_init(TASK_LIST_SIZE);
@@ -169,11 +157,15 @@ static inline void kernel_irq(int irq) {
 	scheduler_ready(td);
 }
 
+inline uint uptime() {
+    return VMEM(0x80810060);
+}
+
 int kernel_run() {
-	uptime_init();
+	int kernel_start = uptime();
 	int time_idle_start = 0;
 	int idletime = 0;
-	while (!exitkernel) {
+	while (LIKELY(!exitkernel)) {
 		ASSERT(!scheduler_empty(), "no task to schedule");
 		task_descriptor *td = scheduler_get();
 		if (td->id == idleserver_tid) time_idle_start = uptime();
@@ -187,19 +179,19 @@ int kernel_run() {
 		}
 		if (td->id == idleserver_tid) idletime += uptime() - time_idle_start;
 	}
-	int up = uptime();
+	int up = uptime() - kernel_start;
 	int percent = (1000 * idletime) / up;
-	PRINT("uptime: %dms, idletime: %dms (%d.%d%%)", up / 508, idletime / 508, percent / 10, percent % 10);
+	PRINT("uptime: %d, idletime: %d (%d.%d%%)", up, idletime, percent / 10, percent % 10);
 	uninstall_interrupt_handlers();
 	return errno;
 }
 
 inline int kernel_createtask(int priority, func_t code) {
-	if (priority < 0 || priority > MAX_PRIORITY) return -1;
+	if (UNLIKELY(priority < 0 || priority > MAX_PRIORITY)) return -1;
 	uint entry = (uint) code;
-	if (entry < (uint) &_TextStart || entry >= (uint) &_TextEnd) return -3; // in text region?
+	if (UNLIKELY(entry < (uint) &_TextStart || entry >= (uint) &_TextEnd)) return -3; // in text region?
 	task_descriptor *td = td_new();
-	if (!td) return -2;
+	if (UNLIKELY(!td)) return -2;
 	td->priority = priority;
 	td->parent_id = kernel_mytid();
 	td->registers.r[REG_LR] = (int) Exit;
@@ -269,9 +261,9 @@ inline int transfer_reply(task_descriptor *sender, task_descriptor *receiver) {
 }
 
 inline int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen) {
-	if (td_impossible(tid)) return -1;
+	if (UNLIKELY(td_impossible(tid))) return -1;
 	task_descriptor *receiver = td_find(tid);
-	if (!receiver) return -2;
+	if (UNLIKELY(!receiver)) return -2;
 	task_descriptor *sender = scheduler_running();
 	if (receiver->state == TD_STATE_WAITING4SEND) {
 		td_list_remove(receiver);
@@ -290,10 +282,10 @@ static inline int kernel_receive(int *tid, void* msg, int msglen) {
 }
 
 static inline int kernel_reply(int tid, void* reply, int replylen) {
-	if (td_impossible(tid)) return -1;
+	if (UNLIKELY(td_impossible(tid))) return -1;
 	task_descriptor *sender = td_find(tid);
-	if (!sender) return -2;
-	if (sender->state != TD_STATE_WAITING4REPLY) return -3;
+	if (UNLIKELY(!sender)) return -2;
+	if (UNLIKELY(sender->state != TD_STATE_WAITING4REPLY)) return -3;
 	task_descriptor *receiver = scheduler_running();
 	return transfer_reply(sender, receiver);
 }
