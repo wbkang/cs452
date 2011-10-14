@@ -10,67 +10,70 @@
 #define SENDER_PRIORITY (MAX_PRIORITY)
 #define RECEIVER_PRIORITY SENDER_PRIORITY
 
+static void setup_timer() {
+	VMEM(TIMER2_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
+	VMEM(TIMER2_BASE + LDR_OFFSET) = ~0;
+	VMEM(TIMER2_BASE + CRTL_OFFSET) &= ~MODE_MASK; // free-running mode
+	VMEM(TIMER2_BASE + CRTL_OFFSET) |= CLKSEL_MASK; // 508Khz clock
+	VMEM(TIMER2_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
+}
+
+static uint timer() {
+	return ~VMEM(TIMER2_BASE + VAL_OFFSET) & 0xffff;
+}
+
 static void receiver();
 
 static void sender() {
+	PRINT("Sender test starting");
 	int rcvtid = Create(SENDER_PRIORITY + (SENDER_FIRST ? -1 : 0), receiver);
+	ASSERT(rcvtid >= 0, "oops");
 	char buf[MSG_SIZE]
 #if MSG_SIZE == 64
-	 = "012345678901234567890123456789012345678901234567890123456789123";
+	= "012345678901234567890123456789012345678901234567890123456789123";
 #else
 	= "123";
 #endif
 	char replybuf[MSG_SIZE];
-
-	uint start_time;
-	uint end_time;
-	PRINT("Sender test starting");
-	GET_TIME(start_time);
-
-	for ( int i = 0 ; i < ITERATION; i++) {
+	uint start_time = timer();
+	for (int i = ITERATION; i > 0; --i) {
+		//PRINT("sending to receiver");
 		Send(rcvtid, buf, MSG_SIZE, replybuf, MSG_SIZE);
+		//PRINT("sent");
 	}
-
-	GET_TIME(end_time);
-
+	uint end_time = timer();
 	int elapsed_time = end_time - start_time;
+	int per1000 = (1000 * elapsed_time) / ITERATION;
 	PRINT("START TIME: %d, END TIME: %d", start_time, end_time);
-	PRINT("Time elapsed: %dms. %d per iteration. %d iterations in total.",
-			elapsed_time, elapsed_time / ITERATION, ITERATION);
+	PRINT("Time elapsed: %d.%d ticks per iteration. %d iterations in total.",
+			per1000 / 1000, per1000 % 1000, ITERATION);
+	ExitKernel(0);
 }
 
 static void receiver() {
 	int tid;
 	char buf[MSG_SIZE];
-	while(TRUE) {
+	for (;;) {
 		Receive(&tid, buf, MSG_SIZE);
 		Reply(tid, buf, MSG_SIZE);
 	}
-}
-
-static void setup_timer() {
-	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~ENABLE_MASK;
-	VMEM(TIMER3_BASE + LDR_OFFSET)= 0xffffffff;
-	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~MODE_MASK;
-	VMEM(TIMER3_BASE + CRTL_OFFSET) |= CLKSEL_MASK;
-	VMEM(TIMER3_BASE + CRTL_OFFSET) |= ENABLE_MASK;
 }
 
 static void context_switch() {
 	uint start_time;
 	uint end_time;
 	PRINT("ctxswtch test starting");
-	GET_TIME(start_time);
-	for (int i =0; i<10000; i++) {
+	start_time = timer();
+	for (int i =0; i < 10000; i++) {
 		Pass();
 	}
-	GET_TIME(end_time);
-
+	end_time = timer();
 	int elapsed_time = end_time - start_time;
 	PRINT("START TIME: %d, END TIME: %d, diff: %d", start_time, end_time, elapsed_time);
 //		PRINT("Time elapsed: %dms. %d per iteration. %d iterations in total.",
 //				elapsed_time, elapsed_time / ITERATION, ITERATION);
 }
+
 void perfmon() {
 	setup_timer();
 	Create(MAX_PRIORITY, sender);

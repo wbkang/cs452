@@ -28,9 +28,8 @@ void timenotifier() {
 	ASSERT(timeserver >= 0, "cant find time server");
 	Send(timeserver, NULL, 0, NULL, 0);
 	for (;;) {
-		int rv = AwaitEvent(TC1UI);
+		AwaitEvent(TC1UI);
 		VMEM(TIMER1_BASE + CLR_OFFSET) = 1; // clear hardware interrupt status
-		ASSERT(rv >= 0, "incorrect AwaitEvent return value");
 		timeserver_tick(timeserver);
 	}
 }

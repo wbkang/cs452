@@ -299,7 +299,7 @@ static inline int kernel_reply(int tid, void* reply, int replylen) {
 }
 
 static inline int kernel_awaitevent(int irq) {
-	switch(irq) {
+	switch (irq) {
 		case TC1UI:
 		case TC2UI:
 		case UART1RXINTR1:
@@ -313,6 +313,7 @@ static inline int kernel_awaitevent(int irq) {
 			scheduler_wait4event(cur_task);
 			return 0;
 		default:
+			ERROR("invalid irq (%d)", irq);
 			return -1;
 	}
 }

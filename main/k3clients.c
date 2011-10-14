@@ -60,8 +60,7 @@ void k3main() {
 
 	for (int i = 0; i < 4; i++) {
 		int tid;
-		int rv = Receive(&tid, NULL, 0);
-		ASSERT(rv >= 0, "oops");
+		Receive(&tid, NULL, 0);
 		Reply(tid, NULL, 0);
 	}
 

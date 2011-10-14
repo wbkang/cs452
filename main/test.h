@@ -25,5 +25,4 @@
 	} \
 }
 
-
 void test_run();

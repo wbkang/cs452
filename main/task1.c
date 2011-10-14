@@ -6,6 +6,7 @@
 
 #define RPS_SERVER 0
 #define PERFMON 0
+#define K3 1
 
 void task1() {
 	Create(PRIORITY_TIMESERVER, timeserver);
@@ -20,5 +21,7 @@ void task1() {
 	Create(1, perfmon);
 #endif
 
+#if K3
 	Create(10, k3main);
+#endif
 }

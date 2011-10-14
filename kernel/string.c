@@ -82,7 +82,7 @@ void *memcpy(void *dst, void const *src, uint len) {
 	    int *to = (int *) dst;
 	    int const *from = (int const *) src;
 	    uint words = len >> 2;
-		int n = words >> 3;
+		int n = (words + 7) >> 3;
 		switch (words & 7) {
 			case 0:	do {	*to++ = *from++;
 			case 7:			*to++ = *from++;
@@ -92,7 +92,7 @@ void *memcpy(void *dst, void const *src, uint len) {
 			case 3:			*to++ = *from++;
 			case 2:			*to++ = *from++;
 			case 1:			*to++ = *from++;
-					} while(n-- > 0);
+					} while(--n > 0);
 		}
     // } else {
 	   //  char *ldst = (char *) dst;
@@ -106,11 +106,12 @@ void *memcpy(void *dst, void const *src, uint len) {
 
 void *memcpy2(void *dst, void const *src, uint len) {
 	if (len == 0) return dst;
+	ASSERT((len & 3) == 0, "length unaligned: %d (%x)", len, len);
     if ((((int) src | (int) dst) & 3) == 0) { // aligned
 	    int *to = (int *) dst;
 	    int const *from = (int const *) src;
 	    uint words = len >> 2;
-		int n = words >> 3;
+		int n = (words + 7) >> 3;
 		switch (words & 7) {
 			case 0:	do {	*to++ = *from++;
 			case 7:			*to++ = *from++;
@@ -120,7 +121,7 @@ void *memcpy2(void *dst, void const *src, uint len) {
 			case 3:			*to++ = *from++;
 			case 2:			*to++ = *from++;
 			case 1:			*to++ = *from++;
-					} while(n-- > 0);
+					} while(--n > 0);
 		}
     } else {
 	    char *ldst = (char *) dst;
