@@ -44,7 +44,6 @@ uint strlen(char *str) {
 	return i - str;
 }
 
-// @TODO implement this in assembly with ldm and stm
 void strcpy(char *dest, const char *src) {
 	while ((*dest++ = *src++));
 }
@@ -81,7 +80,7 @@ void *memcpy(void *dst, void const *src, uint len) {
 	    // if ((((int) src | (int) dst) & 3) == 0) { // aligned
 		    int *to = (int *) dst;
 		    int const *from = (int const *) src;
-		    uint words = len >> 2;
+		    uint words = BYTES2WORDS(len);
 			int n = (words + 7) >> 3;
 			switch (words & 7) {
 				case 0:	do {	*to++ = *from++;
