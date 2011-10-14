@@ -21,9 +21,9 @@ static uint old_hwi_vector;
 static inline int kernel_mytid();
 static inline int kernel_myparenttid();
 static inline void kernel_exit();
-static inline int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen);
-static inline int kernel_receive(int *tid, void* msg, int msglen);
-static inline int kernel_reply(int tid, void* reply, int replylen);
+static inline int kernel_send(int tid);
+static inline void kernel_receive();
+static inline int kernel_reply(int tid);
 static inline int kernel_awaitevent(int irq);
 static inline void handle_swi(register_set *reg);
 static inline void handle_hwi(int isr);
@@ -31,7 +31,7 @@ static inline void kernel_irq(int irq);
 static inline void kernel_idleserver() { for (;;); }
 
 static void flush_dcache() {
-	for (int seg =0 ; seg < 8; seg++) {
+	for (int seg = 0 ; seg < 8; seg++) {
 		for (int index =0 ; index < 64; index++) {
 			__asm volatile ("mcr p15, 0, %[input], c7, c14, 2\n\t" : : [input] "r" (seg * index));
 		}
@@ -65,7 +65,9 @@ void kernel_init() {
 	mem_init(TASK_LIST_SIZE);
 	td_init();
 	scheduler_init();
-	for (int i = 0; i < NUM_IRQS; i++) eventblocked[i] = NULL;
+	for (int irq = 0; irq < NUM_IRQS; irq++) {
+		eventblocked[irq] = NULL;
+	}
 	exitkernel = FALSE;
 	nameserver_tid = kernel_createtask(PRIORITY_NAMESERVER, nameserver);
 	idleserver_tid = kernel_createtask(PRIORITY_IDLESERVER, kernel_idleserver);
@@ -76,8 +78,8 @@ static inline void handle_swi(register_set *reg) {
 	int *r0 = &reg->r[0];
 	int a1 = *r0;
 	int a2 = reg->r[1];
-	int a3 = reg->r[2];
-	int a4 = reg->r[3];
+	// int a3 = reg->r[2];
+	// int a4 = reg->r[3];
 	switch (req_no) {
 		case SYSCALL_CREATE:
 			*r0 = kernel_createtask(a1, (func_t) a2);
@@ -104,20 +106,16 @@ static inline void handle_swi(register_set *reg) {
 			*r0 = (int) umalloc((uint) a1);
 			break;
 		case SYSCALL_SEND: {
-			*r0 = kernel_send(a1, (void*) a2, SENDER_MSGLEN(a4), (void*) a3, SENDER_REPLYLEN(a4));
+			*r0 = kernel_send(a1);
 			if (*r0 < 0) scheduler_runmenext();
 			break;
 		}
 		case SYSCALL_RECEIVE: {
-			int rv = kernel_receive((int *) a1, (void*) a2, a3);
-			if (rv < 0) { // write the error
-				*r0 = rv;
-				scheduler_runmenext();
-			}
+			kernel_receive();
 			break;
 		}
 		case SYSCALL_REPLY:
-			*r0 = kernel_reply(a1, (void*) a2, a3);
+			*r0 = kernel_reply(a1);
 			break;
 		case SYSCALL_NAMESERVERTID:
 			scheduler_runmenext();
@@ -215,79 +213,91 @@ static inline int kernel_myparenttid() {
 static inline void kernel_exit() {
 	task_descriptor *receiver = scheduler_running();
 	task_descriptor *sender;
-	while ((sender = td_list_pop(receiver))) {
+	// clearout receive blocked tasks
+	while (!td_list_empty(receiver)) {
+		sender = td_list_pop(receiver);
 		sender->registers.r[0] = -2;
 		scheduler_ready(sender);
+	}
+	// remove me from eventblocked queue
+	for (int irq = 0; irq < NUM_IRQS; irq++) {
+		if (eventblocked[irq] == receiver) {
+			VMEM(VIC1 + INTENCLR_OFFSET) = INT_MASK(irq);
+			eventblocked[irq] = NULL;
+		}
 	}
 	free_user_memory(receiver);
 	td_free(receiver);
 }
 
-inline int transfer_msg(task_descriptor *sender, task_descriptor *receiver) {
-	*((int *) receiver->registers.r[0]) = sender->id;
+inline void transfer_msg(task_descriptor *sender, task_descriptor *receiver) {
+	int *sender_r = sender->registers.r;
+	int *receiver_r = receiver->registers.r;
+	// put sender id into the int pointed to by a1 of Receive()
+	*((int *) receiver_r[0]) = sender->id;
 	// set up lengths
-	int sender_msglen = SENDER_MSGLEN(sender->registers.r[3]);
-	int receiver_msglen = receiver->registers.r[2];
+	int sender_msglen = SENDER_MSGLEN(sender_r[3]);
+	int receiver_msglen = receiver_r[2];
 	int len = MIN(sender_msglen, receiver_msglen);
 	// set up message buffers
-	void* sender_msg = (void*) sender->registers.r[1];
-	void* receiver_msg = (void*) receiver->registers.r[1];
+	void* sender_msg = (void*) sender_r[1];
+	void* receiver_msg = (void*) receiver_r[1];
 	memcpy(receiver_msg, sender_msg, len);
 	// make sender wait for reply
 	scheduler_wait4reply(sender);
 	// make receiver ready to run
-	receiver->registers.r[0] = len; // return to receiver
+	receiver_r[0] = len; // receiver rv
 	scheduler_ready(receiver);
-	// return copied bytes
-	return len;
 }
 
-inline int transfer_reply(task_descriptor *sender, task_descriptor *receiver) {
+inline void transfer_reply(task_descriptor *sender, task_descriptor *receiver) {
+	int *sender_r = sender->registers.r;
+	int *receiver_r = receiver->registers.r;
 	// set up lengths
-	int sender_replylen = SENDER_REPLYLEN(sender->registers.r[3]);
-	int receiver_replylen = receiver->registers.r[2];
+	int sender_replylen = SENDER_REPLYLEN(sender_r[3]);
+	int receiver_replylen = receiver_r[2];
 	int len = MIN(sender_replylen, receiver_replylen);
 	// set up message buffers
-	void* sender_reply = (void*) sender->registers.r[2];
-	void* receiver_reply = (void*) receiver->registers.r[1];
+	void* sender_reply = (void*) sender_r[2];
+	void* receiver_reply = (void*) receiver_r[1];
 	memcpy(sender_reply, receiver_reply, len);
 	// make sender ready to run
-	sender->registers.r[0] = len; // return to sender
+	sender_r[0] = len; // sender rv
 	scheduler_ready(sender);
 	// make receiver ready to run
 	scheduler_ready(receiver);
-	// return 0 implying no error
-	return 0;
 }
 
-inline int kernel_send(int tid, void* msg, int msglen, void* reply, int replylen) {
+inline int kernel_send(int tid) {
 	if (UNLIKELY(td_impossible(tid))) return -1;
 	task_descriptor *receiver = td_find(tid);
 	if (UNLIKELY(!receiver)) return -2;
 	task_descriptor *sender = scheduler_running();
 	if (receiver->state == TD_STATE_WAITING4SEND) {
-		td_list_remove(receiver);
-		return transfer_msg(sender, receiver);
+		// td_list_remove(receiver);
+		transfer_msg(sender, receiver);
+	} else {
+		scheduler_wait4receive(receiver, sender);
 	}
-	scheduler_wait4receive(receiver, sender);
-	return 0; // will return later
+	return 0;
 }
 
-static inline int kernel_receive(int *tid, void* msg, int msglen) {
+static inline void kernel_receive() {
 	task_descriptor *receiver = scheduler_running();
-	task_descriptor *sender = td_list_pop(receiver);
-	if (sender) return transfer_msg(sender, receiver);
-	scheduler_wait4send(receiver);
-	return 0; // will return later
+	if (td_list_empty(receiver)) {
+		scheduler_wait4send(receiver);
+	} else {
+		transfer_msg(td_list_pop(receiver), receiver);
+	}
 }
 
-static inline int kernel_reply(int tid, void* reply, int replylen) {
+static inline int kernel_reply(int tid) {
 	if (UNLIKELY(td_impossible(tid))) return -1;
 	task_descriptor *sender = td_find(tid);
 	if (UNLIKELY(!sender)) return -2;
 	if (UNLIKELY(sender->state != TD_STATE_WAITING4REPLY)) return -3;
-	task_descriptor *receiver = scheduler_running();
-	return transfer_reply(sender, receiver);
+	transfer_reply(sender, scheduler_running());
+	return 0;
 }
 
 static inline int kernel_awaitevent(int irq) {

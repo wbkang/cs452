@@ -13,7 +13,7 @@ void mem_init(uint task_list_size) {
 	kernel_heap = &_KERNEL_MEM_START;
 	// initialize user memory pages
 	umpages = stack_new(task_list_size);
-	for (int i = TASK_LIST_SIZE - 1; i != -1; i--) {
+	for (int i = 0; i < TASK_LIST_SIZE; i++) {
 		stack_push(umpages, (void*) (USER_MEM_START + STACK_SIZE * i));
 	}
 }
@@ -57,14 +57,15 @@ void* qmalloc(uint size) {
 }
 
 void allocate_user_memory(task_descriptor *td) {
-	td->heap_base = (memptr) stack_pop(umpages);
-	td->heap = td->heap_base;
+	memptr heap_base = (memptr) stack_pop(umpages);
+	td->heap = heap_base;
 	// add stack size to get stack pointer address.
 	// this will technically point to the next tasks heap,
 	// but since its a full stack it will increment before pushing
-	td->registers.r[REG_SP] = BYTES2WORDS(STACK_SIZE) + (int) td->heap;
+	td->registers.r[REG_SP] = BYTES2WORDS(STACK_SIZE) + (int) heap_base;
 }
 
 void free_user_memory(task_descriptor *td) {
-	stack_push(umpages, td->heap_base);
+	uint base = USER_MEM_START + ((uint) (td->heap - USER_MEM_START) & ~(STACK_SIZE - 1));
+	stack_push(umpages, (memptr) base);
 }

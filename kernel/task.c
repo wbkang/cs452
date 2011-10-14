@@ -50,18 +50,15 @@ inline void td_list_push(task_descriptor *head, task_descriptor *td) {
 
 task_descriptor *td_list_pop(task_descriptor *head) {
 	task_descriptor *td = head->_prev;
-	if (td == head) return NULL;
+	ASSERT(td != head, "td list empty");
 	td_list_remove(td);
 	return td;
 }
 
 task_descriptor *td_new() {
-	task_descriptor *head = &task_descriptors.head_free;
-	if (td_list_empty(head)) return NULL;
-	task_descriptor *rv = td_list_pop(head);
-	td_list_close(rv);
-	rv->state = TD_STATE_NEW;
-	return rv;
+	task_descriptor *td = td_list_pop(&task_descriptors.head_free);
+	td->state = TD_STATE_NEW;
+	return td;
 }
 
 void td_free(task_descriptor *td) {

@@ -18,7 +18,6 @@
 #define TD_STATE_WAITING4REPLY 7
 #define TD_STATE_WAITING4EVENT 8
 
-// this is calculated at compile time.
 #define TASK_LIST_SIZE ((USER_MEM_END - USER_MEM_START) / STACK_SIZE)
 
 typedef struct _tag_register_set {
@@ -28,11 +27,10 @@ typedef struct _tag_register_set {
 
 typedef struct _tag_task_descriptor {
 	int id;
+	int parent_id;
 	uint state;
 	uint priority;
-	int parent_id;
 	register_set registers;
-	memptr heap_base;
 	memptr heap;
 	struct _tag_task_descriptor *_prev;
 	struct _tag_task_descriptor *_next;

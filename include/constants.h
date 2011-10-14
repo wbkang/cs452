@@ -37,7 +37,7 @@
 #define USER_MEM_START	0x300000
 // The end of the task memory region
 #define USER_MEM_END	0x1900000
-// size of user memory in bytes (64 KB)
+// size of user memory in bytes (64 KB) (MUST BE A POWER OF TWO)
 #define STACK_SIZE 65536
 
 // &_TextStart is the start of the .text
