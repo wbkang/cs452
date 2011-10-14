@@ -39,14 +39,10 @@ typedef char *va_list;
 #define BIT_TOGGLE(word, mask, flag) ((word) ^= (-(flag) ^ (word)) & (mask))
 #define BYTES2WORDS(x) ((x) >> 2)
 #define NEXTHIGHESTWORD(x) BYTES2WORDS((x) + 3)
-// 2k clock, divide by 2 to get time in ms, with 6 ticks per 2000 ticks drift correction
-#define GET_TIME(time) { \
-    time = ~VMEM(TIMER3_BASE + VAL_OFFSET); \
-}
 
 ///////////// DEBUG
 #define ASSERT_ENABLED 1
-#define TRACE_ENABLED 0
+#define TRACE_ENABLED 1
 #define TEST_ENABLED 1
 #define KERNELTEST_ENABLED 0
 
