@@ -10,7 +10,6 @@ volatile static int last_run_priority;
 volatile static int last_run_tid = 0;
 
 static void kerneltest_max_tasks_run() {
-	TEST_START();
 	int mytid = MyTid();
 	int myparenttid = MyParentsTid();
 	int mypriority = td_find(mytid)->priority;
@@ -20,15 +19,14 @@ static void kerneltest_max_tasks_run() {
 
 	ASSERT(last_run_priority >= mypriority, "Priority violated. mypriority: %d, last_run_priority: %d", mypriority, last_run_priority);
 	last_run_priority = mypriority;
-	TEST_END();
 }
 
 static void kerneltest_max_tasks() {
-	TEST_START();
+	KTEST_START();
 	TRACE("Testing Create with invalid priorities.");
 	last_run_priority = MAX_PRIORITY;
 
-	int tid = Create(MIN_PRIORITY - 1, kerneltest_max_tasks_run);
+	int tid = Create(-1, kerneltest_max_tasks_run);
 	EXPECTMSG(-1, tid, "Should return -1 for an invalid priority");
 	tid = Create(MAX_PRIORITY + 1, kerneltest_max_tasks_run);
 	EXPECTMSG(-1, tid, "Should return -1 for an invalid priority");
@@ -39,6 +37,7 @@ static void kerneltest_max_tasks() {
 	tid = Create(1, (func_t )0xdeadbeef);
 	EXPECTMSG(-3, tid, "Should return -3 for an invalid code");
 
+#if 0
 	TRACE("Testing Create with maximum number of tasks.");
 	for (int i = 0; i < TASK_LIST_SIZE - 2; i++) {
 		tid = Create(i % (MAX_PRIORITY / 2), kerneltest_max_tasks_run);
@@ -48,21 +47,22 @@ static void kerneltest_max_tasks() {
 	TRACE("Testing Create with no more task descriptor.");
 	tid = Create(MIN_PRIORITY, kerneltest_max_tasks_run);
 	EXPECTMSG(-2, tid, "Should return -2 when we used up ALL the task descriptors");
-	TEST_END();
+#endif
+	KTEST_END();
 }
 
 static void kerneltest_exit() {
-	TEST_START();
+	KTEST_START();
 	TRACE("Testing whether a task frees resource after running.");
 	for (int i = 0; i < TASK_LIST_SIZE * 2; i++) {
 		int tid = Create(MAX_PRIORITY, Exit);
 		ASSERT(tid >= 0, "Task ID invalid %d", tid);
 	}
-	TEST_END();
+	KTEST_END();
 }
 
 static void kerneltest_myparenttid() {
-	TEST_START();
+	KTEST_START();
 	int mytid = MyTid();
 	int myparenttid = MyParentsTid();
 	int mypriority = td_find(mytid)->priority;
@@ -73,7 +73,7 @@ static void kerneltest_myparenttid() {
 	if (mypriority > MIN_PRIORITY) {
 		ASSERT(Create(mypriority - 1, kerneltest_myparenttid) >= 0, "create task failed!?");
 	}
-	TEST_END();
+	KTEST_END();
 }
 
 
@@ -86,14 +86,14 @@ static void kerneltest_runner(int priority, func_t test) {
 }
 
 static void kerneltest_nameserver_overwrite() {
-	TEST_START();
+	KTEST_START();
 	EXPECT(0, RegisterAs("aa"));
 	EXPECT(MyTid(), WhoIs("aa"));
-	TEST_END();
+	KTEST_END();
 }
 
 static void kerneltest_nameserver() {
-	TEST_START();
+	KTEST_START();
 	// invalid name
 	EXPECT(NAMESERVER_ERROR_BADNAME, RegisterAs(""));
 	EXPECT(NAMESERVER_ERROR_BADNAME, RegisterAs("o"));
@@ -123,11 +123,11 @@ static void kerneltest_nameserver() {
 	// try overwriting the old entry
 	EXPECT(0, RegisterAs("aa"));
 	EXPECT(MyTid(), WhoIs("aa"));
-	TEST_END();
+	KTEST_END();
 }
 
 static void kerneltest_nameserver_testallnames() {
-	TEST_START();
+	KTEST_START();
 	// Exhaustive test testing every possible names.
 	if (LONG_TEST_ENABLED) {
 		char name[3];
@@ -142,11 +142,11 @@ static void kerneltest_nameserver_testallnames() {
 			}
 		}
 	}
-	TEST_END();
+	KTEST_END();
 }
 
 static void kerneltest_receive() {
-	TEST_START();
+	KTEST_START();
 	int parent;
 	int reply = 10000;
 	int buf;
@@ -158,11 +158,11 @@ static void kerneltest_receive() {
 		EXPECT(0, Reply(parent, (char*)&reply, sizeof reply));
 		reply++;
 	}
-	TEST_END();
+	KTEST_END();
 }
 
 static void kerneltest_send() {
-	TEST_START();
+	KTEST_START();
 	int num = 0;
 	int reply = 0;
 	int rcvtid = Create(MAX_PRIORITY - 2, kerneltest_receive);
@@ -172,11 +172,11 @@ static void kerneltest_send() {
 		EXPECT(num + 10000, reply);
 		num++;
 	}
-	TEST_END();
+	KTEST_END();
 }
 
 void kerneltest_run() {
-	TEST_START();
+	KTEST_START();
 	mem_reset();
 	kerneltest_runner(MAX_PRIORITY, kerneltest_max_tasks);
 	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_exit);
@@ -185,6 +185,6 @@ void kerneltest_run() {
 	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_nameserver_testallnames);
 	kerneltest_runner(MAX_PRIORITY - 1, kerneltest_send);
 	mem_reset();
-	TEST_END();
+	KTEST_END();
 }
 
