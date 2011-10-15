@@ -81,8 +81,7 @@ void timeserver() {
 	} while (tid != notifier);
 	// serve
 	for (;;) {
-		ASSERT(state, "state is invalid");
-		ASSERT(state->tasks, "state->tasks is invalid");
+		ASSERT(state.tasks, "state->tasks is invalid");
 		int msglen = Receive(&tid, (void*) &req, sizeof(req));
 		if (msglen == sizeof(req)) {
 			switch (req.no) {

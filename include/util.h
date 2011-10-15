@@ -4,25 +4,19 @@
 #include <constants.h>
 
 ////////// TYPES
-
 typedef unsigned int uint;
 typedef uint *memptr;
 typedef uint volatile *volatile vmemptr;
 typedef void (*func_t)();
 
 ////////// .c
-
 uint random();
 
 ////////// VAR ARG
 typedef char *va_list;
-
 #define __va_argsiz(t) (((sizeof(t) + sizeof(int) - 1) / sizeof(int)) * sizeof(int))
-
 #define va_start(ap, pN) ((ap) = ((va_list) __builtin_next_arg(pN)))
-
 #define va_end(ap)  ((void)0)
-
 #define va_arg(ap, t) (((ap) = (ap) + __va_argsiz(t)), *((t*) (void*) ((ap) - __va_argsiz(t))))
 
 ///////////// USEFUL MACROS
@@ -42,7 +36,7 @@ typedef char *va_list;
 
 ///////////// DEBUG
 #define ASSERT_ENABLED 0
-#define TRACE_ENABLED 1
+#define TRACE_ENABLED 0
 #define TEST_ENABLED 1
 #define KERNELTEST_ENABLED 0
 
