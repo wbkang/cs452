@@ -14,11 +14,11 @@ static void test_stack() {
 	stack *s = stack_new(size);
 	void *got, *expected;
 	for (int i = 0; i < size; i++) {
-		stack_push(s, (void *) (1 << i));
+		stack_push(s, (void*) (1 << i));
 	}
 	for (int i = size - 1; i != -1; i--) {
 		got = stack_pop(s);
-		expected = (void *) (1 << i);
+		expected = (void*) (1 << i);
 		EXPECT(expected, got);
 	}
 	TEST_END();
@@ -35,7 +35,7 @@ static void test_queue() {
 	ASSERT(queue_full(q), "ERROR!!!\nInserted max no of items yet not full!");
 	for (int i = 0; i < size; i++) {
 		got = queue_pop(q);
-		expected = (void *) (1 << i);
+		expected = (void*) (1 << i);
 		EXPECT(expected, got);
 	}
 	TEST_END();
@@ -68,11 +68,11 @@ static void test_heap() {
 	heap *h = heap_new(size);
 	void *got, *expected;
 	for (int i = 0; i < size; i++) {
-		heap_insert_max(h, (void *) i, 11 * i);
+		heap_insert_max(h, (void*) i, 11 * i);
 	}
 	for (int i = size - 1; i != -1; i--) {
 		got = heap_extract_max(h);
-		expected = (void *) i;
+		expected = (void*) i;
 		EXPECT(expected, got);
 	}
 	TEST_END();

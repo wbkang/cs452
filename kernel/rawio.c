@@ -50,7 +50,7 @@ void bwputx(int channel, char c) {
 }
 
 void bwputr(int channel, uint reg) {
-	char *ch = (char *) &reg;
+	char *ch = (char*) &reg;
 	bwputx(channel, ch[3]);
 	bwputx(channel, ch[2]);
 	bwputx(channel, ch[1]);
@@ -99,8 +99,9 @@ void bwformat(int channel, char *fmt, va_list va) {
 	char ch, lz;
 	int w;
 	while ((ch = *(fmt++))) {
-		if (ch != '%') bwputc(channel, ch);
-		else {
+		if (ch != '%') {
+			bwputc(channel, ch);
+		} else {
 			lz = 0;
 			w = 0;
 			ch = *(fmt++);

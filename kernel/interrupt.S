@@ -59,12 +59,12 @@ asm_switch_to_usermode:
 	b restore_user_stuff
 
 	@ we are in irq mode, so switch to svc and save sp_irq to sp_svc
-	copy_sp_svc:
+copy_sp_svc:
 	mov r1, #0xd3
 	msr cpsr, r1
 	mov sp, r2
 
-	restore_user_stuff:
+restore_user_stuff:
 	@@@@@ end new part
 
 	@ <) we will be restoring user state, but will need a scratch register. why not use lr_svc?

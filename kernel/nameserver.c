@@ -9,28 +9,31 @@ typedef struct _tag_nameserver_req {
 	char ch[2];
 } nameserver_req;
 
+inline int nameserver_goodchar(char ch) {
+	return ASCII_PRINTABLE_START <= ch && ch <= ASCII_PRINTABLE_END;
+}
+
+inline int nameserver_validname(char *name) {
+	return name && nameserver_goodchar(name[0]) && nameserver_goodchar(name[1]) && name[2] == '\0';
+}
+
 void nameserver() {
 	// init state
 	int hashsize = NUM_ASCII_PRINTABLE * NUM_ASCII_PRINTABLE; // two chars
 	ASSERT(hashsize < STACK_SIZE / sizeof(int), "not enough user memory");
 	int mem[hashsize];
-	for (int i = 0; i < hashsize; i++) mem[i] = -1;
+	for (int i = 0; i < hashsize; i++) {
+		mem[i] = -1;
+	}
 	// init com args
 	int tid;
 	nameserver_req req;
 	// serve
 	int rv;
 	for (;;) {
-		int msglen = Receive(&tid, (void*) &req, sizeof(req));
-		if (msglen == sizeof(req)) {
+		int bytes = Receive(&tid, (void*) &req, sizeof(req));
+		if (bytes == sizeof(req)) {
 			int idx = req.ch[0] * NUM_ASCII_PRINTABLE + req.ch[1] - (NUM_ASCII_PRINTABLE + 1) * ASCII_PRINTABLE_START;
-//			bwprintf(COM2, "[nsrequest] ");
-//			bwprintf(COM2, "req: %x, ", req.no);
-//			bwprintf(COM2, "type: %s, ", req.no ? "whois" : "reg");
-//			bwprintf(COM2, "tid: %d, ", tid);
-//			bwprintf(COM2, "name: %d, ", idx);
-//			bwprintf(COM2, "mem: %d, ", mem[idx]);
-//			bwprintf(COM2, "str: %c%c\n", req.ch[0], req.ch[1]);
 			switch (req.no) {
 				case NAMESERVER_REGISTERAS:
 					mem[idx] = tid;
@@ -50,17 +53,8 @@ void nameserver() {
 		} else {
 			rv = NAMESERVER_ERROR_BADDATA;
 		}
-		// bwprintf(COM2, "rv: %d (%x)\n", rv, rv);
 		Reply(tid, (void*) &rv, sizeof rv);
 	}
-}
-
-inline int nameserver_goodchar(char ch) {
-	return ASCII_PRINTABLE_START <= ch && ch <= ASCII_PRINTABLE_END;
-}
-
-inline int nameserver_validname(char *name) {
-	return name && nameserver_goodchar(name[0]) && nameserver_goodchar(name[1]) && name[2] == '\0';
 }
 
 inline int nameserver_send(char reqno, char *name) {

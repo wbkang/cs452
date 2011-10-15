@@ -8,22 +8,22 @@ inline int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
 	return asm_Send(tid, msg, reply, (replylen << 16) | msglen);
 }
 
-int RegisterAs(char *name) {
+inline int RegisterAs(char *name) {
 	return nameserver_registeras(name);
 }
 
-int WhoIs(char *name) {
+inline int WhoIs(char *name) {
 	return nameserver_whois(name);
 }
 
-int Time(int timeserver) {
+inline int Time(int timeserver) {
 	return timeserver_time(timeserver);
 }
 
-int Delay(int ticks, int timeserver) {
+inline int Delay(int ticks, int timeserver) {
 	return timeserver_delay(ticks, timeserver);
 }
 
-int DelayUntil(int ticks, int timeserver) {
+inline int DelayUntil(int ticks, int timeserver) {
 	return timeserver_delayuntil(ticks, timeserver);
 }

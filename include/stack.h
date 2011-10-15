@@ -9,7 +9,5 @@ typedef struct _tag_stack {
 } stack;
 
 stack *stack_new(uint size);
-
-inline void stack_push(stack *s, void* item);
-
-inline void* stack_pop(stack *s);
+inline void stack_push(stack *this, void* item);
+inline void* stack_pop(stack *this);

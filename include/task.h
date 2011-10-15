@@ -39,23 +39,11 @@ typedef struct _tag_task_descriptor {
 void td_init();
 
 inline int td_index(int tid);
-
 inline int td_impossible(int tid);
-
 inline int td_list_empty(task_descriptor *td);
-
-inline void td_list_close(task_descriptor *td);
-
-inline void td_list_remove(task_descriptor *td);
-
 inline void td_list_push(task_descriptor *head, task_descriptor *td);
-
-task_descriptor *td_list_pop(task_descriptor *head);
-
-task_descriptor *td_new();
-
+inline task_descriptor *td_list_pop(task_descriptor *head);
+inline task_descriptor *td_new();
 void td_free(task_descriptor *td);
-
-task_descriptor *td_find(uint id);
-
+inline task_descriptor *td_find(uint id);
 void reginfo(register_set *reg);

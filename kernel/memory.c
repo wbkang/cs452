@@ -59,9 +59,6 @@ void* qmalloc(uint size) {
 void allocate_user_memory(task_descriptor *td) {
 	memptr heap_base = (memptr) stack_pop(umpages);
 	td->heap = heap_base;
-	// add stack size to get stack pointer address.
-	// this will technically point to the next tasks heap,
-	// but since its a full stack it will increment before pushing
 	td->registers.r[REG_SP] = BYTES2WORDS(STACK_SIZE) + (int) heap_base;
 }
 

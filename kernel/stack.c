@@ -3,20 +3,20 @@
 #include <memory.h>
 
 stack *stack_new(uint size) {
-	stack *s = (stack*) qmalloc(sizeof(stack) + sizeof(void*) * size);
-	s->top = s->min;
-	s->max = s->min + size;
-	return s;
+	stack *this = (stack*) qmalloc(sizeof(stack) + sizeof(void*) * size);
+	this->top = this->min;
+	this->max = this->min + size;
+	return this;
 }
 
-inline void stack_push(stack *s, void* item) {
-	ASSERT(s->top != s->max, "full");
-	*s->top = item;
-	s->top++;
+inline void stack_push(stack *this, void* item) {
+	ASSERT(this->top != this->max, "full");
+	*this->top = item;
+	this->top++;
 }
 
-inline void* stack_pop(stack *s) {
-	ASSERT(s->top != s->min, "empty");
-	s->top--;
-	return *s->top;
+inline void* stack_pop(stack *this) {
+	ASSERT(this->top != this->min, "empty");
+	this->top--;
+	return *this->top;
 }

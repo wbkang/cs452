@@ -10,9 +10,7 @@
 
 #define UART_BASE(_x) (((_x) == COM1) ? UART1_BASE : UART2_BASE)
 
-
 //////////// METHODS
-
 void uart_fifo(int channel, int state);
 void uart_stopbits(int channel, int bits);
 void uart_databits(int channel, int wlen);

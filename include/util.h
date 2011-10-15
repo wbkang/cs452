@@ -7,7 +7,7 @@
 
 typedef unsigned int uint;
 typedef uint *memptr;
-typedef uint volatile * volatile vmemptr;
+typedef uint volatile *volatile vmemptr;
 typedef void (*func_t)();
 
 ////////// .c
@@ -51,7 +51,7 @@ typedef char *va_list;
 #define LONG_TEST_ENABLED 0
 void bwprintf(int channel, char *fmt, ... );
 
-void errormsg(char *);
+void errormsg(char *msg);
 void die();
 
 #if ASSERT_ENABLED

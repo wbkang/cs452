@@ -3,8 +3,8 @@
 #include <util.h>
 
 typedef struct _tag_heap_item {
-	void* data;
 	int key;
+	void* data;
 } heap_item;
 
 typedef struct _tag_heap {
@@ -14,11 +14,8 @@ typedef struct _tag_heap {
 } heap;
 
 heap *heap_new(int size);
-
-inline heap_item *heap_peek(heap *h);
-
-void heap_insert_min(heap *h, void* data, int key);
-void *heap_extract_min(heap *h);
-
-void heap_insert_max(heap *h, void* data, int key);
-void *heap_extract_max(heap *h);
+inline heap_item *heap_peek(heap *this);
+void heap_insert_min(heap *this, void* data, int key);
+void *heap_extract_min(heap *this);
+void heap_insert_max(heap *this, void* data, int key);
+void *heap_extract_max(heap *this);
