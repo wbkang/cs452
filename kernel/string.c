@@ -78,8 +78,8 @@ void *memcpy(void *dst, void const *src, uint len) {
 		ASSERT(((int) dst & 3) == 0, "dst unaligned: %x", src);
 		ASSERT((len & 3) == 0, "length unaligned: %d (%x)", len, len);
 	    // if ((((int) src | (int) dst) & 3) == 0) { // aligned
-		    int *to = (int *) dst;
-		    int const *from = (int const *) src;
+		    int *to = (int*) dst;
+		    int const *from = (int const*) src;
 		    uint words = BYTES2WORDS(len);
 			int n = (words + 7) >> 3;
 			switch (words & 7) {
@@ -94,8 +94,8 @@ void *memcpy(void *dst, void const *src, uint len) {
 						} while(--n > 0);
 			}
 	    // } else {
-		   //  char *ldst = (char *) dst;
-		   //  char const *lsrc = (char const *) src;
+		   //  char *ldst = (char*) dst;
+		   //  char const *lsrc = (char const*) src;
 		   //  while (len--) {
 		   //      *ldst++ = *lsrc++;
 		   //  }
@@ -108,8 +108,8 @@ void *memcpy2(void *dst, void const *src, uint len) {
 	if (len > 0) {
 		ASSERT((len & 3) == 0, "length unaligned: %d (%x)", len, len);
 	    if ((((int) src | (int) dst) & 3) == 0) { // aligned
-		    int *to = (int *) dst;
-		    int const *from = (int const *) src;
+		    int *to = (int*) dst;
+		    int const *from = (int const*) src;
 		    uint words = len >> 2;
 			int n = (words + 7) >> 3;
 			switch (words & 7) {
@@ -124,8 +124,8 @@ void *memcpy2(void *dst, void const *src, uint len) {
 						} while(--n > 0);
 			}
 	    } else {
-		    char *ldst = (char *) dst;
-		    char const *lsrc = (char const *) src;
+		    char *ldst = (char*) dst;
+		    char const *lsrc = (char const*) src;
 		    while (len--) {
 		        *ldst++ = *lsrc++;
 		    }
@@ -135,16 +135,16 @@ void *memcpy2(void *dst, void const *src, uint len) {
 }
 
 void *memcpy3(void *dst, void const *src, uint len) {
-    int *bdst = (int *) dst;
-    int const *bsrc = (int const *) src;
+    int *bdst = (int*) dst;
+    int const *bsrc = (int const*) src;
     if ((((int) src | (int) dst) & (sizeof(int) - 1)) == 0) { // aligned
         while (len >= sizeof(int)) {
             *bdst++ = *bsrc++;
             len -= sizeof(int);
         }
     }
-    char *ldst = (char *) bdst;
-    char const *lsrc = (char const *) bsrc;
+    char *ldst = (char*) bdst;
+    char const *lsrc = (char const*) bsrc;
     while (len--) {
         *ldst++ = *lsrc++;
     }

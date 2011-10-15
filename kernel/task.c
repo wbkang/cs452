@@ -5,6 +5,8 @@ static struct _tag_task_descriptor_list {
 	task_descriptor td[TASK_LIST_SIZE];
 } task_descriptors;
 
+inline void td_list_close(task_descriptor *td);
+
 void td_init() {
 	// initialize free queue
 	task_descriptor *head_free = &task_descriptors.head_free;
@@ -23,16 +25,11 @@ inline int td_index(int tid) {
 }
 
 inline int td_impossible(int tid) {
-	return tid < 0 || (td_index(tid) >= TASK_LIST_SIZE);
+	return tid < 0 || td_index(tid) >= TASK_LIST_SIZE;
 }
 
 inline int td_list_empty(task_descriptor *td) {
 	return td->_prev == td;
-}
-
-inline void td_list_close(task_descriptor *td) {
-	td->_prev = td;
-	td->_next = td;
 }
 
 inline void td_list_remove(task_descriptor *td) {
@@ -48,20 +45,25 @@ inline void td_list_push(task_descriptor *head, task_descriptor *td) {
 	head->_next = td;
 }
 
-task_descriptor *td_list_pop(task_descriptor *head) {
+inline task_descriptor *td_list_pop(task_descriptor *head) {
 	task_descriptor *td = head->_prev;
 	ASSERT(td != head, "td list empty");
 	td_list_remove(td);
 	return td;
 }
 
-task_descriptor *td_new() {
+inline void td_list_close(task_descriptor *td) {
+	td->_prev = td;
+	td->_next = td;
+}
+
+inline task_descriptor *td_new() {
 	task_descriptor *td = td_list_pop(&task_descriptors.head_free);
 	td->state = TD_STATE_NEW;
 	return td;
 }
 
-void td_free(task_descriptor *td) {
+inline void td_free(task_descriptor *td) {
 	td->id += 0x10000; // increment generation
 	if (td->id >= 0) {
 		td_list_push(&task_descriptors.head_free, td);
@@ -71,7 +73,7 @@ void td_free(task_descriptor *td) {
 	}
 }
 
-task_descriptor *td_find(uint id) {
+inline task_descriptor *td_find(uint id) {
 	int i = td_index(id);
 	if (i >= TASK_LIST_SIZE) return NULL;
 	task_descriptor *td = task_descriptors.td + i;

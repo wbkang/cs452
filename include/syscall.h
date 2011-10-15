@@ -5,6 +5,7 @@
 /*
  * System call numbers
  */
+
 #define SYSCALL_CREATE 0
 #define SYSCALL_MYTID 1
 #define SYSCALL_MYPARENTTID 2
@@ -22,35 +23,20 @@
 #define SENDER_REPLYLEN(a4) (((uint ) a4) >> 16)
 
 inline int Send(int tid, char *msg, int msglen, char *reply, int replylen);
-
 inline int RegisterAs(char *name);
-
 inline int WhoIs(char *name);
+inline int Time(int timeserver);
+inline int Delay(int ticks, int timeserver);
+inline int DelayUntil(int ticks, int timeserver);
 
 int Create(int priority, func_t code);
-
 int MyTid();
-
 int MyParentsTid();
-
 void Pass();
-
 void Exit();
-
 void* malloc(uint size);
-
 int Receive(int *tid, void* msg, int msglen);
-
 int Reply(int tid, void* reply, int replylen);
-
 int NameServerTid();
-
-int Time(int timeserver);
-
-int Delay(int ticks, int timeserver);
-
-int DelayUntil(int ticks, int timeserver);
-
 int AwaitEvent(int eventid);
-
 void ExitKernel(int errno);

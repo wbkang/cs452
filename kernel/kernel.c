@@ -11,7 +11,6 @@
 #include <nameserver.h>
 
 static int exitkernel, errno;
-
 static int nameserver_tid;
 static int idleserver_tid;
 static task_descriptor *eventblocked[NUM_IRQS];
@@ -31,12 +30,14 @@ static inline void kernel_irq(int irq);
 static inline void kernel_idleserver() { for (;;); }
 
 static void flush_dcache() {
-	for (int seg = 0 ; seg < 8; seg++) {
-		for (int index =0 ; index < 64; index++) {
-			__asm volatile ("mcr p15, 0, %[input], c7, c14, 2\n\t" : : [input] "r" (seg * index));
+	for (int seg = 0; seg < 8; seg++) {
+		for (int index = 0; index < 64; index++) {
+			__asm volatile (
+				"mcr p15, 0, %[input], c7, c14, 2\n\t" :: [input] "r" (seg * index)
+			);
 		}
 	}
-	__asm volatile ("mcr p15, 0, r0, c7, c5, 0\n\t" : : : "r0");
+	__asm volatile ("mcr p15, 0, r0, c7, c5, 0\n\t" ::: "r0");
 }
 
 static void install_interrupt_handlers() {
@@ -77,14 +78,11 @@ static inline void handle_swi(register_set *reg) {
 	int req_no = VMEM(reg->r[REG_PC] - 4) & 0xffffff;
 	int *r0 = &reg->r[0];
 	int a1 = *r0;
-	int a2 = reg->r[1];
-	// int a3 = reg->r[2];
-	// int a4 = reg->r[3];
+	int a2 = reg->r[1]; // int a3 = reg->r[2]; int a4 = reg->r[3];
 	switch (req_no) {
 		case SYSCALL_CREATE:
 			*r0 = kernel_createtask(a1, (func_t) a2);
-			if (*r0 < 0) scheduler_runmenext();
-			else scheduler_move2ready();
+			if (*r0 < 0) scheduler_runmenext(); else scheduler_move2ready();
 			break;
 		case SYSCALL_MYTID:
 			scheduler_runmenext();
@@ -123,9 +121,7 @@ static inline void handle_swi(register_set *reg) {
 			break;
 		case SYSCALL_AWAITEVENT:
 			*r0 = kernel_awaitevent(a1);
-			if (*r0 < 0) {
-				scheduler_runmenext();
-			}
+			if (*r0 < 0) scheduler_runmenext();
 			break;
 		case SYSCALL_EXITKERNEL:
 			errno = a1;
@@ -133,7 +129,6 @@ static inline void handle_swi(register_set *reg) {
 			break;
 		default:
 			ERROR("unknown system call %d (%x)\n", req_no, req_no);
-			break;
 	}
 }
 
@@ -155,7 +150,7 @@ static inline void kernel_irq(int irq) {
 	scheduler_ready(td);
 }
 
-inline uint uptime() {
+static inline uint uptime() {
     return VMEM(0x80810060);
 }
 
@@ -178,8 +173,8 @@ int kernel_run() {
 		if (td->id == idleserver_tid) idletime += uptime() - time_idle_start;
 	}
 	int up = uptime() - kernel_start;
-	int percent = (1000 * idletime) / up;
-	PRINT("uptime: %d, idletime: %d (%d.%d%%)", up, idletime, percent / 10, percent % 10);
+	int percent10 = (10 * 100 * idletime) / up;
+	PRINT("uptime: %d, idle: %d (%d.%d%%)", up, idletime, percent10 / 10, percent10 % 10);
 	uninstall_interrupt_handlers();
 	return errno;
 }
@@ -187,14 +182,14 @@ int kernel_run() {
 inline int kernel_createtask(int priority, func_t code) {
 	if (UNLIKELY(priority < 0 || priority > MAX_PRIORITY)) return -1;
 	uint entry = (uint) code;
-	if (UNLIKELY(entry < (uint) &_TextStart || entry >= (uint) &_TextEnd)) return -3; // in text region?
+	if (UNLIKELY(entry < (uint) &_TextStart || entry >= (uint) &_TextEnd)) return -3;
 	task_descriptor *td = td_new();
 	if (UNLIKELY(!td)) return -2;
-	td->priority = priority;
 	td->parent_id = kernel_mytid();
+	td->priority = priority;
+	td->registers.spsr = 0x50;
 	td->registers.r[REG_LR] = (int) Exit;
 	td->registers.r[REG_PC] = entry;
-	td->registers.spsr = 0x50;
 	allocate_user_memory(td);
 	scheduler_ready(td);
 	return td->id;
@@ -213,14 +208,12 @@ static inline int kernel_myparenttid() {
 static inline void kernel_exit() {
 	task_descriptor *receiver = scheduler_running();
 	task_descriptor *sender;
-	// clearout receive blocked tasks
-	while (!td_list_empty(receiver)) {
+	while (!td_list_empty(receiver)) { // clearout receive blocked tasks
 		sender = td_list_pop(receiver);
 		sender->registers.r[0] = -2;
 		scheduler_ready(sender);
 	}
-	// remove me from eventblocked queue
-	for (int irq = 0; irq < NUM_IRQS; irq++) {
+	for (int irq = 0; irq < NUM_IRQS; irq++) { // remove me from eventblocked queue
 		if (eventblocked[irq] == receiver) {
 			VMEM(VIC1 + INTENCLR_OFFSET) = INT_MASK(irq);
 			eventblocked[irq] = NULL;
@@ -230,11 +223,11 @@ static inline void kernel_exit() {
 	td_free(receiver);
 }
 
-inline void transfer_msg(task_descriptor *sender, task_descriptor *receiver) {
+static inline void transfer_msg(task_descriptor *sender, task_descriptor *receiver) {
 	int *sender_r = sender->registers.r;
 	int *receiver_r = receiver->registers.r;
 	// put sender id into the int pointed to by a1 of Receive()
-	*((int *) receiver_r[0]) = sender->id;
+	*((int*) receiver_r[0]) = sender->id;
 	// set up lengths
 	int sender_msglen = SENDER_MSGLEN(sender_r[3]);
 	int receiver_msglen = receiver_r[2];
@@ -250,7 +243,7 @@ inline void transfer_msg(task_descriptor *sender, task_descriptor *receiver) {
 	scheduler_ready(receiver);
 }
 
-inline void transfer_reply(task_descriptor *sender, task_descriptor *receiver) {
+static inline void transfer_reply(task_descriptor *sender, task_descriptor *receiver) {
 	int *sender_r = sender->registers.r;
 	int *receiver_r = receiver->registers.r;
 	// set up lengths
@@ -268,13 +261,12 @@ inline void transfer_reply(task_descriptor *sender, task_descriptor *receiver) {
 	scheduler_ready(receiver);
 }
 
-inline int kernel_send(int tid) {
+static inline int kernel_send(int tid) {
 	if (UNLIKELY(td_impossible(tid))) return -1;
 	task_descriptor *receiver = td_find(tid);
 	if (UNLIKELY(!receiver)) return -2;
 	task_descriptor *sender = scheduler_running();
 	if (receiver->state == TD_STATE_WAITING4SEND) {
-		// td_list_remove(receiver);
 		transfer_msg(sender, receiver);
 	} else {
 		scheduler_wait4receive(receiver, sender);
@@ -308,7 +300,7 @@ static inline int kernel_awaitevent(int irq) {
 		case UART1TXINTR1:
 		case UART2RXINTR1:
 		case UART2TXINTR1:
-			ASSERT(!eventblocked[irq], "wait slot for irq %d not empty (%d)", eventblocked[irq]->id, irq);
+			ASSERT(!eventblocked[irq], "irq %d bound to%d", irq, eventblocked[irq]->id);
 			task_descriptor *cur_task = scheduler_running();
 			VMEM(VIC1 + INTENABLE_OFFSET) = INT_MASK(irq);
 			eventblocked[irq] = cur_task;

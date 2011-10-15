@@ -12,7 +12,7 @@ void scheduler_init() {
 	ready_queue = priorityq_new(TASK_LIST_SIZE, NUM_PRIORITY);
 }
 
-task_descriptor *scheduler_running() {
+inline task_descriptor *scheduler_running() {
 	return running;
 }
 

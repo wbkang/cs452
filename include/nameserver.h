@@ -22,7 +22,5 @@
 #define NAMESERVER_ERROR_BADNAME -6
 
 void nameserver();
-
 inline int nameserver_registeras(char *name);
-
 inline int nameserver_whois(char *name);

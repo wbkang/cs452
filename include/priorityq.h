@@ -10,9 +10,6 @@ typedef struct _tag_priorityq {
 } priorityq;
 
 priorityq *priorityq_new(int size, int num_priorities);
-
-inline int priorityq_empty(priorityq *pq);
-
-inline void* priorityq_pop(priorityq *pq);
-
-inline void priorityq_push(priorityq *pq, void* item, uint priority);
+inline int priorityq_empty(priorityq *this);
+inline void* priorityq_pop(priorityq *this);
+inline void priorityq_push(priorityq *this, void* item, uint priority);
