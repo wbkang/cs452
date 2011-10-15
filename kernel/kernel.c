@@ -82,7 +82,7 @@ static inline void handle_swi(register_set *reg) {
 	switch (req_no) {
 		case SYSCALL_CREATE:
 			*r0 = kernel_createtask(a1, (func_t) a2);
-			if (*r0 < 0) scheduler_runmenext();
+			if (*r0 < 0) scheduler_runmenext(); else scheduler_move2ready();
 			break;
 		case SYSCALL_MYTID:
 			scheduler_runmenext();
@@ -189,7 +189,6 @@ inline int kernel_createtask(int priority, func_t code) {
 	td->registers.r[REG_PC] = entry;
 	allocate_user_memory(td);
 	scheduler_ready(td);
-	scheduler_move2ready();
 	return td->id;
 }
 
