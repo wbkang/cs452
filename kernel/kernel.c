@@ -75,14 +75,14 @@ void kernel_init() {
 }
 
 static inline void handle_swi(register_set *reg) {
-	int req_no = VMEM(reg->r[REG_PC] - 4) & 0xffffff;
+	int req_no = VMEM(reg->r[REG_PC] - 4) & 0x00ffffff;
 	int *r0 = &reg->r[0];
 	int a1 = *r0;
 	int a2 = reg->r[1]; // int a3 = reg->r[2]; int a4 = reg->r[3];
 	switch (req_no) {
 		case SYSCALL_CREATE:
 			*r0 = kernel_createtask(a1, (func_t) a2);
-			if (*r0 < 0) scheduler_runmenext(); else scheduler_move2ready();
+			if (*r0 < 0) scheduler_runmenext();
 			break;
 		case SYSCALL_MYTID:
 			scheduler_runmenext();
@@ -95,23 +95,20 @@ static inline void handle_swi(register_set *reg) {
 		case SYSCALL_PASS:
 			scheduler_move2ready();
 			break;
-		case SYSCALL_EXIT: {
+		case SYSCALL_EXIT:
 			kernel_exit();
 			break;
-		}
 		case SYSCALL_MALLOC:
 			scheduler_runmenext();
 			*r0 = (int) umalloc((uint) a1);
 			break;
-		case SYSCALL_SEND: {
+		case SYSCALL_SEND:
 			*r0 = kernel_send(a1);
 			if (*r0 < 0) scheduler_runmenext();
 			break;
-		}
-		case SYSCALL_RECEIVE: {
+		case SYSCALL_RECEIVE:
 			kernel_receive();
 			break;
-		}
 		case SYSCALL_REPLY:
 			*r0 = kernel_reply(a1);
 			break;
@@ -192,6 +189,7 @@ inline int kernel_createtask(int priority, func_t code) {
 	td->registers.r[REG_PC] = entry;
 	allocate_user_memory(td);
 	scheduler_ready(td);
+	scheduler_move2ready();
 	return td->id;
 }
 
@@ -207,9 +205,8 @@ static inline int kernel_myparenttid() {
 
 static inline void kernel_exit() {
 	task_descriptor *receiver = scheduler_running();
-	task_descriptor *sender;
 	while (!td_list_empty(receiver)) { // clearout receive blocked tasks
-		sender = td_list_pop(receiver);
+		task_descriptor *sender = td_list_pop(receiver);
 		sender->registers.r[0] = -2;
 		scheduler_ready(sender);
 	}
