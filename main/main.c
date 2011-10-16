@@ -3,6 +3,7 @@
 #include <test.h>
 #include <kerneltest.h>
 #include <task1.h>
+#include <constants.h>
 
 #define FAST 1
 
