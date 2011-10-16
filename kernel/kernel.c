@@ -296,7 +296,7 @@ static inline int kernel_awaitevent(int irq) {
 		case UART1TXINTR1:
 		case UART2RXINTR1:
 		case UART2TXINTR1:
-			ASSERT(!eventblocked[irq], "irq %d bound to%d", irq, eventblocked[irq]->id);
+			ASSERT(!eventblocked[irq], "irq %d bound to %d", irq, eventblocked[irq]->id);
 			task_descriptor *cur_task = scheduler_running();
 			VMEM(VIC1 + INTENABLE_OFFSET) = INT_MASK(irq);
 			eventblocked[irq] = cur_task;
