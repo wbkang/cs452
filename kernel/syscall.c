@@ -2,6 +2,7 @@
 #include <assembly.h>
 #include <nameserver.h>
 #include <timeserver.h>
+// #include <serialserver.h>
 
 inline int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
 	if ((msglen | replylen) & 0xffff0000) return -3;
@@ -26,4 +27,14 @@ inline int Delay(int ticks, int timeserver) {
 
 inline int DelayUntil(int ticks, int timeserver) {
 	return timeserver_delayuntil(ticks, timeserver);
+}
+
+inline int Getc(int channel) {
+	// return serialserver_getc(channel);
+	return 0;
+}
+
+inline int Putc(int channel) {
+	// return serialserver_putc(channel);
+	return 0;
 }

@@ -28,6 +28,8 @@ inline int WhoIs(char *name);
 inline int Time(int timeserver);
 inline int Delay(int ticks, int timeserver);
 inline int DelayUntil(int ticks, int timeserver);
+inline int Getc(int channel);
+inline int Putc(int channel);
 
 int Create(int priority, func_t code);
 int MyTid();

@@ -22,8 +22,8 @@ inline void unblock(int tid, int rv) {
 
 static inline int timeserver_tick();
 
-void timenotifier() {
-	int timeserver = WhoIs(NAME_TIMESERVER);
+static void timenotifier() {
+	int server = WhoIs(NAME_TIMESERVER);
 	ASSERT(timeserver >= 0, "cant find time server");
 	// init timer 3
 	VMEM(TIMER1_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
@@ -32,12 +32,12 @@ void timenotifier() {
 	VMEM(TIMER1_BASE + CRTL_OFFSET) |= CLKSEL_MASK; // 508k clock
 	VMEM(TIMER1_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
 	// synchronize
-	Send(timeserver, NULL, 0, NULL, 0);
+	Send(server, NULL, 0, NULL, 0);
 	// work
 	for (;;) {
 		AwaitEvent(TC1UI);
 		VMEM(TIMER1_BASE + CLR_OFFSET) = 1; // clear hardware interrupt status
-		timeserver_tick(timeserver);
+		timeserver_tick(server);
 	}
 }
 
@@ -76,11 +76,9 @@ void timeserver() {
 	int tid;
 	timeserver_req req;
 	// sync up with notifier
-	do {
-		Receive(&tid, NULL, 0);
-		ASSERT(tid == notifier, "not the notifier %d (%x)", tid, tid);
-		Reply(tid, NULL, 0);
-	} while (tid != notifier);
+	Receive(&tid, NULL, 0);
+	ASSERT(tid == notifier, "not the notifier %d (%x)", tid, tid);
+	Reply(tid, NULL, 0);
 	// serve
 	for (;;) {
 		ASSERT(state.tasks, "state->tasks is invalid");
