@@ -46,7 +46,7 @@ inline void timeserver_do_tick(timeserver_state *state, int tid) {
 	state->time++;
 	for (;;) { // unblock waiting tasks
 		heap_item *item = heap_peek(state->tasks);
-		if (item == NULL || item->key > state->time) break; // rest of tasks must wait longer
+		if (item == NULL || item->key > state->time) break;
 		int tid = (int) heap_extract_min(state->tasks);
 		unblock(tid, 0);
 	}

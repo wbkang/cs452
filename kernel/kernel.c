@@ -13,13 +13,11 @@
 static int exitkernel, errno;
 static int nameserver_tid;
 static int idleserver_tid;
-static task_descriptor *eventblocked[NUM_IRQS];
 static uint old_swi_vector;
 static uint old_hwi_vector;
 
 static inline int kernel_mytid();
 static inline int kernel_myparenttid();
-static inline void kernel_exit();
 static inline int kernel_send(int tid);
 static inline void kernel_receive();
 static inline int kernel_reply(int tid);
@@ -66,9 +64,6 @@ void kernel_init() {
 	mem_init(TASK_LIST_SIZE);
 	td_init();
 	scheduler_init();
-	for (int irq = 0; irq < NUM_IRQS; irq++) {
-		eventblocked[irq] = NULL;
-	}
 	exitkernel = FALSE;
 	nameserver_tid = kernel_createtask(PRIORITY_NAMESERVER, nameserver);
 	idleserver_tid = kernel_createtask(PRIORITY_IDLESERVER, kernel_idleserver);
@@ -82,7 +77,7 @@ static inline void handle_swi(register_set *reg) {
 	switch (req_no) {
 		case SYSCALL_CREATE:
 			*r0 = kernel_createtask(a1, (func_t) a2);
-			if (*r0 < 0) scheduler_runmenext(); else scheduler_move2ready();
+			if (*r0 < 0) scheduler_runmenext(); else scheduler_readyme();
 			break;
 		case SYSCALL_MYTID:
 			scheduler_runmenext();
@@ -93,10 +88,10 @@ static inline void handle_swi(register_set *reg) {
 			*r0 = kernel_myparenttid();
 			break;
 		case SYSCALL_PASS:
-			scheduler_move2ready();
+			scheduler_readyme();
 			break;
 		case SYSCALL_EXIT:
-			kernel_exit();
+			scheduler_freeme();
 			break;
 		case SYSCALL_MALLOC:
 			scheduler_runmenext();
@@ -136,15 +131,12 @@ static inline void handle_hwi(int isr) {
 	if (isr & INT_MASK(UART1TXINTR1)) kernel_irq(UART1TXINTR1);
 	if (isr & INT_MASK(UART2RXINTR1)) kernel_irq(UART2RXINTR1);
 	if (isr & INT_MASK(UART2TXINTR1)) kernel_irq(UART2TXINTR1);
-	scheduler_move2ready();
+	scheduler_readyme();
 }
 
 static inline void kernel_irq(int irq) {
-	task_descriptor *td = eventblocked[irq];
-	ASSERT(td, "No task is event blocked on irq #%d", irq);
+	scheduler_triggerevent(irq);
 	VMEM(VIC1 + INTENCLR_OFFSET) = INT_MASK(irq);
-	eventblocked[irq] = NULL;
-	scheduler_ready(td);
 }
 
 static inline uint uptime() {
@@ -200,23 +192,6 @@ static inline int kernel_mytid() {
 static inline int kernel_myparenttid() {
 	task_descriptor *td = scheduler_running();
 	return td ? td->parent_id : -1;
-}
-
-static inline void kernel_exit() {
-	task_descriptor *receiver = scheduler_running();
-	while (!td_list_empty(receiver)) { // clearout receive blocked tasks
-		task_descriptor *sender = td_list_pop(receiver);
-		sender->registers.r[0] = -2;
-		scheduler_ready(sender);
-	}
-	for (int irq = 0; irq < NUM_IRQS; irq++) { // remove me from eventblocked queue
-		if (eventblocked[irq] == receiver) {
-			VMEM(VIC1 + INTENCLR_OFFSET) = INT_MASK(irq);
-			eventblocked[irq] = NULL;
-		}
-	}
-	free_user_memory(receiver);
-	td_free(receiver);
 }
 
 static inline void transfer_msg(task_descriptor *sender, task_descriptor *receiver) {
@@ -289,6 +264,7 @@ static inline int kernel_reply(int tid) {
 }
 
 static inline int kernel_awaitevent(int irq) {
+	int irqmask = INT_MASK(irq);
 	switch (irq) {
 		case TC1UI:
 		case TC2UI:
@@ -296,20 +272,16 @@ static inline int kernel_awaitevent(int irq) {
 		case UART1TXINTR1:
 		case UART2RXINTR1:
 		case UART2TXINTR1:
-			ASSERT(!eventblocked[irq], "irq %d bound to %d", irq, eventblocked[irq]->id);
-			task_descriptor *cur_task = scheduler_running();
-			int irqmask = INT_MASK(irq);
 			if (VMEM(VIC1 + RAWINTR_OFFSET) & irqmask) {
-				scheduler_move2ready();
-			}
-			else {
+				ASSERT((VMEM(VIC1 + INTENABLE_OFFSET) & irqmask) == 0, "irq %d is on", irq);
+				scheduler_readyme();
+			} else {
 				VMEM(VIC1 + INTENABLE_OFFSET) = irqmask;
-				eventblocked[irq] = cur_task;
-				scheduler_wait4event(cur_task);
+				scheduler_bindevent(irq);
 			}
 			return 0;
 		default:
-			ERROR("invalid irq (%d)", irq);
+			ERROR("invalid irq: %d (%x)", irq, irq);
 			return -1;
 	}
 }

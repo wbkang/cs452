@@ -5,11 +5,15 @@
 static task_descriptor *running;
 static priorityq *ready_queue;
 static int reschedule;
+static task_descriptor *eventblocked[NUM_IRQS];
 
 void scheduler_init() {
 	running = NULL;
-	reschedule = TRUE;
 	ready_queue = priorityq_new(TASK_LIST_SIZE, NUM_PRIORITY);
+	reschedule = TRUE;
+	for (int irq = 0; irq < NUM_IRQS; irq++) {
+		eventblocked[irq] = NULL;
+	}
 }
 
 inline task_descriptor *scheduler_running() {
@@ -30,7 +34,7 @@ inline task_descriptor *scheduler_get() {
 	return running;
 }
 
-inline void scheduler_move2ready() {
+inline void scheduler_readyme() {
 	scheduler_ready(running);
 }
 
@@ -56,6 +60,31 @@ inline void scheduler_wait4reply(task_descriptor *sender) {
 	sender->state = TD_STATE_WAITING4REPLY;
 }
 
-inline void scheduler_wait4event(task_descriptor *td) {
-	td->state = TD_STATE_WAITING4EVENT;
+inline void scheduler_bindevent(int irq) {
+	ASSERT(!eventblocked[irq], "irq %d bound to %d", irq, eventblocked[irq]->id);
+	running->state = TD_STATE_WAITING4EVENT;
+	eventblocked[irq] = running;
+}
+
+inline void scheduler_triggerevent(int irq) {
+	task_descriptor *td = eventblocked[irq];
+	ASSERT(td, "No task is event blocked on irq #%d", irq);
+	eventblocked[irq] = NULL;
+	scheduler_ready(td);
+}
+
+inline void scheduler_freeme() {
+	while (!td_list_empty(running)) { // clearout receive blocked tasks
+		task_descriptor *sender = td_list_pop(running);
+		sender->registers.r[0] = -2;
+		scheduler_ready(sender);
+	}
+	for (int irq = 0; irq < NUM_IRQS; irq++) { // remove me from eventblocked queue
+		if (eventblocked[irq] == running) {
+			VMEM(VIC1 + INTENCLR_OFFSET) = INT_MASK(irq);
+			eventblocked[irq] = NULL;
+		}
+	}
+	free_user_memory(running);
+	td_free(running);
 }
