@@ -15,11 +15,7 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-if [ `whoami` = 'wbkang' ]; then
-	ELF=/u/cs452/tftp/ARM/sh.elf
-else
-	ELF=/u/cs452/tftp/ARM/s.elf
-fi
+ELF=/u/cs452/tftp/ARM/s.elf.k3
 
 cp -f main/main.elf $ELF
 chgrp -f cs452_sf $ELF
