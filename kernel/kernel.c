@@ -298,9 +298,15 @@ static inline int kernel_awaitevent(int irq) {
 		case UART2TXINTR1:
 			ASSERT(!eventblocked[irq], "irq %d bound to %d", irq, eventblocked[irq]->id);
 			task_descriptor *cur_task = scheduler_running();
-			VMEM(VIC1 + INTENABLE_OFFSET) = INT_MASK(irq);
-			eventblocked[irq] = cur_task;
-			scheduler_wait4event(cur_task);
+			int irqmask = INT_MASK(irq);
+			if (VMEM(VIC1 + RAWINTR_OFFSET) & irqmask) {
+				scheduler_move2ready();
+			}
+			else {
+				VMEM(VIC1 + INTENABLE_OFFSET) = irqmask;
+				eventblocked[irq] = cur_task;
+				scheduler_wait4event(cur_task);
+			}
 			return 0;
 		default:
 			ERROR("invalid irq (%d)", irq);
