@@ -1,4 +1,5 @@
 #include <timeserver.h>
+#include <notifier.h>
 #include <syscall.h>
 #include <heap.h>
 #include <task.h>
@@ -20,29 +21,9 @@ inline void unblock(int tid, int rv) {
 	Reply(tid, (void*) &rv, sizeof rv);
 }
 
-static inline int timeserver_tick();
-
-static void timenotifier() {
-	int server = WhoIs(NAME_TIMESERVER);
-	ASSERT(timeserver >= 0, "cant find time server");
-	// init timer 3
-	VMEM(TIMER1_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
-	VMEM(TIMER1_BASE + LDR_OFFSET) = 508 * TIMESERVER_RATE;
-	VMEM(TIMER1_BASE + CRTL_OFFSET) |= MODE_MASK; // pre-load mode
-	VMEM(TIMER1_BASE + CRTL_OFFSET) |= CLKSEL_MASK; // 508k clock
-	VMEM(TIMER1_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
-	// synchronize
-	Send(server, NULL, 0, NULL, 0);
-	// work
-	for (;;) {
-		AwaitEvent(TC1UI);
-		VMEM(TIMER1_BASE + CLR_OFFSET) = 1; // clear hardware interrupt status
-		timeserver_tick(server);
-	}
-}
-
-inline void timeserver_do_tick(timeserver_state *state, int tid) {
-	unblock(tid, 0); // unblock notifier
+inline void timeserver_do_tick(timeserver_state *state, int tid_notifier) {
+	VMEM(TIMER1_BASE + CLR_OFFSET) = 1; // clear interrupt source
+	unblock(tid_notifier, 0); // unblock notifier
 	state->time++;
 	for (;;) { // unblock waiting tasks
 		heap_item *item = heap_peek(state->tasks);
@@ -66,28 +47,33 @@ inline void timeserver_do_delay(timeserver_state *state, int tid, int ticks) {
 
 void timeserver() {
 	RegisterAs(NAME_TIMESERVER);
-	int notifier = Create(PRIORITY_TIMENOTIFIER, timenotifier);
+	// init timer 3
+	VMEM(TIMER1_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
+	VMEM(TIMER1_BASE + LDR_OFFSET) = 508 * TIMESERVER_RATE;
+	VMEM(TIMER1_BASE + CRTL_OFFSET) |= MODE_MASK; // pre-load mode
+	VMEM(TIMER1_BASE + CRTL_OFFSET) |= CLKSEL_MASK; // 508k clock
+	VMEM(TIMER1_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
 	// init state
 	timeserver_state state;
 	state.tasks = heap_new(TASK_LIST_SIZE);
 	ASSERT(state.tasks, "no memory");
 	state.time = 0;
 	// init com arguments
-	int tid;
 	timeserver_req req;
-	// sync up with notifier
+	int tid;
+	// init notifier
+	int tid_notifier = notifier_new(PRIORITY_TIMENOTIFIER, TC1UI);
 	Receive(&tid, NULL, 0);
-	ASSERT(tid == notifier, "not the notifier %d (%x)", tid, tid);
-	Reply(tid, NULL, 0);
+	ASSERT(tid == tid_notifier, "got a message during initialization from %d", tid);
+	Reply(tid_notifier, NULL, 0);
 	// serve
 	for (;;) {
 		ASSERT(state.tasks, "state->tasks is invalid");
 		int msglen = Receive(&tid, (void*) &req, sizeof(req));
-		if (msglen == sizeof(req)) {
+		if (tid == tid_notifier) {
+			timeserver_do_tick(&state, tid);
+		} else if (msglen == sizeof(req)) {
 			switch (req.no) {
-				case TIMESERVER_TICK:
-					timeserver_do_tick(&state, tid);
-					break;
 				case TIMESERVER_TIME:
 					timeserver_do_time(&state, tid);
 					break;
@@ -113,12 +99,6 @@ inline int timeserver_send(timeserver_req *req, int server) {
 	int len = Send(server, (void*) req, sizeof(timeserver_req), (void*) &rv, sizeof rv);
 	if (len != sizeof rv) return TIMESERVER_ERROR_BADDATA;
 	return rv;
-}
-
-static inline int timeserver_tick(int timeserver) {
-	timeserver_req req;
-	req.no = TIMESERVER_TICK;
-	return timeserver_send(&req, timeserver);
 }
 
 /*

@@ -35,8 +35,8 @@ typedef char *va_list;
 #define UNLIKELY(x) __builtin_expect((x), 0)
 
 ///////////// DEBUG
-#define ASSERT_ENABLED 0
-#define TRACE_ENABLED 0
+#define ASSERT_ENABLED 1
+#define TRACE_ENABLED 1
 #define TEST_ENABLED 1
 #define KERNELTEST_ENABLED 0
 
