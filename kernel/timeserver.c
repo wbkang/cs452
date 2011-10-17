@@ -25,7 +25,15 @@ static inline int timeserver_tick();
 void timenotifier() {
 	int timeserver = WhoIs(NAME_TIMESERVER);
 	ASSERT(timeserver >= 0, "cant find time server");
+	// init timer 3
+	VMEM(TIMER1_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
+	VMEM(TIMER1_BASE + LDR_OFFSET) = 508 * TIMESERVER_RATE;
+	VMEM(TIMER1_BASE + CRTL_OFFSET) |= MODE_MASK; // pre-load mode
+	VMEM(TIMER1_BASE + CRTL_OFFSET) |= CLKSEL_MASK; // 508k clock
+	VMEM(TIMER1_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
+	// synchronize
 	Send(timeserver, NULL, 0, NULL, 0);
+	// work
 	for (;;) {
 		AwaitEvent(TC1UI);
 		VMEM(TIMER1_BASE + CLR_OFFSET) = 1; // clear hardware interrupt status
@@ -59,12 +67,6 @@ inline void timeserver_do_delay(timeserver_state *state, int tid, int ticks) {
 void timeserver() {
 	RegisterAs(NAME_TIMESERVER);
 	int notifier = Create(PRIORITY_TIMENOTIFIER, timenotifier);
-	// init timer 3
-	VMEM(TIMER1_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
-	VMEM(TIMER1_BASE + LDR_OFFSET) = 508 * TIMESERVER_RATE;
-	VMEM(TIMER1_BASE + CRTL_OFFSET) |= MODE_MASK; // pre-load mode
-	VMEM(TIMER1_BASE + CRTL_OFFSET) |= CLKSEL_MASK; // 508k clock
-	VMEM(TIMER1_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
 	// init state
 	timeserver_state state;
 	state.tasks = heap_new(TASK_LIST_SIZE);
@@ -76,7 +78,7 @@ void timeserver() {
 	// sync up with notifier
 	do {
 		Receive(&tid, NULL, 0);
-		ASSERT(tid == notifier, "no the notifier %d (%x)", tid, tid);
+		ASSERT(tid == notifier, "not the notifier %d (%x)", tid, tid);
 		Reply(tid, NULL, 0);
 	} while (tid != notifier);
 	// serve
