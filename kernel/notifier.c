@@ -2,7 +2,7 @@
 #include <syscall.h>
 
 typedef struct _tag_notifier_msg {
-	int irq;
+	int eventid;
 } notifier_args;
 
 void notifier() {
@@ -15,7 +15,7 @@ void notifier() {
 	Send(tid, NULL, 0, NULL, 0);
 	// serve
 	for (;;) {
-		AwaitEvent(args.irq);
+		AwaitEvent(args.eventid);
 		Send(tid, NULL, 0, NULL, 0);
 	}
 }
@@ -24,13 +24,13 @@ void notifier() {
  * API
  */
 
-int notifier_new(int priority, int irq) {
+int notifier_new(int priority, int eventid) {
 	// create the notifier
 	int tid = Create(priority, notifier);
 	if (tid < 0) return tid;
 	// pass in args
 	notifier_args args;
-	args.irq = irq;
+	args.eventid = eventid;
 	int rv = Send(tid, (void*) &args, sizeof(args), NULL, 0);
 	if (rv < 0) return rv;
 	return tid;

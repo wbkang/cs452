@@ -32,15 +32,26 @@
 	#define VECTADDR_OFFSET 0x30 	// vectored irq. do not use
 
 // interrupt source #
-#define INT_MASK(irq) (1 << (irq))
+#define INT_MASK(irq) (1 << (irq & 0x1f))
+
 #define TC1UI 4
-#define TC2UI 5
 #define UART1RXINTR1 23
 #define UART1TXINTR1 24
 #define UART2RXINTR1 25
 #define UART2TXINTR1 26
+#define INT_UART1 52
+#define INT_UART2 54
 
-#define NUM_IRQS 32
+#define EVENT_TIMER1 0
+#define EVENT_UART1RX 1
+#define EVENT_UART1TX 2
+#define EVENT_UART2RX 3
+#define EVENT_UART2TX 4
+#define EVENT_UART1 5
+#define EVENT_UART2 6
+
+
+#define NUM_IRQS 64
 
 #define LED_ADDRESS	0x80840020
 	#define LED_NONE	0x0
@@ -93,6 +104,10 @@
 	#define RXFF_MASK	0x40	// Receive buffer full
 	#define TXFE_MASK	0x80	// Transmit buffer empty
 #define UART_INTR_OFFSET	0x1c
+	#define UARTRTINTR (1<<3) // timeout, unused
+	#define UARTTXINTR (1<<2)
+	#define UARTRXINTR (1<<1)
+	#define UARTMSINTR (1<<0)
 #define UART_DMAR_OFFSET	0x28
 
 // Specific to UART1

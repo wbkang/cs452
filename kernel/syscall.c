@@ -2,39 +2,45 @@
 #include <assembly.h>
 #include <nameserver.h>
 #include <timeserver.h>
-// #include <serialserver.h>
+#include <ioserver.h>
 
-inline int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
+int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
 	if ((msglen | replylen) & 0xffff0000) return -3;
 	return asm_Send(tid, msg, reply, (replylen << 16) | msglen);
 }
 
-inline int RegisterAs(char *name) {
+int RegisterAs(char *name) {
 	return nameserver_registeras(name);
 }
 
-inline int WhoIs(char *name) {
+int WhoIs(char *name) {
 	return nameserver_whois(name);
 }
 
-inline int Time(int timeserver) {
+int Time(int timeserver) {
 	return timeserver_time(timeserver);
 }
 
-inline int Delay(int ticks, int timeserver) {
+int Delay(int ticks, int timeserver) {
 	return timeserver_delay(ticks, timeserver);
 }
 
-inline int DelayUntil(int ticks, int timeserver) {
+int DelayUntil(int ticks, int timeserver) {
 	return timeserver_delayuntil(ticks, timeserver);
 }
 
-inline int Getc(int channel) {
-	// return serialserver_getc(channel);
-	return 0;
+int Getc(int channel) {
+	return ioserver_getc(channel);
 }
 
-inline int Putc(int channel) {
-	// return serialserver_putc(channel);
-	return 0;
+int Putc(int channel, char c) {
+	return ioserver_putc(channel, c);
+}
+
+int ReplyInt(int tid, int rv) {
+	return Reply(tid, &rv, sizeof rv);
+}
+
+int ReplyNull(int tid) {
+	return Reply(tid, NULL, 0);
 }
