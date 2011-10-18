@@ -190,7 +190,7 @@ static inline void txchar(ioserver_state *state, int channel) {
 	VMEM(uartbase + UART_DATA_OFFSET) = (int) queue_pop(state->output);
 	VMEM(uartbase + UART_CTLR_OFFSET) |= TIEN_MASK; // tx int
 	VMEM(uartbase + UART_INTR_OFFSET) = 1; // clear mse int
-
+	state->cts = channel == COM2;
 	state->tx_empty = VMEM(uartbase + UART_CTLR_OFFSET) & TXFE_MASK;
 }
 
