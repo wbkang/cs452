@@ -42,6 +42,7 @@ void nameserver() {
 				case NAMESERVER_WHOIS:
 					if (mem[idx] == -1) {
 						rv = NAMESERVER_ERROR_NOTREGISTERED;
+						ASSERT(FALSE, "omfg looking for the name %c%c", req.ch[0], req.ch[1]);
 					} else {
 						rv = mem[idx];
 					}

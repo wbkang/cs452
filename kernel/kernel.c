@@ -23,8 +23,8 @@ static inline void kernel_receive();
 static inline int kernel_reply(int tid);
 static inline int kernel_awaitevent(int irq);
 static inline void handle_swi(register_set *reg);
-static inline void handle_hwi(int isr);
-static inline void kernel_irq(int irq);
+static inline void handle_hwi(int isr, int isr2);
+static inline void kernel_irq(int vic, int irq);
 static inline void kernel_idleserver() { for (;;); }
 
 static void flush_dcache() {
@@ -121,22 +121,22 @@ static inline void handle_swi(register_set *reg) {
 			break;
 		default:
 			ERROR("unknown system call %d (%x)\n", req_no, req_no);
+			break;
 	}
 }
 
-static inline void handle_hwi(int isr) {
-	if (isr & INT_MASK(TC1UI)) kernel_irq(TC1UI);
-	if (isr & INT_MASK(TC2UI)) kernel_irq(TC2UI);
-	if (isr & INT_MASK(UART1RXINTR1)) kernel_irq(UART1RXINTR1);
-	if (isr & INT_MASK(UART1TXINTR1)) kernel_irq(UART1TXINTR1);
-	if (isr & INT_MASK(UART2RXINTR1)) kernel_irq(UART2RXINTR1);
-	if (isr & INT_MASK(UART2TXINTR1)) kernel_irq(UART2TXINTR1);
+static inline void handle_hwi(int isr, int isr2) {
+	if (isr & INT_MASK(TC1UI)) kernel_irq(VIC1, TC1UI);
+	if (isr & INT_MASK(UART1RXINTR1)) kernel_irq(VIC1, UART1RXINTR1);
+	if (isr & INT_MASK(UART2RXINTR1)) kernel_irq(VIC1, UART2RXINTR1);
+	if (isr2 & INT_MASK(INT_UART1)) kernel_irq(VIC2, INT_UART1);
+	if (isr2 & INT_MASK(INT_UART2)) kernel_irq(VIC2, INT_UART2);
 	scheduler_readyme();
 }
 
-static inline void kernel_irq(int irq) {
+static inline void kernel_irq(int vic, int irq) {
 	scheduler_triggerevent(irq);
-	VMEM(VIC1 + INTENCLR_OFFSET) = INT_MASK(irq);
+	VMEM(vic + INTENCLR_OFFSET) = INT_MASK(irq);
 }
 
 static inline uint uptime() {
@@ -154,7 +154,7 @@ int kernel_run() {
 		register_set *reg = &td->registers;
 		int cpsr = asm_switch_to_usermode(reg);
 		if ((cpsr & 0x1f) == 0x12) {
-			handle_hwi(VMEM(VIC1 + IRQSTATUS_OFFSET));
+			handle_hwi(VMEM(VIC1 + IRQSTATUS_OFFSET), VMEM(VIC2 + IRQSTATUS_OFFSET));
 			reg->r[REG_PC] -= 4;
 		} else {
 			handle_swi(reg);
@@ -263,25 +263,46 @@ static inline int kernel_reply(int tid) {
 	return 0;
 }
 
-static inline int kernel_awaitevent(int irq) {
-	int irqmask = INT_MASK(irq);
-	switch (irq) {
-		case TC1UI:
-		case TC2UI:
-		case UART1RXINTR1:
-		case UART1TXINTR1:
-		case UART2RXINTR1:
-		case UART2TXINTR1:
-			if (VMEM(VIC1 + RAWINTR_OFFSET) & irqmask) {
-				ASSERT((VMEM(VIC1 + INTENABLE_OFFSET) & irqmask) == 0, "irq %d is on", irq);
-				scheduler_readyme();
-			} else {
-				VMEM(VIC1 + INTENABLE_OFFSET) = irqmask;
-				scheduler_bindevent(irq);
-			}
-			return 0;
+
+static inline int kernel_awaitevent(int eventid) {
+	int irq;
+	int vic = 0;
+	switch (eventid) {
+		case EVENT_TIMER1:
+			vic = VIC1;
+			irq = TC1UI;
+			break;
+		case EVENT_UART1RX:
+			vic = VIC1;
+			irq = UART1RXINTR1;
+			break;
+		case EVENT_UART2RX:
+			vic = VIC1;
+			irq = UART2RXINTR1;
+			break;
+		case EVENT_UART1:
+			vic = VIC2;
+			irq = INT_UART1;
+			break;
+		case EVENT_UART2:
+			vic = VIC2;
+			irq = INT_UART2;
+			break;
 		default:
-			ERROR("invalid irq: %d (%x)", irq, irq);
-			return -1;
+			ERROR("Invalid event id: %d", eventid);
+			irq = -1; // unreachable
+			break;
 	}
+
+	int irqmask = INT_MASK(irq);
+
+	if (VMEM(vic + RAWINTR_OFFSET) & irqmask) {
+		ASSERT((VMEM(vic + INTENABLE_OFFSET) & irqmask) == 0, "irq %d is on", irq);
+		scheduler_readyme();
+	} else {
+		VMEM(vic + INTENABLE_OFFSET) = irqmask;
+		scheduler_bindevent(irq);
+	}
+
+	return 0;
 }

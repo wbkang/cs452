@@ -2,4 +2,4 @@
 
 void notifier();
 
-int notifier_new(int priority, int irq);
+int notifier_new(int priority, int eventid);

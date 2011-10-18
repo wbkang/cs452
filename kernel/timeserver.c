@@ -13,28 +13,24 @@ typedef struct _tag_timeserver_req {
 } timeserver_req;
 
 typedef struct _tag_timeserver_state {
-	heap *tasks;
 	uint time; // in ticks, 1 tick = 10ms, will overflow every (2^32-1)*10 ms = 1.36 years
+	heap *tasks;
 } timeserver_state;
-
-inline void unblock(int tid, int rv) {
-	Reply(tid, (void*) &rv, sizeof rv);
-}
 
 inline void timeserver_do_tick(timeserver_state *state, int tid_notifier) {
 	VMEM(TIMER1_BASE + CLR_OFFSET) = 1; // clear interrupt source
-	unblock(tid_notifier, 0); // unblock notifier
+	ReplyInt(tid_notifier, 0); // unblock notifier
 	state->time++;
 	for (;;) { // unblock waiting tasks
 		heap_item *item = heap_peek(state->tasks);
 		if (item == NULL || item->key > state->time) break;
 		int tid = (int) heap_extract_min(state->tasks);
-		unblock(tid, 0);
+		ReplyInt(tid, 0);
 	}
 }
 
 inline void timeserver_do_time(timeserver_state *state, int tid) {
-	unblock(tid, state->time);
+	ReplyInt(tid, state->time);
 }
 
 inline void timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks) {
@@ -62,7 +58,7 @@ void timeserver() {
 	timeserver_req req;
 	int tid;
 	// init notifier
-	int tid_notifier = notifier_new(PRIORITY_TIMENOTIFIER, TC1UI);
+	int tid_notifier = notifier_new(PRIORITY_TIMENOTIFIER, EVENT_TIMER1);
 	Receive(&tid, NULL, 0);
 	ASSERT(tid == tid_notifier, "got a message during initialization from %d", tid);
 	Reply(tid_notifier, NULL, 0);
@@ -85,11 +81,11 @@ void timeserver() {
 					break;
 				default:
 					ASSERT(FALSE, "bad reqno");
-					unblock(tid, TIMESERVER_ERROR_BADREQNO);
+					ReplyInt(tid, TIMESERVER_ERROR_BADREQNO);
 			}
 		} else {
 			ASSERT(FALSE, "bad data");
-			unblock(tid, TIMESERVER_ERROR_BADDATA);
+			ReplyInt(tid, TIMESERVER_ERROR_BADDATA);
 		}
 	}
 }

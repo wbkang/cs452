@@ -9,17 +9,17 @@ typedef struct {
 } delay_info;
 
 #define PRINTF(timeserver, ...) { \
-	bwprintf(1, "[%d\t] ", Time(timeserver)); \
-	bwprintf(1, __VA_ARGS__); \
-	bwprintf(1, "\n"); \
+	ioprintf(1, "[%d\t] ", Time(timeserver)); \
+	ioprintf(1, __VA_ARGS__); \
+	ioprintf(1, "\n"); \
 }
 
 #define SAY(timeserver, name, ...) { \
-	bwprintf(1, "[%d\t] ", Time(timeserver)); \
-	for (int i = 0; i < 2 * (name - 6); i++) bwprintf(1, "\t"); \
-	bwprintf(1, "{%d} ", name); \
-	bwprintf(1, __VA_ARGS__); \
-	bwprintf(1, "\n"); \
+	ioprintf(1, "[%d\t] ", Time(timeserver)); \
+	for (int i = 0; i < 2 * (name - 8); i++) ioprintf(1, "\t"); \
+	ioprintf(1, "{%d} ", name); \
+	ioprintf(1, __VA_ARGS__); \
+	ioprintf(1, "\n"); \
 }
 
 static inline void client_task() {
