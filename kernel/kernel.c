@@ -263,10 +263,8 @@ static inline int kernel_reply(int tid) {
 	return 0;
 }
 
-
 static inline int kernel_awaitevent(int eventid) {
-	int irq;
-	int vic = 0;
+	int irq, vic;
 	switch (eventid) {
 		case EVENT_TIMER1:
 			vic = VIC1;
@@ -290,12 +288,11 @@ static inline int kernel_awaitevent(int eventid) {
 			break;
 		default:
 			ERROR("Invalid event id: %d", eventid);
+			vic = -1; // unreachable
 			irq = -1; // unreachable
 			break;
 	}
-
 	int irqmask = INT_MASK(irq);
-
 	if (VMEM(vic + RAWINTR_OFFSET) & irqmask) {
 		ASSERT((VMEM(vic + INTENABLE_OFFSET) & irqmask) == 0, "irq %d is on", irq);
 		scheduler_readyme();
@@ -303,6 +300,5 @@ static inline int kernel_awaitevent(int eventid) {
 		VMEM(vic + INTENABLE_OFFSET) = irqmask;
 		scheduler_bindevent(irq);
 	}
-
 	return 0;
 }

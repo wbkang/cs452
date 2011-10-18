@@ -5,6 +5,7 @@
 #include <notifier.h>
 #include <queue.h>
 #include <util.h>
+#include <string.h>
 
 #define BUFFER_SIZE (1<<10)
 #define INPUT_BLOCKED_QUEUE_SIZE 500
@@ -205,17 +206,13 @@ static inline void handle_getc(ioserver_state *state, int tid) {
 
 static inline void handle_putc(ioserver_state *state, int tid, int channel, char c) {
 	CHECK_COM(channel);
-
 	if (UNLIKELY(queue_full(state->output))) {
 		ERROR("queue full, channel: %d, char: %c (%x)", channel, c, c);
 	}
-
 	queue_push(state->output, (void*)(int) c);
-
 	if (state->tx_empty && state->cts) {
 		txchar(state, channel);
 	}
-
 	ReplyInt(tid, 0);
 }
 
@@ -227,7 +224,6 @@ int ioserver_create(int channel, int fifo, int speed, int stopbits, int databits
 	args.stopbits = stopbits;
 	args.databits = databits;
 	args.parity = parity;
-
 	int tid_ioserver = Create(PRIORITY_IOSERVER, &ioserver);
 	if (tid_ioserver < 0) return tid_ioserver;
 	int rv;
