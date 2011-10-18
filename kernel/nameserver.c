@@ -42,7 +42,7 @@ void nameserver() {
 				case NAMESERVER_WHOIS:
 					if (mem[idx] == -1) {
 						rv = NAMESERVER_ERROR_NOTREGISTERED;
-						ASSERT(FALSE, "Failed to find the server named %c%c", req.ch[0], req.ch[1]);
+						ASSERT(FALSE, "name \"%c%c\" not found", req.ch[0], req.ch[1]);
 					} else {
 						rv = mem[idx];
 					}
