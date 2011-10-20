@@ -7,21 +7,24 @@
 #include <util.h>
 #include <string.h>
 
-#define BUFFER_SIZE (1<<10)
-#define INPUT_BLOCKED_QUEUE_SIZE 500
+/*
+ * max number of chars per timeserver tick
+ * 		COM1: 2400 bps * 10 ms = 3
+ * 		COM2: 115200 bps * 10 ms = 144
+ */
+
+#define BUFFER_SIZE 256
+#define INPUT_BLOCKED_QUEUE_SIZE 400
 
 typedef struct {
-	enum { OUTPUT_EMPTY, OUTPUT_NOT_EMPTY } state;
+	int channel;
 	queue *input;
 	queue *input_blocked;
 	queue *output;
 	int tid_notifier_general;
 	int tx_empty;
 	int cts;
-//	int tid_notifier_rx;
-//	int tid_notifier_tx;
 } ioserver_state;
-
 
 typedef struct {
 	int channel;
@@ -34,74 +37,60 @@ typedef struct {
 
 typedef struct {
 	enum { PUTC, GETC } no;
-	char channel;
 	char c;
 } ioserver_req;
 
-static inline void init(ioserver_arg* args);
+static inline void uart_init(ioserver_arg* args);
 static inline void handle_getc(ioserver_state *state, int tid);
-static inline void handle_putc(ioserver_state *state, int tid, int channel, char c);
-//static inline void handle_rx(ioserver_state *state, int channel);
-//static inline void handle_tx(ioserver_state *state, int channel);
-static inline void handle_general(ioserver_state *state, int channel);
-static inline char rxchar(int channel);
-static inline void txchar(ioserver_state *state, int channel);
+static inline void handle_putc(ioserver_state *state, int tid, char c);
+static inline void handle_general(ioserver_state *state);
+static inline char rxchar(ioserver_state *state);
+static inline void txchar(ioserver_state *state);
 
 static void ioserver() {
 	int tid;
 	ioserver_arg args;
+
+	// receive args
 	Receive(&tid, &args, sizeof args);
-	Reply(tid, NULL, 0);
-	RegisterAs((args.channel == COM1) ? NAME_IOSERVER_COM1 : NAME_IOSERVER_COM2);
-	init(&args);
+	ReplyNull(tid);
 
-	int general_event;
-//	int rx_event, tx_event;
+	// register name and init uart
+	RegisterAs(args.channel == COM1 ? NAME_IOSERVER_COM1 : NAME_IOSERVER_COM2);
+	uart_init(&args);
 
-	if (args.channel == COM1) {
-		general_event = EVENT_UART1;
-//		rx_event = EVENT_UART1RX;
-//		tx_event = EVENT_UART1TX;
-	} else {
-		ASSERT(args.channel == COM2, "should never reach here. channel # %d", args.channel);
-		general_event = EVENT_UART2;
-//		rx_event = EVENT_UART2RX;
-//		tx_event = EVENT_UART1TX;
-	}
-
+	// init state
 	ioserver_state state;
-	state.state = OUTPUT_EMPTY;
+	state.channel = args.channel;
 	state.input = queue_new(BUFFER_SIZE);
 	state.input_blocked = queue_new(INPUT_BLOCKED_QUEUE_SIZE);
 	state.output = queue_new(BUFFER_SIZE);
+	int general_event = args.channel == COM1 ? EVENT_UART1 : EVENT_UART2;
 	state.tid_notifier_general = notifier_new(PRIORITY_IONOTIFIER, general_event);
 	int uartbase = UART_BASE(args.channel);
 	state.cts = (VMEM(uartbase + UART_FLAG_OFFSET) & CTS_MASK) || args.channel == COM2;
 	state.tx_empty = VMEM(uartbase + UART_FLAG_OFFSET) & TXFE_MASK;
-//	state.tid_notifier_rx = notifier_new(PRIORITY_IONOTIFIER, rx_event);
-//	state.tid_notifier_tx = notifier_new(PRIORITY_IONOTIFIER, tx_event);
-
+	// sync with notifier
 	Receive(&tid, NULL, 0);
-	ASSERT(tid == state.tid_notifier_general, "unexpected request during init from tid: %d", tid);
-	ReplyNull(state.tid_notifier_general);
+	ASSERT(tid == state.tid_notifier_general, "req during init from tid: %d", tid);
+	ReplyNull(tid);
+
+	// serve
 	for (;;) {
 		ioserver_req req;
 		int msglen = Receive(&tid, (void*) &req, sizeof(req));
 		if (tid == state.tid_notifier_general) {
-			handle_general(&state, args.channel);
-		} /*else if (tid == state.tid_notifier_tx) {
-			handle_tx(&state, args.channel);
-		} */
-		else if (msglen == sizeof(req)) {
+			handle_general(&state);
+		} else if (msglen == sizeof(req)) {
 			switch (req.no) {
 				case PUTC:
-					handle_putc(&state, tid, args.channel, req.c);
+					handle_putc(&state, tid, req.c);
 					break;
 				case GETC:
 					handle_getc(&state, tid);
 					break;
 				default:
-					ASSERT(FALSE, "bad reqno %d", req.no);
+					ASSERT(FALSE, "bad reqno: %d", req.no);
 					ReplyInt(tid, IOSERVER_ERROR_BADREQNO);
 					break;
 			}
@@ -112,45 +101,30 @@ static void ioserver() {
 	}
 }
 
-static inline void init(ioserver_arg *args) {
+static inline void uart_init(ioserver_arg *args) {
 	int channel = args->channel;
+	CHECK_COM(channel);
 	uart_fifo(channel, args->fifo);
 	uart_speed(channel, args->speed);
 	uart_stopbits(channel, args->stopbits);
 	uart_databits(channel, args->databits);
 	uart_parity(channel, args->parity);
 
-	VMEM(UART_BASE(channel) + UART_CTLR_OFFSET) |= TIEN_MASK; // tx int
-	VMEM(UART_BASE(channel) + UART_CTLR_OFFSET) |= RIEN_MASK; // rx int
-	VMEM(UART_BASE(channel) + UART_CTLR_OFFSET) |= MSIEN_MASK; // mse int
-	VMEM(UART_BASE(channel) + UART_INTR_OFFSET) |= 1; // clear mse int
+	int uartbase = UART_BASE(channel);
+	// enable tx, rx, and ms interrupts
+	VMEM(uartbase + UART_CTLR_OFFSET) |= TIEN_MASK | RIEN_MASK | MSIEN_MASK;
+	VMEM(uartbase + UART_INTR_OFFSET) |= 1; // clear ms interrupt
 }
 
-//static inline void handle_rx(ioserver_state *state, int channel) {
-//	char c = txchar(channel);
-//	ReplyNull(state->tid_notifier_rx);
-//
-//	if (queue_empty(state->input_blocked)) {
-//		queue_push(state->input, (void*) c);
-//	} else {
-//		int tid = (int) queue_pop(state->input_blocked);
-//		ReplyInt(tid, c);
-//	}
-//}
-//
-//static inline void handle_tx(ioserver_state *state, int channel) {
-//	ReplyNull(state->tid_notifier_tx);
-//}
-static inline void handle_general(ioserver_state *state, int channel) {
-	int uartbase = UART_BASE(channel);
+static inline void handle_general(ioserver_state *state) {
+	int uartbase = UART_BASE(state->channel);
 	int uart_isr = VMEM(uartbase + UART_INTR_OFFSET);
 
-
-
-	if (uart_isr & UARTRXINTR) { // incoming register full
+	// incoming register full
+	if (uart_isr & UARTRXINTR) {
 		ASSERT(VMEM(uartbase + UART_FLAG_OFFSET) & RXFF_MASK, "incoming register empty");
 		ASSERT(!queue_full(state->input), "input queue full");
-		int c = rxchar(channel);
+		int c = rxchar(state);
 		if (queue_empty(state->input_blocked)) {
 			queue_push(state->input, (void*) c);
 		} else {
@@ -159,39 +133,41 @@ static inline void handle_general(ioserver_state *state, int channel) {
 		}
 	}
 
-	if (uart_isr & UARTTXINTR) { // outgoing register empty
+	// outgoing register empty
+	if (uart_isr & UARTTXINTR) {
 		ASSERT(VMEM(uartbase + UART_FLAG_OFFSET) & TXFE_MASK, "outgoing register full");
 		state->tx_empty = TRUE;
-		VMEM(UART_BASE(channel) + UART_CTLR_OFFSET) &= ~TIEN_MASK;
+		VMEM(uartbase + UART_CTLR_OFFSET) &= ~TIEN_MASK;
 	}
 
-	if (uart_isr & UARTMSINTR) { // modem status interrupt
-		ASSERT(channel != COM2, "COM2 received MSI");
+	// modem status interrupt (cts toggled)
+	if (uart_isr & UARTMSINTR) {
+		ASSERT(state->channel != COM2, "got MSI on COM2");
 		state->cts = VMEM(uartbase + UART_FLAG_OFFSET) & CTS_MASK;
-		VMEM(uartbase + UART_INTR_OFFSET) = 1; // clear mse int
+		VMEM(uartbase + UART_INTR_OFFSET) = 1; // clear ms interrupt in hardware
 	}
 
+	// send if we can
 	if (state->tx_empty && state->cts && !queue_empty(state->output)) {
-		txchar(state, channel);
+		txchar(state);
 	}
 
+	// unblock the notifier
 	ReplyNull(state->tid_notifier_general);
 }
 
-static inline char rxchar(int channel) {
-	CHECK_COM(channel);
-	int uartbase = UART_BASE(channel);
-	return (char)(VMEM(uartbase + UART_DATA_OFFSET) & DATA_MASK);
+static inline char rxchar(ioserver_state *state) {
+	int uartbase = UART_BASE(state->channel);
+	return (char) (VMEM(uartbase + UART_DATA_OFFSET) & DATA_MASK);
 }
 
-static inline void txchar(ioserver_state *state, int channel) {
-	CHECK_COM(channel);
+static inline void txchar(ioserver_state *state) {
 	ASSERT(!queue_empty(state->output), "output empty");
-	int uartbase = UART_BASE(channel);
-	VMEM(uartbase + UART_DATA_OFFSET) = (int) queue_pop(state->output);
-	VMEM(uartbase + UART_CTLR_OFFSET) |= TIEN_MASK; // tx int
-	VMEM(uartbase + UART_INTR_OFFSET) = 1; // clear mse int
-	state->cts = channel == COM2;
+	int uartbase = UART_BASE(state->channel);
+	VMEM(uartbase + UART_DATA_OFFSET) = (uint) queue_pop(state->output); // write char
+	VMEM(uartbase + UART_CTLR_OFFSET) |= TIEN_MASK; // enable tx interrupt
+	VMEM(uartbase + UART_INTR_OFFSET) = 1; // clear ms interrupt in hardware
+	state->cts = (state->channel == COM2); // assume cts off if COM1
 	state->tx_empty = VMEM(uartbase + UART_CTLR_OFFSET) & TXFE_MASK;
 }
 
@@ -199,19 +175,17 @@ static inline void handle_getc(ioserver_state *state, int tid) {
 	if (queue_empty(state->input)) {
 		queue_push(state->input_blocked, (void*) tid);
 	} else {
-		int c = (int) queue_pop(state->input);
-		ReplyInt(tid, c);
+		ReplyInt(tid, (int) queue_pop(state->input));
 	}
 }
 
-static inline void handle_putc(ioserver_state *state, int tid, int channel, char c) {
-	CHECK_COM(channel);
+static inline void handle_putc(ioserver_state *state, int tid, char c) {
 	if (UNLIKELY(queue_full(state->output))) {
-		ERROR("queue full, channel: %d, char: %c (%x)", channel, c, c);
+		ERROR("queue full, channel: %d, char: %c (%x)", state->channel, c, c);
 	}
 	queue_push(state->output, (void*)(int) c);
 	if (state->tx_empty && state->cts) {
-		txchar(state, channel);
+		txchar(state);
 	}
 	ReplyInt(tid, 0);
 }
@@ -224,78 +198,71 @@ int ioserver_create(int channel, int fifo, int speed, int stopbits, int databits
 	args.stopbits = stopbits;
 	args.databits = databits;
 	args.parity = parity;
-	int tid_ioserver = Create(PRIORITY_IOSERVER, &ioserver);
-	if (tid_ioserver < 0) return tid_ioserver;
+	int tid = Create(PRIORITY_IOSERVER, &ioserver);
+	if (tid < 0) return tid;
 	int rv;
-	int len = Send(tid_ioserver, (char*) &args, sizeof args, (char*) &rv, sizeof rv);
+	int len = Send(tid, (char*) &args, sizeof args, (char*) &rv, sizeof rv);
+	if (len < 0) return len;
+	if (rv < 0) return rv;
+	return tid;
+}
+
+static inline int ioserver_send(int tid, ioserver_req *req) {
+	int rv;
+	int len = Send(tid, (char*) req, sizeof *req, (char*) &rv, sizeof rv);
 	if (len < 0) return len;
 	return rv;
 }
 
-static inline int ioserver_send(int channel, ioserver_req *req) {
-	CHECK_COM(channel);
-	char *name = (channel == COM1) ? NAME_IOSERVER_COM1 : NAME_IOSERVER_COM2;
-	int server = WhoIs(name);
-	if (server < 0) return server;
-	int rv;
-	int len = Send(server, (char*) req, sizeof *req, (char*) &rv, sizeof rv);
-	if (len < 0) return len;
-	return rv;
-}
-
-int ioserver_getc(int channel) {
+int ioserver_getc(int tid) {
 	ioserver_req req;
 	req.no = GETC;
-	req.channel = channel;
-	return ioserver_send(channel, &req);
+	return ioserver_send(tid, &req);
 }
 
-int ioserver_putc(int channel, char c) {
+int ioserver_putc(char c, int tid) {
 	ioserver_req req;
 	req.no = PUTC;
-	req.channel = channel;
 	req.c = c;
-	return ioserver_send(channel, &req);
+	return ioserver_send(tid, &req);
 }
 
-
-void ioputc(int channel, char c) {
-	CHECK_COM(channel);
-	Putc(channel, c);
+void ioputc(int tid, char c) {
+	Putc(c, tid);
 }
 
-void ioputx(int channel, char c) {
-	ioputc(channel, char2hex(c >> 4)); // c / 16
-	ioputc(channel, char2hex(c & 0xF)); // c % 16
+void ioputx(int tid, char c) {
+	ioputc(tid, char2hex(c >> 4)); // c / 16
+	ioputc(tid, char2hex(c & 0xF)); // c % 16
 }
 
-void ioputr(int channel, uint reg) {
+void ioputr(int tid, uint reg) {
 	char *ch = (char*) &reg;
-	ioputx(channel, ch[3]);
-	ioputx(channel, ch[2]);
-	ioputx(channel, ch[1]);
-	ioputx(channel, ch[0]);
-	ioputc(channel, ' ');
+	ioputx(tid, ch[3]);
+	ioputx(tid, ch[2]);
+	ioputx(tid, ch[1]);
+	ioputx(tid, ch[0]);
+	ioputc(tid, ' ');
 }
 
-void ioputstr(int channel, char *str) {
-	while (*str) ioputc(channel, *str++);
+void ioputstr(int tid, char *str) {
+	while (*str) {
+		ioputc(tid, *str++);
+	}
 }
 
-void ioputw(int channel, int n, char fc, char *bf) {
+void ioputw(int tid, int n, char fc, char *bf) {
 	char ch;
 	char *p = bf;
-	while (*p++ && n > 0) n--;
-	while (n-- > 0) ioputc(channel, fc);
-	while ((ch = *bf++)) ioputc(channel, ch);
-}
-
-int iogetc(int channel) {
-	CHECK_COM(channel);
-	int base = UART_BASE(channel);
-	vmemptr flags = (memptr) (base + UART_FLAG_OFFSET);
-	while (!(*flags & RXFF_MASK));
-	return (char) VMEM(base + UART_DATA_OFFSET);
+	while (*p++ && n > 0) {
+		n--;
+	}
+	while (n-- > 0) {
+		ioputc(tid, fc);
+	}
+	while ((ch = *bf++)) {
+		ioputc(tid, ch);
+	}
 }
 
 char ioa2i(char ch, char **src, int base, int *nump) { // only for ioformat
@@ -313,14 +280,13 @@ char ioa2i(char ch, char **src, int base, int *nump) { // only for ioformat
 	return ch;
 }
 
-void ioformat(int channel, char *fmt, va_list va) {
-	CHECK_COM(channel);
-	char bf[12];
+void ioformat(int tid, char *fmt, va_list va) {
+	char bf[32 + 1];
 	char ch, lz;
 	int w;
 	while ((ch = *(fmt++))) {
 		if (ch != '%') {
-			ioputc(channel, ch);
+			ioputc(tid, ch);
 		} else {
 			lz = 0;
 			w = 0;
@@ -346,37 +312,42 @@ void ioformat(int channel, char *fmt, va_list va) {
 				case 0:
 					return;
 				case 'c':
-					ioputc(channel, va_arg( va, char ));
+					ioputc(tid, va_arg( va, char ));
 					break;
 				case 's':
-					ioputw(channel, w, 0, va_arg( va, char* ));
+					ioputw(tid, w, 0, va_arg( va, char* ));
 					break;
 				case 'u':
 					uint2str(va_arg( va, uint ), 10, bf);
-					ioputw(channel, w, lz, bf);
+					ioputw(tid, w, lz, bf);
 					break;
 				case 'd':
 					int2str(va_arg( va, int ), bf);
-					ioputw(channel, w, lz, bf);
+					ioputw(tid, w, lz, bf);
+					break;
+				case 'b':
+					uint2str(va_arg( va, uint ), 2, bf);
+					ioputc(tid, '0');
+					ioputc(tid, 'b');
+					ioputw(tid, w, lz, bf);
 					break;
 				case 'x':
 					uint2str(va_arg( va, uint ), 16, bf);
-					ioputc(channel, '0');
-					ioputc(channel, 'x');
-					ioputw(channel, w, lz, bf);
+					ioputc(tid, '0');
+					ioputc(tid, 'x');
+					ioputw(tid, w, lz, bf);
 					break;
 				case '%':
-					ioputc(channel, ch);
+					ioputc(tid, ch);
 					break;
 			}
 		}
 	}
 }
 
-void ioprintf(int channel, char *fmt, ... ) {
-	CHECK_COM(channel);
+void ioprintf(int tid, char *fmt, ... ) {
 	va_list va;
 	va_start(va,fmt);
-	ioformat( channel, fmt, va );
+	ioformat( tid, fmt, va );
 	va_end(va);
 }
