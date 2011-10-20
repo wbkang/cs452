@@ -21,20 +21,20 @@ int Time(int timeserver) {
 	return timeserver_time(timeserver);
 }
 
-int Delay(int ticks, int timeserver) {
-	return timeserver_delay(ticks, timeserver);
+int Delay(int ticks, int tid) {
+	return timeserver_delay(ticks, tid);
 }
 
-int DelayUntil(int ticks, int timeserver) {
-	return timeserver_delayuntil(ticks, timeserver);
+int DelayUntil(int ticks, int tid) {
+	return timeserver_delayuntil(ticks, tid);
 }
 
-int Getc(int channel) {
-	return ioserver_getc(channel);
+int Getc(int tid) {
+	return ioserver_getc(tid);
 }
 
-int Putc(int channel, char c) {
-	return ioserver_putc(channel, c);
+int Putc(char c, int tid) {
+	return ioserver_putc(c, tid);
 }
 
 int ReplyInt(int tid, int rv) {

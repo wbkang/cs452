@@ -26,10 +26,10 @@ int Send(int tid, char *msg, int msglen, char *reply, int replylen);
 int RegisterAs(char *name);
 int WhoIs(char *name);
 int Time(int timeserver);
-int Delay(int ticks, int timeserver);
-int DelayUntil(int ticks, int timeserver);
-int Getc(int channel);
-int Putc(int channel, char c);
+int Delay(int ticks, int tid);
+int DelayUntil(int ticks, int tid);
+int Getc(int tid);
+int Putc(char c, int tid);
 int ReplyInt(int tid, int rv);
 int ReplyNull(int tid);
 

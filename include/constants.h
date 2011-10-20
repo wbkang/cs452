@@ -12,8 +12,8 @@
  * Scheduler constants
  */
 #define NUM_PRIORITY 32
-#define MAX_PRIORITY (NUM_PRIORITY - 1)
 #define MIN_PRIORITY 1
+#define MAX_PRIORITY (NUM_PRIORITY - 1)
 
 /*
  * Sever names

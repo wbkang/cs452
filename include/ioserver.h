@@ -5,6 +5,6 @@
 
 int ioserver_create(int channel, int fifo, int speed, int stopbits, int databits, int parity);
 
-int ioserver_getc(int channel);
-int ioserver_putc(int channel, char c);
+int ioserver_getc(int tid);
+int ioserver_putc(char c, int tid);
 void ioprintf(int channel, char *fmt, ... );
