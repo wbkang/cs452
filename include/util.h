@@ -34,6 +34,16 @@ typedef char *va_list;
 #define LIKELY(x) __builtin_expect((x), 1)
 #define UNLIKELY(x) __builtin_expect((x), 0)
 
+extern inline int log2(uint n) {
+	uint l, i = 0;
+	if ((l = n >> 16)) { n = l; i |= 16; }
+	if ((l = n >>  8)) { n = l; i |=  8; }
+	if ((l = n >>  4)) { n = l; i |=  4; }
+	if ((l = n >>  2)) { n = l; i |=  2; }
+	if ((l = n >>  1)) { n = l; i |=  1; }
+	return i;
+}
+
 ///////////// DEBUG
 #define ASSERT_ENABLED 1
 #define TRACE_ENABLED 1
@@ -81,9 +91,9 @@ void bwprintf(int channel, char *fmt, ...);
 #endif
 
 #define PRINT(...) { \
-	bwprintf(0, "[%s] ", __func__); \
-	bwprintf(0, __VA_ARGS__); \
-	bwprintf(0, "\n"); \
+	bwprintf(1, "[%s] ", __func__); \
+	bwprintf(1, __VA_ARGS__); \
+	bwprintf(1, "\n"); \
 }
 
 #define CHECK_COM(_c) ASSERT((_c) == COM1 ||  (_c) == COM2, "Invalid channel " #_c)

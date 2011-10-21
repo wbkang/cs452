@@ -139,14 +139,21 @@ static inline void kernel_irq(int vic, int irq) {
 	VMEM(vic + INTENCLR_OFFSET) = INT_MASK(irq);
 }
 
-static inline uint uptime() {
-    return VMEM(0x80810060);
+static inline void uptime_reset() {
+	VMEM(0x80810064) &= ~0x100;
+	VMEM(0x80810064) |= 0x100;
+}
+
+static inline uint uptime() { // ideally would divide by 983
+	int s = 8;
+    return ((VMEM(0x80810064) & 0xff) << (32 - s)) | (VMEM(0x80810060) >> s); // timer4
 }
 
 int kernel_run() {
-	int kernel_start = uptime();
-	int time_idle_start = 0;
-	int idletime = 0;
+	uptime_reset();
+	uint kernel_start = uptime();
+	uint time_idle_start = 0;
+	uint idletime = 0;
 	while (LIKELY(!exitkernel)) {
 		ASSERT(!scheduler_empty(), "no task to schedule");
 		task_descriptor *td = scheduler_get();
@@ -161,9 +168,9 @@ int kernel_run() {
 		}
 		if (td->id == idleserver_tid) idletime += uptime() - time_idle_start;
 	}
-	int up = uptime() - kernel_start;
-	int percent10 = (10 * 100 * idletime) / up;
-	PRINT("uptime: %d, idle: %d (%d.%d%%)", up, idletime, percent10 / 10, percent10 % 10);
+	uint up = uptime() - kernel_start;
+	uint percent10 = (10 * 100 * idletime) / up;
+	bwprintf(1, "uptime: %d, idle: %d (%d.%d%%)", up, idletime, percent10 / 10, percent10 % 10);
 	uninstall_interrupt_handlers();
 	return errno;
 }

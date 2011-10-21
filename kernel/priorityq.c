@@ -1,5 +1,6 @@
 #include <priorityq.h>
 #include <memory.h>
+#include <util.h>
 
 priorityq *priorityq_new(int size, int num_priorities) {
 	ASSERT(num_priorities <= 32, "too many priorities, bithack requires <= 32");
@@ -14,16 +15,6 @@ priorityq *priorityq_new(int size, int num_priorities) {
 
 inline int priorityq_empty(priorityq *this) {
 	return this->state == 0;
-}
-
-inline int log2(uint v) {
-	uint l, i = 0;
-	if ((l = v >> 16)) { v = l; i |= 16; }
-	if ((l = v >>  8)) { v = l; i |=  8; }
-	if ((l = v >>  4)) { v = l; i |=  4; }
-	if ((l = v >>  2)) { v = l; i |=  2; }
-	if ((l = v >>  1)) { v = l; i |=  1; }
-	return i;
 }
 
 inline void* priorityq_pop(priorityq *this) {
