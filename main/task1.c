@@ -33,6 +33,6 @@ void task1() {
 	Create(1, a0);
 #endif
 
-	Delay(1000, tid_time);
-	ExitKernel(0);
+	// Delay(1000, tid_time);
+	// ExitKernel(0);
 }
