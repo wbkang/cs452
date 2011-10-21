@@ -1,5 +1,4 @@
 #include <k3clients.h>
-
 #include <syscall.h>
 #include <util.h>
 

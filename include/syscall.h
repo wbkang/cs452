@@ -32,6 +32,7 @@ int Getc(int tid);
 int Putc(char c, int tid);
 int ReplyInt(int tid, int rv);
 int ReplyNull(int tid);
+int SendNull(int tid);
 
 int Create(int priority, func_t code);
 int MyTid();

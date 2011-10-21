@@ -72,6 +72,18 @@ uint strparseuint(char *str, int *idx) {
 	return num;
 }
 
+uint strgetui(char **c) {
+	uint num = 0;
+	int digit;
+	for (;;) {
+		digit = char2digit(**c);
+		if (digit < 0 || digit > 10) break;
+		num = num * 10 + digit;
+		(*c)++;
+	}
+	return num;
+}
+
 void *memcpy(void *dst, void const *src, uint len) {
 	if (LIKELY(len > 0)) {
 		ASSERT(((int) src & 3) == 0, "src unaligned: %x", src);

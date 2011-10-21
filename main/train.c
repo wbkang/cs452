@@ -5,21 +5,20 @@
 #define PAUSE_REVERSE 300
 
 void train_speed(char train, char speed, int tid_com) {
-	ASSERT(1 <= train && train <= 80, "bad train: %d", train);
-	// ASSERT(speed <= 14, "bad speed: %d", speed);
+	ASSERT(train_goodtrain(train), "bad train: %d", train);
 	Putc(speed, tid_com);
 	Putc(train, tid_com);
 }
 
 void train_reverse(char train, int tid_com, int tid_time) {
-	ASSERT(1 <= train && train <= 80, "bad train: %d", train);
+	ASSERT(train_goodtrain(train), "bad train: %d", train);
 	Delay(PAUSE_REVERSE, tid_time);
 	Putc(0xF, tid_com);
 	Putc(train, tid_com);
 }
 
 void train_switch(char switchaddr, char pos, int tid_com, int tid_time) {
-	ASSERT(pos == 'S' || pos == 'C', "bad position: %d", pos);
+	ASSERT(train_goodswitchpos(pos), "bad position: %d", pos);
 	Putc(pos == 'S' ? 0x21 : 0x22, tid_com);
 	Putc(switchaddr, tid_com);
 	Delay(PAUSE_SOLENOID, tid_time);
@@ -40,12 +39,12 @@ void train_solenoidoff(int tid_com) {
 }
 
 void train_querysenmod(char module, int tid_com) {
-	ASSERT(module > 0 && module < 32, "bad module: %d", module);
+	ASSERT(train_goodmodule(module), "bad module: %d", module);
 	Putc(0xC0 + module, tid_com);
 }
 
 void train_querysenmods(char modules, int tid_com) {
-	ASSERT(modules > 0 && modules < 32, "bad module: %d", modules);
+	ASSERT(train_goodmodule(modules), "bad module: %d", modules);
 	Putc(0x80 + modules, tid_com);
 }
 
