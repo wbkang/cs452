@@ -6,7 +6,7 @@
 
 void train_speed(char train, char speed, int tid_com) {
 	ASSERT(1 <= train && train <= 80, "bad train: %d", train);
-	ASSERT(speed <= 14, "bad speed: %d", speed);
+	// ASSERT(speed <= 14, "bad speed: %d", speed);
 	Putc(speed, tid_com);
 	Putc(train, tid_com);
 }
@@ -15,14 +15,6 @@ void train_reverse(char train, int tid_com, int tid_time) {
 	ASSERT(1 <= train && train <= 80, "bad train: %d", train);
 	Delay(PAUSE_REVERSE, tid_time);
 	Putc(0xF, tid_com);
-	Putc(train, tid_com);
-}
-
-void train_aux(char enable, char func, char train, int tid_com) {
-	ASSERT(enable <= 1, "bad enable: %d", enable);
-	ASSERT(func <= 15, "bad func: %d", func);
-	ASSERT(1 <= train && train <= 80, "bad train: %d", train);
-	Putc((enable << 4) + func, tid_com);
 	Putc(train, tid_com);
 }
 
