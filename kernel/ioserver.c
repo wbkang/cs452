@@ -36,13 +36,17 @@ typedef struct {
 } ioserver_arg;
 
 typedef struct {
-	enum { PUTC, GETC } no;
-	char c;
+	enum { PUTC, GETC, PUTSTR } no;
+	union {
+		char c;
+		char const *str;
+	} data;
 } ioserver_req;
 
 static inline void uart_init(ioserver_arg* args);
 static inline void handle_getc(ioserver_state *state, int tid);
 static inline void handle_putc(ioserver_state *state, int tid, char c);
+static inline void handle_putstr(ioserver_state *state, int tid, char const *c);
 static inline void handle_general(ioserver_state *state);
 static inline char rxchar(ioserver_state *state);
 static inline void txchar(ioserver_state *state);
@@ -84,10 +88,13 @@ static void ioserver() {
 		} else if (msglen == sizeof(req)) {
 			switch (req.no) {
 				case PUTC:
-					handle_putc(&state, tid, req.c);
+					handle_putc(&state, tid, req.data.c);
 					break;
 				case GETC:
 					handle_getc(&state, tid);
+					break;
+				case PUTSTR:
+					handle_putstr(&state, tid, req.data.str);
 					break;
 				default:
 					ASSERT(FALSE, "bad reqno: %d", req.no);
@@ -190,6 +197,24 @@ static inline void handle_putc(ioserver_state *state, int tid, char c) {
 	ReplyInt(tid, 0);
 }
 
+static inline void handle_putstr(ioserver_state *state, int tid, char const *str) {
+	if (UNLIKELY(queue_full(state->output))) {
+		ERROR("queue full, channel: %d, string: %s (%x)", state->channel, str, str);
+	}
+
+	char const * p = str;
+
+	while (*p) {
+		queue_push(state->output, (void*)(int) *p++);
+	}
+
+	if (state->tx_empty && state->cts && p != str) {
+		txchar(state);
+	}
+
+	ReplyInt(tid, 0);
+}
+
 int ioserver_create(int channel, int fifo, int speed, int stopbits, int databits, int parity) {
 	ioserver_arg args;
 	args.channel = channel;
@@ -223,131 +248,13 @@ int ioserver_getc(int tid) {
 int ioserver_putc(char c, int tid) {
 	ioserver_req req;
 	req.no = PUTC;
-	req.c = c;
+	req.data.c = c;
 	return ioserver_send(tid, &req);
 }
 
-void ioputc(int tid, char c) {
-	Putc(NULL, c, tid); // FIXME FIX THIS
-}
-
-void ioputx(int tid, char c) {
-	ioputc(tid, char2hex(c >> 4)); // c / 16
-	ioputc(tid, char2hex(c & 0xF)); // c % 16
-}
-
-void ioputr(int tid, uint reg) {
-	char *ch = (char*) &reg;
-	ioputx(tid, ch[3]);
-	ioputx(tid, ch[2]);
-	ioputx(tid, ch[1]);
-	ioputx(tid, ch[0]);
-	ioputc(tid, ' ');
-}
-
-void ioputstr(int tid, char *str) {
-	while (*str) {
-		ioputc(tid, *str++);
-	}
-}
-
-void ioputw(int tid, int n, char fc, char *bf) {
-	char ch;
-	char *p = bf;
-	while (*p++ && n > 0) {
-		n--;
-	}
-	while (n-- > 0) {
-		ioputc(tid, fc);
-	}
-	while ((ch = *bf++)) {
-		ioputc(tid, ch);
-	}
-}
-
-char ioa2i(char ch, char **src, int base, int *nump) { // only for ioformat
-	int num, digit;
-	char *p;
-	p = *src;
-	num = 0;
-	while ((digit = char2digit(ch)) >= 0) {
-		if (digit > base) break;
-		num = num * base + digit;
-		ch = *p++;
-	}
-	*src = p;
-	*nump = num;
-	return ch;
-}
-
-void ioformat(int tid, char *fmt, va_list va) {
-	char bf[32 + 1];
-	char ch, lz;
-	int w;
-	while ((ch = *(fmt++))) {
-		if (ch != '%') {
-			ioputc(tid, ch);
-		} else {
-			lz = 0;
-			w = 0;
-			ch = *(fmt++);
-			switch (ch) {
-				case '0':
-					lz = 1;
-					ch = *(fmt++);
-					break;
-				case '1':
-				case '2':
-				case '3':
-				case '4':
-				case '5':
-				case '6':
-				case '7':
-				case '8':
-				case '9':
-					ch = ioa2i(ch, &fmt, 10, &w);
-					break;
-			}
-			switch (ch) {
-				case 0:
-					return;
-				case 'c':
-					ioputc(tid, va_arg( va, char ));
-					break;
-				case 's':
-					ioputw(tid, w, 0, va_arg( va, char* ));
-					break;
-				case 'u':
-					uint2str(va_arg( va, uint ), 10, bf);
-					ioputw(tid, w, lz, bf);
-					break;
-				case 'd':
-					int2str(va_arg( va, int ), bf);
-					ioputw(tid, w, lz, bf);
-					break;
-				case 'b':
-					uint2str(va_arg( va, uint ), 2, bf);
-					ioputc(tid, '0');
-					ioputc(tid, 'b');
-					ioputw(tid, w, lz, bf);
-					break;
-				case 'x':
-					uint2str(va_arg( va, uint ), 16, bf);
-					ioputc(tid, '0');
-					ioputc(tid, 'x');
-					ioputw(tid, w, lz, bf);
-					break;
-				case '%':
-					ioputc(tid, ch);
-					break;
-			}
-		}
-	}
-}
-
-void ioprintf(int tid, char *fmt, ... ) {
-	va_list va;
-	va_start(va,fmt);
-	ioformat( tid, fmt, va );
-	va_end(va);
+int ioserver_putstr(char const *str, int tid) {
+	ioserver_req req;
+	req.no = PUTSTR;
+	req.data.str = str;
+	return ioserver_send(tid, &req);
 }
