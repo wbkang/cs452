@@ -11,11 +11,11 @@ typedef struct _tag_priorityq {
 
 priorityq *priorityq_new(int size, int num_priorities);
 
-extern inline int priorityq_empty(priorityq *this) {
+static inline int priorityq_empty(priorityq *this) {
 	return this->state == 0;
 }
 
-extern inline void* priorityq_pop(priorityq *this) {
+static inline void* priorityq_pop(priorityq *this) {
 	ASSERT(this->state, "empty");
 	uint p = log2(this->state);
 	queue *q = this->q[p];
@@ -25,7 +25,7 @@ extern inline void* priorityq_pop(priorityq *this) {
 	return rv;
 }
 
-extern inline void priorityq_push(priorityq *this, void* item, uint priority) {
+static inline void priorityq_push(priorityq *this, void* item, uint priority) {
 	this->state |= 1 << priority;
 	queue_push(this->q[priority], item);
 }
