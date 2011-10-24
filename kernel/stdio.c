@@ -135,6 +135,6 @@ int sprintf(char *buf, const char *fmt, ... ) {
 	buf += bwformat(buf, fmt, va );
 	va_end(va);
 
-	*buf++ = '\0';
+	*buf = '\0';
 	return buf - orig_buf;
 }
