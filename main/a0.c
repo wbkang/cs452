@@ -8,7 +8,7 @@
 #include <traincmdbuffer.h>
 #include <stdio.h>
 
-#define LEN_MSG 4 * 64
+#define LEN_MSG (4 * 64)
 #define LEN_CMD 128
 
 typedef struct {
@@ -31,8 +31,6 @@ void handle_sensor(a0state *state, char msg[]) {
 
 void handle_com2in(a0state *state, msg_comin *comin) {
 	ASSERT(state->cmd_i < LEN_CMD - 1, "cmd buffer full");
-	char com2outbuf[100];
-	com2outbuf[0] = '\0';
 
 	switch (comin->c) {
 		case '\b':
@@ -46,7 +44,9 @@ void handle_com2in(a0state *state, msg_comin *comin) {
 			#define ACCEPT(a) { if (*c++ != a) break; }
 
 			state->cmd[state->cmd_i + 1] = '\0';
+			char com2outbuf[LEN_CMD + 100], *p = com2outbuf;
 			sprintf(com2outbuf, "cmd: %s", state->cmd);
+			Putstr(COM2, com2outbuf, state->tid_com2);
 			switch (*c++) {
 				case 't': { // set train speed (tr # #)
 					ACCEPT('r');
@@ -98,7 +98,6 @@ void handle_com2in(a0state *state, msg_comin *comin) {
 			break;
 	}
 	state->cmd[state->cmd_i] = '\0';
-	Putstr(COM2, com2outbuf, state->tid_com2);
 	// ioprintf(state->tid_com2, "%s\n", state->cmd);
 }
 

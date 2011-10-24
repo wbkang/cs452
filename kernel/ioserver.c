@@ -37,10 +37,7 @@ typedef struct {
 
 typedef struct {
 	enum { PUTC, GETC, PUTSTR } no;
-	union {
-		char c;
-		char const *str;
-	} data;
+	char str[];
 } ioserver_req;
 
 static inline void uart_init(ioserver_arg* args);
@@ -79,25 +76,27 @@ static void ioserver() {
 	ASSERT(tid == state.tid_notifier_general, "req during init from tid: %d", tid);
 	ReplyNull(tid);
 
+	uint req_size = sizeof(ioserver_req) + BUFFER_SIZE;
+	ioserver_req *req = malloc(req_size);
+
 	// serve
 	for (;;) {
-		ioserver_req req;
-		int msglen = Receive(&tid, (void*) &req, sizeof(req));
+		int msglen = Receive(&tid, (void*) req, req_size);
 		if (tid == state.tid_notifier_general) {
 			handle_general(&state);
-		} else if (msglen == sizeof(req)) {
-			switch (req.no) {
+		} else if (msglen >= sizeof(*req)) {
+			switch (req->no) {
 				case PUTC:
-					handle_putc(&state, tid, req.data.c);
+					handle_putc(&state, tid, req->str[0]);
 					break;
 				case GETC:
 					handle_getc(&state, tid);
 					break;
 				case PUTSTR:
-					handle_putstr(&state, tid, req.data.str);
+					handle_putstr(&state, tid, req->str);
 					break;
 				default:
-					ASSERT(FALSE, "bad reqno: %d", req.no);
+					ASSERT(FALSE, "bad reqno: %d", req->no);
 					ReplyInt(tid, IOSERVER_ERROR_BADREQNO);
 					break;
 			}
@@ -232,9 +231,9 @@ int ioserver_create(int channel, int fifo, int speed, int stopbits, int databits
 	return tid;
 }
 
-static inline int ioserver_send(int tid, ioserver_req *req) {
+static inline int ioserver_send(int tid, ioserver_req *req, int size) {
 	int rv;
-	int len = Send(tid, (char*) req, sizeof *req, (char*) &rv, sizeof rv);
+	int len = Send(tid, (char*) req, size, (char*) &rv, sizeof rv);
 	if (len < 0) return len;
 	return rv;
 }
@@ -242,19 +241,22 @@ static inline int ioserver_send(int tid, ioserver_req *req) {
 int ioserver_getc(int tid) {
 	ioserver_req req;
 	req.no = GETC;
-	return ioserver_send(tid, &req);
+	return ioserver_send(tid, &req, sizeof(req));
 }
 
 int ioserver_putc(char c, int tid) {
-	ioserver_req req;
-	req.no = PUTC;
-	req.data.c = c;
-	return ioserver_send(tid, &req);
+	char buf[CEILING4(sizeof(ioserver_req) + 1)];
+	ioserver_req *req = (ioserver_req*)buf;
+	req->no = PUTC;
+	req->str[0] = c;
+	return ioserver_send(tid, req, sizeof(buf));
 }
 
 int ioserver_putstr(char const *str, int tid) {
-	ioserver_req req;
-	req.no = PUTSTR;
-	req.data.str = str;
-	return ioserver_send(tid, &req);
+	int strsize = strlen(str) + 1;
+	char buf[sizeof(ioserver_req) + strsize];
+	ioserver_req *req = (ioserver_req*) buf;
+	req->no = PUTSTR;
+	memcpy(req->str, str, strsize);
+	return ioserver_send(tid, req, sizeof(buf));
 }
