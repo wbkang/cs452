@@ -151,15 +151,17 @@ int kernel_run() {
 		register_set *reg = &td->registers;
 		int cpsr = asm_switch_to_usermode(reg);
 		if ((cpsr & 0x1f) == 0x12) {
-			handle_hwi(VMEM(VIC1 + IRQSTATUS_OFFSET), VMEM(VIC2 + IRQSTATUS_OFFSET));
 			reg->r[REG_PC] -= 4;
+			int vic1 = VMEM(VIC1 + IRQSTATUS_OFFSET);
+			int vic2 = VMEM(VIC2 + IRQSTATUS_OFFSET);
+			handle_hwi(vic1, vic2);
 		} else {
 			handle_swi(reg);
 		}
 		if (td->id == idleserver_tid) idletime += uptime() - time_idle_start;
 	}
 	uint up = uptime() - kernel_start;
-	uint percent10 = (10 * 100 * idletime) / up;
+	uint percent10 = (10 * 100 * idletime + 5) / up;
 	bwprintf(1, "uptime: %d, idle: %d (%d.%d%%)", up, idletime, percent10 / 10, percent10 % 10);
 	uninstall_interrupt_handlers();
 	return errno;
@@ -283,10 +285,10 @@ static inline int kernel_awaitevent(int eventid) {
 			vic = VIC2;
 			irq = INT_UART2;
 			break;
-		default:
-			ERROR("Invalid event id: %d", eventid);
-			vic = -1; // unreachable
-			irq = -1; // unreachable
+		default: // unreachable
+			ERROR("bad event id: %d", eventid);
+			vic = -1;
+			irq = -1;
 			break;
 	}
 	int irqmask = INT_MASK(irq);

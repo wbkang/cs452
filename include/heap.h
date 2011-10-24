@@ -17,5 +17,5 @@ heap *heap_new(int size);
 inline heap_item *heap_peek(heap *this);
 void heap_insert_min(heap *this, void* data, int key);
 void *heap_extract_min(heap *this);
-void heap_insert_max(heap *this, void* data, int key);
-void *heap_extract_max(heap *this);
+// void heap_insert_max(heap *this, void* data, int key);
+// void *heap_extract_max(heap *this);

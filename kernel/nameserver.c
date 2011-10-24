@@ -9,12 +9,12 @@ typedef struct _tag_nameserver_req {
 	char ch[2];
 } nameserver_req;
 
-inline int nameserver_goodchar(char ch) {
+static inline int goodchar(char ch) {
 	return ASCII_PRINTABLE_START <= ch && ch <= ASCII_PRINTABLE_END;
 }
 
 inline int nameserver_validname(char *name) {
-	return name && nameserver_goodchar(name[0]) && nameserver_goodchar(name[1]) && name[2] == '\0';
+	return name && goodchar(name[0]) && goodchar(name[1]) && name[2] == '\0';
 }
 
 void nameserver() {
