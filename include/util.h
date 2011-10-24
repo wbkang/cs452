@@ -31,6 +31,7 @@ typedef char *va_list;
 #define BIT_TOGGLE(word, mask, flag) ((word) ^= (-(flag) ^ (word)) & (mask))
 #define BYTES2WORDS(x) ((x) >> 2)
 #define WORDS2BYTES(x) ((x) << 2)
+#define CEILING4(x) ((x + 3) & ~3)
 #define NEXTHIGHESTWORD(x) BYTES2WORDS((x) + 3)
 #define LIKELY(x) __builtin_expect((x), 1)
 #define UNLIKELY(x) __builtin_expect((x), 0)

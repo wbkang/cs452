@@ -38,8 +38,8 @@ void int2str(int num, char *bf) {
 	uint2str(num, 10, bf);
 }
 
-uint strlen(char *str) {
-	char *i = str;
+uint strlen(char const *str) {
+	char const *i = str;
 	while (*i) i++;
 	return i - str;
 }
@@ -86,12 +86,13 @@ uint strgetui(char **c) {
 
 void *memcpy(void *dst, void const *src, uint len) {
 	if (LIKELY(len > 0)) {
-		ASSERT(((int) src & 3) == 0, "src unaligned: %x", src);
-		ASSERT(((int) dst & 3) == 0, "dst unaligned: %x", src);
-		ASSERT((len & 3) == 0, "length unaligned: %d (%x)", len, len);
-	    // if ((((int) src | (int) dst) & 3) == 0) { // aligned
-		    int *to = (int*) dst;
-		    int const *from = (int const*) src;
+//		ASSERT(((int) src & 3) == 0, "src unaligned: %x", src);
+//		ASSERT(((int) dst & 3) == 0, "dst unaligned: %x", src);
+//		ASSERT((len & 3) == 0, "length unaligned: %d (%x)", len, len);
+		int *to = (int*) dst;
+		int const *from = (int const*) src;
+
+	    if ((((int) src | (int) dst) & 3) == 0) { // aligned
 		    uint words = BYTES2WORDS(len);
 			int n = (words + 7) >> 3;
 			switch (words & 7) {
@@ -103,15 +104,17 @@ void *memcpy(void *dst, void const *src, uint len) {
 				case 3:			*to++ = *from++;
 				case 2:			*to++ = *from++;
 				case 1:			*to++ = *from++;
-						} while(--n > 0);
+						} while (--n > 0);
 			}
-	    // } else {
-		   //  char *ldst = (char*) dst;
-		   //  char const *lsrc = (char const*) src;
-		   //  while (len--) {
-		   //      *ldst++ = *lsrc++;
-		   //  }
-	    // }
+
+			len &= 3;
+		}
+
+		char *ldst = (char*) to;
+		char const *lsrc = (char const*) from;
+		while (len--) {
+			*ldst++ = *lsrc++;
+		}
 	}
     return dst;
 }

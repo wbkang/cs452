@@ -5,10 +5,10 @@ LIBS=kernel
 mkdir -p lib;
 
 for i in $LIBS; do
-	(cd $i;  make; cp $i.a ../lib/lib$i.a);
+	(cd $i;  make -j8; cp $i.a ../lib/lib$i.a);
 done
 
-(cd main; make );
+(cd main; make -j8 );
 
 if [ $? -ne 0 ]; then
 	echo "Build Failed."
