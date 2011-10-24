@@ -23,13 +23,13 @@ static inline int queue_full(queue *this) {
 	return this->head == queue_increment(this, this->tail);
 }
 
-static inline void queue_push(queue *this, void* item) {
+static inline void queue_put(queue *this, void* item) {
 	ASSERT(!queue_full(this), "full");
 	*this->tail = item;
 	this->tail = queue_increment(this, this->tail);
 }
 
-static inline void* queue_pop(queue *this) {
+static inline void* queue_get(queue *this) {
 	ASSERT(!queue_empty(this), "empty");
 	void* rv = *this->head;
 	this->head = queue_increment(this, this->head);

@@ -4,10 +4,10 @@
 #include <rawio.h>
 #include <util.h>
 
-#define TEST_START() { if (TEST_REALLY_ENABLED) { TRACE("[%s] test start", __func__)
-#define TEST_END() TRACE("[%s] test end", __func__) } }
-#define KTEST_START() { if (KTEST_REALLY_ENABLED) { TRACE("[%s] ktest start", __func__)
-#define KTEST_END() TRACE("[%s] ktest end", __func__) } }
+#define TEST_START() { if (TEST_REALLY_ENABLED) { TRACE("test start")
+#define TEST_END() TRACE("test end") } }
+#define KTEST_START() { if (KTEST_REALLY_ENABLED) { TRACE("ktest start")
+#define KTEST_END() TRACE("ktest end") } }
 
 #define EXPECT(expected, got) { \
 	int __e = (int)expected; int __g = (int)got; \

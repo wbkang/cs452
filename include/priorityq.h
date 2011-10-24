@@ -20,12 +20,12 @@ static inline void* priorityq_pop(priorityq *this) {
 	uint p = log2(this->state);
 	queue *q = this->q[p];
 	ASSERT(!queue_empty(q), "child queue empty! priority: %d, state: %x", p, this->state);
-	void *rv = queue_pop(q);
+	void *rv = queue_get(q);
 	if (queue_empty(q)) this->state &= ~(1 << p);
 	return rv;
 }
 
 static inline void priorityq_push(priorityq *this, void* item, uint priority) {
 	this->state |= 1 << priority;
-	queue_push(this->q[priority], item);
+	queue_put(this->q[priority], item);
 }
