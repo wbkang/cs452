@@ -7,6 +7,7 @@
 #include <rawio.h>
 #include <priorityq.h>
 #include <string.h>
+#include <buffer.h>
 
 static void test_stack() {
 	TEST_START();
@@ -24,17 +25,39 @@ static void test_stack() {
 	TEST_END();
 }
 
+static void test_buffer() {
+	TEST_START();
+	int size = 111;
+	struct {
+		int a, b;
+	} temp[size], rv;
+	buffer *q = buffer_new(size, sizeof rv);
+
+	for (int i = 0; i < size; i++) {
+		temp[i].a = random();
+		temp[i].b = random();
+		buffer_put(q, temp + i);
+	}
+	ASSERT(buffer_full(q), "ERROR!!!\nInserted max no of items yet not full!");
+	for (int i = 0; i < size; i++) {
+		buffer_get(q, &rv);
+		EXPECT(temp[i].a, rv.a);
+		EXPECT(temp[i].b, rv.b);
+	}
+	TEST_END();
+}
+
 static void test_queue() {
 	TEST_START();
 	int size = 111;
 	queue *q = queue_new(size);
 	void *got, *expected;
 	for (int i = 0; i < size; i++) {
-		queue_push(q, (void*) (1 << i));
+		queue_put(q, (void*) (1 << i));
 	}
 	ASSERT(queue_full(q), "ERROR!!!\nInserted max no of items yet not full!");
 	for (int i = 0; i < size; i++) {
-		got = queue_pop(q);
+		got = queue_get(q);
 		expected = (void*) (1 << i);
 		EXPECT(expected, got);
 	}
@@ -102,6 +125,7 @@ void test_run() {
 	mem_reset();
 	test_stack();
 	test_queue();
+	test_buffer();
 	test_priorityq();
 	test_heap();
 	test_memcpy();

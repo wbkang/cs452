@@ -133,9 +133,9 @@ static inline void handle_general(ioserver_state *state) {
 		ASSERT(!queue_full(state->input), "input queue full");
 		int c = rxchar(state);
 		if (queue_empty(state->input_blocked)) {
-			queue_push(state->input, (void*) c);
+			queue_put(state->input, (void*) c);
 		} else {
-			int tid = (int) queue_pop(state->input_blocked);
+			int tid = (int) queue_get(state->input_blocked);
 			ReplyInt(tid, c);
 		}
 	}
@@ -171,7 +171,7 @@ static inline char rxchar(ioserver_state *state) {
 static inline void txchar(ioserver_state *state) {
 	ASSERT(!queue_empty(state->output), "output empty");
 	int uartbase = UART_BASE(state->channel);
-	VMEM(uartbase + UART_DATA_OFFSET) = (uint) queue_pop(state->output); // write char
+	VMEM(uartbase + UART_DATA_OFFSET) = (uint) queue_get(state->output); // write char
 	VMEM(uartbase + UART_CTLR_OFFSET) |= TIEN_MASK; // enable tx interrupt
 	VMEM(uartbase + UART_INTR_OFFSET) = 1; // clear ms interrupt in hardware
 	state->cts = (state->channel == COM2); // assume cts off if COM1
@@ -180,9 +180,9 @@ static inline void txchar(ioserver_state *state) {
 
 static inline void handle_getc(ioserver_state *state, int tid) {
 	if (queue_empty(state->input)) {
-		queue_push(state->input_blocked, (void*) tid);
+		queue_put(state->input_blocked, (void*) tid);
 	} else {
-		ReplyInt(tid, (int) queue_pop(state->input));
+		ReplyInt(tid, (int) queue_get(state->input));
 	}
 }
 
@@ -190,7 +190,7 @@ static inline void handle_putc(ioserver_state *state, int tid, char c) {
 	if (UNLIKELY(queue_full(state->output))) {
 		ERROR("queue full, channel: %d, char: %c (%x)", state->channel, c, c);
 	}
-	queue_push(state->output, (void*)(int) c);
+	queue_put(state->output, (void*)(int) c);
 	if (state->tx_empty && state->cts) {
 		txchar(state);
 	}
@@ -205,7 +205,7 @@ static inline void handle_putstr(ioserver_state *state, int tid, char const *str
 	char const * p = str;
 
 	while (*p) {
-		queue_push(state->output, (void*)(int) *p++);
+		queue_put(state->output, (void*)(int) *p++);
 	}
 
 	if (state->tx_empty && state->cts && p != str) {
