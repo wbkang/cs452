@@ -10,13 +10,13 @@ typedef struct _tag_stack {
 
 stack *stack_new(uint size);
 
-extern inline void stack_push(stack *this, void* item) {
+static inline void stack_push(stack *this, void* item) {
 	ASSERT(this->top != this->max, "full");
 	*this->top = item;
 	this->top++;
 }
 
-extern inline void* stack_pop(stack *this) {
+static inline void* stack_pop(stack *this) {
 	ASSERT(this->top != this->min, "empty");
 	this->top--;
 	return *this->top;

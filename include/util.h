@@ -44,12 +44,12 @@ static inline int log2(uint n) {
 	return i;
 }
 
-extern inline void uptime_reset() {
+static inline void uptime_reset() {
 	VMEM(0x80810064) &= ~0x100;
 	VMEM(0x80810064) |= 0x100;
 }
 
-extern inline uint uptime() { // ideally would divide by 983
+static inline uint uptime() { // ideally would divide by 983
 	int s = 8;
     return ((VMEM(0x80810064) & 0xff) << (32 - s)) | (VMEM(0x80810060) >> s); // timer4
 }
