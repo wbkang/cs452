@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
 	raw_init();
 
 
-#if FAST
+#if FAST && (!(__i386))
 	__asm (
 		"mrc p15, 0, r0, c1, c0, 0\n\t"
 		"ldr r1, =0x40001004\n\t"

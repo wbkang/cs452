@@ -29,11 +29,13 @@ int DelayUntil(int ticks, int tid) {
 	return timeserver_delayuntil(ticks, tid);
 }
 
-int Getc(int tid) {
+int Getc(int channel, int tid) {
+	(void) channel;
 	return ioserver_getc(tid);
 }
 
-int Putc(char c, int tid) {
+int Putc(int channel, char c, int tid) {
+	(void) channel;
 	return ioserver_putc(c, tid);
 }
 

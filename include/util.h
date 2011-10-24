@@ -34,7 +34,7 @@ typedef char *va_list;
 #define LIKELY(x) __builtin_expect((x), 1)
 #define UNLIKELY(x) __builtin_expect((x), 0)
 
-extern inline int log2(uint n) {
+static inline int log2(uint n) {
 	uint l, i = 0;
 	if ((l = n >> 16)) { n = l; i |= 16; }
 	if ((l = n >>  8)) { n = l; i |=  8; }

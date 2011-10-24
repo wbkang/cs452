@@ -28,6 +28,7 @@ static inline void kernel_irq(int vic, int irq);
 static inline void kernel_idleserver() { for (;;); }
 
 static void flush_dcache() {
+#if !(__i386)
 	for (int seg = 0; seg < 8; seg++) {
 		for (int index = 0; index < 64; index++) {
 			__asm volatile (
@@ -36,6 +37,7 @@ static void flush_dcache() {
 		}
 	}
 	__asm volatile ("mcr p15, 0, r0, c7, c5, 0\n\t" ::: "r0");
+#endif
 }
 
 static void install_interrupt_handlers() {
