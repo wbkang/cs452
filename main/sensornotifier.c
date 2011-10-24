@@ -10,6 +10,7 @@ void sensornotifier() {
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	// int tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	int tid_prnt = MyParentsTid();
+	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
 
 	int modules[NUM_MODULES];
 	msg_sensor msg;
@@ -20,7 +21,7 @@ void sensornotifier() {
 	}
 
 	for (;;) {
-		train_querysenmods(NUM_MODULES, tid_com1);
+		train_querysenmods(NUM_MODULES, tid_traincmdbuf);
 		// int start = uptime();
 		for (int m = 0; m < NUM_MODULES; m++) {
 			int upper = Getc(COM1, tid_com1);
@@ -41,4 +42,8 @@ void sensornotifier() {
 		// int delta = end - start;
 		// ioprintf(tid_com2, "%d\n", delta);
 	}
+}
+
+int sensornotifier_new() {
+	return Create(PRIORITY_SENSORNOTIFIER, sensornotifier);
 }

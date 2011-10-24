@@ -1,3 +1,3 @@
 #pragma once
 
-void sensornotifier();
+int sensornotifier_new();
