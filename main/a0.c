@@ -115,7 +115,7 @@ void a0() {
 	train_reverse(train, tid_com1, tid_time);
 	train_speed(train, speed, tid_com1);*/
 
-	Create(2, sensornotifier);
+	Create(31, sensornotifier);
 	comnotifier_new(10, MyTid(), COM2, state.tid_com2);
 
 	for (;;) {
@@ -124,8 +124,8 @@ void a0() {
 		int rcvlen = Receive(&tid, msg, LEN_MSG);
 		ASSERT(rcvlen >= sizeof(msg_header), "bad data");
 		ReplyNull(tid);
-		msgtype type = ((msg_header*) msg)->type;
-		switch (type) {
+		msg_header *header = (msg_header*) msg;
+		switch (header->type) {
 			case SENSOR:
 				handle_sensor(&state, msg);
 				break;

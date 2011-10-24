@@ -10,8 +10,28 @@ typedef struct _tag_queue {
 } queue;
 
 queue *queue_new(uint size);
-inline void** queue_increment(queue *this, void** p);
-inline int queue_empty(queue *this);
-inline int queue_full(queue *this);
-inline void queue_push(queue *this, void* item);
-inline void* queue_pop(queue *this);
+
+extern inline void** queue_increment(queue *this, void** p) {
+	return p == this->max ? this->min : p + 1;
+}
+
+extern inline int queue_empty(queue *this) {
+	return this->head == this->tail;
+}
+
+extern inline int queue_full(queue *this) {
+	return this->head == queue_increment(this, this->tail);
+}
+
+extern inline void queue_push(queue *this, void* item) {
+	ASSERT(!queue_full(this), "full");
+	*this->tail = item;
+	this->tail = queue_increment(this, this->tail);
+}
+
+extern inline void* queue_pop(queue *this) {
+	ASSERT(!queue_empty(this), "empty");
+	void* rv = *this->head;
+	this->head = queue_increment(this, this->head);
+	return rv;
+}

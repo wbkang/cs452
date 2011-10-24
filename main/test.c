@@ -67,11 +67,11 @@ static void test_heap() {
 	int size = 111;
 	heap *h = heap_new(size);
 	void *got, *expected;
-	for (int i = 0; i < size; i++) {
-		heap_insert_max(h, (void*) i, 11 * i);
-	}
 	for (int i = size - 1; i != -1; i--) {
-		got = heap_extract_max(h);
+		heap_insert_min(h, (void*) i, 11 * i);
+	}
+	for (int i = 0; i < size; i++) {
+		got = heap_extract_min(h);
 		expected = (void*) i;
 		EXPECT(expected, got);
 	}

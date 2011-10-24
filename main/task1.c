@@ -12,7 +12,8 @@
 #define A0 1
 
 void task1() {
-	int tid_time = Create(PRIORITY_TIMESERVER, timeserver);
+	// int tid_time =
+	Create(PRIORITY_TIMESERVER, timeserver);
 	ioserver_create(COM1, OFF, 2400, 2, 8, OFF);
 	ioserver_create(COM2, OFF, 115200, 1, 8, OFF);
 
