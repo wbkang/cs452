@@ -39,6 +39,11 @@ int Putc(int channel, char c, int tid) {
 	return ioserver_putc(c, tid);
 }
 
+int Putstr(int channel, char const *str, int tid) {
+	(void) channel;
+	return ioserver_putstr(str, tid);
+}
+
 int ReplyInt(int tid, int rv) {
 	return Reply(tid, &rv, sizeof rv);
 }
