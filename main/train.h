@@ -20,12 +20,12 @@ static inline int train_goodmodule(int module) {
 	return (module > 0 && module < 32);
 }
 
-void train_speed(char train, char speed, int tid_com);
-void train_reverse(char train, int tid_com, int tid_time);
-void train_switch(char switchaddr, char pos, int tid_com, int tid_time);
-void train_switchall(char pos, int tid_com, int tid_time);
-void train_solenoidoff(int tid_com);
-void train_querysenmod(char module, int tid_com);
-void train_querysenmods(char modules, int tid_com);
-void train_go(int tid_com);
-void train_stop(int tid_com);
+void train_speed(char train, char speed, int tid);
+void train_reverse(char train, int tid);
+void train_switch(char switchaddr, char pos, int tid);
+void train_switchall(char pos, int tid);
+void train_solenoidoff(int tid);
+void train_querysenmod(char module, int tid);
+void train_querysenmods(char modules, int tid);
+void train_go(int tid);
+void train_stop(int tid);
