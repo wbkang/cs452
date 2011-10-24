@@ -1,22 +1,22 @@
 #pragma once
 
-extern inline int train_goodtrain(int train) {
+static inline int train_goodtrain(int train) {
 	return (1 <= train && train <= 80);
 }
 
-extern inline int train_goodspeed(int speed) {
+static inline int train_goodspeed(int speed) {
 	return speed >= 0;
 }
 
-extern inline int train_goodswitch(int switchno) {
+static inline int train_goodswitch(int switchno) {
 	return 1; // switchno > NUM_SWITCHES || switches[switchno] == 0;
 }
 
-extern inline int train_goodswitchpos(int pos) {
+static inline int train_goodswitchpos(int pos) {
 	return (pos == 'S' || pos == 'C');
 }
 
-extern inline int train_goodmodule(int module) {
+static inline int train_goodmodule(int module) {
 	return (module > 0 && module < 32);
 }
 
