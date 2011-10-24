@@ -34,7 +34,7 @@ typedef char *va_list;
 #define LIKELY(x) __builtin_expect((x), 1)
 #define UNLIKELY(x) __builtin_expect((x), 0)
 
-extern inline int log2(uint n) {
+static inline int log2(uint n) {
 	uint l, i = 0;
 	if ((l = n >> 16)) { n = l; i |= 16; }
 	if ((l = n >>  8)) { n = l; i |=  8; }
@@ -44,12 +44,12 @@ extern inline int log2(uint n) {
 	return i;
 }
 
-extern inline void uptime_reset() {
+static inline void uptime_reset() {
 	VMEM(0x80810064) &= ~0x100;
 	VMEM(0x80810064) |= 0x100;
 }
 
-extern inline uint uptime() { // ideally would divide by 983
+static inline uint uptime() { // ideally would divide by 983
 	int s = 8;
     return ((VMEM(0x80810064) & 0xff) << (32 - s)) | (VMEM(0x80810060) >> s); // timer4
 }
