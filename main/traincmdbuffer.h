@@ -7,10 +7,10 @@ typedef enum {
 
 typedef struct {
 	traincmdname name;
-	char byte1;
-	char byte2;
+	int arg1;
+	int arg2;
 } traincmd;
 
 int traincmdbuffer_new();
-int traincmdbuffer_put(int tid, traincmdname name, char byte1, char byte2);
+int traincmdbuffer_put(int tid, traincmdname name, int arg1, int arg2);
 int traincmdbuffer_get(int tid, traincmd *cmd);

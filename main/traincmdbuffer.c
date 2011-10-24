@@ -1,5 +1,6 @@
 #include <traincmdbuffer.h>
 #include <queue.h>
+#include <buffer.h>
 #include <syscall.h>
 #include <traincmdrunner.h>
 
@@ -7,39 +8,31 @@
 #define LEN_TIDBUFF 1
 
 typedef struct {
-	queue *cmdq;
+	buffer *cmdbuf;
 	queue *tidq;
 } traincmdbuffer_state;
 
 typedef struct {
 	enum { PUT, GET } no;
-	unsigned int cmd;
+	traincmd cmd;
 } traincmdbuffer_req;
 
-typedef struct {
-	unsigned int cmd;
-} traincmdbuffer_reply;
-
-static void tx(int tid, unsigned int cmd) {
-	traincmdbuffer_reply rpl;
-	rpl.cmd = cmd;
-	Reply(tid, &rpl, sizeof(rpl));
-}
-
-static void handle_put(traincmdbuffer_state *state, int tid, unsigned int cmd) {
+static void handle_put(traincmdbuffer_state *state, int tid, traincmd *cmd) {
 	ReplyNull(tid);
 	if (queue_empty(state->tidq)) {
-		queue_push(state->cmdq, (void*) cmd);
+		buffer_put(state->cmdbuf, cmd);
 	} else {
-		tx((int) queue_pop(state->tidq), cmd);
+		Reply((int) queue_get(state->tidq), cmd, sizeof(*cmd));
 	}
 }
 
 static void handle_get(traincmdbuffer_state *state, int tid) {
-	if (queue_empty(state->cmdq)) {
-		queue_push(state->tidq, (void*) tid);
+	if (buffer_empty(state->cmdbuf)) {
+		queue_put(state->tidq, (void*) tid);
 	} else {
-		tx(tid, (unsigned int) queue_pop(state->cmdq));
+		traincmd cmd;
+		buffer_get(state->cmdbuf, &cmd);
+		Reply(tid, &cmd, sizeof(cmd));
 	}
 }
 
@@ -47,7 +40,7 @@ void traincmdbuffer() {
 	RegisterAs(NAME_TRAINCMDBUFFER);
 
 	traincmdbuffer_state state;
-	state.cmdq = queue_new(LEN_CMDBUFF);
+	state.cmdbuf = buffer_new(LEN_CMDBUFF, sizeof(traincmd));
 	state.tidq = queue_new(LEN_TIDBUFF);
 
 	traincmdrunner_new();
@@ -58,7 +51,7 @@ void traincmdbuffer() {
 		Receive(&tid, &req, sizeof(req));
 		switch (req.no) {
 			case PUT:
-				handle_put(&state, tid, req.cmd);
+				handle_put(&state, tid, &req.cmd);
 				break;
 			case GET:
 				handle_get(&state, tid);
@@ -70,20 +63,6 @@ void traincmdbuffer() {
 	}
 }
 
-static unsigned int encode(traincmd *cmd) {
-	unsigned int rv = 0;
-	rv |= (cmd->name) << 16;
-	rv |= (cmd->byte1) << 8;
-	rv |= cmd->byte2;
-	return rv;
-}
-
-static void decode(unsigned int icmd, traincmd *cmd) {
-	cmd->name = icmd >> 16;
-	cmd->byte1 = (icmd >> 8) & 0xFF;
-	cmd->byte2 = icmd & 0xFF;
-}
-
 /*
  * API
  */
@@ -92,24 +71,19 @@ int traincmdbuffer_new() {
 	return Create(PRIORITY_TRAINCMDBUFFER, traincmdbuffer);
 }
 
-int traincmdbuffer_put(int tid, traincmdname name, char byte1, char byte2) {
-	traincmd cmd;
-	cmd.name = name;
-	cmd.byte1 = byte1;
-	cmd.byte2 = byte2;
-	// send
+int traincmdbuffer_put(int tid, traincmdname name, int arg1, int arg2) {
 	traincmdbuffer_req req;
 	req.no = PUT;
-	req.cmd = encode(&cmd);
+	req.cmd.name = name;
+	req.cmd.arg1 = arg1;
+	req.cmd.arg2 = arg2;
 	return Send(tid, (void*) &req, sizeof(req), NULL, 0);
 }
 
 int traincmdbuffer_get(int tid, traincmd *cmd) {
 	traincmdbuffer_req req;
 	req.no = GET;
-	traincmdbuffer_reply rpl;
-	int len = Send(tid, (void*) &req, sizeof(req), (void*) &rpl, sizeof(rpl));
+	int len = Send(tid, (void*) &req, sizeof(req), (void*) cmd, sizeof(*cmd));
 	if (len < 0) return len;
-	decode(rpl.cmd, cmd);
 	return 0;
 }

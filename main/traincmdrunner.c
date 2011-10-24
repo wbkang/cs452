@@ -15,21 +15,21 @@ void traincmdrunner() {
 		traincmdbuffer_get(tid_traincmdbuf, &cmd);
 		switch (cmd.name) {
 			case SPEED: {
-				char train = cmd.byte1;
-				char speed = cmd.byte2;
+				char train = cmd.arg1;
+				char speed = cmd.arg2;
 				Putc(COM1, speed, tid_com1);
 				Putc(COM1, train, tid_com1);
 				break;
 			}
 			case REVERSE: {
-				char train = cmd.byte1;
+				char train = cmd.arg1;
 				Putc(COM1, 0xF, tid_com1);
 				Putc(COM1, train, tid_com1);
 				break;
 			}
 			case SWITCH: {
-				char switchaddr = cmd.byte1;
-				char switchpos = cmd.byte2;
+				char switchaddr = cmd.arg1;
+				char switchpos = cmd.arg2;
 				Putc(COM1, switchpos == 'S' ? 0x21 : 0x22, tid_com1);
 				Putc(COM1, switchaddr, tid_com1);
 				break;
@@ -38,12 +38,12 @@ void traincmdrunner() {
 				Putc(COM1, 0x20, tid_com1);
 				break;
 			case QUERY1: {
-				char module = cmd.byte1;
+				char module = cmd.arg1;
 				Putc(COM1, 0xC0 + module, tid_com1);
 				break;
 			}
 			case QUERY: {
-				char modules = cmd.byte1;
+				char modules = cmd.arg1;
 				Putc(COM1, 0x80 + modules, tid_com1);
 				break;
 			}
@@ -54,7 +54,7 @@ void traincmdrunner() {
 				Putc(COM1, 0x61, tid_com1);
 				break;
 			case PAUSE: {
-				char ticks = cmd.byte1;
+				int ticks = cmd.arg1;
 				Delay(ticks, tid_time);
 				break;
 			}
