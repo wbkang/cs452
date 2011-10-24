@@ -15,27 +15,6 @@ void raw_init() {
 	uart_fifo(COM2, OFF);
 }
 
-int raw_isrxempty(int channel) {
-	CHECK_COM(channel);
-	return VMEM(UART_BASE(channel) + UART_FLAG_OFFSET) & RXFE_MASK;
-}
-
-int raw_getc(int channel) {
-	CHECK_COM(channel);
-	return VMEM(UART_BASE(channel) + UART_DATA_OFFSET);
-}
-
-int raw_istxready(int channel) {
-	CHECK_COM(channel);
-	int flags = VMEM(UART_BASE(channel) + UART_FLAG_OFFSET);
-	return !(flags & TXFF_MASK) && (channel == COM2 || (channel == COM1 && (flags & CTS_MASK)));
-}
-
-void raw_putc(int channel, char c) {
-	CHECK_COM(channel);
-	VMEM(UART_BASE(channel) + UART_DATA_OFFSET) = c;
-}
-
 void bwputc(int channel, char c) {
 	CHECK_COM(channel);
 	int base = UART_BASE(channel);

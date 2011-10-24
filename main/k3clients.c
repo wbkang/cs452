@@ -1,6 +1,7 @@
 #include <k3clients.h>
 #include <syscall.h>
 #include <util.h>
+#include <stdio.h>
 
 typedef struct {
 	int delay_time;
@@ -8,17 +9,19 @@ typedef struct {
 } delay_info;
 
 #define PRINTF(timeserver, ...) { \
-	ioprintf(1, "[%d\t] ", Time(timeserver)); \
-	ioprintf(1, __VA_ARGS__); \
-	ioprintf(1, "\n"); \
+	char __buf[100], *__p = __buf; \
+	__p += sprintf(__p, "[%d\t] ", Time(timeserver)); \
+	__p += sprintf(__p, __VA_ARGS__); \
+	__p += sprintf(__p, "\n"); Putstr(1, __buf, 1); \
 }
 
 #define SAY(timeserver, name, ...) { \
-	ioprintf(1, "[%d\t] ", Time(timeserver)); \
-	for (int i = 0; i < 2 * (name - 8); i++) ioprintf(1, "\t"); \
-	ioprintf(1, "{%d} ", name); \
-	ioprintf(1, __VA_ARGS__); \
-	ioprintf(1, "\n"); \
+	char __buf[1000], *__p = __buf; \
+	__p += sprintf(__buf, "[%d\t] ", Time(timeserver)); \
+	for (int i = 0; i < 2 * (name - 8); i++) { __p += sprintf(__buf, "\t"); } \
+	__p += sprintf(__buf, "{%d} ", name); \
+	__p += sprintf(__buf, __VA_ARGS__); \
+	__p += sprintf(__buf, "\n"); Putstr(1, __buf, 1); \
 }
 
 static inline void client_task() {

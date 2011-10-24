@@ -30,6 +30,7 @@ int Delay(int ticks, int tid);
 int DelayUntil(int ticks, int tid);
 int Getc(int channel, int tid);
 int Putc(int channel, char c, int tid);
+int Putstr(int channel, char const *str, int tid);
 int ReplyInt(int tid, int rv);
 int ReplyNull(int tid);
 int SendNull(int tid);
