@@ -1,1 +1,2 @@
-int sprintf ( char * str, const char * format, ... );
+#pragma once
+int sprintf(char * str, const char * format, ...);
