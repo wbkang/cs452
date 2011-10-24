@@ -13,8 +13,7 @@ void train_speed(char train, char speed, int tid) {
 
 void train_reverse(char train, int tid) {
 	ASSERT(train_goodtrain(train), "bad train: %d", train);
-	traincmdbuffer_put(tid, PAUSE, PAUSE_REVERSE >> 1, NULL);
-	traincmdbuffer_put(tid, PAUSE, PAUSE_REVERSE >> 1, NULL);
+	traincmdbuffer_put(tid, PAUSE, PAUSE_REVERSE, NULL);
 	traincmdbuffer_put(tid, REVERSE, train, NULL);
 }
 
