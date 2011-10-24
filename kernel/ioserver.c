@@ -228,7 +228,7 @@ int ioserver_putc(char c, int tid) {
 }
 
 void ioputc(int tid, char c) {
-	Putc(c, tid);
+	Putc(NULL, c, tid); // FIXME FIX THIS
 }
 
 void ioputx(int tid, char c) {

@@ -24,10 +24,9 @@ void handle_sensor(a0state *state, char msg[]) {
 	ioprintf(state->tid_com2, "%c: %d\n", sensor->module, sensor->id);
 }
 
-void handle_com2out(a0state *state, char msg[]) {
+void handle_com2in(a0state *state, msg_comin *comin) {
 	ASSERT(state->cmd_i < LEN_CMD - 1, "cmd buffer full");
-	msg_com2out *com2out = (msg_com2out*) msg;
-	switch (com2out->c) {
+	switch (comin->c) {
 		case '\b':
 			if (state->cmd_i != 0) {
 				state->cmd_i -= 1;
@@ -87,11 +86,27 @@ void handle_com2out(a0state *state, char msg[]) {
 			break;
 		}
 		default:
-			state->cmd[state->cmd_i++] = com2out->c;
+			state->cmd[state->cmd_i++] = comin->c;
 			break;
 	}
 	state->cmd[state->cmd_i] = '\0';
 	// ioprintf(state->tid_com2, "%s\n", state->cmd);
+}
+
+static void handle_comin(a0state *state, char msg[]) {
+	msg_comin *comin = (msg_comin*) msg;
+
+	switch (comin->channel) {
+		case COM1:
+			ERROR("com1 handler not defined");
+			break;
+		case COM2:
+			handle_com2in(state, comin);
+			break;
+		default:
+			ERROR("invalid channel# %d" , comin->channel);
+			break;
+	}
 }
 
 void a0() {
@@ -129,10 +144,8 @@ void a0() {
 			case SENSOR:
 				handle_sensor(&state, msg);
 				break;
-			case COM1OUT:
-				break;
-			case COM2OUT:
-				handle_com2out(&state, msg);
+			case COM_IN:
+				handle_comin(&state, msg);
 				break;
 			default:
 				break;

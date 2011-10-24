@@ -23,8 +23,8 @@ void sensornotifier() {
 		train_querysenmods(NUM_MODULES, tid_com1);
 		// int start = uptime();
 		for (int m = 0; m < NUM_MODULES; m++) {
-			int upper = Getc(tid_com1);
-			int lower = Getc(tid_com1);
+			int upper = Getc(COM1, tid_com1);
+			int lower = Getc(COM1, tid_com1);
 			int module = (upper << 8) | lower;
 			int old_module = modules[m];
 			modules[m] = module;

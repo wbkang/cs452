@@ -13,13 +13,14 @@ void comnotifier() {
 	comnotifier_args args;
 	Receive(&tid, &args, sizeof(args));
 
-	msg_com2out msg;
-	msg.type = COM2OUT;
+	msg_comin msg;
+	msg.type = COM_IN;
+	msg.channel = args.channel;
 
 	ReplyNull(tid);
 
 	for (;;) {
-		msg.c = Getc(args.tid_com);
+		msg.c = Getc(args.channel, args.tid_com);
 		Send(args.tid_target, (void*) &msg, sizeof(msg), NULL, 0);
 	}
 }
