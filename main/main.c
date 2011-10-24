@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
 		: : : "r0", "r1"
 	);
 #endif
+
 	test_run();
 	kerneltest_run();
 	kernel_init();
