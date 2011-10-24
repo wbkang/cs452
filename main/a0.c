@@ -5,6 +5,7 @@
 #include <uconst.h>
 #include <comnotifier.h>
 #include <string.h>
+#include <traincmdbuffer.h>
 #include <stdio.h>
 
 #define LEN_MSG 4 * 64
@@ -15,6 +16,7 @@ typedef struct {
 	int tid_time;
 	int tid_com1;
 	int tid_com2;
+	int tid_traincmdbuf;
 	// cmd buffer
 	char cmd[LEN_CMD];
 	int cmd_i;
@@ -55,7 +57,7 @@ void handle_com2in(a0state *state, msg_comin *comin) {
 					int speed = strgetui(&c);
 					if (!train_goodspeed(speed)) break;
 					ACCEPT('\n');
-					train_speed(train, speed, state->tid_com1);
+					train_speed(train, speed, state->tid_traincmdbuf);
 					break;
 				}
 				case 'r': { // reverse train (rv #)
@@ -65,9 +67,9 @@ void handle_com2in(a0state *state, msg_comin *comin) {
 					if (!train_goodtrain(train)) break;
 					ACCEPT('\n');
 					// { ... } save train speed
-					train_speed(train, 0, state->tid_com1);
-					train_reverse(train, state->tid_com1, state->tid_time);
-					train_speed(train, 30, state->tid_com1); // restore train speed
+					train_speed(train, 0, state->tid_traincmdbuf);
+					train_reverse(train, state->tid_traincmdbuf);
+					train_speed(train, 30, state->tid_traincmdbuf); // restore train speed
 					break;
 				}
 				case 's': { // set switch position (sw # [CS])
@@ -79,8 +81,8 @@ void handle_com2in(a0state *state, msg_comin *comin) {
 					char pos = *c++;
 					if (!train_goodswitchpos(pos)) break;
 					ACCEPT('\n');
-					train_switch(switchno, pos, state->tid_com1, state->tid_time);
-					train_solenoidoff(state->tid_com1);
+					train_switch(switchno, pos, state->tid_traincmdbuf);
+					train_solenoidoff(state->tid_traincmdbuf);
 					break;
 				}
 				case 'q':
@@ -121,23 +123,24 @@ void a0() {
 	state.tid_time = WhoIs(NAME_TIMESERVER);
 	state.tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	state.tid_com2 = WhoIs(NAME_IOSERVER_COM2);
+	state.tid_traincmdbuf = traincmdbuffer_new();
 	state.cmd[0] = '\0';
 	state.cmd_i = 0;
 
-	train_go(state.tid_com1);
+	train_go(state.tid_traincmdbuf);
 
 	// ioprintf(tid_com2, "switching to curved\n");
-	// train_switchall('C', tid_com1, tid_time);
+	// train_switchall('C', state.tid_traincmdbuf);
 	// Delay(100, tid_time);
 
-	train_speed(24, 14 + 16, state.tid_com1);
-	train_speed(21, 14 + 16, state.tid_com1);
+	train_speed(24, 14 + 16, state.tid_traincmdbuf);
+	train_speed(21, 14 + 16, state.tid_traincmdbuf);
 	/*Delay(500, tid_time);
-	train_speed(train, 0, tid_com1);
-	train_reverse(train, tid_com1, tid_time);
-	train_speed(train, speed, tid_com1);*/
+	train_speed(train, 0, state.tid_traincmdbuf);
+	train_reverse(train, state.tid_traincmdbuf);
+	train_speed(train, speed, state.tid_traincmdbuf);*/
 
-	Create(31, sensornotifier);
+	sensornotifier_new();
 	comnotifier_new(10, MyTid(), COM2, state.tid_com2);
 
 	for (;;) {
