@@ -4,7 +4,7 @@
 #include <syscall.h>
 #include <traincmdrunner.h>
 
-#define LEN_CMDBUFF 32
+#define LEN_CMDBUFF 64
 #define LEN_TIDBUFF 1
 
 typedef struct {
