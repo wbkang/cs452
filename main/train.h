@@ -33,7 +33,7 @@ static inline int train_goodswitch(int switchno) {
 }
 
 static inline int train_goodswitchpos(int pos) {
-	return pos == 'S' || pos == 'C';
+	return pos == 's' || pos == 'S' || pos == 'c' || pos == 'C';
 }
 
 static inline int train_goodmodule(int module) {
@@ -53,6 +53,11 @@ static inline void train_reverse(char train, int tid) {
 
 static inline void train_switch(char switchaddr, char pos, int tid) {
 	ASSERT(train_goodswitchpos(pos), "bad position: %d", pos);
+	if (pos == 'c') {
+		pos = 'C';
+	} else if (pos == 's') {
+		pos = 'S';
+	}
 	traincmdbuffer_put(tid, SWITCH, switchaddr, pos);
 	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_SOLENOID, NULL);
 }
