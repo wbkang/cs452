@@ -4,15 +4,25 @@
 #include <syscall.h>
 #include <hardware.h>
 
+// train controller commands
+
+#define TRAIN_REVERSE 0xF
+#define TRAIN_SWITCH_STRAIGH 0x21
+#define TRAIN_SWITCH_CURVED 0x22
+#define TRAIN_SOLENOID_OFF 0x20
+#define TRAIN_QUERYMOD 0xC0
+#define TRAIN_QUERYMODS 0x80
+#define TRAIN_GO 0x60
+#define TRAIN_STOP 0x61
+
+// train track data
+
 #define TRAIN_MIN_TRAIN_ADDR 1
 #define TRAIN_MAX_TRAIN_ADDR 80
-
 #define TRAIN_MIN_SWITCHADDR 0
 #define TRAIN_MAX_SWITCHADDR 255
-
 #define TRAIN_PAUSE_SOLENOID 15
 #define TRAIN_PAUSE_REVERSE 400
-
 #define TRAIN_NUM_SWITCHADDR 22
 
 static const char train_switches[] = {
@@ -29,11 +39,20 @@ static inline int train_goodspeed(int speed) {
 }
 
 static inline int train_goodswitch(int switchno) {
-	return 1; // TRAIN_MIN_SWITCHADDR <= switchno && switchno <= TRAIN_MAX_SWITCHADDR;
+	// TRAIN_MIN_SWITCHADDR <= switchno && switchno <= TRAIN_MAX_SWITCHADDR;
+	return 1;
+}
+
+static inline int train_switchpos_straight(int pos) {
+	return pos == 's' || pos == 'S';
+}
+
+static inline int train_switchpos_curved(int pos) {
+	return pos == 'c' || pos == 'C';
 }
 
 static inline int train_goodswitchpos(int pos) {
-	return pos == 's' || pos == 'S' || pos == 'c' || pos == 'C';
+	return train_switchpos_straight(pos) || train_switchpos_curved(pos);
 }
 
 static inline int train_goodmodule(int module) {
@@ -53,11 +72,6 @@ static inline void train_reverse(char train, int tid) {
 
 static inline void train_switch(char switchaddr, char pos, int tid) {
 	ASSERT(train_goodswitchpos(pos), "bad position: %d", pos);
-	if (pos == 'c') {
-		pos = 'C';
-	} else if (pos == 's') {
-		pos = 'S';
-	}
 	traincmdbuffer_put(tid, SWITCH, switchaddr, pos);
 	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_SOLENOID, NULL);
 }

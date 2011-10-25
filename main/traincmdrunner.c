@@ -1,6 +1,7 @@
 #include <traincmdrunner.h>
 #include <traincmdbuffer.h>
 #include <syscall.h>
+#include <train.h>
 
 void traincmdrunner() {
 	RegisterAs(NAME_TRAINCMDRUNNER);
@@ -23,35 +24,36 @@ void traincmdrunner() {
 			}
 			case REVERSE: {
 				char train = cmd.arg1;
-				Putc(COM1, 0xF, tid_com1);
+				Putc(COM1, TRAIN_REVERSE, tid_com1);
 				Putc(COM1, train, tid_com1);
 				break;
 			}
 			case SWITCH: {
-				char switchaddr = cmd.arg1;
-				char switchpos = cmd.arg2;
-				Putc(COM1, switchpos == 'S' ? 0x21 : 0x22, tid_com1);
-				Putc(COM1, switchaddr, tid_com1);
+				char swaddr = cmd.arg1;
+				char swpos = cmd.arg2;
+				int S = train_switchpos_straight(swpos);
+				Putc(COM1, S ? TRAIN_SWITCH_STRAIGH : TRAIN_SWITCH_CURVED, tid_com1);
+				Putc(COM1, swaddr, tid_com1);
 				break;
 			}
 			case SOLENOID:
-				Putc(COM1, 0x20, tid_com1);
+				Putc(COM1, TRAIN_SOLENOID_OFF, tid_com1);
 				break;
 			case QUERY1: {
 				char module = cmd.arg1;
-				Putc(COM1, 0xC0 + module, tid_com1);
+				Putc(COM1, TRAIN_QUERYMOD | module, tid_com1);
 				break;
 			}
 			case QUERY: {
 				char modules = cmd.arg1;
-				Putc(COM1, 0x80 + modules, tid_com1);
+				Putc(COM1, TRAIN_QUERYMODS | modules, tid_com1);
 				break;
 			}
 			case GO:
-				Putc(COM1, 0x60, tid_com1);
+				Putc(COM1, TRAIN_GO, tid_com1);
 				break;
 			case STOP:
-				Putc(COM1, 0x61, tid_com1);
+				Putc(COM1, TRAIN_STOP, tid_com1);
 				break;
 			case PAUSE: {
 				int ticks = cmd.arg1;

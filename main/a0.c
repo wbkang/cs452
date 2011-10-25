@@ -8,8 +8,8 @@
 #include <traincmdbuffer.h>
 #include <stdio.h>
 
-#define LEN_MSG (4 * 64)
-#define LEN_CMD 128
+#define LEN_MSG (64 * 4)
+#define LEN_CMD 32
 
 typedef struct {
 	// server ids
