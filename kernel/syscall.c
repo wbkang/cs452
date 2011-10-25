@@ -4,7 +4,7 @@
 #include <timeserver.h>
 #include <ioserver.h>
 
-int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
+int Send(int tid, void* msg, int msglen, void* reply, int replylen) {
 	if ((msglen | replylen) & 0xffff0000) return -3;
 	return asm_Send(tid, msg, reply, (replylen << 16) | msglen);
 }

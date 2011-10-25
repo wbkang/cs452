@@ -6,10 +6,18 @@
 
 #define NUM_MODULES 5
 
+typedef struct {
+	int tid_target;
+} sensornotifier_args;
+
 void sensornotifier() {
+	int tid;
+	sensornotifier_args args;
+	Receive(&tid, &args, sizeof(args));
+	ReplyNull(tid);
+
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	// int tid_com2 = WhoIs(NAME_IOSERVER_COM2);
-	int tid_prnt = MyParentsTid();
 	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
 
 	int modules[NUM_MODULES];
@@ -35,7 +43,7 @@ void sensornotifier() {
 				sensors &= ~(1 << s);
 				msg.module = 'A' + m;
 				msg.id = 16 - s;
-				Send(tid_prnt, (void*) &msg, sizeof(msg), NULL, 0);
+				Send(args.tid_target, (void*) &msg, sizeof(msg), NULL, 0);
 			}
 		}
 		// int end = uptime();
@@ -44,6 +52,16 @@ void sensornotifier() {
 	}
 }
 
-int sensornotifier_new() {
-	return Create(PRIORITY_SENSORNOTIFIER, sensornotifier);
+/*
+ * API
+ */
+
+int sensornotifier_new(int tid_target) {
+	sensornotifier_args args;
+	args.tid_target = tid_target;
+	int tid = Create(PRIORITY_SENSORNOTIFIER, sensornotifier);
+	if (tid < 0) return tid;
+	int rv = Send(tid, (void*) &args, sizeof(args), NULL, 0);
+	if (rv < 0) return rv;
+	return tid;
 }

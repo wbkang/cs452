@@ -12,12 +12,11 @@ void comnotifier() {
 	int tid;
 	comnotifier_args args;
 	Receive(&tid, &args, sizeof(args));
+	ReplyNull(tid);
 
 	msg_comin msg;
 	msg.type = COM_IN;
 	msg.channel = args.channel;
-
-	ReplyNull(tid);
 
 	for (;;) {
 		msg.c = Getc(args.channel, args.tid_com);
@@ -25,7 +24,11 @@ void comnotifier() {
 	}
 }
 
-int comnotifier_new(int priority, int tid_target, int channel, int tid_com) {
+/*
+ * API
+ */
+
+int comnotifier_new(int tid_target, int priority, int channel, int tid_com) {
 	comnotifier_args args;
 	args.tid_target = tid_target;
 	args.channel = channel;

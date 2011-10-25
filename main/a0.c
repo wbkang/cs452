@@ -20,6 +20,8 @@ typedef struct {
 	// cmd buffer
 	char cmd[LEN_CMD];
 	int cmd_i;
+	// train data
+	char train_speed[TRAIN_MAX_TRAIN_ADDR + 1];
 } a0state;
 
 void handle_sensor(a0state *state, char msg[]) {
@@ -44,7 +46,7 @@ void handle_com2in(a0state *state, msg_comin *comin) {
 			#define ACCEPT(a) { if (*c++ != a) break; }
 
 			state->cmd[state->cmd_i + 1] = '\0';
-			char com2outbuf[LEN_CMD + 100], *p = com2outbuf;
+			char com2outbuf[LEN_CMD + 100];
 			sprintf(com2outbuf, "cmd: %s", state->cmd);
 			Putstr(COM2, com2outbuf, state->tid_com2);
 			switch (*c++) {
@@ -57,6 +59,7 @@ void handle_com2in(a0state *state, msg_comin *comin) {
 					int speed = strgetui(&c);
 					if (!train_goodspeed(speed)) break;
 					ACCEPT('\n');
+					state->train_speed[train] = speed;
 					train_speed(train, speed, state->tid_traincmdbuf);
 					break;
 				}
@@ -66,10 +69,10 @@ void handle_com2in(a0state *state, msg_comin *comin) {
 					int train = strgetui(&c);
 					if (!train_goodtrain(train)) break;
 					ACCEPT('\n');
-					// { ... } save train speed
+					int speed = state->train_speed[train];
 					train_speed(train, 0, state->tid_traincmdbuf);
 					train_reverse(train, state->tid_traincmdbuf);
-					train_speed(train, 30, state->tid_traincmdbuf); // restore train speed
+					train_speed(train, speed, state->tid_traincmdbuf);
 					break;
 				}
 				case 's': { // set switch position (sw # [CS])
@@ -103,18 +106,8 @@ void handle_com2in(a0state *state, msg_comin *comin) {
 
 static void handle_comin(a0state *state, char msg[]) {
 	msg_comin *comin = (msg_comin*) msg;
-
-	switch (comin->channel) {
-		case COM1:
-			ERROR("com1 handler not defined");
-			break;
-		case COM2:
-			handle_com2in(state, comin);
-			break;
-		default:
-			ERROR("invalid channel# %d" , comin->channel);
-			break;
-	}
+	ASSERT(comin->channel == COM2, "no handler for channel %d", comin->channel);
+	handle_com2in(state, comin);
 }
 
 void a0() {
@@ -125,22 +118,17 @@ void a0() {
 	state.tid_traincmdbuf = traincmdbuffer_new();
 	state.cmd[0] = '\0';
 	state.cmd_i = 0;
+	for (int i = 0; i <= TRAIN_MAX_TRAIN_ADDR; i++) {
+		state.train_speed[i] = 0;
+	}
 
 	train_go(state.tid_traincmdbuf);
-
-	// ioprintf(tid_com2, "switching to curved\n");
-	// train_switchall('C', state.tid_traincmdbuf);
-	// Delay(100, tid_time);
-
+	train_switchall('C', state.tid_traincmdbuf);
 	train_speed(24, 14 + 16, state.tid_traincmdbuf);
 	train_speed(21, 14 + 16, state.tid_traincmdbuf);
-	/*Delay(500, tid_time);
-	train_speed(train, 0, state.tid_traincmdbuf);
-	train_reverse(train, state.tid_traincmdbuf);
-	train_speed(train, speed, state.tid_traincmdbuf);*/
 
-	sensornotifier_new();
-	comnotifier_new(10, MyTid(), COM2, state.tid_com2);
+	sensornotifier_new(MyTid());
+	comnotifier_new(MyTid(), 10, COM2, state.tid_com2);
 
 	for (;;) {
 		int tid;
