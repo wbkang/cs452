@@ -15,12 +15,14 @@
 
 #define BUFFER_SIZE 256
 #define INPUT_BLOCKED_QUEUE_SIZE 400
+#define FLUSH_BLOCKED_QUEUE_SIZE 1
 
 typedef struct {
 	int channel;
 	queue *input;
 	queue *input_blocked;
 	queue *output;
+	queue *flush_blocked;
 	int tid_notifier_general;
 	int tx_empty;
 	int cts;
@@ -36,17 +38,18 @@ typedef struct {
 } ioserver_arg;
 
 typedef struct {
-	enum { PUTC, GETC, PUTSTR } no;
+	enum { PUTC, GETC, PUTSTR, FLUSH } no;
 	char str[];
 } ioserver_req;
 
 static inline void uart_init(ioserver_arg* args);
-static inline void handle_getc(ioserver_state *state, int tid);
-static inline void handle_putc(ioserver_state *state, int tid, char c);
-static inline void handle_putstr(ioserver_state *state, int tid, char const *c);
 static inline void handle_general(ioserver_state *state);
+static inline void handle_putc(ioserver_state *state, int tid, char c);
+static inline void handle_getc(ioserver_state *state, int tid);
+static inline void handle_putstr(ioserver_state *state, int tid, char const *c);
 static inline char rxchar(ioserver_state *state);
 static inline void txchar(ioserver_state *state);
+static inline void handle_flush(ioserver_state *state, int tid);
 
 static void ioserver() {
 	int tid;
@@ -66,6 +69,7 @@ static void ioserver() {
 	state.input = queue_new(BUFFER_SIZE);
 	state.input_blocked = queue_new(INPUT_BLOCKED_QUEUE_SIZE);
 	state.output = queue_new(BUFFER_SIZE);
+	state.flush_blocked = queue_new(FLUSH_BLOCKED_QUEUE_SIZE);
 	int general_event = args.channel == COM1 ? EVENT_UART1 : EVENT_UART2;
 	state.tid_notifier_general = notifier_new(PRIORITY_IONOTIFIER, general_event);
 	int uartbase = UART_BASE(args.channel);
@@ -81,7 +85,7 @@ static void ioserver() {
 
 	// serve
 	for (;;) {
-		int msglen = Receive(&tid, (void*) req, req_size);
+		int msglen = Receive(&tid, req, req_size);
 		if (tid == state.tid_notifier_general) {
 			handle_general(&state);
 		} else if (msglen >= sizeof(*req)) {
@@ -94,6 +98,9 @@ static void ioserver() {
 					break;
 				case PUTSTR:
 					handle_putstr(&state, tid, req->str);
+					break;
+				case FLUSH:
+					handle_flush(&state, tid);
 					break;
 				default:
 					ASSERT(FALSE, "bad reqno: %d", req->no);
@@ -175,6 +182,12 @@ static inline void txchar(ioserver_state *state) {
 	VMEM(uartbase + UART_INTR_OFFSET) = 1; // clear ms interrupt in hardware
 	state->cts = (state->channel == COM2); // assume cts off if COM1
 	state->tx_empty = VMEM(uartbase + UART_CTLR_OFFSET) & TXFE_MASK;
+	if (queue_empty(state->output)) {
+		while (!queue_empty(state->flush_blocked)) {
+			int tid = (int) queue_get(state->flush_blocked);
+			ReplyNull(tid);
+		}
+	}
 }
 
 static inline void handle_getc(ioserver_state *state, int tid) {
@@ -200,19 +213,27 @@ static inline void handle_putstr(ioserver_state *state, int tid, char const *str
 	if (UNLIKELY(queue_full(state->output))) {
 		ERROR("queue full, channel: %d, string: %s (%x)", state->channel, str, str);
 	}
-
-	char const * p = str;
-
+	char const *p = str;
 	while (*p) {
 		queue_put(state->output, (void*)(int) *p++);
 	}
-
-	if (state->tx_empty && state->cts && p != str) {
+	if (state->tx_empty && state->cts && *str) {
 		txchar(state);
 	}
-
 	ReplyInt(tid, 0);
 }
+
+static inline void handle_flush(ioserver_state *state, int tid) {
+	if (queue_empty(state->output)) {
+		ReplyNull(tid);
+	} else {
+		queue_put(state->flush_blocked, (void*) tid);
+	}
+}
+
+/*
+ * API
+ */
 
 int ioserver_create(int channel, int fifo, int speed, int stopbits, int databits, int parity) {
 	ioserver_arg args;
@@ -259,4 +280,10 @@ int ioserver_putstr(char const *str, int tid) {
 	req->no = PUTSTR;
 	memcpy(req->str, str, strsize);
 	return ioserver_send(tid, req, sizeof(buf));
+}
+
+int ioserver_flush(int tid) {
+	ioserver_req req;
+	req.no = FLUSH;
+	return ioserver_send(tid, &req, sizeof(req));
 }

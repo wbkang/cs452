@@ -31,7 +31,7 @@ void nameserver() {
 	// serve
 	int rv;
 	for (;;) {
-		int bytes = Receive(&tid, (void*) &req, sizeof(req));
+		int bytes = Receive(&tid, &req, sizeof(req));
 		if (bytes == sizeof(req)) {
 			int idx = req.ch[0] * NUM_ASCII_PRINTABLE + req.ch[1] - (NUM_ASCII_PRINTABLE + 1) * ASCII_PRINTABLE_START;
 			switch (req.no) {
@@ -54,7 +54,7 @@ void nameserver() {
 		} else {
 			rv = NAMESERVER_ERROR_BADDATA;
 		}
-		Reply(tid, (void*) &rv, sizeof rv);
+		Reply(tid, &rv, sizeof rv);
 	}
 }
 
@@ -65,7 +65,7 @@ inline int nameserver_send(char reqno, char *name) {
 	req.ch[0] = name[0];
 	req.ch[1] = name[1];
 	int rv;
-	int len = Send(NameServerTid(), (void*) &req, sizeof req, (void*) &rv, sizeof rv);
+	int len = Send(NameServerTid(), &req, sizeof req, &rv, sizeof rv);
 	if (len < 0) return len;
 	if (len != sizeof rv) return NAMESERVER_ERROR_BADDATA;
 	return rv;

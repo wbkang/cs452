@@ -90,5 +90,4 @@ static inline void train_switchall(char pos, int tid) {
 	for (int i = 1; i < TRAIN_NUM_SWITCHADDR; i++) {
 		train_switch(train_switches[i], pos, tid);
 	}
-	train_solenoidoff(tid);
 }

@@ -75,21 +75,33 @@ void handle_com2in(a0state *state, msg_comin *comin) {
 					train_speed(train, speed, state->tid_traincmdbuf);
 					break;
 				}
-				case 's': { // set switch position (sw # [CS])
+				case 's': { // set switch position (sw [#*] [cCsS])
 					ACCEPT('w');
 					ACCEPT(' ');
-					int switchno = strgetui(&c);
-					if (!train_goodswitch(switchno)) break;
+					char switchno;
+					if (*c == '*') {
+						switchno = *c++;
+					} else {
+						switchno = strgetui(&c);
+						if (!train_goodswitch(switchno)) break;
+					}
 					ACCEPT(' ');
 					char pos = *c++;
 					if (!train_goodswitchpos(pos)) break;
 					ACCEPT('\n');
-					train_switch(switchno, pos, state->tid_traincmdbuf);
+					if (switchno == '*') {
+						train_switchall(pos, state->tid_traincmdbuf);
+					} else {
+						train_switch(switchno, pos, state->tid_traincmdbuf);
+					}
 					train_solenoidoff(state->tid_traincmdbuf);
 					break;
 				}
 				case 'q':
 					ACCEPT('\n');
+					train_stop(state->tid_traincmdbuf);
+					Flush(state->tid_com1);
+					Flush(state->tid_com2);
 					ExitKernel(0);
 					break;
 			}
@@ -123,7 +135,6 @@ void a0() {
 	}
 
 	train_go(state.tid_traincmdbuf);
-	train_switchall('C', state.tid_traincmdbuf);
 	train_speed(24, 14 + 16, state.tid_traincmdbuf);
 	train_speed(21, 14 + 16, state.tid_traincmdbuf);
 
