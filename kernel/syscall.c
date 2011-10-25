@@ -44,6 +44,10 @@ int Putstr(int channel, char const *str, int tid) {
 	return ioserver_putstr(str, tid);
 }
 
+int Flush(int tid) {
+	return ioserver_flush(tid);
+}
+
 int ReplyInt(int tid, int rv) {
 	return Reply(tid, &rv, sizeof rv);
 }

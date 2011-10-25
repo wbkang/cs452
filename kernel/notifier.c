@@ -31,7 +31,7 @@ int notifier_new(int priority, int eventid) {
 	// pass in args
 	notifier_args args;
 	args.eventid = eventid;
-	int rv = Send(tid, (void*) &args, sizeof(args), NULL, 0);
+	int rv = Send(tid, &args, sizeof(args), NULL, 0);
 	if (rv < 0) return rv;
 	return tid;
 }

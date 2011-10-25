@@ -43,7 +43,7 @@ void sensornotifier() {
 				sensors &= ~(1 << s);
 				msg.module = 'A' + m;
 				msg.id = 16 - s;
-				Send(args.tid_target, (void*) &msg, sizeof(msg), NULL, 0);
+				Send(args.tid_target, &msg, sizeof(msg), NULL, 0);
 			}
 		}
 		// int end = uptime();
@@ -61,7 +61,7 @@ int sensornotifier_new(int tid_target) {
 	args.tid_target = tid_target;
 	int tid = Create(PRIORITY_SENSORNOTIFIER, sensornotifier);
 	if (tid < 0) return tid;
-	int rv = Send(tid, (void*) &args, sizeof(args), NULL, 0);
+	int rv = Send(tid, &args, sizeof(args), NULL, 0);
 	if (rv < 0) return rv;
 	return tid;
 }

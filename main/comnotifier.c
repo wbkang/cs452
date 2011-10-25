@@ -20,7 +20,7 @@ void comnotifier() {
 
 	for (;;) {
 		msg.c = Getc(args.channel, args.tid_com);
-		Send(args.tid_target, (void*) &msg, sizeof(msg), NULL, 0);
+		Send(args.tid_target, &msg, sizeof(msg), NULL, 0);
 	}
 }
 
@@ -34,7 +34,7 @@ int comnotifier_new(int tid_target, int priority, int channel, int tid_com) {
 	args.channel = channel;
 	args.tid_com = tid_com;
 	int tid = Create(priority, comnotifier);
-	int rv = Send(tid, (void*) &args, sizeof(args), NULL, 0);
+	int rv = Send(tid, &args, sizeof(args), NULL, 0);
 	if (rv < 0) return rv;
 	return tid;
 }

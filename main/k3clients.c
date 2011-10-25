@@ -26,7 +26,7 @@ typedef struct {
 
 static inline void client_task() {
 	delay_info arg;
-	Send(MyParentsTid(), NULL, 0, (void*) &arg, sizeof arg);
+	Send(MyParentsTid(), NULL, 0, &arg, sizeof arg);
 	int mytid = MyTid();
 	int delay_time = arg.delay_time;
 	int delays = arg.delays;

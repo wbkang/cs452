@@ -77,13 +77,13 @@ int traincmdbuffer_put(int tid, traincmdname name, int arg1, int arg2) {
 	req.cmd.name = name;
 	req.cmd.arg1 = arg1;
 	req.cmd.arg2 = arg2;
-	return Send(tid, (void*) &req, sizeof(req), NULL, 0);
+	return Send(tid, &req, sizeof(req), NULL, 0);
 }
 
 int traincmdbuffer_get(int tid, traincmd *cmd) {
 	traincmdbuffer_req req;
 	req.no = GET;
-	int len = Send(tid, (void*) &req, sizeof(req), (void*) cmd, sizeof(*cmd));
+	int len = Send(tid, &req, sizeof(req), cmd, sizeof(*cmd));
 	if (len < 0) return len;
 	return 0;
 }

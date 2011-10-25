@@ -65,7 +65,7 @@ void timeserver() {
 	// serve
 	for (;;) {
 		ASSERT(state.tasks, "state->tasks is invalid");
-		int msglen = Receive(&tid, (void*) &req, sizeof(req));
+		int msglen = Receive(&tid, &req, sizeof(req));
 		if (tid == tid_notifier) {
 			timeserver_do_tick(&state, tid);
 		} else if (msglen == sizeof(req)) {
@@ -92,7 +92,7 @@ void timeserver() {
 
 inline int timeserver_send(timeserver_req *req, int server) {
 	int rv;
-	int len = Send(server, (void*) req, sizeof(timeserver_req), (void*) &rv, sizeof rv);
+	int len = Send(server, req, sizeof(timeserver_req), &rv, sizeof rv);
 	if (len != sizeof rv) return TIMESERVER_ERROR_BADDATA;
 	return rv;
 }
