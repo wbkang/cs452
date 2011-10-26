@@ -106,7 +106,6 @@ void *memcpy(void *dst, void const *src, uint len) {
 				case 1:			*to++ = *from++;
 						} while (--n > 0);
 			}
-
 			len &= 3;
 		}
 

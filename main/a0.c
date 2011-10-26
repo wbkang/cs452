@@ -146,7 +146,7 @@ void a0() {
 		char msg[LEN_MSG];
 		int rcvlen = Receive(&tid, msg, LEN_MSG);
 		ASSERT(rcvlen >= sizeof(msg_header), "bad data");
-		ReplyNull(tid);
+		Reply(tid, NULL, 0);
 		msg_header *header = (msg_header*) msg;
 		switch (header->type) {
 			case SENSOR:

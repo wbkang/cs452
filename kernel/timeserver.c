@@ -21,9 +21,7 @@ inline void timeserver_do_tick(timeserver_state *state, int tid_notifier) {
 	VMEM(TIMER1_BASE + CLR_OFFSET) = 1; // clear interrupt source
 	ReplyInt(tid_notifier, 0); // unblock notifier
 	state->time++;
-	for (;;) { // unblock waiting tasks
-		heap_item *item = heap_peek(state->tasks);
-		if (item == NULL || item->key > state->time) break;
+	while (!heap_empty(state->tasks) && heap_peekkey(state->tasks) <= state->time) {
 		int tid = (int) heap_extract_min(state->tasks);
 		ReplyInt(tid, 0);
 	}

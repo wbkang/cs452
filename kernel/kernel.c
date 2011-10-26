@@ -77,7 +77,7 @@ void kernel_init() {
 
 static inline void handle_swi(register_set *reg) {
 	int req_no = VMEM(reg->r[REG_PC] - 4) & 0x00ffffff;
-	int *r0 = &reg->r[0];
+	int *r0 = reg->r;
 	int a1 = *r0;
 	int a2 = reg->r[1]; // int a3 = reg->r[2]; int a4 = reg->r[3];
 	switch (req_no) {

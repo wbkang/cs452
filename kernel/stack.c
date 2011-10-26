@@ -1,5 +1,4 @@
 #include <stack.h>
-#include <util.h>
 #include <memory.h>
 
 stack *stack_new(uint size) {

@@ -33,8 +33,6 @@ int Putc(int channel, char c, int tid);
 int Putstr(int channel, char const *str, int tid);
 int Flush(int tid);
 int ReplyInt(int tid, int rv);
-int ReplyNull(int tid);
-int SendNull(int tid);
 
 int Create(int priority, func_t code);
 int MyTid();

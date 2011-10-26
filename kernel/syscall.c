@@ -51,11 +51,3 @@ int Flush(int tid) {
 int ReplyInt(int tid, int rv) {
 	return Reply(tid, &rv, sizeof rv);
 }
-
-int ReplyNull(int tid) {
-	return Reply(tid, NULL, 0);
-}
-
-int SendNull(int tid) {
-	return Send(tid, NULL, 0, NULL, 0);
-}

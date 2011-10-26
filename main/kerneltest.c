@@ -152,10 +152,10 @@ static void kerneltest_receive() {
 	int buf;
 
 	for (int i = 0 ; i < 1000; i++) {
-		EXPECT(sizeof buf, Receive(&parent, (char*)&buf, sizeof buf));
+		EXPECT(sizeof buf, Receive(&parent, &buf, sizeof buf));
 		EXPECT(MyParentsTid(), parent);
 		EXPECT(reply - 10000, buf);
-		EXPECT(0, Reply(parent, (char*)&reply, sizeof reply));
+		EXPECT(0, Reply(parent, &reply, sizeof reply));
 		reply++;
 	}
 	KTEST_END();
@@ -168,7 +168,7 @@ static void kerneltest_send() {
 	int rcvtid = Create(MAX_PRIORITY - 2, kerneltest_receive);
 
 	for(int i = 0; i < 1000; i++) {
-		EXPECT(sizeof num, Send(rcvtid, (char*)&num, sizeof num, (char*)&reply, sizeof reply));
+		EXPECT(sizeof num, Send(rcvtid, &num, sizeof num, &reply, sizeof reply));
 		EXPECT(num + 10000, reply);
 		num++;
 	}

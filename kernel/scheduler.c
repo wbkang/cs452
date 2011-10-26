@@ -25,7 +25,7 @@ inline int scheduler_empty() {
 
 inline task_descriptor *scheduler_get() {
 	if (reschedule) {
-		running = priorityq_pop(ready_queue);
+		running = priorityq_get(ready_queue);
 		running->state = TD_STATE_RUNNING;
 	} else {
 		reschedule = TRUE;
@@ -35,7 +35,7 @@ inline task_descriptor *scheduler_get() {
 
 inline void scheduler_ready(task_descriptor *td) {
 	td->state = TD_STATE_READY;
-	priorityq_push(ready_queue, td, td->priority);
+	priorityq_put(ready_queue, td, td->priority);
 }
 
 inline void scheduler_readyme() {
