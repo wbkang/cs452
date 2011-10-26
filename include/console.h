@@ -21,13 +21,11 @@
 #define CONSOLE_SAVECURSOR "\0337"
 #define CONSOLE_LOADCURSOR "\0338"
 
-static inline int console_move(char * buf, int line, int column)
-{
-	return sprintf(buf, "\033[%d;%df", line, column);
+static inline int console_move(char *buf, int line, int column) {
+	return sprintf(buf, "\x1B[%d;%dH", line, column);
 }
 
-static inline int console_fillrect(char * buf, char c, int x, int y, int width, int height)
-{
+static inline int console_fillrect(char * buf, char c, int x, int y, int width, int height) {
 	char * orig_buf = buf;
 
 	for (int i = y; i < y + height; i++) {
