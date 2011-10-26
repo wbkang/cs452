@@ -17,7 +17,9 @@ void uint2str(uint num, uint base, char *bf) {
 	int dgt;
 	uint d = 1;
 
-	while ((num / d) >= base) d *= base;
+	while ((num / d) >= base) {
+		d *= base;
+	}
 	while (d != 0) {
 		dgt = num / d;
 		num %= d;

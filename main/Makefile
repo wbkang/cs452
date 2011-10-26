@@ -26,7 +26,7 @@ LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/
 %.o : %.c
 
 #################
-OBJS= main.o test.o kerneltest.o task1.o k3clients.o a0.o sensornotifier.o comnotifier.o traincmdbuffer.o traincmdrunner.o
+OBJS= main.o test.o kerneltest.o task1.o k3clients.o a0.o sensornotifier.o comnotifier.o traincmdbuffer.o traincmdrunner.o timenotifier.o
 ################
 
 
