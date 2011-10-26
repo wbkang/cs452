@@ -14,7 +14,7 @@ void sensornotifier() {
 	int tid;
 	sensornotifier_args args;
 	Receive(&tid, &args, sizeof(args));
-	ReplyNull(tid);
+	Reply(tid, NULL, 0);
 
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	// int tid_com2 = WhoIs(NAME_IOSERVER_COM2);

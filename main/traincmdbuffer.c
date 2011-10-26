@@ -18,7 +18,7 @@ typedef struct {
 } traincmdbuffer_req;
 
 static void handle_put(traincmdbuffer_state *state, int tid, traincmd *cmd) {
-	ReplyNull(tid);
+	Reply(tid, NULL, 0);
 	if (queue_empty(state->tidq)) {
 		buffer_put(state->cmdbuf, cmd);
 	} else {

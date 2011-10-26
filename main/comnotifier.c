@@ -12,7 +12,7 @@ void comnotifier() {
 	int tid;
 	comnotifier_args args;
 	Receive(&tid, &args, sizeof(args));
-	ReplyNull(tid);
+	Reply(tid, NULL, 0);
 
 	msg_comin msg;
 	msg.type = COM_IN;

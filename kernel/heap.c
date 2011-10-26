@@ -9,10 +9,6 @@ heap *heap_new(int size) {
 	return this;
 }
 
-inline heap_item *heap_peek(heap *this) {
-	return this->size == 0 ? NULL : this->arr;
-}
-
 inline uint heap_parent(uint i) {
 	return i >> 1; // i / 2
 }
@@ -103,8 +99,8 @@ inline void heap_heapify_min(heap *this, uint i) {
 // }
 
 void* heap_extract_min(heap *this) {
-	heap_item *top = heap_peek(this);
-	ASSERT(top, "empty");
+	ASSERT(!heap_empty(this), "empty");
+	heap_item *top = this->arr;
 	this->size--;
 	void* rv = top->data;
 	if (this->size > 0) {
@@ -115,8 +111,8 @@ void* heap_extract_min(heap *this) {
 }
 
 // void* heap_extract_max(heap *this) {
-// 	heap_item *top = heap_peek(this);
-// 	ASSERT(top, "empty");
+//	ASSERT(!heap_empty(this), "empty");
+//	heap_item *top = this->arr;
 // 	this->size--;
 // 	void* rv = top->data;
 // 	if (this->size > 0) {

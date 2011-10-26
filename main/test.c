@@ -72,13 +72,13 @@ static void test_priorityq() {
 	void *got, *expected;
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < num_priorities; j++) {
-			priorityq_push(pq, (void*) (i * (num_priorities + 1) + j), j);
+			priorityq_put(pq, (void*) (i * (num_priorities + 1) + j), j);
 		}
 	}
 	for (int j = num_priorities - 1; j != -1; j--) {
 		for (int i = 0; i < size; i++) {
 			expected = (void*) (i * (num_priorities + 1) + j);
-			got = priorityq_pop(pq);
+			got = priorityq_get(pq);
 			EXPECT(expected, got);
 		}
 	}

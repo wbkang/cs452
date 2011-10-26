@@ -15,17 +15,19 @@ static inline int priorityq_empty(priorityq *this) {
 	return this->state == 0;
 }
 
-static inline void* priorityq_pop(priorityq *this) {
+static inline void* priorityq_get(priorityq *this) {
 	ASSERT(this->state, "empty");
 	uint p = log2(this->state);
 	queue *q = this->q[p];
-	ASSERT(!queue_empty(q), "child queue empty! priority: %d, state: %x", p, this->state);
+	ASSERT(!queue_empty(q), "subqueue empty. priority: %d, state: %b", p, this->state);
 	void *rv = queue_get(q);
-	if (queue_empty(q)) this->state &= ~(1 << p);
+	if (queue_empty(q)) {
+		this->state &= ~(1 << p);
+	}
 	return rv;
 }
 
-static inline void priorityq_push(priorityq *this, void* item, uint priority) {
+static inline void priorityq_put(priorityq *this, void* item, uint priority) {
 	this->state |= 1 << priority;
 	queue_put(this->q[priority], item);
 }

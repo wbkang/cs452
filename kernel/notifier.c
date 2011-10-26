@@ -10,13 +10,13 @@ void notifier() {
 	int tid;
 	notifier_args args;
 	Receive(&tid, &args, sizeof(args));
-	ReplyNull(tid);
+	Reply(tid, NULL, 0);
 	// synchronize
-	SendNull(tid);
+	Send(tid, NULL, 0, NULL, 0);
 	// serve
 	for (;;) {
 		AwaitEvent(args.eventid);
-		SendNull(tid);
+		Send(tid, NULL, 0, NULL, 0);
 	}
 }
 
