@@ -30,6 +30,19 @@ static const char train_switches[] = {
 	14, 15, 16, 17, 18, 0x99, 0x9A, 0x9B, 0x9C
 };
 
+static inline int train_switchi2no(int i) {
+	ASSERT(i >= 0 && i < TRAIN_NUM_SWITCHADDR, "bad i");
+	return train_switches[i];
+}
+
+static inline int train_switchno2i(int switchno) {
+	if (switchno < 1) return -1;
+	if (switchno <= 18) return switchno - 1;
+	if (switchno < 0x99) return -1;
+	if (switchno <= 0x9C) return 18 + switchno - 0x99;
+	return -1;
+}
+
 static inline int train_goodtrain(int train) {
 	return TRAIN_MIN_TRAIN_ADDR <= train && train <= TRAIN_MAX_TRAIN_ADDR;
 }
@@ -101,7 +114,7 @@ static inline void train_stop(int tid) {
 // extra
 
 static inline void train_switchall(char pos, int tid) {
-	for (int i = 1; i < TRAIN_NUM_SWITCHADDR; i++) {
+	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
 		train_switch(train_switches[i], pos, tid);
 	}
 }

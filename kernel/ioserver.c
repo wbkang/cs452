@@ -13,8 +13,8 @@
  * 		COM2: 115200 bps * 10 ms = 144
  */
 
-#define BUFFER_SIZE 256
-#define INPUT_BLOCKED_QUEUE_SIZE 400
+#define BUFFER_SIZE 512
+#define INPUT_BLOCKED_QUEUE_SIZE 512
 #define FLUSH_BLOCKED_QUEUE_SIZE 1
 
 typedef struct {

@@ -8,6 +8,7 @@
 #include <traincmdbuffer.h>
 #include <stdio.h>
 #include <timenotifier.h>
+#include <console.h>
 
 #define LEN_MSG (64 * 4)
 #define LEN_CMD 32
@@ -30,43 +31,122 @@ typedef struct {
  * UI
  */
 
+#define LEN_SENSOR_HIST 8
+static char hist_mod[LEN_SENSOR_HIST];
+static int hist_id[LEN_SENSOR_HIST];
+
+static inline void ui_init(a0state *state) {
+	char buf[128];
+	char *b = buf;
+	b += sprintf(b, "\x1B[2J"); // clear screen
+	b += console_move(b, 1, 1);
+	b += sprintf(b, "uptime:");
+	b += console_move(b, 2, 1);
+	b += sprintf(b, "switches:");
+	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
+		int switchno = train_switchi2no(i);
+		if (switchno < 100) b += sprintf(b, " ");
+		if (switchno < 10) b += sprintf(b, " ");
+		b += sprintf(b, " %d?", switchno);
+	}
+	b += console_move(b, 3, 1);
+	b += sprintf(b, "recent sensor:");
+	b += console_move(b, 4, 1);
+	b += sprintf(b, "last cmd:");
+	b += console_move(b, 5, 1);
+	b += sprintf(b, "$");
+	Putstr(COM2, buf, state->tid_com2);
+
+	// init sensor hist
+	for (int i = LEN_SENSOR_HIST - 1; i > 0; i--) {
+		hist_mod[i] = 0;
+		hist_id[i] = 0;
+	}
+}
+
 static inline void ui_time(a0state *state, int ticks) {
-	char buf[100];
-	sprintf(buf, "ticks: %d\n", ticks);
+	char buf[32];
+	char *b = buf;
+	b += sprintf(b, "\x1B[s"); // save cursor
+	b += console_move(b, 1, 9);
+	b += sprintf(b, "\x1B[K"); // erase rest of line
+	ticks /= 10; // time in 100ms
+	b += sprintf(b, "%d.%ds", ticks / 10, ticks % 10);
+	b += sprintf(b, "\x1B[u"); // unsave cursor
 	Putstr(COM2, buf, state->tid_com2);
 }
 
-static inline void ui_init(a0state *state) {
-	Putstr(COM2, "\x1B[2J", state->tid_com2); // clear screen
-}
-
 static inline void ui_sensor(a0state *state, char module, int id) {
-	char buf[100];
-	sprintf(buf, "%c: %d\n", module, id);
+	for (int i = LEN_SENSOR_HIST - 1; i > 0; i--) {
+		hist_mod[i] = hist_mod[i - 1];
+		hist_id[i] = hist_id[i - 1];
+	}
+	hist_mod[0] = module;
+	hist_id[0] = id;
+
+	char buf[256];
+	char *b = buf;
+	b += sprintf(b, "\x1B[s"); // save cursor
+	b += console_move(b, 3, 16);
+	b += sprintf(b, "\x1B[K"); // erase rest of line
+	int i;
+	for (i = 0; (i < LEN_SENSOR_HIST) && hist_mod[i]; i++) {
+		b += sprintf(b, "%c%d, ", hist_mod[i], hist_id[i]);
+	}
+	if (i == LEN_SENSOR_HIST) {
+		b += sprintf(b, "...");
+	}
+	b += sprintf(b, "\x1B[u"); // unsave cursor
 	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_speed(a0state *state, int train, int speed) {
-	char buf[100];
-	sprintf(buf, "setting speed of train %d to %d\n", train, speed);
+	char buf[128];
+	char *b = buf;
+	b += sprintf(b, "\x1B[s"); // save cursor
+	b += console_move(b, 4, 11);
+	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += sprintf(b, "set speed of train %d to %d", train, speed);
+	b += sprintf(b, "\x1B[u"); // unsave cursor
 	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_reverse(a0state *state, int train) {
-	char buf[100];
-	sprintf(buf, "reversing train %d\n", train);
+	char buf[128];
+	char *b = buf;
+	b += sprintf(b, "\x1B[s"); // save cursor
+	b += console_move(b, 4, 11);
+	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += sprintf(b, "reversed train %d", train);
+	b += sprintf(b, "\x1B[u"); // unsave cursor
 	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_switch(a0state *state, char no, char pos) {
-	char buf[100];
-	sprintf(buf, "switching switch %d to '%c'\n", no, pos);
+	char buf[128];
+	char *b = buf;
+	b += sprintf(b, "\x1B[s"); // save cursor
+	b += console_move(b, 4, 11);
+	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += sprintf(b, "switched switch %d to %c", no, pos);
+	b += console_move(b, 2, 9 + 5 * train_switchno2i(no) + 5);
+	b += sprintf(b, "%c", train_switchpos_straight(pos) ? 'S' : 'C');
+	b += sprintf(b, "\x1B[u"); // unsave cursor
 	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_switchall(a0state *state, char pos) {
-	char buf[100];
-	sprintf(buf, "switching all switches to '%c'\n", pos);
+	char buf[128];
+	char *b = buf;
+	b += sprintf(b, "\x1B[s"); // save cursor
+	b += console_move(b, 4, 11);
+	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += sprintf(b, "switched all switches to '%c'", pos);
+	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
+		b += console_move(b, 2, 9 + 5 * i + 5);
+		b += sprintf(b, "%c", train_switchpos_straight(pos) ? 'S' : 'C');
+	}
+	b += sprintf(b, "\x1B[u"); // unsave cursor
 	Putstr(COM2, buf, state->tid_com2);
 }
 
@@ -75,26 +155,45 @@ static inline void ui_cmd_char(a0state *state, char c) {
 }
 
 static inline void ui_cmd_delchar(a0state *state) {
-	// delete rightmost command character
+	char buf[128];
+	char *b = buf;
+	b += sprintf(b, "\x1B[1D"); // move cursor one back
+	b += sprintf(b, "\x1B[K"); // erase rest of line
+	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_cmd_clear(a0state *state) {
-	// delete all command characters
-	Putc(COM2, '\n', state->tid_com2);
-	Putc(COM2, '\n', state->tid_com2);
+	char buf[128];
+	char *b = buf;
+	b += console_move(b, 5, 2);
+	b += sprintf(b, "\x1B[K"); // erase rest of line
+	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_cmd(a0state *state, char cmd[]) {
-	Putstr(COM2, cmd, state->tid_com2);
-	Putc(COM2, '\n', state->tid_com2);
+	// exact command if good
 }
 
-static inline void ui_cmd_bad(a0state *state) {
-	Putstr(COM2, "bad command\n", state->tid_com2);
+static inline void ui_cmd_bad(a0state *state, char cmd[]) {
+	char buf[128];
+	char *b = buf;
+	b += sprintf(b, "\x1B[s"); // save cursor
+	b += console_move(b, 4, 11);
+	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += sprintf(b, "invalid command: \"%s\"", cmd);
+	b += sprintf(b, "\x1B[u"); // unsave cursor
+	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_quit(a0state *state) {
-	Putstr(COM2, "bye bye\n", state->tid_com2);
+	char buf[128];
+	char *b = buf;
+	b += sprintf(b, "\x1B[s"); // save cursor
+	b += console_move(b, 4, 11);
+	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += sprintf(b, "quitting...");
+	b += console_move(b, 7, 1);
+	Putstr(COM2, buf, state->tid_com2);
 }
 
 /*
@@ -108,35 +207,34 @@ static inline void handle_sensor(a0state *state, char msg[]) {
 
 #define ACCEPT(a) { \
 	if (*c++ != a) { \
-		goodcmd = FALSE; \
-		ui_cmd_bad(state); \
-		break; \
+		goto badcmd; \
 	} \
 }
 
 static inline void handle_com2in(a0state *state, msg_comin *comin) {
-	if (state->cmd_i + 1 == LEN_CMD) return; // full, ignore
+	if (state->cmd_i + 2 == LEN_CMD && comin->c != '\b' && comin->c != '\r') return; // full, ignore
 	state->cmd[state->cmd_i++] = comin->c;
 	state->cmd[state->cmd_i] = '\0';
+	int quit = FALSE;
 	switch (comin->c) {
 		case '\b':
-			if (state->cmd_i >= 2) {
-				state->cmd_i -= 2;
+			state->cmd_i--;
+			if (state->cmd_i >= 1) {
+				state->cmd_i -= 1;
+				ui_cmd_delchar(state);
 			}
-			ui_cmd_delchar(state);
 			break;
 		case '\r': {
-			int goodcmd = TRUE;
 			char *c = state->cmd;
 			switch (*c++) {
 				case 't': { // set train speed (tr # #)
 					ACCEPT('r');
 					ACCEPT(' ');
 					int train = strgetui(&c);
-					if (!train_goodtrain(train)) break;
+					if (!train_goodtrain(train)) goto badcmd;
 					ACCEPT(' ');
 					int speed = strgetui(&c);
-					if (!train_goodspeed(speed)) break;
+					if (!train_goodspeed(speed)) goto badcmd;
 					ACCEPT('\r');
 					ui_speed(state, train, speed);
 					state->train_speed[train] = speed;
@@ -147,7 +245,7 @@ static inline void handle_com2in(a0state *state, msg_comin *comin) {
 					ACCEPT('v');
 					ACCEPT(' ');
 					int train = strgetui(&c);
-					if (!train_goodtrain(train)) break;
+					if (!train_goodtrain(train)) goto badcmd;
 					ACCEPT('\r');
 					int speed = state->train_speed[train];
 					ui_reverse(state, train);
@@ -164,11 +262,11 @@ static inline void handle_com2in(a0state *state, msg_comin *comin) {
 						switchno = *c++;
 					} else {
 						switchno = strgetui(&c);
-						if (!train_goodswitch(switchno)) break;
+						if (!train_goodswitch(switchno)) goto badcmd;
 					}
 					ACCEPT(' ');
 					char pos = *c++;
-					if (!train_goodswitchpos(pos)) break;
+					if (!train_goodswitchpos(pos)) goto badcmd;
 					ACCEPT('\r');
 					if (switchno == '*') {
 						ui_switchall(state, pos);
@@ -182,18 +280,21 @@ static inline void handle_com2in(a0state *state, msg_comin *comin) {
 				}
 				case 'q': { // quit kernel
 					ACCEPT('\r');
-					ui_quit(state);
-					train_stop(state->tid_traincmdbuf);
-					Flush(state->tid_com1);
-					Flush(state->tid_com2);
-					ExitKernel(0);
+					quit = TRUE;
+					break;
+				}
+				default: {
+					goto badcmd;
 					break;
 				}
 			}
-			if (goodcmd) {
-				ui_cmd_clear(state);
-				ui_cmd(state, state->cmd);
-			}
+			ui_cmd(state, state->cmd);
+			goto skipbad;
+			badcmd:
+			state->cmd[state->cmd_i - 1] = '\0';
+			ui_cmd_bad(state, state->cmd);
+			skipbad:
+			ui_cmd_clear(state);
 			state->cmd[0] = '\0';
 			state->cmd_i = 0;
 			break;
@@ -201,6 +302,13 @@ static inline void handle_com2in(a0state *state, msg_comin *comin) {
 		default:
 			ui_cmd_char(state, comin->c);
 			break;
+	}
+	if (quit) {
+		ui_quit(state);
+		train_stop(state->tid_traincmdbuf);
+		Flush(state->tid_com1);
+		Flush(state->tid_com2);
+		ExitKernel(0);
 	}
 }
 
@@ -233,7 +341,7 @@ void a0() {
 
 	sensornotifier_new(MyTid());
 	comnotifier_new(MyTid(), 10, COM2, state.tid_com2);
-	timenotifier_new(MyTid(), 10, 100);
+	timenotifier_new(MyTid(), 10, 10);
 
 	for (;;) {
 		int tid;
