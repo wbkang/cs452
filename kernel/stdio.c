@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <util.h>
 
-
-
 static void uint2str(uint num, uint base, char *bf) {
 	int n = 0;
 	int dgt;
 	uint d = 1;
 
-	while ((num / d) >= base) d *= base;
+	while ((num / d) >= base) {
+		d *= base;
+	}
 	while (d != 0) {
 		dgt = num / d;
 		num %= d;
@@ -29,14 +29,12 @@ static void int2str(int num, char *bf) {
 	uint2str(num, 10, bf);
 }
 
-
 static int char2digit(char ch) {
 	if (ch >= '0' && ch <= '9') return ch - '0';
 	if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
 	if (ch >= 'A' && ch <= 'F') return ch - 'A' + 10;
 	return -1;
 }
-
 
 static inline int putw(char *outbuf, int n, char fc, char *bf) {
 	char *orig_buf = outbuf;
@@ -48,8 +46,7 @@ static inline int putw(char *outbuf, int n, char fc, char *bf) {
 	return outbuf - orig_buf;
 }
 
-
-static inline char a2i(char ch, char const **src, int base, int *nump) { // only for bwformat
+static inline char a2i(char ch, char const **src, int base, int *nump) {
 	int num, digit;
 	char const *p;
 	p = *src;
@@ -66,7 +63,7 @@ static inline char a2i(char ch, char const **src, int base, int *nump) { // only
 
 static inline int bwformat(char *buf, char const *fmt, va_list va) {
 	char * const orig_buf = buf;
-	char bf[12];
+	char bf[32 + 1];
 	char ch, lz;
 	int w;
 	while ((ch = *(fmt++))) {
@@ -94,7 +91,7 @@ static inline int bwformat(char *buf, char const *fmt, va_list va) {
 					break;
 			}
 			switch (ch) {
-				case 0:
+				case '\0':
 					goto done;
 				case 'c':
 					*buf++ = va_arg( va, char );
@@ -110,6 +107,12 @@ static inline int bwformat(char *buf, char const *fmt, va_list va) {
 					int2str(va_arg( va, int ), bf);
 					buf += putw(buf, w, lz, bf);
 					break;
+				case 'b':
+					uint2str(va_arg( va, uint ), 2, bf);
+					*buf++ = '0';
+					*buf++ = 'x';
+					buf += putw(buf, w, lz, bf);
+					break;
 				case 'x':
 					uint2str(va_arg( va, uint ), 16, bf);
 					*buf++ = '0';
@@ -122,7 +125,6 @@ static inline int bwformat(char *buf, char const *fmt, va_list va) {
 			}
 		}
 	}
-
 	done:
 	return buf - orig_buf;
 }
@@ -134,7 +136,6 @@ int sprintf(char *buf, const char *fmt, ... ) {
 	va_start(va,fmt);
 	buf += bwformat(buf, fmt, va );
 	va_end(va);
-
 	*buf = '\0';
 	return buf - orig_buf;
 }

@@ -74,7 +74,7 @@ char bwa2i(char ch, char **src, int base, int *nump) { // only for bwformat
 
 void bwformat(int channel, char *fmt, va_list va) {
 	CHECK_COM(channel);
-	char bf[12];
+	char bf[32 + 1];
 	char ch, lz;
 	int w;
 	while ((ch = *(fmt++))) {
@@ -102,7 +102,7 @@ void bwformat(int channel, char *fmt, va_list va) {
 					break;
 			}
 			switch (ch) {
-				case 0:
+				case '\0':
 					return;
 				case 'c':
 					bwputc(channel, va_arg( va, char ));
@@ -116,6 +116,12 @@ void bwformat(int channel, char *fmt, va_list va) {
 					break;
 				case 'd':
 					int2str(va_arg( va, int ), bf);
+					bwputw(channel, w, lz, bf);
+					break;
+				case 'b':
+					uint2str(va_arg( va, uint ), 2, bf);
+					bwputc(channel, '0');
+					bwputc(channel, 'b');
 					bwputw(channel, w, lz, bf);
 					break;
 				case 'x':

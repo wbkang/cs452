@@ -1,6 +1,6 @@
 #pragma once
 
-typedef enum {SENSOR, COM_IN} msgtype;
+typedef enum {SENSOR, COM_IN, TIME} msgtype;
 
 typedef struct {
 	msgtype type;
@@ -17,3 +17,8 @@ typedef struct {
 	char channel;
 	char c;
 } msg_comin;
+
+typedef struct {
+	msgtype type;
+	int ticks;
+} msg_time;
