@@ -56,6 +56,7 @@ static void receiver() {
 	}
 }
 
+/*
 static void context_switch() {
 	uint start_time;
 	uint end_time;
@@ -70,6 +71,7 @@ static void context_switch() {
 //		PRINT("Time elapsed: %dms. %d per iteration. %d iterations in total.",
 //				elapsed_time, elapsed_time / ITERATION, ITERATION);
 }
+*/
 
 void perfmon() {
 	setup_timer();
