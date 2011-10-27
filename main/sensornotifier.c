@@ -4,8 +4,6 @@
 #include <util.h>
 #include <uconst.h>
 
-#define NUM_MODULES 5
-
 typedef struct {
 	int tid_target;
 } sensornotifier_args;
@@ -20,18 +18,18 @@ void sensornotifier() {
 	//int tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
 
-	int modules[NUM_MODULES];
+	int modules[TRAIN_NUM_MODULES];
 	msg_sensor msg;
 	msg.type = SENSOR;
 
-	for (int m = 0; m < NUM_MODULES; m++) {
+	for (int m = 0; m < TRAIN_NUM_MODULES; m++) {
 		modules[0] = 0;
 	}
 
 	for (;;) {
-		train_querysenmods(NUM_MODULES, tid_traincmdbuf);
+		train_querysenmods(TRAIN_NUM_MODULES, tid_traincmdbuf);
 		//int start = uptime();
-		for (int m = 0; m < NUM_MODULES; m++) {
+		for (int m = 0; m < TRAIN_NUM_MODULES; m++) {
 			int upper = Getc(COM1, tid_com1);
 			int lower = Getc(COM1, tid_com1);
 			int module = (upper << 8) | lower;
