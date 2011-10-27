@@ -25,21 +25,14 @@
 #define TRAIN_PAUSE_REVERSE 400
 #define TRAIN_NUM_SWITCHADDR 22
 
-static const char train_switches[] = {
-	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-	14, 15, 16, 17, 18, 0x99, 0x9A, 0x9B, 0x9C
-};
-
 static inline int train_switchi2no(int i) {
-	ASSERT(i >= 0 && i < TRAIN_NUM_SWITCHADDR, "bad i");
-	return train_switches[i];
+	ASSERT(0 <= i && i < TRAIN_NUM_SWITCHADDR, "bad i");
+	return (i < 18 ? 1 : 0x99) + i;
 }
 
 static inline int train_switchno2i(int switchno) {
-	if (switchno < 1) return -1;
-	if (switchno <= 18) return switchno - 1;
-	if (switchno < 0x99) return -1;
-	if (switchno <= 0x9C) return 18 + switchno - 0x99;
+	if (1 <= switchno && switchno <= 18) return switchno - 1;
+	if (0x99 <= switchno && switchno <= 0x9C) return switchno - 0x99 + 18;
 	return -1;
 }
 
@@ -69,7 +62,7 @@ static inline int train_goodswitchpos(int pos) {
 }
 
 static inline int train_goodmodule(int module) {
-	return module > 0 && module < 32;
+	return 0 < module && module < 32;
 }
 
 static inline void train_speed(char train, char speed, int tid) {
@@ -115,6 +108,6 @@ static inline void train_stop(int tid) {
 
 static inline void train_switchall(char pos, int tid) {
 	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
-		train_switch(train_switches[i], pos, tid);
+		train_switch(train_switchi2no(i), pos, tid);
 	}
 }

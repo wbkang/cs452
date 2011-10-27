@@ -166,8 +166,8 @@ int kernel_run() {
 		}
 		if (td->id == idleserver_tid) idletime += uptime() - time_idle_start;
 	}
-	uint up = uptime() - kernel_start;
-	uint percent10 = (10 * 100 * idletime + 5) / up;
+	int up = uptime() - kernel_start;
+	int percent10 = ((long long) idletime * 10 * 100 + 5) / (long long) up;
 	bwprintf(1, "uptime: %d, idle: %d (%d.%d%%)", up, idletime, percent10 / 10, percent10 % 10);
 	uninstall_interrupt_handlers();
 	return errno;
