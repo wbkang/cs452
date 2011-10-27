@@ -38,10 +38,10 @@ static int hist_id[LEN_SENSOR_HIST];
 static inline void ui_init(a0state *state) {
 	char buf[128];
 	char *b = buf;
-	b += sprintf(b, "\x1B[2J"); // clear screen
-	b += console_move(b, 1, 1);
+	b += console_clear(b);
+	b += console_cursor_move(b, 1, 1);
 	b += sprintf(b, "uptime:");
-	b += console_move(b, 2, 1);
+	b += console_cursor_move(b, 2, 1);
 	b += sprintf(b, "switches:");
 	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
 		int switchno = train_switchi2no(i);
@@ -49,14 +49,13 @@ static inline void ui_init(a0state *state) {
 		if (switchno < 10) b += sprintf(b, " ");
 		b += sprintf(b, " %d?", switchno);
 	}
-	b += console_move(b, 3, 1);
+	b += console_cursor_move(b, 3, 1);
 	b += sprintf(b, "recent sensor:");
-	b += console_move(b, 4, 1);
+	b += console_cursor_move(b, 4, 1);
 	b += sprintf(b, "last cmd:");
-	b += console_move(b, 5, 1);
+	b += console_cursor_move(b, 5, 1);
 	b += sprintf(b, "$");
 	Putstr(COM2, buf, state->tid_com2);
-
 	// init sensor hist
 	for (int i = LEN_SENSOR_HIST - 1; i > 0; i--) {
 		hist_mod[i] = 0;
@@ -67,12 +66,12 @@ static inline void ui_init(a0state *state) {
 static inline void ui_time(a0state *state, int ticks) {
 	char buf[32];
 	char *b = buf;
-	b += sprintf(b, "\x1B[s"); // save cursor
-	b += console_move(b, 1, 9);
-	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += console_cursor_save(b);
+	b += console_cursor_move(b, 1, 9);
+	b += console_erase_eol(b);
 	ticks /= 10; // time in 100ms
 	b += sprintf(b, "%d.%ds", ticks / 10, ticks % 10);
-	b += sprintf(b, "\x1B[u"); // unsave cursor
+	b += console_cursor_unsave(b);
 	Putstr(COM2, buf, state->tid_com2);
 }
 
@@ -86,9 +85,9 @@ static inline void ui_sensor(a0state *state, char module, int id) {
 
 	char buf[256];
 	char *b = buf;
-	b += sprintf(b, "\x1B[s"); // save cursor
-	b += console_move(b, 3, 16);
-	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += console_cursor_save(b);
+	b += console_cursor_move(b, 3, 16);
+	b += console_erase_eol(b);
 	int i;
 	for (i = 0; (i < LEN_SENSOR_HIST) && hist_mod[i]; i++) {
 		b += sprintf(b, "%c%d, ", hist_mod[i], hist_id[i]);
@@ -96,57 +95,57 @@ static inline void ui_sensor(a0state *state, char module, int id) {
 	if (i == LEN_SENSOR_HIST) {
 		b += sprintf(b, "...");
 	}
-	b += sprintf(b, "\x1B[u"); // unsave cursor
+	b += console_cursor_unsave(b);
 	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_speed(a0state *state, int train, int speed) {
 	char buf[128];
 	char *b = buf;
-	b += sprintf(b, "\x1B[s"); // save cursor
-	b += console_move(b, 4, 11);
-	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += console_cursor_save(b);
+	b += console_cursor_move(b, 4, 11);
+	b += console_erase_eol(b);
 	b += sprintf(b, "set speed of train %d to %d", train, speed);
-	b += sprintf(b, "\x1B[u"); // unsave cursor
+	b += console_cursor_unsave(b);
 	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_reverse(a0state *state, int train) {
 	char buf[128];
 	char *b = buf;
-	b += sprintf(b, "\x1B[s"); // save cursor
-	b += console_move(b, 4, 11);
-	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += console_cursor_save(b);
+	b += console_cursor_move(b, 4, 11);
+	b += console_erase_eol(b);
 	b += sprintf(b, "reversed train %d", train);
-	b += sprintf(b, "\x1B[u"); // unsave cursor
+	b += console_cursor_unsave(b);
 	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_switch(a0state *state, char no, char pos) {
 	char buf[128];
 	char *b = buf;
-	b += sprintf(b, "\x1B[s"); // save cursor
-	b += console_move(b, 4, 11);
-	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += console_cursor_save(b);
+	b += console_cursor_move(b, 4, 11);
+	b += console_erase_eol(b);
 	b += sprintf(b, "switched switch %d to %c", no, pos);
-	b += console_move(b, 2, 9 + 5 * train_switchno2i(no) + 5);
+	b += console_cursor_move(b, 2, 9 + 5 * train_switchno2i(no) + 5);
 	b += sprintf(b, "%c", train_switchpos_straight(pos) ? 'S' : 'C');
-	b += sprintf(b, "\x1B[u"); // unsave cursor
+	b += console_cursor_unsave(b);
 	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_switchall(a0state *state, char pos) {
 	char buf[128];
 	char *b = buf;
-	b += sprintf(b, "\x1B[s"); // save cursor
-	b += console_move(b, 4, 11);
-	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += console_cursor_save(b);
+	b += console_cursor_move(b, 4, 11);
+	b += console_erase_eol(b);
 	b += sprintf(b, "switched all switches to '%c'", pos);
 	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
-		b += console_move(b, 2, 9 + 5 * i + 5);
+		b += console_cursor_move(b, 2, 9 + 5 * i + 5);
 		b += sprintf(b, "%c", train_switchpos_straight(pos) ? 'S' : 'C');
 	}
-	b += sprintf(b, "\x1B[u"); // unsave cursor
+	b += console_cursor_unsave(b);
 	Putstr(COM2, buf, state->tid_com2);
 }
 
@@ -157,16 +156,16 @@ static inline void ui_cmd_char(a0state *state, char c) {
 static inline void ui_cmd_delchar(a0state *state) {
 	char buf[128];
 	char *b = buf;
-	b += sprintf(b, "\x1B[1D"); // move cursor one back
-	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += console_cursor_left(b, 1);
+	b += console_erase_eol(b);
 	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_cmd_clear(a0state *state) {
 	char buf[128];
 	char *b = buf;
-	b += console_move(b, 5, 2);
-	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += console_cursor_move(b, 5, 2);
+	b += console_erase_eol(b);
 	Putstr(COM2, buf, state->tid_com2);
 }
 
@@ -177,22 +176,22 @@ static inline void ui_cmd(a0state *state, char cmd[]) {
 static inline void ui_cmd_bad(a0state *state, char cmd[]) {
 	char buf[128];
 	char *b = buf;
-	b += sprintf(b, "\x1B[s"); // save cursor
-	b += console_move(b, 4, 11);
-	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += console_cursor_save(b);
+	b += console_cursor_move(b, 4, 11);
+	b += console_erase_eol(b);
 	b += sprintf(b, "invalid command: \"%s\"", cmd);
-	b += sprintf(b, "\x1B[u"); // unsave cursor
+	b += console_cursor_unsave(b);
 	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_quit(a0state *state) {
 	char buf[128];
 	char *b = buf;
-	b += sprintf(b, "\x1B[s"); // save cursor
-	b += console_move(b, 4, 11);
-	b += sprintf(b, "\x1B[K"); // erase rest of line
+	b += console_cursor_save(b);
+	b += console_cursor_move(b, 4, 11);
+	b += console_erase_eol(b);
 	b += sprintf(b, "quitting...");
-	b += console_move(b, 7, 1);
+	b += console_cursor_move(b, 7, 1);
 	Putstr(COM2, buf, state->tid_com2);
 }
 

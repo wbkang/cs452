@@ -17,7 +17,7 @@ void sensornotifier() {
 	Reply(tid, NULL, 0);
 
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
-	// int tid_com2 = WhoIs(NAME_IOSERVER_COM2);
+	//int tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
 
 	int modules[NUM_MODULES];
@@ -30,7 +30,7 @@ void sensornotifier() {
 
 	for (;;) {
 		train_querysenmods(NUM_MODULES, tid_traincmdbuf);
-		// int start = uptime();
+		//int start = uptime();
 		for (int m = 0; m < NUM_MODULES; m++) {
 			int upper = Getc(COM1, tid_com1);
 			int lower = Getc(COM1, tid_com1);
@@ -46,9 +46,11 @@ void sensornotifier() {
 				Send(args.tid_target, &msg, sizeof(msg), NULL, 0);
 			}
 		}
-		// int end = uptime();
-		// int delta = end - start;
-		// ioprintf(tid_com2, "%d\n", delta);
+		/*int end = uptime();
+		int delta = end - start;
+		char buf[32];
+		sprintf(buf, "%d\n", delta);
+		Putstr(COM2, buf, tid_com2);*/
 	}
 }
 

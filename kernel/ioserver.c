@@ -16,6 +16,7 @@
 #define BUFFER_SIZE 512
 #define INPUT_BLOCKED_QUEUE_SIZE 512
 #define FLUSH_BLOCKED_QUEUE_SIZE 1
+#define FLUSH_GARBAGE_TIMEOUT 50
 
 typedef struct {
 	int channel;
@@ -50,6 +51,7 @@ static inline void handle_putstr(ioserver_state *state, int tid, char const *c);
 static inline char rxchar(ioserver_state *state);
 static inline void txchar(ioserver_state *state);
 static inline void handle_flush(ioserver_state *state, int tid);
+static inline void flush_garbage();
 
 static void ioserver() {
 	int tid;
@@ -62,6 +64,8 @@ static void ioserver() {
 	// register name and init uart
 	RegisterAs(args.channel == COM1 ? NAME_IOSERVER_COM1 : NAME_IOSERVER_COM2);
 	uart_init(&args);
+
+	flush_garbage();
 
 	// init state
 	ioserver_state state;
@@ -129,6 +133,15 @@ static inline void uart_init(ioserver_arg *args) {
 	// enable tx, rx, and ms interrupts
 	VMEM(uartbase + UART_CTLR_OFFSET) |= TIEN_MASK | RIEN_MASK | MSIEN_MASK;
 	VMEM(uartbase + UART_INTR_OFFSET) |= 1; // clear ms interrupt
+}
+
+static inline void flush_garbage() {
+	int tid_time = WhoIs(NAME_TIMESERVER);
+	int target = Time(tid_time) + FLUSH_GARBAGE_TIMEOUT;
+	while (Time(tid_time) < target) {
+        volatile int i = VMEM(UART1_BASE + UART_DATA_OFFSET);
+        (void) i;
+	}
 }
 
 static inline void handle_general(ioserver_state *state) {
