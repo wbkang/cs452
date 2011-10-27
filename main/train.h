@@ -27,7 +27,7 @@
 
 static inline int train_switchi2no(int i) {
 	ASSERT(0 <= i && i < TRAIN_NUM_SWITCHADDR, "bad i");
-	return (i < 18 ? 1 : 0x99) + i;
+	return (i < 18 ? 1 : 0x99 - 18) + i;
 }
 
 static inline int train_switchno2i(int switchno) {
