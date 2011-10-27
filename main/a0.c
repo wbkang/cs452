@@ -31,7 +31,7 @@ typedef struct {
  * UI
  */
 
-#define LEN_SENSOR_HIST 8
+#define LEN_SENSOR_HIST 16
 static char hist_mod[LEN_SENSOR_HIST];
 static int hist_id[LEN_SENSOR_HIST];
 
@@ -57,7 +57,7 @@ static inline void ui_init(a0state *state) {
 	b += sprintf(b, "$");
 	Putstr(COM2, buf, state->tid_com2);
 	// init sensor hist
-	for (int i = LEN_SENSOR_HIST - 1; i > 0; i--) {
+	for (int i = 0; i < LEN_SENSOR_HIST; i++) {
 		hist_mod[i] = 0;
 		hist_id[i] = 0;
 	}

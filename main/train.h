@@ -23,17 +23,19 @@
 #define TRAIN_MAX_SWITCHADDR 255
 #define TRAIN_PAUSE_SOLENOID 15
 #define TRAIN_PAUSE_REVERSE 400
+#define TRAIN_NUM_MODULES 5
 #define TRAIN_NUM_SWITCHADDR 22
 
 static inline int train_switchi2no(int i) {
 	ASSERT(0 <= i && i < TRAIN_NUM_SWITCHADDR, "bad i");
-	return (i < 18 ? 1 : 0x99 - 18) + i;
+	if (i < 18) return i + 1;
+	return i + (0x99 - 18);
 }
 
-static inline int train_switchno2i(int switchno) {
-	if (1 <= switchno && switchno <= 18) return switchno - 1;
-	if (0x99 <= switchno && switchno <= 0x9C) return switchno - 0x99 + 18;
-	return -1;
+static inline int train_switchno2i(int n) {
+	ASSERT((1 <= n && n <= 18) || (0x99 <= n && n <= 0x9C), "bad switchno");
+	if (n <= 18) return n - 1;
+	return n - (0x99 - 18);
 }
 
 static inline int train_goodtrain(int train) {
