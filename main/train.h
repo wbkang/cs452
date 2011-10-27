@@ -17,6 +17,7 @@
 
 // train track data
 
+#define TRAIN_MAX_SPEED 30;
 #define TRAIN_MIN_TRAIN_ADDR 1
 #define TRAIN_MAX_TRAIN_ADDR 80
 #define TRAIN_MIN_SWITCHADDR 0
@@ -43,7 +44,7 @@ static inline int train_goodtrain(int train) {
 }
 
 static inline int train_goodspeed(int speed) {
-	return speed >= 0;
+	return speed >= 0 && speed <= TRAIN_MAX_SPEED;
 }
 
 static inline int train_goodswitch(int switchno) {
