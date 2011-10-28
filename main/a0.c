@@ -312,14 +312,19 @@ static inline void ui_setup_demo_track(a0state *state) {
 	b += sprintf(b, "adjusted all switches for demo");
 	b += console_cursor_unsave(b);
 
+	// unfortunately our buffer size isn't too big... a temporary workaround.
 	for (b = buf; *b; b++) {
 		Putc(COM2, *b, state->tid_com2);
 		Flush(state->tid_com2);
 	}
 }
 
-static inline void ui_cmd_char(a0state *state, char c) {
-	Putc(COM2, c, state->tid_com2);
+static inline void ui_cmd_char(a0state *state, char c, int cmdpos) {
+	char buf[128];
+	char *b = buf;
+	b += console_cursor_move(b, 30, 2 + cmdpos);
+	b += sprintf(b, CONSOLE_EFFECT(EFFECT_RESET) "%c", c);
+	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_cmd_delchar(a0state *state) {
@@ -476,7 +481,7 @@ static inline void handle_com2in(a0state *state, msg_comin *comin) {
 			break;
 		}
 		default:
-			ui_cmd_char(state, comin->c);
+			ui_cmd_char(state, comin->c, state->cmd_i);
 			break;
 	}
 	if (quit) {
