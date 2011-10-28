@@ -25,6 +25,7 @@
 #define TRAIN_PAUSE_SOLENOID 15
 #define TRAIN_PAUSE_REVERSE 400
 #define TRAIN_NUM_MODULES 5
+#define TRAIN_NUM_SENSORS 16
 #define TRAIN_NUM_SWITCHADDR 22
 
 static inline int train_switchi2no(int i) {
