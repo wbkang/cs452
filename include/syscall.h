@@ -39,7 +39,6 @@ int MyTid();
 int MyParentsTid();
 void Pass();
 void Exit();
-void* malloc(uint size);
 int Receive(int *tid, void* msg, int msglen);
 int Reply(int tid, void* reply, int replylen);
 int NameServerTid();

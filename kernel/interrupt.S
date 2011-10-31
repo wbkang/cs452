@@ -97,8 +97,8 @@ Exit:
 	swi 4
 	mov pc, lr
 
-.global malloc
-malloc:
+.global malloc_user
+malloc_user:
 	swi 5
 	mov pc, lr
 

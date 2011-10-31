@@ -2,6 +2,7 @@
 
 #include <ts7200.h>
 #include <constants.h>
+#include <stddef.h>
 
 ////////// TYPES
 typedef unsigned int uint;
@@ -36,7 +37,7 @@ typedef char *va_list;
 #define LIKELY(x) __builtin_expect((x), 1)
 #define UNLIKELY(x) __builtin_expect((x), 0)
 
-static inline int log2(uint n) {
+static inline int ilog2(uint n) {
 	uint l, i = 0;
 	if ((l = n >> 16)) { n = l; i |= 16; }
 	if ((l = n >>  8)) { n = l; i |=  8; }
@@ -62,7 +63,7 @@ static inline uint uptime() {
 }
 
 ///////////// DEBUG
-#define ASSERT_ENABLED 1
+#define ASSERT_ENABLED 0
 #define TRACE_ENABLED 1
 #define TEST_ENABLED 1
 #define KERNELTEST_ENABLED 0
