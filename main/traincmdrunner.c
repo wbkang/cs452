@@ -4,12 +4,10 @@
 #include <train.h>
 
 void traincmdrunner() {
-	RegisterAs(NAME_TRAINCMDRUNNER);
-
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	// int tid_com2 = WhoIs(NAME_IOSERVER_COM2);
-	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
 	int tid_time = WhoIs(NAME_TIMESERVER);
+	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
 
 	for (;;) {
 		traincmd cmd;
@@ -68,6 +66,9 @@ void traincmdrunner() {
 	}
 }
 
-int traincmdrunner_new() {
-	return Create(PRIORITY_TRAINCMDRUNNER, traincmdrunner);
+int traincmdrunner_new(int tid_buffer) {
+	bwprintf(1,"new in\n");
+	int n = Create(PRIORITY_TRAINCMDRUNNER, traincmdrunner);
+	bwprintf(1,"new out: %d\n", n);
+	return n;
 }

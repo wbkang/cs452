@@ -6,6 +6,7 @@
 #include <comnotifier.h>
 #include <string.h>
 #include <traincmdbuffer.h>
+#include <traincmdrunner.h>
 #include <stdio.h>
 #include <timenotifier.h>
 #include <console.h>
@@ -501,6 +502,7 @@ void a0() {
 	state.tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	state.tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	state.tid_traincmdbuf = traincmdbuffer_new();
+	traincmdrunner_new();
 	state.cmd[0] = '\0';
 	state.cmd_i = 0;
 	for (int i = 0; i <= TRAIN_MAX_TRAIN_ADDR; i++) {
