@@ -48,7 +48,7 @@ void* qmalloc(uint size) {
 		);
 	#endif
 	switch (mode) {
-		case 0x10: return malloc(size); // user
+		case 0x10: return malloc_user(size); // user
 		case 0x13: return kmalloc(size); // service
 		default: // not handled
 			ERROR("unhandled processor mode in qmalloc");

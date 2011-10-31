@@ -1,13 +1,19 @@
 #
 # Makefile for busy-wait IO library
 #
-CCDIR = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin
+CROSSTOOLS_DIR = /u6/wbkang/opt/crosstool/gcc-4.0.1-glibc-2.3.5/arm-unknown-linux-gnu
+CCDIR = $(CROSSTOOLS_DIR)/bin
+LIBGCC_INCLUDE = $(CROSSTOOLS_DIR)/lib/gcc/arm-unknown-linux-gnu/4.0.1/include
+LIBC_INCLUDE = $(CROSSTOOLS_DIR)/arm-unknown-linux-gnu/include
 
-XCC	= $(CCDIR)/gcc
-AS	= $(CCDIR)/as
-AR	= $(CCDIR)/ar
-LD  = $(CCDIR)/ld
-CFLAGS  = -fno-builtin -fomit-frame-pointer -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99 -O2
+TARGET_ARCH = arm-unknown-linux-gnu
+XCC = $(CCDIR)/$(TARGET_ARCH)-gcc
+CC = $(XCC)
+AS  = $(CCDIR)/$(TARGET_ARCH)-as
+AR  = $(CCDIR)/$(TARGET_ARCH)-ar
+CFLAGS  = -fomit-frame-pointer -c -fPIC -Wall \
+	-I. -I../include -I$(GLIBC_INCLUDE) -I$(LIBGCC_INCLUDE) -I$(LIBC_INCLUDE) \
+	-mcpu=arm920t -pedantic -Wall -std=c99 -O2
 
 # -g: include hooks for gdb
 # -c: only compile
@@ -21,7 +27,10 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 
 ARFLAGS = rcs
 
-LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
+LDFLAGS = -init main -Map main.map -N  -T orex.ld \
+	-L$(CROSSTOOLS_DIR)/lib/gcc/arm-unknown-linux-gnu/4.0.1 \
+	-L$(CROSSTOOLS_DIR)/arm-unknown-linux-gnu/lib -L../lib
+
 
 %.o : %.c
 
@@ -34,7 +43,7 @@ all : main.elf
 
 main.elf : $(OBJS)
 	@echo "[LD]\t$(OBJS) -> $@"
-	@$(LD) $(LDFLAGS) -o $@ $(OBJS) -lkernel -lgcc
+	@$(LD) $(LDFLAGS) -o $@ $(OBJS) -lkernel -lc -lgcc
 
 %.o : %.s
 	@echo "[AS]\t$< -> $@"

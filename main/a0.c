@@ -75,6 +75,26 @@ static char direction_str[9][3] = { "", "/\\", "\\/", ">", "<", "/\\", "\\/", "/
 
 static sensor_pic_info sensor_pic_info_table[TRAIN_NUM_MODULES][TRAIN_NUM_SENSORS];
 
+
+static int char2digit(char ch) {
+	if (ch >= '0' && ch <= '9') return ch - '0';
+	if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
+	if (ch >= 'A' && ch <= 'F') return ch - 'A' + 10;
+	return -1;
+}
+
+static uint strgetui(char **c) {
+	uint num = 0;
+	int digit;
+	for (;;) {
+		digit = char2digit(**c);
+		if (digit < 0 || digit > 10) break;
+		num = num * 10 + digit;
+		(*c)++;
+	}
+	return num;
+}
+
 static inline void sensor_pic_def(
 		char mod,
 		int id1, enum direction dir1,

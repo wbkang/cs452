@@ -7,7 +7,7 @@
 // train controller commands
 
 #define TRAIN_REVERSE 0xF
-#define TRAIN_SWITCH_STRAIGH 0x21
+#define TRAIN_SWITCH_STRAIGHT 0x21
 #define TRAIN_SWITCH_CURVED 0x22
 #define TRAIN_SOLENOID_OFF 0x20
 #define TRAIN_QUERYMOD 0xC0
@@ -76,36 +76,36 @@ static inline void train_speed(char train, char speed, int tid) {
 
 static inline void train_reverse(char train, int tid) {
 	ASSERT(train_goodtrain(train), "bad train: %d", train);
-	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_REVERSE, NULL);
-	traincmdbuffer_put(tid, REVERSE, train, NULL);
+	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_REVERSE, 0);
+	traincmdbuffer_put(tid, REVERSE, train, 0);
 }
 
 static inline void train_switch(char switchaddr, char pos, int tid) {
 	ASSERT(train_goodswitchpos(pos), "bad position: %d", pos);
 	traincmdbuffer_put(tid, SWITCH, switchaddr, pos);
-	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_SOLENOID, NULL);
+	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_SOLENOID, 0);
 }
 
 static inline void train_solenoidoff(int tid) {
-	traincmdbuffer_put(tid, SOLENOID, NULL, NULL);
+	traincmdbuffer_put(tid, SOLENOID, 0, 0);
 }
 
 static inline void train_querysenmod(char module, int tid) {
 	ASSERT(train_goodmodule(module), "bad module: %d", module);
-	traincmdbuffer_put(tid, QUERY1, module, NULL);
+	traincmdbuffer_put(tid, QUERY1, module, 0);
 }
 
 static inline void train_querysenmods(char modules, int tid) {
 	ASSERT(train_goodmodule(modules), "bad module: %d", modules);
-	traincmdbuffer_put(tid, QUERY, modules, NULL);
+	traincmdbuffer_put(tid, QUERY, modules, 0);
 }
 
 static inline void train_go(int tid) {
-	traincmdbuffer_put(tid, GO, NULL, NULL);
+	traincmdbuffer_put(tid, GO, 0, 0);
 }
 
 static inline void train_stop(int tid) {
-	traincmdbuffer_put(tid, STOP, NULL, NULL);
+	traincmdbuffer_put(tid, STOP, 0, 0);
 }
 
 // extra

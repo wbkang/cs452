@@ -37,7 +37,7 @@ void sensornotifier() {
 			modules[m] = module;
 			int sensors = (old_module ^ module) & (~old_module);
 			while (sensors) {
-				int s = log2(sensors);
+				int s = ilog2(sensors);
 				sensors &= ~(1 << s);
 				msg.module = 'A' + m;
 				msg.id = 16 - s;

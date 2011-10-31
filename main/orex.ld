@@ -10,21 +10,21 @@ SECTIONS
 
 	. = 0x00218000;
 
-	data .  : /* Initialized data. */
+	.data .  : /* Initialized data. */
 	{
 		_DataStart = . ;
-		*(.data)
+		*(.data*)
 		_DataEnd = . ;
 	} >ram
 
-	bss .  : /* Uninitialized data. */
+	.bss .  : /* Uninitialized data. */
 	{
 		_BssStart = . ;
 		*(.bss)
 		_BssEnd = . ;
 	} >ram
 
-	text .  : /* The actual instructions. */
+	.text .  : /* The actual instructions. */
 	{
 		_TextStart = .;
 		*(asm_functions)
@@ -32,19 +32,21 @@ SECTIONS
 		_TextEnd = .;
 		*(.got)
 		*(.got.plt)
-		*(.rodata)
-		*(.rodata.str1.4)
+		*(.rodata*)
 		*(.glue_7)
 		*(.glue_7t)
 	} >ram
 	
-	debug . :
+	.debug . :
 	{
 		*(.comment)
 		*(.debug_line)
 		*(.debug_info)
 		*(.debug_abbrev)
 		*(.debug_aranges)
+		*(.dtors)
+		*(.gnu*)
+		*(__libc*)
 	} > ram
 	
 	kernel_mem . :

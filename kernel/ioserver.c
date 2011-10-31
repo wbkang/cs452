@@ -6,6 +6,7 @@
 #include <queue.h>
 #include <util.h>
 #include <string.h>
+#include <memory.h>
 
 /*
  * max number of chars per timeserver tick
@@ -82,7 +83,7 @@ static void ioserver() {
 	state.tx_empty = VMEM(uartbase + UART_FLAG_OFFSET) & TXFE_MASK;
 
 	uint req_size = sizeof(ioserver_req) + BUFFER_SIZE;
-	ioserver_req *req = malloc(req_size);
+	ioserver_req *req = malloc_user(req_size);
 
 	// sync with notifier
 	Receive(&tid, NULL, 0);

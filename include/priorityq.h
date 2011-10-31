@@ -17,7 +17,7 @@ static inline int priorityq_empty(priorityq *this) {
 
 static inline void* priorityq_get(priorityq *this) {
 	ASSERT(this->state, "empty");
-	uint p = log2(this->state);
+	uint p = ilog2(this->state);
 	queue *q = this->q[p];
 	ASSERT(!queue_empty(q), "subqueue empty. priority: %d, state: %b", p, this->state);
 	void *rv = queue_get(q);
