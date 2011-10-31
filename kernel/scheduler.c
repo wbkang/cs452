@@ -1,5 +1,6 @@
 #include <scheduler.h>
 #include <memory.h>
+#include <task.h>
 
 static task_descriptor *running;
 static priorityq *ready_queue;
@@ -8,7 +9,7 @@ static task_descriptor *eventblocked[NUM_IRQS];
 
 void scheduler_init() {
 	running = NULL;
-	ready_queue = priorityq_new(TASK_LIST_SIZE, NUM_PRIORITY);
+	ready_queue = priorityq_new(get_td_list_size(), NUM_PRIORITY);
 	reschedule = TRUE;
 	for (int irq = 0; irq < NUM_IRQS; irq++) {
 		eventblocked[irq] = NULL;

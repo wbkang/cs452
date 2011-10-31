@@ -4,7 +4,7 @@
 
 struct _tag_task_descriptor;
 
-void mem_init(uint task_list_size);
+int mem_init();
 void mem_reset(); // reset kernel memory
 void* kmalloc(uint size); // allocate kernel memory
 void* umalloc(uint size); // allocate user memory

@@ -7,6 +7,9 @@
 #include <constants.h>
 #include <ts7200.h>
 
+#define TIMESERVER_CAPACITY 512
+#define TIMESERVER_RATE 10 // ms
+
 typedef struct _tag_timeserver_req {
 	int no;
 	int ticks;
@@ -49,7 +52,7 @@ void timeserver() {
 	VMEM(TIMER1_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
 	// init state
 	timeserver_state state;
-	state.tasks = heap_new(TASK_LIST_SIZE);
+	state.tasks = heap_new(TIMESERVER_CAPACITY);
 	ASSERT(state.tasks, "no memory");
 	state.time = 0;
 	// init com arguments

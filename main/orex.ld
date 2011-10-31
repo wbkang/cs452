@@ -50,9 +50,9 @@ SECTIONS
 	kernel_mem . :
 	{
 		_KERNEL_MEM_START = .;
+		_USER_MEM_START = .;
 	} > ram
 	
-	_USER_MEM_START = 0x300000;
 	_USER_MEM_END = 0x1f00000; 
 }
 

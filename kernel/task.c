@@ -1,23 +1,33 @@
 #include <task.h>
+#include <memory.h>
 
 static struct _tag_task_descriptor_list {
 	task_descriptor head_free;
-	task_descriptor td[TASK_LIST_SIZE];
+	task_descriptor *td;
+	uint size;
 } task_descriptors;
 
 inline void td_list_close(task_descriptor *td);
 
-void td_init() {
+uint get_td_list_size() {
+	return task_descriptors.size;
+}
+
+void td_init(uint task_list_size) {
+	task_descriptors.td = kmalloc(task_list_size * sizeof(task_descriptor));
+	task_descriptors.size = task_list_size;
 	// initialize free queue
 	task_descriptor *head_free = &task_descriptors.head_free;
 	td_list_close(head_free);
 	// put the free descriptors in the free queue
 	task_descriptor *td = task_descriptors.td;
-	for (int i = 0; i < TASK_LIST_SIZE; ++i, ++td) {
+	for (int i = 0; i < task_list_size; ++i, ++td) {
 		td->id = i;
 		td->state = TD_STATE_FREE;
 		td_list_push(head_free, td);
 	}
+
+	PRINT("task_list_size: %d", get_td_list_size());
 }
 
 inline int td_index(int tid) {
@@ -25,7 +35,7 @@ inline int td_index(int tid) {
 }
 
 inline int td_impossible(int tid) {
-	return tid < 0 || td_index(tid) >= TASK_LIST_SIZE;
+	return tid < 0 || td_index(tid) >= task_descriptors.size;
 }
 
 inline int td_list_empty(task_descriptor *td) {
@@ -75,7 +85,7 @@ inline void td_free(task_descriptor *td) {
 
 inline task_descriptor *td_find(uint id) {
 	int i = td_index(id);
-	if (i >= TASK_LIST_SIZE) return NULL;
+	if (i >= task_descriptors.size) return NULL;
 	task_descriptor *td = task_descriptors.td + i;
 	return td->id == id ? td : NULL;
 }
