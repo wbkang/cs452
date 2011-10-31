@@ -37,7 +37,7 @@ typedef struct _tag_task_descriptor {
 } task_descriptor;
 
 void td_init();
-
+uint get_td_list_size();
 inline int td_index(int tid);
 inline int td_impossible(int tid);
 inline int td_list_empty(task_descriptor *td);

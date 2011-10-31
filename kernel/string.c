@@ -120,10 +120,10 @@ void *memcpy9(void *dst, void const *src, uint len) {
     return dst;
 }
 
-void *memcpy2(void *dst, void const *src, uint len) {
+void *memcpy(void *dst, void const *src, uint len) {
 	if (len > 0) {
-		ASSERT((len & 3) == 0, "length unaligned: %d (%x)", len, len);
-	    if ((((int) src | (int) dst) & 3) == 0) { // aligned
+//		ASSERT((len & 3) == 0, "length unaligned: %d (%x)", len, len);
+	    if ((((int) src | (int) dst | len) & 3) == 0) { // aligned
 		    int *to = (int*) dst;
 		    int const *from = (int const*) src;
 		    uint words = len >> 2;
@@ -151,7 +151,7 @@ void *memcpy2(void *dst, void const *src, uint len) {
 }
 
 // bulletproof memcpy
-void *memcpy(void *dst, void const *src, uint len) {
+void *memcpy8(void *dst, void const *src, uint len) {
     char *ldst = (char*) dst;
     char const *lsrc = (char const*) src;
     while (len--) {

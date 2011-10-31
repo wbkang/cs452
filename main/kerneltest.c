@@ -5,6 +5,7 @@
 #include <syscall.h>
 #include <scheduler.h>
 #include <nameserver.h>
+#include <task.h>
 
 volatile static int last_run_priority;
 volatile static int last_run_tid = 0;
@@ -54,7 +55,7 @@ static void kerneltest_max_tasks() {
 static void kerneltest_exit() {
 	KTEST_START();
 	TRACE("Testing whether a task frees resource after running.");
-	for (int i = 0; i < TASK_LIST_SIZE * 2; i++) {
+	for (int i = 0; i < get_td_list_size() * 2; i++) {
 		int tid = Create(MAX_PRIORITY, Exit);
 		ASSERT(tid >= 0, "Task ID invalid %d", tid);
 	}

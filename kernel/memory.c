@@ -4,28 +4,40 @@
 #include <syscall.h>
 #include <task.h>
 
-extern uint _KERNEL_MEM_START;
+#define KERNEL_HEAP_PAGES 10
+
 static memptr kernel_heap;
 static stack *umpages;
+static uint user_mem_start;
+static uint user_mem_end;
 
-void mem_init(uint task_list_size) {
-	// initialize kernel heap
-	kernel_heap = &_KERNEL_MEM_START;
+int mem_init() {
+	kernel_heap = (memptr) ALIGN((uint) &_USER_MEM_START, STACK_SIZE);
+	user_mem_start = (uint) kernel_heap + STACK_SIZE * KERNEL_HEAP_PAGES;
+	user_mem_end = (uint) &_USER_MEM_END;
+	uint task_list_size = (user_mem_end - user_mem_start) / STACK_SIZE;
+
 	// initialize user memory pages
 	umpages = stack_new(task_list_size);
-	for (int i = 0; i < TASK_LIST_SIZE; i++) {
-		stack_push(umpages, (void*) (USER_MEM_START + STACK_SIZE * i));
+	for (int i = 0; i < task_list_size; i++) {
+		stack_push(umpages, (void*) (user_mem_start + STACK_SIZE * i));
 	}
+
+	return task_list_size;
 }
 
 void mem_reset() {
-	kernel_heap = &_KERNEL_MEM_START;
+	kernel_heap = (memptr) ALIGN((uint) &_USER_MEM_START, STACK_SIZE);
+	user_mem_start = ~0;
+	user_mem_end = ~0;
 }
 
 void* kmalloc(uint size) {
 	memptr rv = kernel_heap;
 	kernel_heap += NEXTHIGHESTWORD(size);
-	ASSERT((int) kernel_heap < USER_MEM_START, "kernel heap overflow");
+	ASSERT((uint) kernel_heap < user_mem_start,
+			"kernel heap overflow, alloc_size: %d, kernel_heap: %x, user_mem_start: %x",
+			size, kernel_heap, user_mem_start);
 	return rv;
 }
 
@@ -63,6 +75,6 @@ void allocate_user_memory(task_descriptor *td) {
 }
 
 void free_user_memory(task_descriptor *td) {
-	uint base = USER_MEM_START + (((uint) td->heap - USER_MEM_START) & ~(STACK_SIZE - 1));
+	uint base = user_mem_start + (((uint) td->heap - user_mem_start) & ~(STACK_SIZE - 1));
 	stack_push(umpages, (memptr) base);
 }
