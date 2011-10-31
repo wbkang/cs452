@@ -38,7 +38,7 @@ void* umalloc(uint size) {
 	return rv;
 }
 
-void* qmalloc(uint size) {
+void* qmalloc(uint size) {  // can be called from kernel or user
 	int mode = 0xdeadbeef;
 	#ifndef __i386
 		__asm(

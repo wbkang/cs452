@@ -67,8 +67,5 @@ void traincmdrunner() {
 }
 
 int traincmdrunner_new(int tid_buffer) {
-	bwprintf(1,"new in\n");
-	int n = Create(PRIORITY_TRAINCMDRUNNER, traincmdrunner);
-	bwprintf(1,"new out: %d\n", n);
-	return n;
+	return Create(PRIORITY_TRAINCMDRUNNER, traincmdrunner);
 }
