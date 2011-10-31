@@ -86,7 +86,7 @@ uint strgetui(char **c) {
 	return num;
 }
 
-void *memcpy(void *dst, void const *src, uint len) {
+void *memcpy9(void *dst, void const *src, uint len) {
 	if (LIKELY(len > 0)) {
 //		ASSERT(((int) src & 3) == 0, "src unaligned: %x", src);
 //		ASSERT(((int) dst & 3) == 0, "dst unaligned: %x", src);
@@ -150,17 +150,10 @@ void *memcpy2(void *dst, void const *src, uint len) {
     return dst;
 }
 
-void *memcpy3(void *dst, void const *src, uint len) {
-    int *bdst = (int*) dst;
-    int const *bsrc = (int const*) src;
-    if ((((int) src | (int) dst) & (sizeof(int) - 1)) == 0) { // aligned
-        while (len >= sizeof(int)) {
-            *bdst++ = *bsrc++;
-            len -= sizeof(int);
-        }
-    }
-    char *ldst = (char*) bdst;
-    char const *lsrc = (char const*) bsrc;
+// bulletproof memcpy
+void *memcpy(void *dst, void const *src, uint len) {
+    char *ldst = (char*) dst;
+    char const *lsrc = (char const*) src;
     while (len--) {
         *ldst++ = *lsrc++;
     }

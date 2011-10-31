@@ -17,7 +17,7 @@ typedef struct {
 	traincmd cmd;
 } traincmdbuffer_req;
 
-static void handle_put(traincmdbuffer_state *state, int tid, traincmd *cmd) {
+static inline void handle_put(traincmdbuffer_state *state, int tid, traincmd *cmd) {
 	Reply(tid, NULL, 0);
 	if (queue_empty(state->tidq)) {
 		buffer_put(state->cmdbuf, cmd);
@@ -26,7 +26,7 @@ static void handle_put(traincmdbuffer_state *state, int tid, traincmd *cmd) {
 	}
 }
 
-static void handle_get(traincmdbuffer_state *state, int tid) {
+static inline void handle_get(traincmdbuffer_state *state, int tid) {
 	if (buffer_empty(state->cmdbuf)) {
 		queue_put(state->tidq, (void*) tid);
 	} else {
@@ -36,7 +36,7 @@ static void handle_get(traincmdbuffer_state *state, int tid) {
 	}
 }
 
-void traincmdbuffer() {
+static void traincmdbuffer() {
 	RegisterAs(NAME_TRAINCMDBUFFER);
 
 	traincmdbuffer_state state;

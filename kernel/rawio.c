@@ -138,10 +138,10 @@ void bwformat(int channel, char *fmt, va_list va) {
 	}
 }
 
-void bwprintf(int channel, char *fmt, ... ) {
+void bwprintf(int channel, char *fmt, ...) {
 	CHECK_COM(channel);
 	va_list va;
-	va_start(va,fmt);
-	bwformat( channel, fmt, va );
+	va_start(va, fmt);
+	bwformat(channel, fmt, va);
 	va_end(va);
 }
