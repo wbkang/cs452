@@ -63,6 +63,6 @@ void allocate_user_memory(task_descriptor *td) {
 }
 
 void free_user_memory(task_descriptor *td) {
-	uint base = USER_MEM_START + ((uint) (td->heap - USER_MEM_START) & ~(STACK_SIZE - 1));
+	uint base = USER_MEM_START + (((uint) td->heap - USER_MEM_START) & ~(STACK_SIZE - 1));
 	stack_push(umpages, (memptr) base);
 }
