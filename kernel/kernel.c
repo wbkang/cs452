@@ -69,7 +69,6 @@ void kernel_init() {
 	install_interrupt_handlers();
 	int task_list_size = mem_init();
 	td_init(task_list_size);
-	PRINT("task_list_size: %d", get_td_list_size());
 	scheduler_init();
 	exitkernel = FALSE;
 	nameserver_tid = kernel_createtask(PRIORITY_NAMESERVER, nameserver);
