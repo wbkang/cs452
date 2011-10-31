@@ -27,7 +27,7 @@ static void test_stack() {
 
 static void test_buffer() {
 	TEST_START();
-	int size = 111;
+	int size = 1024;
 	struct {
 		int a, b;
 	} temp[size], rv;

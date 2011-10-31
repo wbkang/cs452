@@ -25,14 +25,13 @@ typedef struct {
 	int cmd_i;
 	// train data
 	char train_speed[TRAIN_MAX_TRAIN_ADDR + 1];
-	// ui
 } a0state;
 
 /*
  * UI
  */
 
-#define LEN_SENSOR_HIST 16
+#define LEN_SENSOR_HIST 8
 static char hist_mod[LEN_SENSOR_HIST];
 static int hist_id[LEN_SENSOR_HIST];
 
@@ -150,11 +149,7 @@ static inline void ui_init(a0state *state) {
 	sensor_pic_def('C', 7, EAST, 8, WEST, 27, 27);
 	sensor_pic_def('C', 3, EAST, 4, WEST, 27, 42);
 
-
-	for (char *p = TRACK_TEMPLATE; *p; p++) {
-		Putc(COM2, *p, state->tid_com2);
-		Flush(state->tid_com2);
-	}
+	Putstr(COM2, TRACK_TEMPLATE, state->tid_com2);
 
 	ui_cmd_clear(state);
 
@@ -312,11 +307,7 @@ static inline void ui_setup_demo_track(a0state *state) {
 	b += sprintf(b, "adjusted all switches for demo");
 	b += console_cursor_unsave(b);
 
-	// unfortunately our buffer size isn't too big... a temporary workaround.
-	for (b = buf; *b; b++) {
-		Putc(COM2, *b, state->tid_com2);
-		Flush(state->tid_com2);
-	}
+	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void ui_cmd_char(a0state *state, char c, int cmdpos) {
