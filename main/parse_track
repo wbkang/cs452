@@ -10,7 +10,7 @@ parser = OptionParser(usage=usage)
 parser.add_option('-C', dest='c', default='track_data.c',
   help='output .c file (default is track_data.c)',
   metavar='OUTPUT-C-FILE')
-parser.add_option('-H', dest='h', default='track_data.h',
+parser.add_option('-H', dest='h', default='include/track_data.h',
   help='output .h file (default is track_data.h)',
   metavar='OUTPUT-H-FILE')
 (options, args) = parser.parse_args()
@@ -47,7 +47,7 @@ class parser_state:
   def error(self, msg, y=None):
     if y == None:
       y = self.y
-    print '%s:%d: %s' % (self.fname, y+1, msg)
+    print('%s:%d: %s' % (self.fname, y+1, msg))
     sys.stdout.flush()
     self.errors += 1
 
@@ -86,7 +86,7 @@ class track:
         n = node(state)
         n.index = len(self.nodes)
         self.nodes.append(n)
-        if self.name2node.has_key(n.name):
+        if n.name in self.name2node:
           state.error("duplicate node '%s'" % n.name)
         self.name2node[n.name] = n
       elif line[0] == 'edge':
@@ -160,7 +160,7 @@ class node:
         try:
           assert len(line) == 2
           self.num = int(line[1])
-        except AssertionError, ValueError:
+        except (AssertionError, ValueError):
           state.error("expected 'sensor <SENSOR_NUM>'")
       elif line[0] in ['branch', 'merge']:
         # branch/merge <SWITCH_NUM>
@@ -170,7 +170,7 @@ class node:
         try:
           assert len(line) == 2
           self.num = int(line[1])
-        except AssertionError, ValueError:
+        except (AssertionError, ValueError):
           state.error("expected '%s <SWITCH_NUM>'" % line[0])
       elif line[0] in ['enter', 'exit']:
         # enter/exit
@@ -179,7 +179,7 @@ class node:
         self.nodetype = line[0]
         try:
           assert len(line) == 1
-        except AssertionError, ValueError:
+        except (AssertionError, ValueError):
           state.error("expected '%s'" % line[0])
       elif line[0] in ['reverse', 'ahead', 'straight', 'curved']:
         # reverse/ahead/straight/curved <NODE>
@@ -263,7 +263,7 @@ class edge:
           assert len(line) == 3
           assert line[2] == 'mm'
           self.dist = int(line[1])
-        except AssertionError, ValueError:
+        except (AssertionError, ValueError):
           state.error("expected 'distance <INTEGER> mm'")
       else:
         # Unknown property.
@@ -297,13 +297,14 @@ fh = open(options.h, 'w')
 fh.write('''/* THIS FILE IS GENERATED CODE -- DO NOT EDIT */
 
 #include "track_node.h"
+#include <lookup.h>
 
 // The track initialization functions expect an array of this size.
 #define TRACK_MAX %d
 
 ''' % maxidx)
 for fun in tracks:
-  fh.write("void %s(track_node *track);\n" % fun)
+  fh.write("lookup* %s(track_node *track);\n" % fun)
 fh.close()
 
 ########################################################################
@@ -312,25 +313,46 @@ fh = open(options.c, 'w')
 fh.write('''/* THIS FILE IS GENERATED CODE -- DO NOT EDIT */
 
 #include "%s"
+#include <lookup.h>
 
 static void *memset(void *s, int c, unsigned int n) {
   unsigned char *p = s;
   while(n --> 0) { *p++ = (unsigned char)c; }
   return s;
 }
+
+static uint sensor_mapper(void* key) {
+    char *name = (char*) key;
+    int module = (name[0] - 'A');
+    int firstdigit = name[1] - '0';
+    int seconddigit = (name[2] >= '0' && name[2] <= '9') ? name[2] - '0' : -1;
+    int idx = 0;
+    
+    if (seconddigit == -1) {
+        idx = firstdigit;
+    } else {
+        idx = firstdigit * 10 + seconddigit;
+    }
+    
+    return module * 16 + idx;
+}
+
 ''' % options.h)
 for fun in tracks:
   fh.write('''
-void %s(track_node *track) {
+lookup* %s(track_node *track) {
   memset(track, 0, TRACK_MAX*sizeof(track_node));
+  lookup *sensormap = lookup_new(60, sensor_mapper, 0);
 ''' % fun)
   for nd in tracks[fun].nodes:
     idx = nd.index
-    fh.write("  track[%d].name = \"%s\";\n" % (idx, nd.name))
+    fh.write("  track[%d].name = \"%s \";\n" % (idx, nd.name))
     nodetype = 'NODE_' + nd.nodetype.upper()
     fh.write("  track[%d].type = %s;\n" % (idx, nodetype))
     if nd.num != None:
       fh.write("  track[%d].num = %s;\n" % (idx, nd.num))
+    if nd.nodetype == 'sensor':
+      fh.write("  lookup_put(sensormap, (void*)track[%d].name, track + %d);" % (idx, idx))
     fh.write("  track[%d].reverse = &track[%d];\n" % \
       (idx, nd.reverse.index))
     for dir in ['ahead', 'straight', 'curved']:
@@ -349,5 +371,9 @@ void %s(track_node *track) {
           (idx, dir.upper(), idx2))
         fh.write("  track[%d].edge[DIR_%s].dist = %s;\n" % \
           (idx, dir.upper(), dist))
-  fh.write("}\n")
+  fh.write('''
+    return sensormap;
+  }
+  
+ ''')
 fh.close()

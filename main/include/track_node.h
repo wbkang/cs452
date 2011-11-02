@@ -1,3 +1,5 @@
+#pragma once
+
 typedef enum {
 	NODE_NONE, NODE_SENSOR, NODE_BRANCH, NODE_MERGE, NODE_ENTER, NODE_EXIT,
 } node_type;

@@ -515,7 +515,7 @@ void a0() {
 
 	sensornotifier_new(MyTid());
 	comnotifier_new(MyTid(), 10, COM2, state.tid_com2);
-	timenotifier_new(MyTid(), 10, 10);
+	timenotifier_new(MyTid(), 10, MS2TICK(100));
 
 	for (;;) {
 		int tid;
