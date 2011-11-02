@@ -15,7 +15,7 @@
  */
 
 #define INPUT_BUFFER_SIZE 64
-#define OUTPUT_BUFFER_SIZE 1 << 12 // 4096
+#define OUTPUT_BUFFER_SIZE 1 << 12 // 8192
 #define REQUEST_STR_SIZE (OUTPUT_BUFFER_SIZE)
 #define INPUT_BLOCKED_QUEUE_SIZE 1
 #define FLUSH_BLOCKED_QUEUE_SIZE 1
@@ -236,6 +236,7 @@ static inline void handle_putstr(ioserver_state *state, int tid, char const *str
 	if (UNLIKELY(buffer_full(state->output))) {
 		ERROR("queue full, channel: %d, string: %s (%x)", state->channel, str, str);
 	}
+
 	for (char const *p = str; *p; *p++) {
 		buffer_put(state->output, p);
 	}

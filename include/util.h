@@ -85,10 +85,13 @@ void bwprintf(int channel, char *fmt, ... );
 void errormsg(char *msg);
 void die();
 
+#define READ_REGISTER(var) __asm volatile("mov %[" TOSTRING(var) "], " TOSTRING(var) "\n\t" : [var] "=r" (var))
+
 #if ASSERT_ENABLED
 #define ASSERT(X, ...) { \
 	if (!(X)) { \
-		errormsg("assertion failed in file " __FILE__ " line:" TOSTRING(__LINE__) CRLF); \
+		int lr, pc; READ_REGISTER(lr); READ_REGISTER(pc); \
+		bwprintf(1, "assertion failed in file " __FILE__ " line:" TOSTRING(__LINE__) " lr:%x pc:%x" CRLF, lr, pc); \
 		bwprintf(1, "[%s] ", __func__); \
 		bwprintf(1, __VA_ARGS__); \
 		bwprintf(1, "\n"); \
