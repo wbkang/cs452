@@ -1,14 +1,22 @@
-#include <rawio.h>
 #include <kernel.h>
 #include <test.h>
-#include <kerneltest.h>
 #include <task1.h>
+#include <kerneltest.h>
 #include <constants.h>
 
 #define FAST 1
 
+void kerneltest_run(); // from kerneltest.c
+
 int main(int argc, char *argv[]) {
-	raw_init();
+	// this is just to get bwio working.
+	uart_fifo(COM1, OFF);
+	uart_speed(COM1, 2400);
+	uart_stopbits(COM1, 2);
+	uart_databits(COM1, 8);
+	uart_parity(COM1, OFF);
+	// init COM2
+	uart_fifo(COM2, OFF);
 
 
 #if FAST && (!(__i386))

@@ -2,13 +2,12 @@
 #include <notifier.h>
 #include <syscall.h>
 #include <heap.h>
-#include <task.h>
 #include <util.h>
 #include <constants.h>
 #include <ts7200.h>
+#include <uconst.h>
 
 #define TIMESERVER_CAPACITY 512
-#define TIMESERVER_RATE 10 // ms
 
 typedef struct _tag_timeserver_req {
 	int no;
@@ -46,7 +45,7 @@ void timeserver() {
 	RegisterAs(NAME_TIMESERVER);
 	// init timer 3
 	VMEM(TIMER1_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
-	VMEM(TIMER1_BASE + LDR_OFFSET) = 508 * TIMESERVER_RATE;
+	VMEM(TIMER1_BASE + LDR_OFFSET) = 508 * MSPERTICK;
 	VMEM(TIMER1_BASE + CRTL_OFFSET) |= MODE_MASK; // pre-load mode
 	VMEM(TIMER1_BASE + CRTL_OFFSET) |= CLKSEL_MASK; // 508k clock
 	VMEM(TIMER1_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
@@ -101,25 +100,24 @@ inline int timeserver_send(timeserver_req *req, int server) {
 /*
  * API
  */
-
-inline int timeserver_time(int timeserver) {
+int Time(int timeserver) {
 	timeserver_req req;
 	req.no = TIMESERVER_TIME;
 	return timeserver_send(&req, timeserver);
 }
 
-inline int timeserver_delayuntil(int ticks, int timeserver) {
-	ASSERT(ticks > 0, "negative ticks");
-	timeserver_req req;
-	req.no = TIMESERVER_DELAYUNTIL;
-	req.ticks = ticks;
-	return timeserver_send(&req, timeserver);
-}
-
-inline int timeserver_delay(int ticks, int timeserver) {
+int Delay(int ticks, int tid) {
 	ASSERT(ticks > 0, "negative ticks");
 	timeserver_req req;
 	req.no = TIMESERVER_DELAY;
 	req.ticks = ticks;
-	return timeserver_send(&req, timeserver);
+	return timeserver_send(&req, tid);
+}
+
+int DelayUntil(int ticks, int tid) {
+	ASSERT(ticks > 0, "negative ticks");
+	timeserver_req req;
+	req.no = TIMESERVER_DELAYUNTIL;
+	req.ticks = ticks;
+	return timeserver_send(&req, tid);
 }

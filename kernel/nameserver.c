@@ -74,11 +74,10 @@ inline int nameserver_send(char reqno, char *name) {
 /*
  * API
  */
-
-inline int nameserver_registeras(char *name) {
+int RegisterAs(char *name) {
 	return nameserver_send(NAMESERVER_REGISTERAS, name);
 }
 
-inline int nameserver_whois(char *name) {
+int WhoIs(char *name) {
 	return nameserver_send(NAMESERVER_WHOIS, name);
 }

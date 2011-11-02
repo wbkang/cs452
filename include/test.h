@@ -1,7 +1,6 @@
 #pragma once
 
 #include <hardware.h>
-#include <rawio.h>
 #include <util.h>
 
 #define TEST_START() { if (TEST_REALLY_ENABLED) { TRACE("test start")

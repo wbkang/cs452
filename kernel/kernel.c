@@ -307,3 +307,16 @@ static inline int kernel_awaitevent(int eventid) {
 	}
 	return 0;
 }
+
+/*
+ * Syscall API
+ */
+int Send(int tid, void* msg, int msglen, void* reply, int replylen) {
+	if ((msglen | replylen) & 0xffff0000) return -3;
+	return asm_Send(tid, msg, reply, (replylen << 16) | msglen);
+}
+
+int ReplyInt(int tid, int rv) {
+	return Reply(tid, &rv, sizeof rv);
+}
+
