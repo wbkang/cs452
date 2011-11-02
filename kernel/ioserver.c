@@ -282,13 +282,16 @@ int ioserver_create(int channel, int fifo, int speed, int stopbits, int databits
 	return tid;
 }
 
-int ioserver_getc(int tid) {
+// API
+int Getc(int channel, int tid) {
+	(void) channel;
 	ioserver_req req;
 	req.no = GETC;
 	return ioserver_send(tid, &req, sizeof(req));
 }
 
-int ioserver_putc(char c, int tid) {
+int Putc(int channel, char c, int tid) {
+	(void) channel;
 	int size = sizeof(ioserver_req) + 1;
 	char mem[size];
 	ioserver_req *req = (void*) mem;
@@ -297,7 +300,8 @@ int ioserver_putc(char c, int tid) {
 	return ioserver_send(tid, req, size);
 }
 
-int ioserver_putstr(char const *str, int tid) {
+int Putstr(int channel, char const *str, int tid) {
+	(void) channel;
 	int strsize = strlen(str) + 1;
 	int size = sizeof(ioserver_req) + strsize;
 	char mem[size];
@@ -307,7 +311,7 @@ int ioserver_putstr(char const *str, int tid) {
 	return ioserver_send(tid, req, size);
 }
 
-int ioserver_flush(int tid) {
+int Flush(int tid) {
 	ioserver_req req;
 	req.no = FLUSH;
 	return ioserver_send(tid, &req, sizeof(req));

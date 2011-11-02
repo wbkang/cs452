@@ -2,6 +2,14 @@
 
 #include <util.h>
 
+extern int _USER_MEM_START;
+extern int _USER_MEM_END;
+
+// &_TextStart is the start of the .text
+extern int _TextStart;
+// &_TextStart is the end of the .text
+extern int _TextEnd;
+
 struct _tag_task_descriptor;
 
 int mem_init();

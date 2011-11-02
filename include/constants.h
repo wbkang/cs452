@@ -43,10 +43,5 @@
 // size of user memory in bytes (64 KB) (MUST BE A POWER OF TWO)
 #define STACK_SIZE 65536
 
-// &_TextStart is the start of the .text
-extern int _TextStart;
-// &_TextStart is the end of the .text
-extern int _TextEnd;
 
-extern int _USER_MEM_START;
-extern int _USER_MEM_END;
+

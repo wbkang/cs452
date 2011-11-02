@@ -2,6 +2,7 @@
 #include <traincmdbuffer.h>
 #include <syscall.h>
 #include <train.h>
+#include <uconst.h>
 
 void traincmdrunner() {
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
@@ -22,8 +23,9 @@ void traincmdrunner() {
 			}
 			case REVERSE: {
 				char train = cmd.arg1;
+				int const reverse_pause = 50 / MSPERTICK;
 				Putc(COM1, TRAIN_REVERSE, tid_com1);
-				Delay(5, tid_time); // sorry pavel
+				Delay(reverse_pause, tid_time); // sorry pavel
 				Putc(COM1, train, tid_com1);
 				break;
 			}

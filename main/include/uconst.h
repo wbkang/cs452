@@ -1,5 +1,7 @@
 #pragma once
 
+#define MSPERTICK 10
+
 typedef enum {SENSOR, COM_IN, TIME} msgtype;
 
 typedef struct {

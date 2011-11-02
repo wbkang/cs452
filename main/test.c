@@ -1,13 +1,13 @@
 #include <test.h>
 #include <util.h>
 #include <hardware.h>
-#include <memory.h>
 #include <heap.h>
 #include <stack.h>
-#include <rawio.h>
 #include <priorityq.h>
 #include <string.h>
 #include <buffer.h>
+
+void mem_reset(); // from memory.c
 
 static void test_stack() {
 	TEST_START();
