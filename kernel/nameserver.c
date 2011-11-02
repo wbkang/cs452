@@ -3,6 +3,7 @@
 #include <rawio.h>
 #include <hardware.h>
 #include <constants.h>
+#include <lookup.h>
 
 typedef struct _tag_nameserver_req {
 	char no;
@@ -17,14 +18,16 @@ inline int nameserver_validname(char *name) {
 	return name && goodchar(name[0]) && goodchar(name[1]) && name[2] == '\0';
 }
 
+static uint name_hash(void *nameptr) {
+	char *name = (char*)nameptr;
+	return name[0] * NUM_ASCII_PRINTABLE + name[1] - (NUM_ASCII_PRINTABLE + 1) * ASCII_PRINTABLE_START;
+}
+
 void nameserver() {
 	// init state
 	int hashsize = NUM_ASCII_PRINTABLE * NUM_ASCII_PRINTABLE; // two chars
-	ASSERT(hashsize < STACK_SIZE / sizeof(int), "not enough user memory");
-	int mem[hashsize];
-	for (int i = 0; i < hashsize; i++) {
-		mem[i] = -1;
-	}
+	lookup *nametidmap = lookup_new(hashsize, name_hash, (void*)-1);
+
 	// init com args
 	int tid;
 	nameserver_req req;
@@ -33,20 +36,21 @@ void nameserver() {
 	for (;;) {
 		int bytes = Receive(&tid, &req, sizeof(req));
 		if (bytes == sizeof(req)) {
-			int idx = req.ch[0] * NUM_ASCII_PRINTABLE + req.ch[1] - (NUM_ASCII_PRINTABLE + 1) * ASCII_PRINTABLE_START;
 			switch (req.no) {
 				case NAMESERVER_REGISTERAS:
-					mem[idx] = tid;
+					lookup_put(nametidmap, req.ch, (void*) tid);
 					rv = 0;
 					break;
-				case NAMESERVER_WHOIS:
-					if (mem[idx] == -1) {
+				case NAMESERVER_WHOIS: {
+					int registered_tid = (int) lookup_get(nametidmap, req.ch);
+					if (registered_tid == -1) {
 						rv = NAMESERVER_ERROR_NOTREGISTERED;
 						ASSERT(FALSE, "name \"%c%c\" not found", req.ch[0], req.ch[1]);
 					} else {
-						rv = mem[idx];
+						rv = registered_tid;
 					}
 					break;
+				}
 				default:
 					rv = NAMESERVER_ERROR_BADREQNO;
 					break;
