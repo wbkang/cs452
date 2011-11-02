@@ -45,7 +45,9 @@ void* umalloc(uint size) {
 	task_descriptor *td = scheduler_running();
 	memptr rv = td->heap;
 	memptr new_heap = rv + NEXTHIGHESTWORD(size);
-	ASSERT((uint) td->registers.r[REG_SP] > (uint) new_heap, "No more memory");
+	ASSERT((uint) td->registers.r[REG_SP] > (uint) new_heap,
+			"No more memory. heap: %x, newheap:%x, sp: %x, size: %d",
+			(uint) rv, (uint) new_heap, (uint) td->registers.r[REG_SP], size);
 	td->heap = new_heap;
 	return rv;
 }
@@ -71,7 +73,7 @@ void* qmalloc(uint size) {  // can be called from kernel or user
 void allocate_user_memory(task_descriptor *td) {
 	memptr heap_base = (memptr) stack_pop(umpages);
 	td->heap = heap_base;
-	td->registers.r[REG_SP] = BYTES2WORDS(STACK_SIZE) + (int) heap_base;
+	td->registers.r[REG_SP] = STACK_SIZE + (int) heap_base;
 }
 
 void free_user_memory(task_descriptor *td) {
