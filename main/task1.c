@@ -6,6 +6,7 @@
 #include <ioserver.h>
 #include <a0.h>
 #include <stdio.h>
+#include <calib_test.h>
 
 void task1() {
 	Create(PRIORITY_TIMESERVER, timeserver);
@@ -19,7 +20,8 @@ void task1() {
 	} programs[] = {
 			{ 1, a0, "A0" },
 			{ 1, perfmon, "Send-Receive-Reply Performance Test (receiver first, 64 bytes)" },
-			{ 10, k3main, "Kernel 3 ???" }
+			{ 10, k3main, "Kernel 3 ???" },
+			{ 1, calib_test, "Calibration test executable" },
 	};
 
 	int program_count = sizeof(programs) / sizeof(programs[0]);

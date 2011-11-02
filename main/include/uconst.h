@@ -1,6 +1,7 @@
 #pragma once
 
 #define MSPERTICK 10
+#define MS2TICK(x) ((x)/MSPERTICK)
 
 typedef enum {SENSOR, COM_IN, TIME} msgtype;
 
