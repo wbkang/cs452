@@ -14,25 +14,31 @@
 void task1() {
 	Create(PRIORITY_TIMESERVER, timeserver);
 	ioserver_create(COM1, OFF, 2400, 2, 8, OFF);
-	ioserver_create(COM2, OFF, 115200, 1, 8, OFF);
+	int com2svr = ioserver_create(COM2, OFF, 115200, 1, 8, OFF);
 
-#if RPS_SERVER
-	Create(1, rps_server);
-	for (int i = 0; i < 4; i++) Create(1, rps_client);
-#endif
+	char *menu =
+			"Menu:\n"
+			"0. A0\n"
+			"1. Send-Receive-Reply (receiver first, 64 bytes)\n"
+			"2. Kernel 3\n";
 
-#if PERFMON
-	Create(1, perfmon);
-#endif
+	Putstr(COM2, menu, com2svr);
 
-#if K3
-	Create(10, k3main);
-#endif
-
-#if A0
-	Create(1, a0);
-#endif
-
-	// Delay(1000, tid_time);
-	// ExitKernel(0);
+	char c;
+	while (TRUE) {
+		char c = Getc(COM2, com2svr);
+		switch (c) {
+			case '0':
+				Create(1, a0);
+				break;
+			case '1':
+				Create(1, perfmon);
+				break;
+			case '2':
+				Create(10, k3main);
+				break;
+			default:
+				continue;
+		}
+	}
 }
