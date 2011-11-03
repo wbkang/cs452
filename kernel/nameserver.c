@@ -18,15 +18,15 @@ inline int nameserver_validname(char *name) {
 	return name && goodchar(name[0]) && goodchar(name[1]) && name[2] == '\0';
 }
 
-static uint name_hash(void *nameptr) {
-	char *name = (char*)nameptr;
+static uint name_hash(void* nameptr) {
+	char *name = (char*) nameptr;
 	return name[0] * NUM_ASCII_PRINTABLE + name[1] - (NUM_ASCII_PRINTABLE + 1) * ASCII_PRINTABLE_START;
 }
 
 void nameserver() {
 	// init state
 	int hashsize = NUM_ASCII_PRINTABLE * NUM_ASCII_PRINTABLE; // two chars
-	lookup *nametidmap = lookup_new(hashsize, name_hash, (void*)-1);
+	lookup *nametidmap = lookup_new(hashsize, name_hash, (void*) -1);
 
 	// init com args
 	int tid;
@@ -78,6 +78,7 @@ inline int nameserver_send(char reqno, char *name) {
 /*
  * API
  */
+
 int RegisterAs(char *name) {
 	return nameserver_send(NAMESERVER_REGISTERAS, name);
 }
