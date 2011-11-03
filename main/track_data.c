@@ -15,13 +15,13 @@ static uint sensor_mapper(void* key) {
     int firstdigit = name[1] - '0';
     int seconddigit = (name[2] >= '0' && name[2] <= '9') ? name[2] - '0' : -1;
     int idx = 0;
-    
+
     if (seconddigit == -1) {
         idx = firstdigit;
     } else {
         idx = firstdigit * 10 + seconddigit;
     }
-    
+
     return module * 16 + idx;
 }
 
@@ -1212,8 +1212,8 @@ lookup* init_tracka(track_node *track) {
 
     return sensormap;
   }
-  
- 
+
+
 lookup* init_trackb(track_node *track) {
   memset(track, 0, TRACK_MAX*sizeof(track_node));
   lookup *sensormap = lookup_new(60, sensor_mapper, 0);
@@ -2380,5 +2380,3 @@ lookup* init_trackb(track_node *track) {
 
     return sensormap;
   }
-  
- 

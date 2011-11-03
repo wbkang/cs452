@@ -282,7 +282,6 @@ int ioserver_create(int channel, int fifo, int speed, int stopbits, int databits
 	return tid;
 }
 
-// API
 int Getc(int channel, int tid) {
 	(void) channel;
 	ioserver_req req;
