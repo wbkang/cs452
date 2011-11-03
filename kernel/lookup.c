@@ -2,19 +2,11 @@
 #include <memory.h>
 #include <util.h>
 
-lookup* lookup_new(uint size, hash_func f, void* default_value) {
-	lookup *l = qmalloc(sizeof(lookup) + size * sizeof(void*));
-	l->hash = f;
+lookup *lookup_new(uint size, hash_fn hash, void* default_item) {
+	lookup *this = qmalloc(sizeof(lookup) + sizeof(void*) * size);
+	this->hash = hash;
 	for (int i = 0; i < size; i++) {
-		l->ary[i] = default_value;
+		this->arr[i] = default_item;
 	}
-	return l;
-}
-void lookup_put(lookup *l, void *key, void *item) {
-	l->ary[l->hash(key)] = item;
-
-}
-
-void* lookup_get(lookup *l, void *key) {
-	return l->ary[l->hash(key)];
+	return this;
 }
