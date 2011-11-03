@@ -8,6 +8,7 @@ typedef unsigned int uint;
 typedef uint *memptr;
 typedef uint volatile *volatile vmemptr;
 typedef void (*func_t)();
+typedef uint (*hash_fn)(void* data);
 
 ////////// .c
 uint random();

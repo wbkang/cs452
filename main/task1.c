@@ -32,17 +32,18 @@ void task1() {
 		b += sprintf(b, "%d.\t%s\n", i, programs[i].name);
 	}
 
-	for (;;) {
+	int idx;
+	char c;
+
+	do {
 		Putstr(COM2, menubuf, tid_com2);
-		char c = Getc(COM2, tid_com2);
-		int idx = c - '0';
-		if (idx < program_count) {
-			Putstr(COM2, "You have selected: ", tid_com2);
-			Putc(COM2, c, tid_com2);
-			Putc(COM2, '\n', tid_com2);
-			Flush(tid_com2);
-			Create(programs[idx].priority, programs[idx].prog);
-			return;
-		}
-	}
+		c = Getc(COM2, tid_com2);
+		idx = c - '0';
+	} while (idx >= program_count);
+
+	Putstr(COM2, "You have selected: ", tid_com2);
+	Putc(COM2, c, tid_com2);
+	Putc(COM2, '\n', tid_com2);
+	Flush(tid_com2);
+	Create(programs[idx].priority, programs[idx].prog);
 }

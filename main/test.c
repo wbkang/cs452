@@ -6,6 +6,7 @@
 #include <priorityq.h>
 #include <string.h>
 #include <buffer.h>
+#include <lookup.h>
 
 void mem_reset(); // from memory.c
 
@@ -121,6 +122,34 @@ static void test_memcpy() {
 	TEST_END();
 }
 
+static uint test_lookup_hashfn(void* key) {
+	return (uint) key;
+}
+
+static void test_lookup() {
+	TEST_START();
+	int size = 1024;
+	int init = -1;
+	lookup *map = lookup_new(size, test_lookup_hashfn, (void*) init);
+	int hist[size];
+	for (int i = 0; i < size; i++) {
+		hist[i] = init;
+	}
+	for (int i = 0; i < size / 2; i++) {
+		int k = random() % size;
+		if (hist[k] != init) continue;
+		int v = random();
+		lookup_put(map, (void*) k, (void*) v);
+		hist[k] = v;
+	}
+	for (int k = 0; k < size; k++) {
+		if (hist[k] == init) continue;
+		int v = (int) lookup_get(map, (void*) k);
+		EXPECT(v, hist[k]);
+	}
+	TEST_END();
+}
+
 void test_run() {
 	mem_reset();
 	test_stack();
@@ -129,5 +158,6 @@ void test_run() {
 	test_priorityq();
 	test_heap();
 	test_memcpy();
+	test_lookup();
 	mem_reset();
 }

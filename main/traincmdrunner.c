@@ -25,7 +25,7 @@ void traincmdrunner() {
 				char train = cmd.arg1;
 				int const reverse_pause = MS2TICK(50);
 				Putc(COM1, TRAIN_REVERSE, tid_com1);
-				Delay(reverse_pause, tid_time); // sorry pavel
+				Delay(reverse_pause, tid_time); // @TODO: why is this required?
 				Putc(COM1, train, tid_com1);
 				break;
 			}
