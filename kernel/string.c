@@ -94,7 +94,7 @@ void *memcpy9(void *dst, void const *src, uint len) {
 		int *to = (int*) dst;
 		int const *from = (int const*) src;
 
-	    if ((((int) src | (int) dst) & 3) == 0) { // aligned
+		if ((((int) src | (int) dst) & 3) == 0) { // aligned
 		    uint words = BYTES2WORDS(len);
 			int n = (words + 7) >> 3;
 			switch (words & 7) {
