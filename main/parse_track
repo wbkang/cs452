@@ -304,9 +304,6 @@ fh.write('''/* THIS FILE IS GENERATED CODE -- DO NOT EDIT */
 // The track initialization functions expect an array of this size.
 #define TRACK_MAX %d
 
-lookup* init_tracka(track_node *track);
-lookup* init_trackb(track_node *track);
-
 ''' % maxidx)
 for fun in tracks:
   fh.write("lookup* %s(track_node *track);\n" % fun)

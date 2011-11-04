@@ -40,7 +40,7 @@ static lookup* ask_track(int tid_com2, track_node* data) {
 }
 
 static inline void handle_comin(calib_state *state, msg_header *msg) {
-	msg_comin *comin = (msg_comin*)msg;
+	msg_comin *comin = (msg_comin*) msg;
 	if (comin->c == 'q') {
 		ExitKernel(1);
 	}
@@ -87,7 +87,7 @@ static void handle_sensor(calib_state *state, msg_header *msg, lookup *sensormap
 //			sensor->module, sensor->id, modname, cur_node->name);
 //	Putstr(COM2, msgbuf, tid_com2);
 
-	if (state->last_node != NULL) {
+	if (state->last_node != NULL && strcmp(cur_node->name, "C14") == 0) {
 		int dist = find_dist(state->last_node, cur_node, 0, 10);
 		if (dist == -1) dist = find_dist(state->last_node->reverse, cur_node, 0, 10);
 		int dt = Time(state->tid_time) - state->last_tick;
