@@ -311,8 +311,9 @@ static inline int kernel_awaitevent(int eventid) {
 /*
  * Syscall API
  */
+
 int Send(int tid, void* msg, int msglen, void* reply, int replylen) {
-	if ((msglen | replylen) & 0xffff0000) return -3;
+	if (UNLIKELY((msglen | replylen) & 0xffff0000)) return -3;
 	return asm_Send(tid, msg, reply, (replylen << 16) | msglen);
 }
 

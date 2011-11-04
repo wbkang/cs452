@@ -296,11 +296,16 @@ maxidx = max([len(tracks[function].nodes) for function in tracks])
 fh = open(options.h, 'w')
 fh.write('''/* THIS FILE IS GENERATED CODE -- DO NOT EDIT */
 
+#pragma once
+
 #include "track_node.h"
 #include <lookup.h>
 
 // The track initialization functions expect an array of this size.
 #define TRACK_MAX %d
+
+lookup* init_tracka(track_node *track);
+lookup* init_trackb(track_node *track);
 
 ''' % maxidx)
 for fun in tracks:
@@ -313,7 +318,7 @@ fh = open(options.c, 'w')
 fh.write('''/* THIS FILE IS GENERATED CODE -- DO NOT EDIT */
 
 #include "%s"
-#include <lookup.h>
+#include <string.h>
 
 static void *memset(void *s, int c, unsigned int n) {
   unsigned char *p = s;
@@ -322,38 +327,75 @@ static void *memset(void *s, int c, unsigned int n) {
 }
 
 static uint sensor_mapper(void* key) {
-    char *name = (char*) key;
-    int module = (name[0] - 'A');
-    int firstdigit = name[1] - '0';
-    int seconddigit = (name[2] >= '0' && name[2] <= '9') ? name[2] - '0' : -1;
-    int idx = 0;
-    
-    if (seconddigit == -1) {
-        idx = firstdigit;
-    } else {
-        idx = firstdigit * 10 + seconddigit;
-    }
-    
-    return module * 16 + idx;
-}
+  char *c = key;
+  int idx = 0;
 
+  switch (*c++) {
+    case 'A':
+      idx = 0;
+      break;
+    case 'B':
+      if (*c == 'R') { // BR#
+        c++;
+        idx = 1;
+      } else { // B#
+        idx = 2;
+      }
+      break;
+    case 'C':
+      idx = 3;
+      break;
+    case 'D':
+      idx = 4;
+      break;
+    case 'E':
+      if (*c == 'N') { // EN#
+        c++;
+        idx = 5;
+      } else if (*c == 'X') { // EX#
+        c++;
+        idx = 6;
+      } else {
+        idx = 7;
+      }
+      break;
+    case 'M':
+      if (*c == 'R') { // MR#
+        c++;
+        idx = 8;
+      }
+      break;
+    default:
+      goto badname;
+  }
+
+  if (!('0' <= *c && *c <= '9')) goto badname;
+
+  int n = strgetui(&c);
+  ASSERT(1 <= n && n <= 16, "bad n");
+  idx = (16 * idx) + (n - 1);
+
+  return idx;
+
+  badname:
+  ERROR("bad name");
+  return -1;
+}
 ''' % options.h)
 for fun in tracks:
   fh.write('''
 lookup* %s(track_node *track) {
-  memset(track, 0, TRACK_MAX*sizeof(track_node));
-  lookup *sensormap = lookup_new(60, sensor_mapper, 0);
+  lookup *sensormap = lookup_new(16 * 8 + 15 + 1, sensor_mapper, 0);
+  memset(track, 0, sizeof(track_node) * TRACK_MAX);
 ''' % fun)
   for nd in tracks[fun].nodes:
     idx = nd.index
-    fh.write("  track[%d].name = \"%s \";\n" % (idx, nd.name))
+    fh.write("\ttrack[%d].name = \"%s\";\n" % (idx, nd.name))
     nodetype = 'NODE_' + nd.nodetype.upper()
-    fh.write("  track[%d].type = %s;\n" % (idx, nodetype))
+    fh.write("\ttrack[%d].type = %s;\n" % (idx, nodetype))
     if nd.num != None:
-      fh.write("  track[%d].num = %s;\n" % (idx, nd.num))
-    if nd.nodetype == 'sensor':
-      fh.write("  lookup_put(sensormap, (void*)track[%d].name, track + %d);" % (idx, idx))
-    fh.write("  track[%d].reverse = &track[%d];\n" % \
+      fh.write("\ttrack[%d].num = %s;\n" % (idx, nd.num))
+    fh.write("\ttrack[%d].reverse = &track[%d];\n" % \
       (idx, nd.reverse.index))
     for dir in ['ahead', 'straight', 'curved']:
       if nd.__dict__[dir] != None:
@@ -365,15 +407,13 @@ lookup* %s(track_node *track) {
                       " &track[%d].edge[DIR_%s];\n") % \
               (idx, dir.upper(), nd.__dict__[dir].reverse.index, \
                dir2.upper()))
-        fh.write("  track[%d].edge[DIR_%s].src = &track[%d];\n" % \
+        fh.write("\ttrack[%d].edge[DIR_%s].src = &track[%d];\n" % \
           (idx, dir.upper(), idx))
-        fh.write("  track[%d].edge[DIR_%s].dest = &track[%d];\n" % \
+        fh.write("\ttrack[%d].edge[DIR_%s].dest = &track[%d];\n" % \
           (idx, dir.upper(), idx2))
-        fh.write("  track[%d].edge[DIR_%s].dist = %s;\n" % \
+        fh.write("\ttrack[%d].edge[DIR_%s].dist = %s;\n" % \
           (idx, dir.upper(), dist))
-  fh.write('''
-    return sensormap;
-  }
-  \n
- ''')
+    if nd.nodetype == 'sensor':
+      fh.write("\tlookup_put(sensormap, (void*) track[%d].name, track + %d);\n" % (idx, idx))
+  fh.write("\treturn sensormap;\n}\n")
 fh.close()
