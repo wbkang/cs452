@@ -14,6 +14,7 @@ void sensornotifier() {
 	Receive(&tid, &args, sizeof(args));
 	Reply(tid, NULL, 0);
 
+	int tid_time = WhoIs(NAME_TIMESERVER);
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	//int tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
@@ -39,6 +40,7 @@ void sensornotifier() {
 			while (sensors) {
 				int s = log2(sensors);
 				sensors &= ~(1 << s);
+				msg.ticks = Time(tid_time);
 				msg.module = 'A' + m;
 				msg.id = 16 - s;
 				Send(args.tid_target, &msg, sizeof(msg), NULL, 0);

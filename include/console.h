@@ -47,6 +47,10 @@ static inline int console_cursor_unsave(char *buf) {
 	return sprintf(buf, CONSOLE_UNSAVECURSOR);
 }
 
+static inline int console_scroll(char *buf, uint start, uint end) {
+	return sprintf(buf, "\x1B[%d;%dr", start, end);
+}
+
 static inline int console_fillrect(char *buf, char c, int x, int y, int width, int height) {
 	char *orig_buf = buf;
 	for (int i = y; i < y + height; i++) {
