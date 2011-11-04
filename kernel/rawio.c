@@ -3,6 +3,7 @@
 #include <ts7200.h>
 #include <string.h>
 #include <hardware.h>
+#include <fixed.h>
 
 void raw_init() {
 	// init COM1
@@ -130,6 +131,17 @@ void bwformat(int channel, char *fmt, va_list va) {
 					bwputc(channel, 'x');
 					bwputw(channel, w, lz, bf);
 					break;
+				case 'F': {
+					fixed n = va_arg(va, fixed);
+					int2str(fixed_int(n), bf);
+					bwputw(channel, w, lz, bf);
+					bwputc(channel, '.');
+					char *p = bf;
+					p += fixed_fra(bf, n);
+					*p = '\0';
+					bwputstr(channel, bf);
+					break;
+				}
 				case '%':
 					bwputc(channel, ch);
 					break;

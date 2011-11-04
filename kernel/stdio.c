@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <util.h>
+#include <fixed.h>
 
 static void uint2str(uint num, uint base, char *bf) {
 	int n = 0;
@@ -119,6 +120,14 @@ static inline int bwformat(char *buf, char const *fmt, va_list va) {
 					*buf++ = 'x';
 					buf += putw(buf, w, lz, bf);
 					break;
+				case 'F': {
+					fixed n = va_arg(va, fixed);
+					int2str(fixed_int(n), bf);
+					buf += putw(buf, w, lz, bf);
+					*buf++ = '.';
+					buf += fixed_fra(buf, n);
+					break;
+				}
 				case '%':
 					*buf++ = ch;
 					break;

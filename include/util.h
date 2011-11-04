@@ -37,6 +37,8 @@ typedef char *va_list;
 #define NEXTHIGHESTWORD(x) BYTES2WORDS((x) + 3)
 #define LIKELY(x) __builtin_expect((x), 1)
 #define UNLIKELY(x) __builtin_expect((x), 0)
+#define INT_MIN -2147483648
+#define INT_MAX 2147483647
 
 #define PUTS(...) { \
 	char PAVEL[512]; \
@@ -72,6 +74,15 @@ static inline uint uptime() {
     return ((VMEM(0x80810064) & 0xff) << (32 - s)) | (VMEM(0x80810060) >> s); // timer4
 }
 
+static inline uint abs(int n) {
+	int const mask = n >> 31;
+	return (n + mask) ^ mask;
+}
+
+static inline int overflow(int x, int y) {
+	return (y > 0 && x > INT_MAX - y) || (y < 0 && x < INT_MIN - y);
+}
+
 ///////////// DEBUG
 #define ASSERT_ENABLED 1
 #define TRACE_ENABLED 1
@@ -91,7 +102,10 @@ void die();
 #if ASSERT_ENABLED
 #define ASSERT(X, ...) { \
 	if (!(X)) { \
+		VMEM(VIC1 + INTENCLR_OFFSET) = ~0; \
+		VMEM(VIC2 + INTENCLR_OFFSET) = ~0; \
 		int lr, pc; READ_REGISTER(lr); READ_REGISTER(pc); \
+		bwprintf(1, "\x1B[2J" "\x1B[1;1H"); \
 		bwprintf(1, "assertion failed in file " __FILE__ " line:" TOSTRING(__LINE__) " lr:%x pc:%x" CRLF, lr, pc); \
 		bwprintf(1, "[%s] ", __func__); \
 		bwprintf(1, __VA_ARGS__); \
