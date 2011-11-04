@@ -10,6 +10,3 @@
 
 lookup* init_tracka(track_node *track);
 lookup* init_trackb(track_node *track);
-
-lookup* init_tracka(track_node *track);
-lookup* init_trackb(track_node *track);

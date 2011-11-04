@@ -2,6 +2,7 @@
 
 #include <util.h>
 
+int strcmp(const char *s1, const char *s2);
 char char2hex(char n);
 int char2digit(char ch);
 void uint2str(uint num, uint base, char *bf);

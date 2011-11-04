@@ -1,5 +1,14 @@
 #include <string.h>
-#include <util.h>
+
+int strcmp(const char *s1, const char *s2) {
+	int cmp = 0;
+	const char *a = s1;
+	const char *b = s2;
+	while (cmp == 0 && (*a || *b)) {
+		cmp = *a++ - *b++;
+	}
+	return cmp;
+}
 
 char char2hex(char n) {
 	return (n < 10 ? '0' + n : 'a' + n - 10);
