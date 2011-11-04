@@ -2,6 +2,8 @@
 #include <hardware.h>
 #include <rawio.h>
 #include <task.h>
+#include <funcmap.h>
+#include <console.h>
 
 void die() {
 	for (;;);
@@ -20,4 +22,36 @@ uint random() {
     m_z = 36969 * (m_z & 65535) + (m_z >> 16);
     m_w = 18000 * (m_w & 65535) + (m_w >> 16);
     return (m_z << 16) + m_w;  /* 32-bit result */
+}
+
+static inline char* find_function_name(uint pc) {
+	funcinfo* fl = __getfunclist();
+	int i = 0;
+
+	while (fl[i].fn != 0) {
+		if (fl[i].fn == pc) return fl[i].name;
+		i++;
+	}
+
+	return "[unknown function]";
+}
+
+void print_stack_trace() {
+	__init_funclist();
+	int fp; READ_REGISTER(fp);
+	int pc = 0, lr = 0;
+	bwprintf(1, "stack trace:\n");
+	bwprintf(1, CONSOLE_EFFECT(EFFECT_BRIGHT) "---------TOP---------\n");
+	bwprintf(1, CONSOLE_EFFECT(EFFECT_FG_BLUE) "asmline\t\torigin\t\tfunction\n" CONSOLE_EFFECT(EFFECT_RESET));
+	do {
+		pc = VMEM(fp) - 16;
+		int asm_line_num = (lr == 0) ? 0 : ((lr - pc) >> 2);
+		bwprintf(1, "%d\t\t%x\t%s\n", asm_line_num, pc, find_function_name(pc));
+
+		if (lr == (int) Exit) break;
+
+		lr = VMEM(fp - 4);
+		fp = VMEM(fp - 12);
+	} while (pc != REDBOOT_ENTRYPOINT && pc != (int) main);
+	bwprintf(1, CONSOLE_EFFECT(EFFECT_BRIGHT) "--------BOTTOM-------\n" CONSOLE_EFFECT(EFFECT_RESET));
 }

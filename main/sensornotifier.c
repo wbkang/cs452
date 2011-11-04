@@ -8,7 +8,7 @@ typedef struct {
 	int tid_target;
 } sensornotifier_args;
 
-void sensornotifier() {
+static void sensornotifier() {
 	int tid;
 	sensornotifier_args args;
 	Receive(&tid, &args, sizeof(args));
