@@ -8,7 +8,7 @@ typedef struct {
 	int tid_com;
 } comnotifier_args;
 
-void comnotifier() {
+static void comnotifier() {
 	int tid;
 	comnotifier_args args;
 	Receive(&tid, &args, sizeof(args));

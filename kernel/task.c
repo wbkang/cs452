@@ -7,7 +7,7 @@ static struct _tag_task_descriptor_list {
 	uint size;
 } task_descriptors;
 
-inline void td_list_close(task_descriptor *td);
+static inline void td_list_close(task_descriptor *td);
 
 uint get_td_list_size() {
 	return task_descriptors.size;
@@ -42,7 +42,7 @@ inline int td_list_empty(task_descriptor *td) {
 	return td->_prev == td;
 }
 
-inline void td_list_remove(task_descriptor *td) {
+static inline void td_list_remove(task_descriptor *td) {
 	td->_prev->_next = td->_next;
 	td->_next->_prev = td->_prev;
 	td_list_close(td);
@@ -62,7 +62,7 @@ inline task_descriptor *td_list_pop(task_descriptor *head) {
 	return td;
 }
 
-inline void td_list_close(task_descriptor *td) {
+static inline void td_list_close(task_descriptor *td) {
 	td->_prev = td;
 	td->_next = td;
 }

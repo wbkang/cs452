@@ -88,14 +88,19 @@ void die();
 
 #define READ_REGISTER(var) __asm volatile("mov %[" TOSTRING(var) "], " TOSTRING(var) "\n\t" : [var] "=r" (var))
 
+void Exit();
+int main();
+void dump_registers(int r0, int r1, int r2, int r3);
+void print_stack_trace();
+
 #if ASSERT_ENABLED
 #define ASSERT(X, ...) { \
 	if (!(X)) { \
-		int lr, pc; READ_REGISTER(lr); READ_REGISTER(pc); \
-		bwprintf(1, "assertion failed in file " __FILE__ " line:" TOSTRING(__LINE__) " lr:%x pc:%x" CRLF, lr, pc); \
+		bwprintf(1, "assertion failed in file " __FILE__ ":" TOSTRING(__LINE__)  CRLF); \
 		bwprintf(1, "[%s] ", __func__); \
 		bwprintf(1, __VA_ARGS__); \
 		bwprintf(1, "\n"); \
+		print_stack_trace(); \
 		die(); \
 	} \
 }

@@ -9,26 +9,26 @@ heap *heap_new(int size) {
 	return this;
 }
 
-inline uint heap_parent(uint i) {
+static inline uint heap_parent(uint i) {
 	return i >> 1; // i / 2
 }
 
-inline uint heap_leftchild(uint i) {
+static inline uint heap_leftchild(uint i) {
 	return i << 1; // i * 2
 }
 
-inline uint heap_rightchild(uint i) {
+static inline uint heap_rightchild(uint i) {
 	return (i << 1) | 1; // i * 2 + 1
 }
 
-inline uint heap_swap(heap *this, uint i, uint j) {
+static inline uint heap_swap(heap *this, uint i, uint j) {
 	heap_item tmp = this->arr[i];
 	this->arr[i] = this->arr[j];
 	this->arr[j] = tmp;
 	return j;
 }
 
-inline int heap_put(heap *this, void *data, int key) {
+static inline int heap_put(heap *this, void *data, int key) {
 	ASSERT(this->size < this->max_size, "full");
 	uint i = this->size;
 	this->arr[i] = (heap_item) {.key = key, .data = data};
@@ -36,7 +36,7 @@ inline int heap_put(heap *this, void *data, int key) {
 	return i;
 }
 
-inline void heap_bubbleup_min(heap *this, uint i) {
+static inline void heap_bubbleup_min(heap *this, uint i) {
 	while (i > 0) {
 		uint p = heap_parent(i);
 		if (this->arr[p].key <= this->arr[i].key) return;
@@ -60,7 +60,7 @@ void heap_insert_min(heap *this, void* data, int key) {
 // 	heap_bubbleup_max(this, heap_put(this, data, key));
 // }
 
-inline void heap_heapify_min(heap *this, uint i) {
+static inline void heap_heapify_min(heap *this, uint i) {
 	for (;;) {
 		uint left = heap_leftchild(i);
 		if (left >= this->size) return; // no left child -> no right child
