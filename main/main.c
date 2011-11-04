@@ -18,7 +18,6 @@ int main(int argc, char *argv[]) {
 	// init COM2
 	uart_fifo(COM2, OFF);
 
-
 #if FAST && (!(__i386))
 	__asm (
 		"mrc p15, 0, r0, c1, c0, 0\n\t"

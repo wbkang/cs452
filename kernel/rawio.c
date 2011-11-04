@@ -57,7 +57,7 @@ int bwgetc(int channel) {
 	return (char) VMEM(base + UART_DATA_OFFSET);
 }
 
-char bwa2i(char ch, char **src, int base, int *nump) { // only for bwformat
+static char bwa2i(char ch, char **src, int base, int *nump) { // only for bwformat
 	int num, digit;
 	char *p;
 	p = *src;

@@ -14,7 +14,7 @@ static inline int goodchar(char ch) {
 	return ASCII_PRINTABLE_START <= ch && ch <= ASCII_PRINTABLE_END;
 }
 
-inline int nameserver_validname(char *name) {
+static inline int nameserver_validname(char *name) {
 	return name && goodchar(name[0]) && goodchar(name[1]) && name[2] == '\0';
 }
 
@@ -62,7 +62,7 @@ void nameserver() {
 	}
 }
 
-inline int nameserver_send(char reqno, char *name) {
+static inline int nameserver_send(char reqno, char *name) {
 	if (!nameserver_validname(name)) return NAMESERVER_ERROR_BADNAME;
 	nameserver_req req;
 	req.no = reqno;

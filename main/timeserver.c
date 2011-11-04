@@ -19,7 +19,7 @@ typedef struct _tag_timeserver_state {
 	heap *tasks;
 } timeserver_state;
 
-inline void timeserver_do_tick(timeserver_state *state, int tid_notifier) {
+static inline void timeserver_do_tick(timeserver_state *state, int tid_notifier) {
 	VMEM(TIMER1_BASE + CLR_OFFSET) = 1; // clear interrupt source
 	ReplyInt(tid_notifier, 0); // unblock notifier
 	state->time++;
@@ -29,15 +29,15 @@ inline void timeserver_do_tick(timeserver_state *state, int tid_notifier) {
 	}
 }
 
-inline void timeserver_do_time(timeserver_state *state, int tid) {
+static inline void timeserver_do_time(timeserver_state *state, int tid) {
 	ReplyInt(tid, state->time);
 }
 
-inline void timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks) {
+static inline void timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks) {
 	heap_insert_min(state->tasks, (void*) tid, ticks);
 }
 
-inline void timeserver_do_delay(timeserver_state *state, int tid, int ticks) {
+static inline void timeserver_do_delay(timeserver_state *state, int tid, int ticks) {
 	timeserver_do_delayuntil(state, tid, state->time + ticks);
 }
 
@@ -90,7 +90,7 @@ void timeserver() {
 	}
 }
 
-inline int timeserver_send(timeserver_req *req, int server) {
+static inline int timeserver_send(timeserver_req *req, int server) {
 	int rv;
 	int len = Send(server, req, sizeof(timeserver_req), &rv, sizeof rv);
 	if (len != sizeof rv) return TIMESERVER_ERROR_BADDATA;

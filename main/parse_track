@@ -374,6 +374,6 @@ lookup* %s(track_node *track) {
   fh.write('''
     return sensormap;
   }
-  
+  \n
  ''')
 fh.close()
