@@ -43,5 +43,6 @@
 // size of user memory in bytes (64 KB) (MUST BE A POWER OF TWO)
 #define STACK_SIZE 65536
 
+#define REDBOOT_ENTRYPOINT 0x174a4
 
 

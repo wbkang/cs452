@@ -7,7 +7,8 @@ XCC	= $(CCDIR)/gcc
 AS	= $(CCDIR)/as
 AR	= $(CCDIR)/ar
 LD  = $(CCDIR)/ld
-CFLAGS  = -fno-builtin -fomit-frame-pointer -c -fPIC -Wall -I./include -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99 -O2
+CFLAGS  = -fno-builtin -c -fPIC -Wall -I./include -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99 \
+-O3 -fno-omit-frame-pointer 
 
 # -g: include hooks for gdb
 # -c: only compile
@@ -35,10 +36,19 @@ calib_test.o
 
 all : main.elf
 
-main.elf : $(OBJS)
+main.elf : $(OBJS) funcmap.o
 	@echo "[LD]\t$(OBJS) -> $@"
-	@$(LD) $(LDFLAGS) -o $@ $(OBJS) -lkernel -lgcc
+	@$(LD) $(LDFLAGS) -o $@ $(OBJS) funcmap.o -lkernel -lgcc
 
+funcmap.o : generate_funcmap
+	@echo "[ASCC]\tfuncmap.c -> funcmap.o"
+	@$(XCC) -S $(CFLAGS) -I../kernel/include  funcmap.c
+	@$(AS) $(ASFLAGS) -o $@ funcmap.s
+
+generate_funcmap : $(OBJS)
+	@echo "[FUNCMAP] Generating funcmap..."
+	@(cd ../;sh ./generate_funcmap.sh)
+	
 %.o : %.s
 	@echo "[AS]\t$< -> $@"
 	@$(AS) $(ASFLAGS) -o $@ $<
