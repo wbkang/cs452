@@ -11,12 +11,14 @@ typedef struct {
 
 typedef struct {
 	msgtype type;
+	int ticks;
 	char module;
 	int id;
 } msg_sensor;
 
 typedef struct {
 	msgtype type;
+	// int ticks;
 	char channel;
 	char c;
 } msg_comin;

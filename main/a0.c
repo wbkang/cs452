@@ -11,9 +11,16 @@
 #include <timenotifier.h>
 #include <console.h>
 #include <a0_track_template.h>
+#include <lookup.h>
+#include <track_node.h>
+#include <track_data.h>
+#include <fixed.h>
 
 #define LEN_MSG (64 * 4)
 #define LEN_CMD 32
+
+#define CONSOLE_DUMP_LINE 7
+#define CONSOLE_DUMP_COL 60
 
 typedef struct {
 	// server ids
@@ -21,12 +28,25 @@ typedef struct {
 	int tid_com1;
 	int tid_com2;
 	int tid_traincmdbuf;
+	// ui
+	int console_dump_line;
 	// cmd buffer
 	char cmd[LEN_CMD];
 	int cmd_i;
 	// train data
 	char train_speed[TRAIN_MAX_TRAIN_ADDR + 1];
+	// track data
+	lookup *sensormap;
+	uint last_tick;
+	track_node *last_node;
+	uint trials;
 } a0state;
+
+typedef struct {
+	int trials;
+	int sum_dist;
+	int sum_dt;
+} sensor_data;
 
 /*
  * UI
@@ -363,9 +383,120 @@ static inline void ui_quit(a0state *state) {
  * Server
  */
 
+static lookup *ask_track(int tid_com2, track_node* data) {
+	for (;;) {
+		Putstr(COM2, "Track a or b?\n", tid_com2);
+		char c = Getc(COM2, tid_com2);
+		switch (c) {
+			case 'a': return init_tracka(data);
+			case 'b': return init_trackb(data);
+			default: Putstr(COM2, "fail\n", tid_com2);
+		}
+	}
+	return NULL;
+}
+
+static int find_dist(track_node *orig, track_node *dest, int curdist, int maxdepth) {
+	//	NODE_SENSOR, NODE_BRANCH, NODE_MERGE, NODE_ENTER, NODE_EXIT
+	if (dest == orig) {
+		return curdist;
+	} else if (maxdepth == 0) {
+		return -1;
+	}
+
+	switch (orig->type) {
+		case NODE_SENSOR: {
+			return find_dist(orig->edge[0].dest, dest, curdist + orig->edge[0].dist, maxdepth - 1);
+		}
+		case NODE_BRANCH: {
+			int dist = find_dist(orig->edge[0].dest, dest, curdist + orig->edge[0].dist, maxdepth - 1);
+			if (dist != -1) {
+				return dist;
+			} else {
+				return find_dist(orig->edge[1].dest, dest, curdist + orig->edge[1].dist, maxdepth - 1);
+			}
+		}
+		case NODE_MERGE: {
+			return find_dist(orig->edge[0].dest, dest, curdist + orig->edge[0].dist, maxdepth - 1);
+		}
+		default:
+			return -1;
+	}
+}
+
+static inline void calib_sensor(a0state *state, msg_sensor *sensor) {
+	char modname[8];
+	sprintf(modname, "%c%d", sensor->module, sensor->id);
+	track_node *cur_node = lookup_get(state->sensormap, modname);
+	sensor_data *data;
+	if (cur_node->data) {
+		data = (sensor_data*) cur_node->data;
+	} else {
+		cur_node->data = malloc(sizeof(sensor_data));
+		data = (sensor_data*) cur_node->data;
+		data->trials = 0;
+		data->sum_dist = 0;
+		data->sum_dt = 0;
+	}
+
+	char msgbuf[1024];
+	char *b = msgbuf;
+//	sprintf(msgbuf, "Sensor detected. realname:%c%d modname:%s nodename: %s\n",
+//			sensor->module, sensor->id, modname, cur_node->name);
+//	Putstr(COM2, msgbuf, tid_com2);
+
+	if (data->trials == state->trials) {
+		state->trials++;
+		state->console_dump_line = CONSOLE_DUMP_LINE;
+	}
+
+	if (state->last_node != NULL) {
+		int dist = find_dist(state->last_node, cur_node, 0, 10);
+		if (dist == -1) dist = find_dist(state->last_node->reverse, cur_node, 0, 10);
+
+		if (data->trials) {
+			fixed last_speed;
+			if (data->sum_dt) {
+				last_speed = fixed_div(fixed_new(data->sum_dist), fixed_new(data->sum_dt));
+			} else {
+				last_speed = fixed_new(0);
+			}
+
+			data->sum_dist += dist;
+			data->sum_dt += sensor->ticks - state->last_tick;
+
+			fixed speed = fixed_div(fixed_new(data->sum_dist), fixed_new(data->sum_dt));
+
+			fixed dspeed;
+			if (last_speed) {
+				dspeed = fixed_sub(fixed_new(1), fixed_div(last_speed, speed));
+			} else {
+				dspeed = fixed_new(0);
+			}
+
+			b += console_cursor_save(b);
+			b += console_cursor_move(b, state->console_dump_line++, CONSOLE_DUMP_COL);
+			b += console_erase_eol(b);
+			b += sprintf(b, "%s\t%s", state->last_node->name, cur_node->name);
+			b += sprintf(b, "\t%d", data->trials);
+			b += sprintf(b, "\t%F", last_speed);
+			b += sprintf(b, "\t%F", speed);
+			b += sprintf(b, "\t%F\n", dspeed);
+			b += console_cursor_unsave(b);
+
+			Putstr(COM2, msgbuf, state->tid_com2);
+		}
+		data->trials++;
+	}
+
+	state->last_tick = Time(state->tid_time);
+	state->last_node = cur_node;
+}
+
 static inline void handle_sensor(a0state *state, char msg[]) {
 	msg_sensor *sensor = (msg_sensor*) msg;
 	ui_sensor(state, sensor->module, sensor->id);
+	calib_sensor(state, sensor);
 }
 
 #define ACCEPT(a) { \
@@ -497,17 +628,32 @@ static inline void handle_time(a0state *state, char msg[]) {
 }
 
 void a0() {
+	fixed a = fixed_new(314);
+	a = fixed_div(a, fixed_new(100));
+	PRINT("%F", a);
+	fixed b = fixed_new(777);
+	b = fixed_div(b, fixed_new(100));
+	PRINT("%F", b);
+	fixed c = fixed_div(a, b);
+	PRINT("%F", c);
+
 	a0state state;
 	state.tid_time = WhoIs(NAME_TIMESERVER);
 	state.tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	state.tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	state.tid_traincmdbuf = traincmdbuffer_new();
 	traincmdrunner_new();
+	state.console_dump_line = CONSOLE_DUMP_LINE;
 	state.cmd[0] = '\0';
 	state.cmd_i = 0;
 	for (int i = 0; i <= TRAIN_MAX_TRAIN_ADDR; i++) {
 		state.train_speed[i] = 0;
 	}
+	track_node *track_data = malloc(sizeof(track_node) * TRACK_MAX);
+	state.sensormap = ask_track(state.tid_com2, track_data);
+	state.last_tick = 0;
+	state.last_node = NULL;
+	state.trials = 0;
 
 	ui_init(&state);
 
