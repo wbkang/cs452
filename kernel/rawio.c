@@ -132,14 +132,8 @@ void bwformat(int channel, char *fmt, va_list va) {
 					bwputw(channel, w, lz, bf);
 					break;
 				case 'F': {
-					fixed n = va_arg(va, fixed);
-					int2str(fixed_int(n), bf);
-					bwputw(channel, w, lz, bf);
-					bwputc(channel, '.');
-					char *p = bf;
-					p += fixed_fra(bf, n);
-					*p = '\0';
-					bwputstr(channel, bf);
+					fixed_print(bf, va_arg(va, fixed));
+					bwputstr(COM2, bf);
 					break;
 				}
 				case '%':

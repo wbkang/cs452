@@ -457,21 +457,21 @@ static inline void calib_sensor(a0state *state, msg_sensor *sensor) {
 		if (data->trials) {
 			fixed last_speed;
 			if (data->sum_dt) {
-				last_speed = fixed_div(fixed_new(data->sum_dist, 0), fixed_new(data->sum_dt, 0));
+				last_speed = fixed_div(fixed_new(data->sum_dist), fixed_new(data->sum_dt));
 			} else {
-				last_speed = fixed_new(0, 0);
+				last_speed = fixed_new(0);
 			}
 
 			data->sum_dist += dist;
 			data->sum_dt += sensor->ticks - state->last_tick;
 
-			fixed speed = fixed_div(fixed_new(data->sum_dist, 0), fixed_new(data->sum_dt, 0));
+			fixed speed = fixed_div(fixed_new(data->sum_dist), fixed_new(data->sum_dt));
 
 			fixed dspeed;
 			if (last_speed) {
-				dspeed = fixed_sub(fixed_new(1, 0), fixed_div(last_speed, speed));
+				dspeed = fixed_sub(fixed_new(1), fixed_div(last_speed, speed));
 			} else {
-				dspeed = fixed_new(0, 0);
+				dspeed = fixed_new(0);
 			}
 
 			b += console_cursor_save(b);
@@ -628,11 +628,11 @@ static inline void handle_time(a0state *state, char msg[]) {
 }
 
 void a0() {
-	fixed a = fixed_new(314, 0);
-	a = fixed_div(a, fixed_new(100, 0));
+	fixed a = fixed_new(314);
+	a = fixed_div(a, fixed_new(100));
 	PRINT("%F", a);
-	fixed b = fixed_new(777, 0);
-	b = fixed_div(b, fixed_new(100, 0));
+	fixed b = fixed_new(777);
+	b = fixed_div(b, fixed_new(100));
 	PRINT("%F", b);
 	fixed c = fixed_div(a, b);
 	PRINT("%F", c);

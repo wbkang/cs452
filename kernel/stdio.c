@@ -62,7 +62,7 @@ static inline char a2i(char ch, char const **src, int base, int *nump) {
 	return ch;
 }
 
-static inline int bwformat(char *buf, char const *fmt, va_list va) {
+static inline int format(char *buf, char const *fmt, va_list va) {
 	char * const orig_buf = buf;
 	char bf[32 + 1];
 	char ch, lz;
@@ -121,11 +121,7 @@ static inline int bwformat(char *buf, char const *fmt, va_list va) {
 					buf += putw(buf, w, lz, bf);
 					break;
 				case 'F': {
-					fixed n = va_arg(va, fixed);
-					int2str(fixed_int(n), bf);
-					buf += putw(buf, w, lz, bf);
-					*buf++ = '.';
-					buf += fixed_fra(buf, n);
+					buf += fixed_print(buf, va_arg(va, fixed));
 					break;
 				}
 				case '%':
@@ -143,7 +139,7 @@ int sprintf(char *buf, const char *fmt, ... ) {
 	char const * const orig_buf = buf;
 	va_list va;
 	va_start(va,fmt);
-	buf += bwformat(buf, fmt, va );
+	buf += format(buf, fmt, va );
 	va_end(va);
 	*buf = '\0';
 	return buf - orig_buf;
