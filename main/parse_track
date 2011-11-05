@@ -370,9 +370,10 @@ uint sensor_mapper(void* key) {
   }
 
   if (!('0' <= *c && *c <= '9')) goto badname;
-
   int n = strgetui(&c);
-  ASSERT(1 <= n && n <= 16, "bad n");
+  // just for branches
+  if (n >= 153 && n <= 156) { n -= (0x90 - 10); }
+  ASSERT(1 <= n && n <= 22, "bad n. n:%%d, idx:%%d", n, idx);
   idx = (16 * idx) + (n - 1);
 
   return idx;
@@ -385,7 +386,7 @@ uint sensor_mapper(void* key) {
 for fun in tracks:
   fh.write('''
 lookup* %s(track_node *track) {
-  lookup *sensormap = lookup_new(16 * 8 + 15 + 1, sensor_mapper, 0);
+  lookup *sensormap = lookup_new(22 * 9, sensor_mapper, 0);
   memset(track, 0, sizeof(track_node) * TRACK_MAX);
 ''' % fun)
   for nd in tracks[fun].nodes:
@@ -393,6 +394,7 @@ lookup* %s(track_node *track) {
     fh.write("\ttrack[%d].name = \"%s\";\n" % (idx, nd.name))
     nodetype = 'NODE_' + nd.nodetype.upper()
     fh.write("\ttrack[%d].type = %s;\n" % (idx, nodetype))
+    fh.write("\ttrack[%d].switch_dir = -1;\n" % (idx))
     if nd.num != None:
       fh.write("\ttrack[%d].num = %s;\n" % (idx, nd.num))
     fh.write("\ttrack[%d].reverse = &track[%d];\n" % \
@@ -413,8 +415,7 @@ lookup* %s(track_node *track) {
           (idx, dir.upper(), idx2))
         fh.write("\ttrack[%d].edge[DIR_%s].dist = %s;\n" % \
           (idx, dir.upper(), dist))
-        fh.write("\ttrack[%d].data = 0;\n" % idx)
-    if nd.nodetype == 'sensor':
-      fh.write("\tlookup_put(sensormap, (void*) track[%d].name, track + %d);\n" % (idx, idx))
+        fh.write("\ttrack[%d].data = 0;" % idx)
+    fh.write("\tlookup_put(sensormap, (void*) track[%d].name, track + %d);\n" % (idx, idx))
   fh.write("\treturn sensormap;\n}\n")
 fh.close()
