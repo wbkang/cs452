@@ -36,7 +36,7 @@ typedef struct {
 	// train data
 	char train_speed[TRAIN_MAX_TRAIN_ADDR + 1];
 	// track data
-	lookup *sensormap;
+	lookup *nodemap;
 	uint last_tick;
 	track_node *last_node;
 	uint trials;
@@ -317,17 +317,9 @@ static inline void ui_switchall(a0state *state, char pos) {
 static inline void ui_setup_demo_track(a0state *state) {
 	char buf[1024];
 	char *b = buf;
-	ui_switchall(state, 'C');
-	b += console_cursor_save(b);
-	b += ui_updateswitchstatus(b, 9, 'S');
-	b += ui_updateswitchstatus(b, 10, 'S');
-	b += ui_updateswitchstatus(b, 15, 'S');
-	b += ui_updateswitchstatus(b, 16, 'S');
-	b += ui_updateswitchstatus(b, 14, 'S');
 	b += ui_move2log(b);
 	b += sprintf(b, "adjusted all switches for demo");
 	b += console_cursor_unsave(b);
-
 	Putstr(COM2, buf, state->tid_com2);
 }
 
@@ -396,38 +388,10 @@ static lookup *ask_track(int tid_com2, track_node* data) {
 	return NULL;
 }
 
-static int find_dist(track_node *orig, track_node *dest, int curdist, int maxdepth) {
-	//	NODE_SENSOR, NODE_BRANCH, NODE_MERGE, NODE_ENTER, NODE_EXIT
-	if (dest == orig) {
-		return curdist;
-	} else if (maxdepth == 0) {
-		return -1;
-	}
-
-	switch (orig->type) {
-		case NODE_SENSOR: {
-			return find_dist(orig->edge[0].dest, dest, curdist + orig->edge[0].dist, maxdepth - 1);
-		}
-		case NODE_BRANCH: {
-			int dist = find_dist(orig->edge[0].dest, dest, curdist + orig->edge[0].dist, maxdepth - 1);
-			if (dist != -1) {
-				return dist;
-			} else {
-				return find_dist(orig->edge[1].dest, dest, curdist + orig->edge[1].dist, maxdepth - 1);
-			}
-		}
-		case NODE_MERGE: {
-			return find_dist(orig->edge[0].dest, dest, curdist + orig->edge[0].dist, maxdepth - 1);
-		}
-		default:
-			return -1;
-	}
-}
-
 static inline void calib_sensor(a0state *state, msg_sensor *sensor) {
 	char modname[8];
 	sprintf(modname, "%c%d", sensor->module, sensor->id);
-	track_node *cur_node = lookup_get(state->sensormap, modname);
+	track_node *cur_node = lookup_get(state->nodemap, modname);
 	sensor_data *data;
 	if (cur_node->data) {
 		data = (sensor_data*) cur_node->data;
@@ -451,8 +415,8 @@ static inline void calib_sensor(a0state *state, msg_sensor *sensor) {
 	}
 
 	if (state->last_node != NULL) {
-		int dist = find_dist(state->last_node, cur_node, 0, 10);
-		if (dist == -1) dist = find_dist(state->last_node->reverse, cur_node, 0, 10);
+		int dist = find_dist(state->last_node, cur_node, 0, 2); // tolerate at most 1 missed sensors
+		if (dist == -1) dist = find_dist(state->last_node->reverse, cur_node, 0, 2);
 
 		if (data->trials) {
 			fixed last_speed;
@@ -505,6 +469,30 @@ static inline void handle_sensor(a0state *state, char msg[]) {
 	} \
 }
 
+static void handle_train_switch(a0state *state, int num, char pos) {
+	char buf[10];
+	train_switch(num, pos, state->tid_traincmdbuf);
+	ui_switch(state, num, pos);
+	sprintf(buf, "BR%d", num);
+	track_node *branch = (track_node*) lookup_get(state->nodemap, buf);
+	ASSERT(branch, "branch %s is null?", buf);
+	branch->switch_dir = POS_TO_DIR(pos);
+}
+
+static void handle_train_switch_all(a0state *state, char pos) {
+	train_switchall(pos, state->tid_traincmdbuf);
+	ui_switchall(state, pos);
+
+	char buf[10];
+
+	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
+		sprintf(buf, "BR%d", train_switchi2no(i));
+		track_node *branch = (track_node*) lookup_get(state->nodemap, buf);
+		ASSERT(branch, "branch %s is null?", buf);
+		branch->switch_dir = POS_TO_DIR(pos);
+	}
+}
+
 static inline void handle_com2in(a0state *state, msg_comin *comin) {
 	if (state->cmd_i + 2 == LEN_CMD && comin->c != '\b' && comin->c != '\r') return; // full, ignore
 	state->cmd[state->cmd_i++] = comin->c;
@@ -522,12 +510,12 @@ static inline void handle_com2in(a0state *state, msg_comin *comin) {
 			char *c = state->cmd;
 			switch (*c++) {
 				case 'd': {
-					train_switchall('C', state->tid_traincmdbuf);
-					train_switch(9, 'S', state->tid_traincmdbuf);
-					train_switch(10, 'S', state->tid_traincmdbuf);
-					train_switch(15, 'S', state->tid_traincmdbuf);
-					train_switch(16, 'S', state->tid_traincmdbuf);
-					train_switch(14, 'S', state->tid_traincmdbuf);
+					handle_train_switch_all(state, 'C');
+					handle_train_switch(state, 9, 'S');
+					handle_train_switch(state, 10, 'S');
+					handle_train_switch(state, 15, 'S');
+					handle_train_switch(state, 16, 'S');
+					handle_train_switch(state, 14, 'S');
 					ui_setup_demo_track(state);
 					break;
 				}
@@ -573,11 +561,9 @@ static inline void handle_com2in(a0state *state, msg_comin *comin) {
 					if (!train_goodswitchpos(pos)) goto badcmd;
 					ACCEPT('\r');
 					if (switchno == '*') {
-						ui_switchall(state, pos);
-						train_switchall(pos, state->tid_traincmdbuf);
+						handle_train_switch_all(state, pos);
 					} else {
-						ui_switch(state, switchno, pos);
-						train_switch(switchno, pos, state->tid_traincmdbuf);
+						handle_train_switch(state, switchno, pos);
 					}
 					train_solenoidoff(state->tid_traincmdbuf);
 					break;
@@ -650,7 +636,7 @@ void a0() {
 		state.train_speed[i] = 0;
 	}
 	track_node *track_data = malloc(sizeof(track_node) * TRACK_MAX);
-	state.sensormap = ask_track(state.tid_com2, track_data);
+	state.nodemap = ask_track(state.tid_com2, track_data);
 	state.last_tick = 0;
 	state.last_node = NULL;
 	state.trials = 0;

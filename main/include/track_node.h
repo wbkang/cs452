@@ -8,6 +8,8 @@ typedef enum {
 #define DIR_STRAIGHT 0
 #define DIR_CURVED 1
 
+#define POS_TO_DIR(pos) (((pos)=='c' || (pos) == 'C') ? DIR_CURVED : DIR_STRAIGHT)
+
 struct track_node;
 typedef struct track_node track_node;
 typedef struct track_edge track_edge;
@@ -24,5 +26,9 @@ struct track_node {
 	int num; /* sensor or switch number */
 	track_node *reverse; /* same location, but opposite direction */
 	track_edge edge[2];
+	int switch_dir;
 	void* data;
 };
+
+track_edge * find_forward(track_node *orig);
+int find_dist(track_node *orig, track_node *dest, int curdist, int maxsensordepth);
