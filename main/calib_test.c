@@ -26,7 +26,7 @@ typedef struct {
 	track_node *last_node;
 } calib_state;
 
-static lookup* ask_track(int tid_com2, track_node* data) {
+static lookup *ask_track(int tid_com2, track_node* data) {
 	for (;;) {
 		Putstr(COM2, "Track a or b?\n", tid_com2);
 		char c = Getc(COM2, tid_com2);
