@@ -19,8 +19,14 @@
 #define LEN_MSG (64 * 4)
 #define LEN_CMD 32
 
-#define CONSOLE_DUMP_LINE 7
-#define CONSOLE_DUMP_COL 60
+#define CONSOLE_LOG_LINE 29
+#define CONSOLE_CMD_LINE 30
+
+#define CONSOLE_DUMP_LINE CONSOLE_CMD_LINE + 4
+#define CONSOLE_DUMP_COL 1
+
+#define NUM_TRIALS 10
+#define MAX_TRIAL (NUM_TRIALS-1)
 
 typedef struct {
 	// server ids
@@ -39,14 +45,21 @@ typedef struct {
 	lookup *nodemap;
 	uint last_tick;
 	track_node *last_node;
-	uint trials;
+	uint trial;
 } a0state;
 
 typedef struct {
-	int trials;
-	int sum_dist;
-	int sum_dt;
-} sensor_data;
+	int trial;
+	int dt[NUM_TRIALS];
+} track_node_data;
+
+
+static inline void reset_track_node_data(track_node_data *data) {
+	data->trial = -1;
+	for (int i = 0; i < NUM_TRIALS; i++) {
+		data->dt[i] = -1;
+	}
+}
 
 /*
  * UI
@@ -246,12 +259,12 @@ static inline void ui_sensor(a0state *state, char module, int id) {
 	Putstr(COM2, buf, state->tid_com2);
 }
 
-static inline void ui_speed(a0state *state, int train, int speed) {
+static inline void ui_speed(a0state *state, int train, int speed_avg) {
 	char buf[128];
 	char *b = buf;
 	b += console_cursor_save(b);
 	b += ui_move2log(b);
-	b += sprintf(b, "set speed of train %d to %d", train, speed);
+	b += sprintf(b, "set speed_avg of train %d to %d", train, speed_avg);
 	b += console_cursor_unsave(b);
 	Putstr(COM2, buf, state->tid_com2);
 }
@@ -375,100 +388,6 @@ static inline void ui_quit(a0state *state) {
  * Server
  */
 
-static lookup *ask_track(int tid_com2, track_node* data) {
-	for (;;) {
-		Putstr(COM2, "Track a or b?\n", tid_com2);
-		char c = Getc(COM2, tid_com2);
-		switch (c) {
-			case 'a': return init_tracka(data);
-			case 'b': return init_trackb(data);
-			default: Putstr(COM2, "fail\n", tid_com2);
-		}
-	}
-	return NULL;
-}
-
-static inline void calib_sensor(a0state *state, msg_sensor *sensor) {
-	char modname[8];
-	sprintf(modname, "%c%d", sensor->module, sensor->id);
-	track_node *cur_node = lookup_get(state->nodemap, modname);
-	sensor_data *data;
-	if (cur_node->data) {
-		data = (sensor_data*) cur_node->data;
-	} else {
-		cur_node->data = malloc(sizeof(sensor_data));
-		data = (sensor_data*) cur_node->data;
-		data->trials = 0;
-		data->sum_dist = 0;
-		data->sum_dt = 0;
-	}
-
-	char msgbuf[1024];
-	char *b = msgbuf;
-//	sprintf(msgbuf, "Sensor detected. realname:%c%d modname:%s nodename: %s\n",
-//			sensor->module, sensor->id, modname, cur_node->name);
-//	Putstr(COM2, msgbuf, tid_com2);
-
-	if (data->trials == state->trials) {
-		state->trials++;
-		state->console_dump_line = CONSOLE_DUMP_LINE;
-	}
-
-	if (state->last_node != NULL) {
-		int dist = find_dist(state->last_node, cur_node, 0, 2); // tolerate at most 1 missed sensors
-		if (dist == -1) dist = find_dist(state->last_node->reverse, cur_node, 0, 2);
-
-		if (data->trials) {
-			fixed last_speed;
-			if (data->sum_dt) {
-				last_speed = fixed_div(fixed_new(data->sum_dist), fixed_new(data->sum_dt));
-			} else {
-				last_speed = fixed_new(0);
-			}
-
-			data->sum_dist += dist;
-			data->sum_dt += sensor->ticks - state->last_tick;
-
-			fixed speed = fixed_div(fixed_new(data->sum_dist), fixed_new(data->sum_dt));
-
-			fixed dspeed;
-			if (last_speed) {
-				dspeed = fixed_sub(fixed_new(1), fixed_div(last_speed, speed));
-			} else {
-				dspeed = fixed_new(0);
-			}
-
-			b += console_cursor_save(b);
-			b += console_cursor_move(b, state->console_dump_line++, CONSOLE_DUMP_COL);
-			b += console_erase_eol(b);
-			b += sprintf(b, "%s\t%s", state->last_node->name, cur_node->name);
-			b += sprintf(b, "\t%d", data->trials);
-			b += sprintf(b, "\t%F", last_speed);
-			b += sprintf(b, "\t%F", speed);
-			b += sprintf(b, "\t%F\n", dspeed);
-			b += console_cursor_unsave(b);
-
-			Putstr(COM2, msgbuf, state->tid_com2);
-		}
-		data->trials++;
-	}
-
-	state->last_tick = Time(state->tid_time);
-	state->last_node = cur_node;
-}
-
-static inline void handle_sensor(a0state *state, char msg[]) {
-	msg_sensor *sensor = (msg_sensor*) msg;
-	ui_sensor(state, sensor->module, sensor->id);
-	calib_sensor(state, sensor);
-}
-
-#define ACCEPT(a) { \
-	if (*c++ != a) { \
-		goto badcmd; \
-	} \
-}
-
 static void handle_train_switch(a0state *state, int num, char pos) {
 	char buf[10];
 	train_switch(num, pos, state->tid_traincmdbuf);
@@ -491,6 +410,95 @@ static void handle_train_switch_all(a0state *state, char pos) {
 		ASSERT(branch, "branch %s is null?", buf);
 		branch->switch_dir = POS_TO_DIR(pos);
 	}
+}
+
+static lookup *ask_track(int tid_com2, track_node* data) {
+	for (;;) {
+		Putstr(COM2, "Track a or b?\n", tid_com2);
+		char c = Getc(COM2, tid_com2);
+		switch (c) {
+			case 'a': return init_tracka(data);
+			case 'b': return init_trackb(data);
+			default: Putstr(COM2, "fail\n", tid_com2);
+		}
+	}
+	return NULL;
+}
+
+static inline void calib_sensor(a0state *state, msg_sensor *sensor) {
+	// get a reference to the sensor track node
+	char modname[8];
+	sprintf(modname, "%c%d", sensor->module, sensor->id);
+	track_node *cur_node = lookup_get(state->nodemap, modname);
+
+	if (strcmp(cur_node->name, "E4") == 0) return;
+
+	/*else if (strcmp(cur_node->name, "D5") == 0) {
+		handle_train_switch(state, 153, 'C');
+		handle_train_switch(state, 154, 'S');
+		handle_train_switch(state, 155, 'C');
+		handle_train_switch(state, 156, 'S');
+	} else if (strcmp(cur_node->name, "C11") == 0) {
+		handle_train_switch(state, 153, 'S');
+		handle_train_switch(state, 154, 'C');
+		handle_train_switch(state, 155, 'S');
+		handle_train_switch(state, 156, 'C');
+	}*/
+
+	int dist = find_dist(state->last_node, cur_node, 0, 2); // tolerate at most 1 missed sensors
+
+	// get a reference to the sensor track node data
+	track_node_data *data;
+	if (cur_node->data) {
+		data = (track_node_data*) cur_node->data;
+	} else {
+		cur_node->data = malloc(sizeof(track_node_data));
+		data = (track_node_data*) cur_node->data;
+		reset_track_node_data(data);
+	}
+
+	if (data->trial == -1) goto exit;
+
+	if (data->trial > MAX_TRIAL) {
+		state->console_dump_line = CONSOLE_DUMP_LINE;
+		goto exit;
+	}
+
+	data->dt[data->trial] = sensor->ticks - state->last_tick;
+
+	if (data->trial < MAX_TRIAL) goto exit;
+
+	// if (dist == -1) dist = find_dist(state->last_node->reverse, cur_node, 0, 2);
+
+	char msgbuf[1024];
+	char *b = msgbuf;
+	b += console_cursor_save(b);
+	b += console_cursor_move(b, state->console_dump_line++, CONSOLE_DUMP_COL);
+	b += console_erase_eol(b);
+	b += sprintf(b, "%s\t%s", state->last_node->name, cur_node->name);
+	b += sprintf(b, "\t%d", dist);
+	for (int trial = 0; trial <= MAX_TRIAL; trial++) {
+		b += sprintf(b, "\t%d", data->dt[trial]);
+	}
+	b += console_cursor_unsave(b);
+	Putstr(COM2, msgbuf, state->tid_com2);
+
+	exit:
+	data->trial++;
+	state->last_tick = sensor->ticks;
+	state->last_node = cur_node;
+}
+
+static inline void handle_sensor(a0state *state, char msg[]) {
+	msg_sensor *sensor = (msg_sensor*) msg;
+	ui_sensor(state, sensor->module, sensor->id);
+	calib_sensor(state, sensor);
+}
+
+#define ACCEPT(a) { \
+	if (*c++ != a) { \
+		goto badcmd; \
+	} \
 }
 
 static inline void handle_com2in(a0state *state, msg_comin *comin) {
@@ -519,18 +527,18 @@ static inline void handle_com2in(a0state *state, msg_comin *comin) {
 					ui_setup_demo_track(state);
 					break;
 				}
-				case 't': { // set train speed (tr # #)
+				case 't': { // set train speed_avg (tr # #)
 					ACCEPT('r');
 					ACCEPT(' ');
 					int train = strgetui(&c);
 					if (!train_goodtrain(train)) goto badcmd;
 					ACCEPT(' ');
-					int speed = strgetui(&c);
-					if (!train_goodspeed(speed)) goto badcmd;
+					int speed_avg = strgetui(&c);
+					if (!train_goodspeed(speed_avg)) goto badcmd;
 					ACCEPT('\r');
-					ui_speed(state, train, speed);
-					state->train_speed[train] = speed;
-					train_speed(train, speed, state->tid_traincmdbuf);
+					ui_speed(state, train, speed_avg);
+					state->train_speed[train] = speed_avg;
+					train_speed(train, speed_avg, state->tid_traincmdbuf);
 					break;
 				}
 				case 'r': { // reverse train (rv #)
@@ -539,11 +547,11 @@ static inline void handle_com2in(a0state *state, msg_comin *comin) {
 					int train = strgetui(&c);
 					if (!train_goodtrain(train)) goto badcmd;
 					ACCEPT('\r');
-					int speed = state->train_speed[train];
+					int speed_avg = state->train_speed[train];
 					ui_reverse(state, train);
 					train_speed(train, 0, state->tid_traincmdbuf);
 					train_reverse(train, state->tid_traincmdbuf);
-					train_speed(train, speed, state->tid_traincmdbuf);
+					train_speed(train, speed_avg, state->tid_traincmdbuf);
 					break;
 				}
 				case 's': { // set switch position (sw [#*] [cCsS])
@@ -594,6 +602,12 @@ static inline void handle_com2in(a0state *state, msg_comin *comin) {
 			break;
 	}
 	if (quit) {
+		// @TODO: pull this out with a "finally"
+		TRAIN_FOREACH(t) {
+			if (state->train_speed[t]) {
+				train_speed(t, 0, state->tid_traincmdbuf);
+			}
+		}
 		ui_quit(state);
 		train_stop(state->tid_traincmdbuf);
 		Flush(state->tid_com1);
@@ -614,15 +628,6 @@ static inline void handle_time(a0state *state, char msg[]) {
 }
 
 void a0() {
-	fixed a = fixed_new(314);
-	a = fixed_div(a, fixed_new(100));
-	PRINT("%F", a);
-	fixed b = fixed_new(777);
-	b = fixed_div(b, fixed_new(100));
-	PRINT("%F", b);
-	fixed c = fixed_div(a, b);
-	PRINT("%F", c);
-
 	a0state state;
 	state.tid_time = WhoIs(NAME_TIMESERVER);
 	state.tid_com1 = WhoIs(NAME_IOSERVER_COM1);
@@ -639,7 +644,7 @@ void a0() {
 	state.nodemap = ask_track(state.tid_com2, track_data);
 	state.last_tick = 0;
 	state.last_node = NULL;
-	state.trials = 0;
+	state.trial = 0;
 
 	ui_init(&state);
 
