@@ -19,7 +19,7 @@ struct track_edge {
 	track_edge *reverse;
 	track_node *src, *dest;
 	int dist; /* in millimetres */
-	fixed beta; // uninitialized
+	fixed beta; // initialized -1
 };
 
 struct track_node {
