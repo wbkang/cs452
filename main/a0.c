@@ -15,6 +15,7 @@
 #include <track_node.h>
 #include <track_data.h>
 #include <fixed.h>
+#include <betaimporter.h>
 
 #define LEN_MSG (64 * 4)
 #define LEN_CMD 32
@@ -416,9 +417,12 @@ static lookup *ask_track(int tid_com2, track_node* data) {
 	for (;;) {
 		Putstr(COM2, "Track a or b?\n", tid_com2);
 		char c = Getc(COM2, tid_com2);
+		lookup *nodemap;
 		switch (c) {
-			case 'a': return init_tracka(data);
-			case 'b': return init_trackb(data);
+			case 'a': nodemap = init_tracka(data);
+			case 'b': nodemap = init_trackb(data);
+			populate_beta(nodemap);
+			return nodemap;
 			default: Putstr(COM2, "fail\n", tid_com2);
 		}
 	}

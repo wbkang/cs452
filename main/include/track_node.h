@@ -1,4 +1,5 @@
 #pragma once
+#include <fixed.h>
 
 typedef enum {
 	NODE_NONE, NODE_SENSOR, NODE_BRANCH, NODE_MERGE, NODE_ENTER, NODE_EXIT,
@@ -18,6 +19,7 @@ struct track_edge {
 	track_edge *reverse;
 	track_node *src, *dest;
 	int dist; /* in millimetres */
+	fixed beta; // uninitialized
 };
 
 struct track_node {
@@ -32,3 +34,11 @@ struct track_node {
 
 track_edge * find_forward(track_node *orig);
 int find_dist(track_node *orig, track_node *dest, int curdist, int maxsensordepth);
+
+typedef struct blind_path_result blind_path_result;
+struct blind_path_result {
+	int depth;
+	track_edge *edges[10];
+};
+
+int find_path_blind(track_node *orig, track_node *dest, blind_path_result *rv, int maxsensordepth);
