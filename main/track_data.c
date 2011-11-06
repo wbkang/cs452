@@ -57,9 +57,9 @@ uint sensor_mapper(void* key) {
   if (!('0' <= *c && *c <= '9')) goto badname;
   int n = strgetui(&c);
   // just for branches
-  if (n >= 153 && n <= 156) { n -= (0x90 - 10); }
+  if (n >= 153 && n <= 156) { n -= (0x99 - 17); }
   ASSERT(1 <= n && n <= 22, "bad n. n:%d, idx:%d", n, idx);
-  idx = (16 * idx) + (n - 1);
+  idx = (22 * idx) + (n - 1);
 
   return idx;
 
