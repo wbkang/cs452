@@ -415,6 +415,8 @@ lookup* %s(track_node *track) {
           (idx, dir.upper(), idx2))
         fh.write("\ttrack[%d].edge[DIR_%s].dist = %s;\n" % \
           (idx, dir.upper(), dist))
+        fh.write("\ttrack[%d].edge[DIR_%s].beta = fixed_new(-1);\n" % \
+          (idx, dir.upper()))
         fh.write("\ttrack[%d].data = 0;" % idx)
     fh.write("\tlookup_put(sensormap, (void*) track[%d].name, track + %d);\n" % (idx, idx))
   fh.write("\treturn sensormap;\n}\n")

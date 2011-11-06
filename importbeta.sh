@@ -4,23 +4,24 @@ outfile=main/betaimporter.c
 betafile=main/beta.csv
 
 echo '
+#include <string.h>
 #include <betaimporter.h>
 #include <lookup.h>
 #include <fixed.h>
 #include <track_node.h>
 #include <util.h>
 
-static void assign_path_beta(fixed tmin, fixed tref, blind_path_result path, int path_dist)
-{
-    fixed path_beta = fixed_div(tmin, tref);
-    for(int i = 0;i < path.depth; i++){
+static void assign_path_beta(fixed tmin, fixed tref, blind_path_result path, int path_dist) {
+    fixed path_dist_fixed = fixed_new(path_dist);
+    for(int i = 0; i < path.depth; i++){
         track_edge *edge = path.edges[i];
-        fixed ratio = fixed_div(edge->dist, path_dist);
-        fixed edge_beta = fixed_mul(path_beta, ratio);
+        fixed edge_dist_fixed = fixed_new(edge->dist);
+        fixed edge_beta = fixed_div(fixed_mul(tmin, edge_dist_fixed), fixed_mul(path_dist_fixed, tref));
         edge->beta = edge_beta;
         edge->reverse->beta = edge_beta;
     }
 }
+
 
 void populate_beta(lookup *track_lookup) {
 	int path_dist;

@@ -26,6 +26,9 @@
 #define CONSOLE_DUMP_LINE CONSOLE_CMD_LINE + 4
 #define CONSOLE_DUMP_COL 1
 
+#define CONSOLE_LANDMARK_LINE 5
+#define CONSOLE_LANDMARK_COL 65
+
 #define NUM_TRIALS 10
 #define MAX_TRIAL (NUM_TRIALS-1)
 
@@ -47,6 +50,7 @@ typedef struct {
 	uint last_tick;
 	track_node *last_node;
 	uint trial;
+	// sensor expectation data
 } a0state;
 
 typedef struct {
@@ -429,12 +433,7 @@ static lookup *ask_track(int tid_com2, track_node* data) {
 	return NULL;
 }
 
-static inline void calib_sensor(a0state *state, msg_sensor *sensor) {
-	// get a reference to the sensor track node
-	char modname[8];
-	sprintf(modname, "%c%d", sensor->module, sensor->id);
-	track_node *cur_node = lookup_get(state->nodemap, modname);
-
+static inline void calib_sensor(a0state *state, track_node *cur_node, int tick) {
 	if (strcmp(cur_node->name, "E4") == 0) return;
 
 	/*else if (strcmp(cur_node->name, "D5") == 0) {
@@ -468,7 +467,7 @@ static inline void calib_sensor(a0state *state, msg_sensor *sensor) {
 		goto exit;
 	}
 
-	data->dt[data->trial] = sensor->ticks - state->last_tick;
+	data->dt[data->trial] = tick - state->last_tick;
 
 	if (data->trial < MAX_TRIAL) goto exit;
 
@@ -489,14 +488,54 @@ static inline void calib_sensor(a0state *state, msg_sensor *sensor) {
 
 	exit:
 	data->trial++;
-	state->last_tick = sensor->ticks;
-	state->last_node = cur_node;
+}
+
+static void print_landmark(a0state *state, track_node *node, int tick) {
+	char buf[1024], *b = buf;
+
+	if (state->last_node && state->last_node != node) {
+		track_node *curnode = state->last_node;
+		track_edge *curedge = find_forward(curnode);
+		ASSERT(node, "node is null!!");
+		int totaldist = find_dist(state->last_node, node, 0, 1);
+		if (totaldist < 0) return;
+//		ASSERT(totaldist > 0, "totaldist: %d", totaldist);
+		fixed tref = fixed_new(121); // TODO hardcoded
+		fixed total_beta = fixed_new(0);
+
+		while (curnode != node) {
+			ASSERT(curedge, "curedge is null. finding %s to %s, curnode:%s total_beta: %F",
+					state->last_node->name, node->name, curnode->name, total_beta);
+			total_beta = fixed_add(total_beta, curedge->beta);
+			curedge = find_forward(curnode);
+			curnode = curedge->dest;
+		}
+
+		fixed expected_time = fixed_mul(total_beta, tref);
+		fixed actual_time = fixed_new(tick - state->last_tick);
+
+		b += console_cursor_save(b);
+		b += console_cursor_move(b, CONSOLE_LANDMARK_LINE + state->console_dump_line, CONSOLE_LANDMARK_COL);
+		b += console_erase_eol(b);
+		b += sprintf(b, "%s->%s expected:%F, actual:%F, e/a%F",
+				state->last_node->name, node->name, expected_time, actual_time, fixed_div(expected_time, actual_time));
+	}
+
+	b += console_cursor_unsave(b);
+	Putstr(COM2, buf, state->tid_com2);
 }
 
 static inline void handle_sensor(a0state *state, char msg[]) {
 	msg_sensor *sensor = (msg_sensor*) msg;
+	char modname[8];
+	sprintf(modname, "%c%d", sensor->module, sensor->id);
+	track_node *cur_node = lookup_get(state->nodemap, modname);
+
 	ui_sensor(state, sensor->module, sensor->id);
-	calib_sensor(state, sensor);
+	calib_sensor(state, cur_node, sensor->ticks);
+	print_landmark(state, cur_node, sensor->ticks);
+	state->last_tick = sensor->ticks;
+	state->last_node = cur_node;
 }
 
 #define ACCEPT(a) { \
