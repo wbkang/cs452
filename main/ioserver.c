@@ -7,6 +7,7 @@
 #include <queue.h>
 #include <util.h>
 #include <string.h>
+#include <uconst.h>
 
 /*
  * max number of chars per timeserver tick
@@ -19,7 +20,7 @@
 #define REQUEST_STR_SIZE (OUTPUT_BUFFER_SIZE)
 #define INPUT_BLOCKED_QUEUE_SIZE 1
 #define FLUSH_BLOCKED_QUEUE_SIZE 1
-#define FLUSH_GARBAGE_TIMEOUT 50 // timeserver ticks
+#define FLUSH_GARBAGE_TIMEOUT MS2TICK(500)
 
 typedef struct {
 	int channel;
