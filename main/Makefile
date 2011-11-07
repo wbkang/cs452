@@ -31,7 +31,7 @@ OBJS= main.o test.o task1.o k3clients.o a0.o \
 sensornotifier.o comnotifier.o traincmdbuffer.o traincmdrunner.o \
 timenotifier.o perfmon.o buffertask.o track_data.o timeserver.o \
 calib_test.o track_node.o ioserver.o betaimporter.o console.o \
-logstrip.o
+logstrip.o cmdline.o
 ################
 
 

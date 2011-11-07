@@ -17,6 +17,7 @@
 #include <fixed.h>
 #include <betaimporter.h>
 #include <logstrip.h>
+#include <cmdline.h>
 
 #define LEN_MSG (64 * 4)
 #define LEN_CMD 32
@@ -48,9 +49,7 @@ typedef struct {
 	// ui
 	int console_dump_line;
 	logstrip logstrip;
-	// cmd buffer
-	char cmd[LEN_CMD];
-	int cmd_i;
+	cmdline *cmdline;
 	// train data
 	char train_speed[TRAIN_MAX_TRAIN_ADDR + 1];
 	// track data
@@ -135,8 +134,6 @@ static inline void sensor_pic_def(
 	sensor_pic_info_table[mod - 'A'][id2].col = col;
 }
 
-static inline void ui_cmd_clear(a0state *state);
-
 static inline void ui_init(a0state *state) {
 	// init sensor hist
 	for (int i = 0; i < LEN_SENSOR_HIST; i++) {
@@ -196,7 +193,7 @@ static inline void ui_init(a0state *state) {
 	console_printf(state->con, TRACK_TEMPLATE);
 	console_flush(state->con);
 
-	ui_cmd_clear(state);
+	cmdline_clear(state->cmdline);
 
 	return;
 }
@@ -204,7 +201,7 @@ static inline void ui_init(a0state *state) {
 static inline void ui_time(a0state *state, int ticks) {
 	console_move(state->con, 1, 9);
 	console_erase_eol(state->con);
-	console_printf(state->con, "%d.%ds", ticks / 10, ticks % 10);
+	console_printf(state->con, "%Fs", fixed_div(fixed_new(ticks), fixed_new(1000 / MSPERTICK)));
 	console_flush(state->con);
 }
 
@@ -254,8 +251,8 @@ static inline void ui_sensor(a0state *state, char module, int id) {
 	console_flush(state->con);
 }
 
-static inline void ui_speed(a0state *state, int train, int speed_avg) {
-	logstrip_printf(state->logstrip, "set speed_avg of train %d to %d", train, speed_avg);
+static inline void ui_speed(a0state *state, int train, int speed) {
+	logstrip_printf(state->logstrip, "set speed of train %d to %d", train, speed);
 }
 
 static inline void ui_reverse(a0state *state, int train) {
@@ -297,26 +294,6 @@ static inline void ui_switchall(a0state *state, char pos) {
 
 static inline void ui_setup_demo_track(a0state *state) {
 	logstrip_printf(state->logstrip, "adjusted all switches for demo");
-}
-
-static inline void ui_cmd_char(a0state *state, char c, int cmdpos) {
-	console_move(state->con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL + cmdpos);
-	console_printf(state->con, "%c", c);
-	console_flush(state->con);
-}
-
-static inline void ui_cmd_clear(a0state *state) {
-	console_move(state->con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL);
-	console_erase_eol(state->con);
-	console_flush(state->con);
-}
-
-static inline void ui_cmd(a0state *state, char cmd[]) {
-	// exact command if good
-}
-
-static inline void ui_cmd_bad(a0state *state, char cmd[]) {
-	logstrip_printf(state->logstrip, "invalid command: \"%s\"", cmd);
 }
 
 static inline void ui_quit(a0state *state) {
@@ -475,106 +452,86 @@ static inline void handle_sensor(a0state *state, char msg[]) {
 	} \
 }
 
-static inline void handle_com2in(a0state *state, msg_comin *comin) {
-	if (state->cmd_i + 2 == LEN_CMD && comin->c != '\b' && comin->c != '\r') return; // full, ignore
-	state->cmd[state->cmd_i++] = comin->c;
-	state->cmd[state->cmd_i] = '\0';
+static void handle_command(void* st, char *cmd, int size) {
+	a0state *state = st;
 	int quit = FALSE;
-	switch (comin->c) {
-		case '\b':
-			state->cmd_i--;
-			if (state->cmd_i >= 1) {
-				ui_cmd_char(state, ' ', state->cmd_i);
-				state->cmd_i -= 1;
-			}
-			break;
-		case '\r': {
-			char *c = state->cmd;
-			switch (*c++) {
-				case 'd': {
-					handle_train_switch_all(state, 'C');
-					handle_train_switch(state, 9, 'S');
-					handle_train_switch(state, 10, 'S');
-					handle_train_switch(state, 15, 'S');
-					handle_train_switch(state, 16, 'S');
-					handle_train_switch(state, 14, 'S');
-					ui_setup_demo_track(state);
-					break;
-				}
-				case 't': { // set train speed_avg (tr # #)
-					ACCEPT('r');
-					ACCEPT(' ');
-					int train = strgetui(&c);
-					if (!train_goodtrain(train)) goto badcmd;
-					ACCEPT(' ');
-					int speed_avg = strgetui(&c);
-					if (!train_goodspeed(speed_avg)) goto badcmd;
-					ACCEPT('\r');
-					ui_speed(state, train, speed_avg);
-					state->train_speed[train] = speed_avg;
-					train_speed(train, speed_avg, state->tid_traincmdbuf);
-					break;
-				}
-				case 'r': { // reverse train (rv #)
-					ACCEPT('v');
-					ACCEPT(' ');
-					int train = strgetui(&c);
-					if (!train_goodtrain(train)) goto badcmd;
-					ACCEPT('\r');
-					int speed_avg = state->train_speed[train];
-					ui_reverse(state, train);
-					train_speed(train, 0, state->tid_traincmdbuf);
-					train_reverse(train, state->tid_traincmdbuf);
-					train_speed(train, speed_avg, state->tid_traincmdbuf);
-					break;
-				}
-				case 's': { // set switch position (sw [#*] [cCsS])
-					ACCEPT('w');
-					ACCEPT(' ');
-					char switchno;
-					if (*c == '*') {
-						switchno = *c++;
-					} else {
-						switchno = strgetui(&c);
-						if (!train_goodswitch(switchno)) goto badcmd;
-					}
-					ACCEPT(' ');
-					char pos = *c++;
-					if (!train_goodswitchpos(pos)) goto badcmd;
-					ACCEPT('\r');
-					if (switchno == '*') {
-						handle_train_switch_all(state, pos);
-					} else {
-						handle_train_switch(state, switchno, pos);
-					}
-					train_solenoidoff(state->tid_traincmdbuf);
-					break;
-				}
-				case 'q': { // quit kernel
-					ACCEPT('\r');
-					quit = TRUE;
-					break;
-				}
-				default: {
-					goto badcmd;
-					break;
-				}
-			}
-			ui_cmd(state, state->cmd);
-			goto skipbad;
-			badcmd:
-			state->cmd[state->cmd_i - 1] = '\0';
-			ui_cmd_bad(state, state->cmd);
-			skipbad:
-			ui_cmd_clear(state);
-			state->cmd[0] = '\0';
-			state->cmd_i = 0;
+	char *c = cmd;
+	cmdline_clear(state->cmdline);
+
+	if (!size) goto badcmd;
+
+	switch (*c++) {
+		case 'd': {
+			handle_train_switch_all(state, 'C');
+			handle_train_switch(state, 9, 'S');
+			handle_train_switch(state, 10, 'S');
+			handle_train_switch(state, 15, 'S');
+			handle_train_switch(state, 16, 'S');
+			handle_train_switch(state, 14, 'S');
+			ui_setup_demo_track(state);
 			break;
 		}
-		default:
-			ui_cmd_char(state, comin->c, state->cmd_i);
+		case 't': { // set train speed_avg (tr # #)
+			ACCEPT('r');
+			ACCEPT(' ');
+			int train = strgetui(&c);
+			if (!train_goodtrain(train))
+				goto badcmd;
+			ACCEPT(' ');
+			int speed = strgetui(&c);
+			if (!train_goodspeed(speed))
+				goto badcmd;
+			ui_speed(state, train, speed);
+			state->train_speed[train] = speed;
+			train_speed(train, speed, state->tid_traincmdbuf);
 			break;
+		}
+		case 'r': { // reverse train (rv #)
+			ACCEPT('v');
+			ACCEPT(' ');
+			int train = strgetui(&c);
+			if (!train_goodtrain(train))
+				goto badcmd;
+			int speed_avg = state->train_speed[train];
+			ui_reverse(state, train);
+			train_speed(train, 0, state->tid_traincmdbuf);
+			train_reverse(train, state->tid_traincmdbuf);
+			train_speed(train, speed_avg, state->tid_traincmdbuf);
+			break;
+		}
+		case 's': { // set switch position (sw [#*] [cCsS])
+			ACCEPT('w');
+			ACCEPT(' ');
+			char switchno;
+			if (*c == '*') {
+				switchno = *c++;
+			} else {
+				switchno = strgetui(&c);
+				if (!train_goodswitch(switchno))
+					goto badcmd;
+			}
+			ACCEPT(' ');
+			char pos = *c++;
+			if (!train_goodswitchpos(pos))
+				goto badcmd;
+			if (switchno == '*') {
+				handle_train_switch_all(state, pos);
+			} else {
+				handle_train_switch(state, switchno, pos);
+			}
+			train_solenoidoff(state->tid_traincmdbuf);
+			break;
+		}
+		case 'q': { // quit kernel
+			quit = TRUE;
+			break;
+		}
+		default: {
+			goto badcmd;
+			break;
+		}
 	}
+
 	if (quit) {
 		// @TODO: pull this out with a "finally"
 		TRAIN_FOREACH(t) {
@@ -587,13 +544,18 @@ static inline void handle_com2in(a0state *state, msg_comin *comin) {
 		Flush(state->tid_com1);
 		Flush(state->tid_com2);
 		ExitKernel(0);
+		ASSERT(0, "ExitKernel returned!");
 	}
+
+	return;
+	badcmd:
+	logstrip_printf(state->logstrip, "invalid command: \"%s\"", cmd);
 }
 
 static inline void handle_comin(a0state *state, char msg[]) {
 	msg_comin *comin = (msg_comin*) msg;
 	ASSERT(comin->channel == COM2, "no handler for channel %d", comin->channel);
-	handle_com2in(state, comin);
+	cmdline_handleinput(state->cmdline, comin->c);
 }
 
 static inline void handle_time(a0state *state, char msg[]) {
@@ -604,17 +566,18 @@ static inline void handle_time(a0state *state, char msg[]) {
 void a0() {
 	a0state state;
 	console con;
+	cmdline cmd;
 	state.tid_time = WhoIs(NAME_TIMESERVER);
 	state.tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	state.tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	state.con = &con;
-	state.logstrip = logstrip_create(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, state.con);
 	console_create(state.con, state.tid_com2);
+	state.logstrip = logstrip_create(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, state.con);
+	state.cmdline = &cmd;
+	cmdline_create(&cmd, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, state.con, handle_command, &state);
 	state.tid_traincmdbuf = traincmdbuffer_new();
 	traincmdrunner_new();
 	state.console_dump_line = CONSOLE_DUMP_LINE;
-	state.cmd[0] = '\0';
-	state.cmd_i = 0;
 	for (int i = 0; i <= TRAIN_MAX_TRAIN_ADDR; i++) {
 		state.train_speed[i] = 0;
 	}
