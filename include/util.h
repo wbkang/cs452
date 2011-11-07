@@ -39,6 +39,7 @@ typedef char *va_list;
 #define UNLIKELY(x) __builtin_expect((x), 0)
 #define INT_MIN -2147483648
 #define INT_MAX 2147483647
+#define MEMCHECK() malloc(0)
 
 #define PUTS(...) { \
 	char PAVEL[512]; \

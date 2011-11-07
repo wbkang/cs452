@@ -26,10 +26,8 @@
 #define CONSOLE_LOG_LINE 29
 #define CONSOLE_CMD_COL 2
 #define CONSOLE_CMD_LINE 30
-
 #define CONSOLE_SENSOR_COL 17
 #define CONSOLE_SENSOR_LINE 6
-
 #define CONSOLE_DUMP_LINE CONSOLE_CMD_LINE + 4
 #define CONSOLE_DUMP_COL 1
 
@@ -590,6 +588,8 @@ void a0() {
 	state.linecnt = 0;
 
 	ui_init(&state);
+
+	MEMCHECK();
 
 	train_go(state.tid_traincmdbuf);
 
