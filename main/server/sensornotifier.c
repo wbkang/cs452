@@ -20,16 +20,21 @@ static void sensornotifier() {
 	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
 
 	int modules[TRAIN_NUM_MODULES];
-	msg_sensor msg;
-	msg.type = SENSOR;
-
 	for (int m = 0; m < TRAIN_NUM_MODULES; m++) {
 		modules[0] = 0;
 	}
 
+	msg_sensor msg;
+	msg.type = SENSOR;
+
+	int last_ticks;
+	int ticks = Time(tid_time) - MS2TICK(61); // average return time
+
 	for (;;) {
+		last_ticks = ticks;
+		ticks = Time(tid_time);
+		msg.ticks = (last_ticks + ticks) >> 1;
 		train_querysenmods(TRAIN_NUM_MODULES, tid_traincmdbuf);
-		//int start = uptime();
 		for (int m = 0; m < TRAIN_NUM_MODULES; m++) {
 			int upper = Getc(COM1, tid_com1);
 			int lower = Getc(COM1, tid_com1);
@@ -39,18 +44,12 @@ static void sensornotifier() {
 			int sensors = (old_module ^ module) & (~old_module);
 			while (sensors) {
 				int s = log2(sensors);
-				sensors &= ~(1 << s);
-				msg.ticks = Time(tid_time);
 				msg.module = 'A' + m;
 				msg.id = 16 - s;
 				Send(args.tid_target, &msg, sizeof(msg), NULL, 0);
+				sensors &= ~(1 << s);
 			}
 		}
-		/*int end = uptime();
-		int delta = end - start;
-		char buf[32];
-		sprintf(buf, "%d\n", delta);
-		Putstr(COM2, buf, tid_com2);*/
 	}
 }
 
