@@ -1,6 +1,6 @@
-#include <comnotifier.h>
 #include <syscall.h>
 #include <uconst.h>
+#include <server/comnotifier.h>
 
 typedef struct {
 	int tid_target;

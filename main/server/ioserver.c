@@ -1,13 +1,13 @@
-#include <ioserver.h>
 #include <ts7200.h>
 #include <hardware.h>
 #include <syscall.h>
-#include <notifier.h>
 #include <buffer.h>
 #include <queue.h>
 #include <util.h>
 #include <string.h>
 #include <uconst.h>
+#include <server/ioserver.h>
+#include <server/notifier.h>
 
 /*
  * max number of chars per timeserver tick

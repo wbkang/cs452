@@ -1,4 +1,4 @@
-#include <cmdline.h>
+#include <ui/cmdline.h>
 
 #define CMDLINE_PUTC(cmd, c) {\
 	console_move((cmd)->con, (cmd)->line, (cmd)->col + (cmd)->cmdidx); \

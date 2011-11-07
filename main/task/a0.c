@@ -1,23 +1,23 @@
-#include <a0.h>
 #include <train.h>
 #include <syscall.h>
-#include <sensornotifier.h>
 #include <uconst.h>
-#include <comnotifier.h>
 #include <string.h>
-#include <traincmdbuffer.h>
-#include <traincmdrunner.h>
 #include <stdio.h>
-#include <timenotifier.h>
 #include <console.h>
-#include <a0_track_template.h>
 #include <lookup.h>
 #include <track_node.h>
 #include <track_data.h>
 #include <fixed.h>
 #include <betaimporter.h>
-#include <logstrip.h>
-#include <cmdline.h>
+#include <server/sensornotifier.h>
+#include <server/comnotifier.h>
+#include <server/timenotifier.h>
+#include <server/traincmdbuffer.h>
+#include <server/traincmdrunner.h>
+#include <task/a0.h>
+#include <task/a0_track_template.h>
+#include <ui/logstrip.h>
+#include <ui/cmdline.h>
 
 #define LEN_MSG (64 * 4)
 #define LEN_CMD 32

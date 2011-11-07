@@ -8,11 +8,24 @@ FUNCTION_COUNT=`find . -name '*.S' -o -name '*.s' | xargs grep .global | awk '{p
 
  echo > $OUTFILE
 
- for header in `find . -name '*.h' | grep -v '\._'`; do
-	header=`basename $header`
-	echo "#include <${header}>" >> $OUTFILE
+cd include
+for header in `find . -name '*.h' | grep -v '\._'`; do
+	header=$header
+	echo "#include <${header}>" >> ../$OUTFILE
 done
-
+cd ..
+cd main/include
+for header in `find . -name '*.h' | grep -v '\._'`; do
+	header=$header
+	echo "#include <${header}>" >> ../../$OUTFILE
+done
+cd ../../
+cd kernel/include
+for header in `find . -name '*.h' | grep -v '\._'`; do
+	header=$header
+	echo "#include <${header}>" >> ../../$OUTFILE
+done
+cd ../../
 
 #ctags -x  --c-kinds=p --format=1 `find . -name '*.h'` | sed 's/^.*\.h /extern /g' | grep -v inline>> $OUTFILE
 

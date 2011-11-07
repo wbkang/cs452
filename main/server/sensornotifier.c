@@ -1,8 +1,8 @@
-#include <sensornotifier.h>
 #include <syscall.h>
 #include <train.h>
 #include <util.h>
 #include <uconst.h>
+#include <server/sensornotifier.h>
 
 typedef struct {
 	int tid_target;
