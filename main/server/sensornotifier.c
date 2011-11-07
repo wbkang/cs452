@@ -31,10 +31,10 @@ static void sensornotifier() {
 	int ticks = Time(tid_time) - MS2TICK(61); // average return time
 
 	for (;;) {
+		train_querysenmods(TRAIN_NUM_MODULES, tid_traincmdbuf); // @TODO: make this block
 		last_ticks = ticks;
 		ticks = Time(tid_time);
 		msg.ticks = (last_ticks + ticks) >> 1;
-		train_querysenmods(TRAIN_NUM_MODULES, tid_traincmdbuf);
 		for (int m = 0; m < TRAIN_NUM_MODULES; m++) {
 			int upper = Getc(COM1, tid_com1);
 			int lower = Getc(COM1, tid_com1);

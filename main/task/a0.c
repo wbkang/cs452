@@ -291,7 +291,7 @@ static void handle_train_switch(a0state *state, int num, char pos) {
 	sprintf(buf, "BR%d", num);
 	track_node *branch = (track_node*) lookup_get(state->nodemap, buf);
 	ASSERT(branch, "branch %s is null?", buf);
-	branch->switch_dir = POS_TO_DIR(pos);
+	branch->switch_dir = POS2DIR(pos);
 }
 
 static void handle_train_switch_all(a0state *state, char pos) {
@@ -304,7 +304,7 @@ static void handle_train_switch_all(a0state *state, char pos) {
 		sprintf(buf, "BR%d", train_switchi2no(i));
 		track_node *branch = (track_node*) lookup_get(state->nodemap, buf);
 		ASSERT(branch, "branch %s is null?", buf);
-		branch->switch_dir = POS_TO_DIR(pos);
+		branch->switch_dir = POS2DIR(pos);
 	}
 }
 
@@ -365,8 +365,6 @@ static void calib_sensor(void *s) {
 
 	if (data->trial < MAX_TRIAL) goto exit;
 
-	// if (dist == -1) dist = find_dist(state->last_node->reverse, cur_node, 0, 2);
-
 	console_move(state->con, state->console_dump_line++, CONSOLE_DUMP_COL);
 	console_erase_eol(state->con);
 	console_printf(state->con, "%s\t%s\t%d", state->last_node->name, cur_node->name, dist);
@@ -392,7 +390,7 @@ static void print_landmark(void* s) {
 		ASSERT(node, "node is null!!");
 		int totaldist = find_dist(state->last_node, node, 0, 1);
 		if (totaldist < 0) return;
-		fixed tref = state->train_desc[37].tref[state->train_speed[37]]; // hardcoded
+		fixed tref = state->train_desc[37].tref[(int) state->train_speed[37]]; // hardcoded
 		if (tref < 0) return;
 		fixed total_beta = fixed_new(0);
 
