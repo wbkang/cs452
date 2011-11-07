@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fixed.h>
 #include <syscall.h>
 #include <hardware.h>
 #include <server/traincmdbuffer.h>
@@ -17,7 +18,7 @@
 
 // train track data
 
-#define TRAIN_MAX_SPEED 30;
+#define TRAIN_MAX_SPEED 30
 #define TRAIN_MIN_TRAIN_ADDR 1
 #define TRAIN_MAX_TRAIN_ADDR 80
 #define TRAIN_FOREACH(x) for (int (x) = TRAIN_MIN_TRAIN_ADDR; (x) <= TRAIN_MAX_TRAIN_ADDR; (x)++)
@@ -28,6 +29,10 @@
 #define TRAIN_NUM_MODULES 5
 #define TRAIN_NUM_SENSORS 16
 #define TRAIN_NUM_SWITCHADDR 22
+
+typedef struct {
+	fixed tref[TRAIN_MAX_SPEED]; // -1 if unknown
+} train_descriptor;
 
 static inline int train_switchi2no(int i) {
 	ASSERT(0 <= i && i < TRAIN_NUM_SWITCHADDR, "bad i");

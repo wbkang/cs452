@@ -19,7 +19,7 @@ void dumbbus_register(dumbbus *dbus, subscriber s) {
 
 void dumbbus_unregister(dumbbus *dbus, subscriber s) {
 	for (int i = 0; i < MAX_SUBSCRIBER; i++) {
-		if (!dbus->subscribers[i] == s) {
+		if (dbus->subscribers[i] == s) {
 			dbus->subscribers[i] = NULL;
 			return;
 		}

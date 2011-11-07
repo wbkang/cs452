@@ -19,6 +19,7 @@
 #include <task/a0_track_template.h>
 #include <ui/logstrip.h>
 #include <ui/cmdline.h>
+#include <train_calibrator.h>
 
 #define LEN_MSG (64 * 4)
 #define LEN_CMD 32
@@ -37,32 +38,6 @@
 
 #define NUM_TRIALS 10
 #define MAX_TRIAL (NUM_TRIALS-1)
-
-typedef struct {
-	// server ids
-	int tid_time;
-	int tid_com1;
-	int tid_com2;
-	console *con;
-	int tid_traincmdbuf;
-	// ui
-	int console_dump_line;
-	logstrip logstrip;
-	cmdline *cmdline;
-	dumbbus *sensor_listeners;
-	// train data
-	char train_speed[TRAIN_MAX_TRAIN_ADDR + 1];
-	// track data
-	lookup *nodemap;
-	// these are not scalable to multiple trains
-	uint cur_tick;
-	track_node *cur_node;
-	uint last_tick;
-	track_node *last_node;
-	uint trial;
-	// sensor expectation data
-	int linecnt;
-} a0state;
 
 typedef struct {
 	int trial;
@@ -417,7 +392,8 @@ static void print_landmark(void *s) {
 		ASSERT(node, "node is null!!");
 		int totaldist = find_dist(state->last_node, node, 0, 1);
 		if (totaldist < 0) return;
-		fixed tref = fixed_new(121); // TODO hardcoded
+		fixed tref = state->train_desc[38].tref[state->train_speed[38]]; // hardcoded
+		if (tref < 0) return;
 		fixed total_beta = fixed_new(0);
 
 		console_move(state->con, CONSOLE_LANDMARK_LINE + state->linecnt++ % 20, CONSOLE_LANDMARK_COL);
@@ -461,8 +437,8 @@ static inline void handle_sensor(a0state *state, char msg[]) {
 	} \
 }
 
-static void handle_command(void* st, char *cmd, int size) {
-	a0state *state = st;
+static void handle_command(void* s, char *cmd, int size) {
+	a0state *state = s;
 	int quit = FALSE;
 	char *c = cmd;
 	cmdline_clear(state->cmdline);
@@ -470,6 +446,16 @@ static void handle_command(void* st, char *cmd, int size) {
 	if (!size) goto badcmd;
 
 	switch (*c++) {
+		case 'c': {
+			ACCEPT('a');
+			ACCEPT('l');
+			ACCEPT(' ');
+			int train = strgetui(&c);
+			if (!train_goodtrain(train))
+				goto badcmd;
+			start_train_calibration(state, train);
+			break;
+		}
 		case 'd': {
 			handle_train_switch_all(state, 'C');
 			handle_train_switch(state, 9, 'S');
@@ -581,6 +567,7 @@ void a0() {
 	state.tid_time = WhoIs(NAME_TIMESERVER);
 	state.tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	state.tid_com2 = WhoIs(NAME_IOSERVER_COM2);
+	ASSERT(state.tid_com2 >= 0, "invalid com2 server: %d", state.tid_com2);
 
 	// ui
 	state.con = &con;
@@ -600,6 +587,9 @@ void a0() {
 	state.console_dump_line = CONSOLE_DUMP_LINE;
 	for (int i = 0; i <= TRAIN_MAX_TRAIN_ADDR; i++) {
 		state.train_speed[i] = 0;
+		for (int speed = 0; speed < TRAIN_MAX_SPEED; speed++) {
+			state.train_desc[i].tref[speed] = fixed_new(-1);
+		}
 	}
 	track_node *track_data = malloc(sizeof(track_node) * TRACK_MAX);
 	state.nodemap = ask_track(state.tid_com2, track_data);

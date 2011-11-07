@@ -2,12 +2,12 @@
 
 #define MAX_SUBSCRIBER 10
 
-typedef void (*subscriber(void*));
+typedef void (*subscriber)(void*);
 typedef struct dumbbus dumbbus;
 
 struct dumbbus
 {
-	subscriber *subscribers[MAX_SUBSCRIBER];
+	subscriber subscribers[MAX_SUBSCRIBER];
 };
 
 void dumbbus_init(dumbbus *dbus);
