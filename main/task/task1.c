@@ -1,12 +1,12 @@
-#include <task1.h>
 #include <syscall.h>
-#include <timeserver.h>
-#include <perfmon.h>
-#include <k3clients.h>
-#include <ioserver.h>
-#include <a0.h>
 #include <stdio.h>
-#include <calib_test.h>
+#include <task/calib_test.h>
+#include <task/task1.h>
+#include <task/perfmon.h>
+#include <task/k3clients.h>
+#include <task/a0.h>
+#include <server/timeserver.h>
+#include <server/ioserver.h>
 
 void task1() {
 	Create(PRIORITY_TIMESERVER, timeserver);

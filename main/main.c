@@ -1,6 +1,6 @@
 #include <kernel.h>
 #include <test.h>
-#include <task1.h>
+#include <task/task1.h>
 #include <kerneltest.h>
 #include <constants.h>
 

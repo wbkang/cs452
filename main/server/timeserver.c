@@ -1,11 +1,11 @@
-#include <timeserver.h>
-#include <notifier.h>
 #include <syscall.h>
 #include <heap.h>
 #include <util.h>
 #include <constants.h>
 #include <ts7200.h>
 #include <uconst.h>
+#include <server/timeserver.h>
+#include <server/notifier.h>
 
 #define TIMESERVER_CAPACITY 512
 

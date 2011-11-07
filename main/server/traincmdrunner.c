@@ -1,8 +1,8 @@
-#include <traincmdrunner.h>
-#include <traincmdbuffer.h>
 #include <syscall.h>
 #include <train.h>
 #include <uconst.h>
+#include <server/traincmdrunner.h>
+#include <server/traincmdbuffer.h>
 
 static void traincmdrunner() {
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);

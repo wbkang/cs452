@@ -1,6 +1,6 @@
-#include <timenotifier.h>
 #include <syscall.h>
 #include <uconst.h>
+#include <server/timenotifier.h>
 
 typedef struct _tag_timenotifier_msg {
 	int tid_target;

@@ -1,5 +1,5 @@
-#include <notifier.h>
 #include <syscall.h>
+#include <server/notifier.h>
 
 typedef struct _tag_notifier_msg {
 	int eventid;

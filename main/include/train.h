@@ -1,8 +1,8 @@
 #pragma once
 
-#include <traincmdbuffer.h>
 #include <syscall.h>
 #include <hardware.h>
+#include <server/traincmdbuffer.h>
 
 // train controller commands
 

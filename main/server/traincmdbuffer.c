@@ -1,6 +1,6 @@
-#include <traincmdbuffer.h>
-#include <buffertask.h>
 #include <constants.h>
+#include <server/traincmdbuffer.h>
+#include <server/buffertask.h>
 
 int traincmdbuffer_new() {
 	return buffertask_new(NAME_TRAINCMDBUFFER, PRIORITY_TRAINCMDBUFFER, sizeof(traincmd));

@@ -27,11 +27,13 @@ LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/
 %.o : %.c
 
 #################
-OBJS= main.o test.o task1.o k3clients.o a0.o \
-sensornotifier.o comnotifier.o traincmdbuffer.o traincmdrunner.o \
-timenotifier.o perfmon.o buffertask.o track_data.o timeserver.o \
-calib_test.o track_node.o ioserver.o betaimporter.o console.o \
-logstrip.o cmdline.o
+OBJS= main.o test.o \
+server/sensornotifier.o server/comnotifier.o server/traincmdbuffer.o \
+server/traincmdrunner.o server/timenotifier.o server/buffertask.o \
+server/timeserver.o server/ioserver.o server/notifier.o \
+track_data.o track_node.o  betaimporter.o console.o \
+task/calib_test.o task/task1.o task/k3clients.o task/a0.o task/perfmon.o \
+ui/logstrip.o ui/cmdline.o
 ################
 
 
@@ -56,7 +58,7 @@ generate_funcmap : $(OBJS)
 
 %.s : %.c
 	@echo "[CC]\t$< -> $@"
-	@$(XCC) -S $(CFLAGS)  $<
+	@$(XCC) -S $(CFLAGS) -o $@ $<
 
 clean:
 	@echo "[rm]\tCleaning"

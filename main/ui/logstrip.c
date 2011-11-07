@@ -1,4 +1,4 @@
-#include <logstrip.h>
+#include <ui/logstrip.h>
 
 logstrip logstrip_create(int line, int col, console *con) {
 	logstrip l;
