@@ -8,6 +8,7 @@
 #include <track_node.h>
 #include <track_data.h>
 #include <fixed.h>
+#include <dumbbus.h>
 #include <betaimporter.h>
 #include <server/sensornotifier.h>
 #include <server/comnotifier.h>
@@ -48,10 +49,14 @@ typedef struct {
 	int console_dump_line;
 	logstrip logstrip;
 	cmdline *cmdline;
+	dumbbus *sensor_listeners;
 	// train data
 	char train_speed[TRAIN_MAX_TRAIN_ADDR + 1];
 	// track data
 	lookup *nodemap;
+	// these are not scalable to multiple trains
+	uint cur_tick;
+	track_node *cur_node;
 	uint last_tick;
 	track_node *last_node;
 	uint trial;
@@ -344,7 +349,10 @@ static lookup *ask_track(int tid_com2, track_node* data) {
 	return NULL;
 }
 
-static inline void calib_sensor(a0state *state, track_node *cur_node, int tick) {
+static void calib_sensor(void *s) {
+	a0state *state = s;
+	track_node *cur_node = state->cur_node;
+	int tick = state->cur_tick;
 	if (strcmp(cur_node->name, "E4") == 0) return;
 
 	/*else if (strcmp(cur_node->name, "D5") == 0) {
@@ -398,7 +406,11 @@ static inline void calib_sensor(a0state *state, track_node *cur_node, int tick) 
 	data->trial++;
 }
 
-static void print_landmark(a0state *state, track_node *node, int tick) {
+static void print_landmark(void *s) {
+	a0state *state = s;
+	track_node *node = state->cur_node;
+	int tick = state->cur_tick;
+
 	if (state->last_node && state->last_node != node) {
 		track_node *curnode = state->last_node;
 		track_edge *curedge = find_forward(curnode);
@@ -435,13 +447,12 @@ static inline void handle_sensor(a0state *state, char msg[]) {
 	msg_sensor *sensor = (msg_sensor*) msg;
 	char modname[8];
 	sprintf(modname, "%c%d", sensor->module, sensor->id);
-	track_node *cur_node = lookup_get(state->nodemap, modname);
-
+	state->cur_node = lookup_get(state->nodemap, modname);
+	state->cur_tick = sensor->ticks;
 	ui_sensor(state, sensor->module, sensor->id);
-	calib_sensor(state, cur_node, sensor->ticks);
-	print_landmark(state, cur_node, sensor->ticks);
+	dumbbus_dispatch(state->sensor_listeners, state);
 	state->last_tick = sensor->ticks;
-	state->last_node = cur_node;
+	state->last_node = state->cur_node;
 }
 
 #define ACCEPT(a) { \
@@ -565,14 +576,25 @@ void a0() {
 	a0state state;
 	console con;
 	cmdline cmd;
+	dumbbus sensor_listeners;
+
 	state.tid_time = WhoIs(NAME_TIMESERVER);
 	state.tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	state.tid_com2 = WhoIs(NAME_IOSERVER_COM2);
+
+	// ui
 	state.con = &con;
 	console_create(state.con, state.tid_com2);
 	state.logstrip = logstrip_create(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, state.con);
 	state.cmdline = &cmd;
 	cmdline_create(&cmd, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, state.con, handle_command, &state);
+
+	// sensor listeners
+	state.sensor_listeners = &sensor_listeners;
+	dumbbus_init(&sensor_listeners);
+	dumbbus_register(&sensor_listeners, &calib_sensor);
+	dumbbus_register(&sensor_listeners, &print_landmark);
+
 	state.tid_traincmdbuf = traincmdbuffer_new();
 	traincmdrunner_new();
 	state.console_dump_line = CONSOLE_DUMP_LINE;
