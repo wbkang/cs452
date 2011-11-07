@@ -16,6 +16,7 @@
 #include <track_data.h>
 #include <fixed.h>
 #include <betaimporter.h>
+#include <logstrip.h>
 
 #define LEN_MSG (64 * 4)
 #define LEN_CMD 32
@@ -46,6 +47,7 @@ typedef struct {
 	int tid_traincmdbuf;
 	// ui
 	int console_dump_line;
+	logstrip logstrip;
 	// cmd buffer
 	char cmd[LEN_CMD];
 	int cmd_i;
@@ -191,7 +193,7 @@ static inline void ui_init(a0state *state) {
 
 	console_clear(state->con);
 	console_move(state->con, 1, 1);
-	CONSOLE_PRINTF(state->con, TRACK_TEMPLATE);
+	console_printf(state->con, TRACK_TEMPLATE);
 	console_flush(state->con);
 
 	ui_cmd_clear(state);
@@ -202,12 +204,8 @@ static inline void ui_init(a0state *state) {
 static inline void ui_time(a0state *state, int ticks) {
 	console_move(state->con, 1, 9);
 	console_erase_eol(state->con);
-	CONSOLE_PRINTF(state->con, "%d.%ds", ticks / 10, ticks % 10);
+	console_printf(state->con, "%d.%ds", ticks / 10, ticks % 10);
 	console_flush(state->con);
-}
-
-static inline void ui_move2log(console *con) {
-	console_move(con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
 }
 
 static inline void ui_sensor(a0state *state, char module, int id) {
@@ -224,9 +222,9 @@ static inline void ui_sensor(a0state *state, char module, int id) {
 	int max_hist_idx = 0;
 
 	for (int i = 0; (i < LEN_SENSOR_HIST) && hist_mod[i]; i++) {
-		CONSOLE_PRINTF(state->con, "%c%d, ", hist_mod[i], hist_id[i]);
+		console_printf(state->con, "%c%d, ", hist_mod[i], hist_id[i]);
 		if (i == LEN_SENSOR_HIST) {
-			CONSOLE_PRINTF(state->con, "...");
+			console_printf(state->con, "...");
 		}
 
 		max_hist_idx = i;
@@ -250,22 +248,18 @@ static inline void ui_sensor(a0state *state, char module, int id) {
 			}
 
 			console_effect_reset(state->con);
-			CONSOLE_PRINTF(state->con, "%s", direction_str[spinfo.dir]);
+			console_printf(state->con, "%s", direction_str[spinfo.dir]);
 		}
 	}
 	console_flush(state->con);
 }
 
 static inline void ui_speed(a0state *state, int train, int speed_avg) {
-	ui_move2log(state->con);
-	CONSOLE_PRINTF(state->con, "set speed_avg of train %d to %d", train, speed_avg);
-	console_flush(state->con);
+	logstrip_printf(state->logstrip, "set speed_avg of train %d to %d", train, speed_avg);
 }
 
 static inline void ui_reverse(a0state *state, int train) {
-	ui_move2log(state->con);
-	CONSOLE_PRINTF(state->con, "reversed train %d", train);
-	console_flush(state->con);
+	logstrip_printf(state->logstrip, "reversed train %d", train);
 }
 
 static inline void ui_updateswitchstatus(console *c, char no, char pos) {
@@ -277,7 +271,7 @@ static inline void ui_updateswitchstatus(console *c, char no, char pos) {
 	console_move(c, statusrow, statuscol);
 	console_effect(c, EFFECT_BRIGHT);
 	console_effect(c, EFFECT_FG_YELLOW);
-	CONSOLE_PRINTF(c, "%c", pos_name);
+	console_printf(c, "%c", pos_name);
 	console_effect_reset(c);
 
 	switch_pic_info swinfo = switch_pic_info_table[idx];
@@ -285,20 +279,16 @@ static inline void ui_updateswitchstatus(console *c, char no, char pos) {
 	console_move(c, swinfo.row, swinfo.col);
 	console_effect(c, EFFECT_BRIGHT);
 	console_effect(c, EFFECT_FG_YELLOW);
-	CONSOLE_PRINTF(c, "%c", (pos_name == 'S') ? swinfo.straight : swinfo.curved);
+	console_printf(c, "%c", (pos_name == 'S') ? swinfo.straight : swinfo.curved);
 	console_effect_reset(c);
 }
 
 static inline void ui_switch(a0state *state, char no, char pos) {
-	ui_move2log(state->con);
-	CONSOLE_PRINTF(state->con, "switched switch %d to %c", no, pos);
-	ui_updateswitchstatus(state->con, no, pos);
-	console_flush(state->con);
+	logstrip_printf(state->logstrip, "switched switch %d to %c", no, pos);
 }
 
 static inline void ui_switchall(a0state *state, char pos) {
-	ui_move2log(state->con);
-	CONSOLE_PRINTF(state->con, "switched all switches to '%c'", pos);
+	logstrip_printf(state->logstrip, "switched all switches to '%c'", pos);
 	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
 		ui_updateswitchstatus(state->con, train_switchi2no(i), pos);
 	}
@@ -306,14 +296,12 @@ static inline void ui_switchall(a0state *state, char pos) {
 }
 
 static inline void ui_setup_demo_track(a0state *state) {
-	ui_move2log(state->con);
-	CONSOLE_PRINTF(state->con, "adjusted all switches for demo");
-	console_flush(state->con);
+	logstrip_printf(state->logstrip, "adjusted all switches for demo");
 }
 
 static inline void ui_cmd_char(a0state *state, char c, int cmdpos) {
 	console_move(state->con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL + cmdpos);
-	CONSOLE_PRINTF(state->con, "%c", c);
+	console_printf(state->con, "%c", c);
 	console_flush(state->con);
 }
 
@@ -328,15 +316,11 @@ static inline void ui_cmd(a0state *state, char cmd[]) {
 }
 
 static inline void ui_cmd_bad(a0state *state, char cmd[]) {
-	ui_move2log(state->con);
-	CONSOLE_PRINTF(state->con, "invalid command: \"%s\"", cmd);
-	console_flush(state->con);
+	logstrip_printf(state->logstrip, "invalid command: \"%s\"", cmd);
 }
 
 static inline void ui_quit(a0state *state) {
-	ui_move2log(state->con);
-	console_erase_eol(state->con);
-	CONSOLE_PRINTF(state->con, "quitting...");
+	logstrip_printf(state->logstrip, "quitting...");
 	console_move(state->con, CONSOLE_CMD_LINE + 1, 1);
 	console_flush(state->con);
 }
@@ -427,10 +411,10 @@ static inline void calib_sensor(a0state *state, track_node *cur_node, int tick) 
 
 	console_move(state->con, state->console_dump_line++, CONSOLE_DUMP_COL);
 	console_erase_eol(state->con);
-	CONSOLE_PRINTF(state->con, "%s\t%s\t%d", state->last_node->name, cur_node->name, dist);
+	console_printf(state->con, "%s\t%s\t%d", state->last_node->name, cur_node->name, dist);
 
 	for (int trial = 0; trial <= MAX_TRIAL; trial++) {
-		CONSOLE_PRINTF(state->con, "\t%d", data->dt[trial]);
+		console_printf(state->con, "\t%d", data->dt[trial]);
 	}
 
 	console_flush(state->con);
@@ -446,7 +430,6 @@ static void print_landmark(a0state *state, track_node *node, int tick) {
 		ASSERT(node, "node is null!!");
 		int totaldist = find_dist(state->last_node, node, 0, 1);
 		if (totaldist < 0) return;
-//		ASSERT(totaldist > 0, "totaldist: %d", totaldist);
 		fixed tref = fixed_new(121); // TODO hardcoded
 		fixed total_beta = fixed_new(0);
 
@@ -466,7 +449,7 @@ static void print_landmark(a0state *state, track_node *node, int tick) {
 		fixed expected_time = fixed_mul(total_beta, tref);
 		fixed actual_time = fixed_new(tick - state->last_tick);
 
-		CONSOLE_PRINTF(state->con, "%s,%s,%F,%F,%F",
+		console_printf(state->con, "%s,%s,%F,%F,%F",
 				state->last_node->name, node->name, expected_time, actual_time, total_beta);
 	}
 
@@ -625,6 +608,7 @@ void a0() {
 	state.tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	state.tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	state.con = &con;
+	state.logstrip = logstrip_create(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, state.con);
 	console_create(state.con, state.tid_com2);
 	state.tid_traincmdbuf = traincmdbuffer_new();
 	traincmdrunner_new();
