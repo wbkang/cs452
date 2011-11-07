@@ -41,13 +41,16 @@ static void sensornotifier() {
 			int module = (upper << 8) | lower;
 			int old_module = modules[m];
 			modules[m] = module;
-			int sensors = (old_module ^ module) & (~old_module);
+			// int sensors = module ^ old_module;
+			int sensors = (module ^ old_module) & ~old_module;
 			while (sensors) {
 				int s = log2(sensors);
+				int mask = 1 << s;
 				msg.module = 'A' + m;
 				msg.id = 16 - s;
+				// msg.on = (module & mask) != 0;
 				Send(args.tid_target, &msg, sizeof(msg), NULL, 0);
-				sensors &= ~(1 << s);
+				sensors &= ~mask;
 			}
 		}
 	}

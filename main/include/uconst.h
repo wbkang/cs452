@@ -2,6 +2,7 @@
 
 #define MSPERTICK 1
 #define MS2TICK(x) ((x) / MSPERTICK)
+#define TICK2MS(x) ((x) * MSPERTICK)
 
 typedef enum {SENSOR, COM_IN, TIME} msgtype;
 
@@ -14,6 +15,7 @@ typedef struct {
 	int ticks;
 	char module;
 	int id;
+	// char on;
 } msg_sensor;
 
 typedef struct {
