@@ -7,7 +7,7 @@
 // train controller commands
 
 #define TRAIN_REVERSE 0xF
-#define TRAIN_SWITCH_STRAIGH 0x21
+#define TRAIN_SWITCH_STRAIGHT 0x21
 #define TRAIN_SWITCH_CURVED 0x22
 #define TRAIN_SOLENOID_OFF 0x20
 #define TRAIN_QUERYMOD 0xC0
