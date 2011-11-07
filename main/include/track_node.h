@@ -9,7 +9,7 @@ typedef enum {
 #define DIR_STRAIGHT 0
 #define DIR_CURVED 1
 
-#define POS_TO_DIR(pos) (((pos)=='c' || (pos) == 'C') ? DIR_CURVED : DIR_STRAIGHT)
+#define POS2DIR(pos) (((pos)=='c' || (pos) == 'C') ? DIR_CURVED : DIR_STRAIGHT)
 
 struct track_node;
 typedef struct track_node track_node;
