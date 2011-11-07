@@ -33,7 +33,7 @@ struct console {
 	char buf[CONSOLE_BUF_SIZE+1];
 };
 
-#define CONSOLE_PRINTF(c, ...) { (c)->buf_location += sprintf((c)->buf + (c)->buf_location, __VA_ARGS__); \
+#define console_printf(c, ...) { (c)->buf_location += sprintf((c)->buf + (c)->buf_location, __VA_ARGS__); \
 	ASSERT((c)->buf_location <= CONSOLE_BUF_SIZE, "console buf overflow: %d", (c)->buf_location); }
 
 
