@@ -11,6 +11,10 @@ static void assign_path_beta(fixed tmin, fixed tref, blind_path_result path, int
         track_edge *edge = path.edges[i];
         fixed edge_dist_fixed = fixed_new(edge->dist);
         fixed edge_beta = fixed_div(fixed_mul(tmin, edge_dist_fixed), fixed_mul(path_dist_fixed, tref));
+        if (strcmp(path.edges[0]->reverse->dest->reverse->name, "B16") == 0) {
+//        	PRINT("%s->%s,%F", edge->reverse->dest->reverse->name, edge->dest->name, edge_beta);
+        }
+        //curedge->reverse->dest->reverse->name, curedge->dest->name//
         edge->beta = edge_beta;
         edge->reverse->beta = edge_beta;
     }
@@ -646,5 +650,6 @@ fixed tref = fixed_new(115);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
 	ASSERT(path_dist >= 0, "find_dist_blind failed. E9->D8");
     assign_path_beta(tmin, tref, path, path_dist);
+//    while(1);
 }
 

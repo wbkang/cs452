@@ -26,8 +26,8 @@
 #define CONSOLE_DUMP_LINE CONSOLE_CMD_LINE + 4
 #define CONSOLE_DUMP_COL 1
 
-#define CONSOLE_LANDMARK_LINE 5
-#define CONSOLE_LANDMARK_COL 65
+#define CONSOLE_LANDMARK_LINE CONSOLE_DUMP_LINE
+#define CONSOLE_LANDMARK_COL 1
 
 #define NUM_TRIALS 10
 #define MAX_TRIAL (NUM_TRIALS-1)
@@ -51,6 +51,7 @@ typedef struct {
 	track_node *last_node;
 	uint trial;
 	// sensor expectation data
+	int linecnt;
 } a0state;
 
 typedef struct {
@@ -503,22 +504,26 @@ static void print_landmark(a0state *state, track_node *node, int tick) {
 		fixed tref = fixed_new(121); // TODO hardcoded
 		fixed total_beta = fixed_new(0);
 
+		b += console_cursor_save(b);
+		b += console_cursor_move(b, CONSOLE_LANDMARK_LINE + state->linecnt++ % 20, CONSOLE_LANDMARK_COL);
+		b += console_erase_eol(b);
+
 		while (curnode != node) {
 			ASSERT(curedge, "curedge is null. finding %s to %s, curnode:%s total_beta: %F",
 					state->last_node->name, node->name, curnode->name, total_beta);
+			ASSERT(curedge->beta != fixed_new(-1), "edge %s->%s beta is uninitialized.",
+					PREV_EDGE(curedge)->name, curedge->dest->name);
+			b += sprintf(b, "%s->%s:%F|", PREV_EDGE(curedge)->name, curedge->dest->name, curedge->beta);
 			total_beta = fixed_add(total_beta, curedge->beta);
-			curedge = find_forward(curnode);
 			curnode = curedge->dest;
+			curedge = find_forward(curnode);
 		}
 
 		fixed expected_time = fixed_mul(total_beta, tref);
 		fixed actual_time = fixed_new(tick - state->last_tick);
 
-		b += console_cursor_save(b);
-		b += console_cursor_move(b, CONSOLE_LANDMARK_LINE + state->console_dump_line, CONSOLE_LANDMARK_COL);
-		b += console_erase_eol(b);
-		b += sprintf(b, "%s->%s expected:%F, actual:%F, e/a%F",
-				state->last_node->name, node->name, expected_time, actual_time, fixed_div(expected_time, actual_time));
+		b += sprintf(b, "%s,%s,%F,%F,%F",
+				state->last_node->name, node->name, expected_time, actual_time, total_beta);
 	}
 
 	b += console_cursor_unsave(b);
@@ -688,6 +693,8 @@ void a0() {
 	state.last_tick = 0;
 	state.last_node = NULL;
 	state.trial = 0;
+
+	state.linecnt = 0;
 
 	ui_init(&state);
 
