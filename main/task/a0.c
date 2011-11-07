@@ -381,7 +381,7 @@ static void calib_sensor(void *s) {
 	data->trial++;
 }
 
-static void print_landmark(void *s) {
+static void print_landmark(void* s) {
 	a0state *state = s;
 	track_node *node = state->cur_node;
 	int tick = state->cur_tick;
@@ -392,7 +392,7 @@ static void print_landmark(void *s) {
 		ASSERT(node, "node is null!!");
 		int totaldist = find_dist(state->last_node, node, 0, 1);
 		if (totaldist < 0) return;
-		fixed tref = state->train_desc[38].tref[state->train_speed[38]]; // hardcoded
+		fixed tref = state->train_desc[37].tref[state->train_speed[37]]; // hardcoded
 		if (tref < 0) return;
 		fixed total_beta = fixed_new(0);
 
@@ -402,8 +402,7 @@ static void print_landmark(void *s) {
 		while (curnode != node) {
 			ASSERT(curedge, "curedge is null. finding %s to %s, curnode:%s total_beta: %F",
 					state->last_node->name, node->name, curnode->name, total_beta);
-			ASSERT(curedge->beta != fixed_new(-1), "edge %s->%s beta is uninitialized.",
-					PREV_EDGE(curedge)->name, curedge->dest->name);
+			ASSERT(curedge->beta != fixed_new(-1), "edge %s->%s beta is uninitialized.", PREV_EDGE(curedge)->name, curedge->dest->name);
 			total_beta = fixed_add(total_beta, curedge->beta);
 			curnode = curedge->dest;
 			curedge = find_forward(curnode);
@@ -412,8 +411,7 @@ static void print_landmark(void *s) {
 		fixed expected_time = fixed_mul(total_beta, tref);
 		fixed actual_time = fixed_new(tick - state->last_tick);
 
-		console_printf(state->con, "%s,%s,%F,%F,%F",
-				state->last_node->name, node->name, expected_time, actual_time, total_beta);
+		console_printf(state->con, "%s,%s,%F,%F,%F", state->last_node->name, node->name, expected_time, actual_time, total_beta);
 	}
 
 	console_flush(state->con);
@@ -451,8 +449,7 @@ static void handle_command(void* s, char *cmd, int size) {
 			ACCEPT('l');
 			ACCEPT(' ');
 			int train = strgetui(&c);
-			if (!train_goodtrain(train))
-				goto badcmd;
+			if (!train_goodtrain(train)) goto badcmd;
 			start_train_calibration(state, train);
 			break;
 		}
@@ -463,6 +460,7 @@ static void handle_command(void* s, char *cmd, int size) {
 			handle_train_switch(state, 15, 'S');
 			handle_train_switch(state, 16, 'S');
 			handle_train_switch(state, 14, 'S');
+			train_solenoidoff(state->tid_traincmdbuf);
 			ui_setup_demo_track(state);
 			break;
 		}
@@ -470,12 +468,10 @@ static void handle_command(void* s, char *cmd, int size) {
 			ACCEPT('r');
 			ACCEPT(' ');
 			int train = strgetui(&c);
-			if (!train_goodtrain(train))
-				goto badcmd;
+			if (!train_goodtrain(train)) goto badcmd;
 			ACCEPT(' ');
 			int speed = strgetui(&c);
-			if (!train_goodspeed(speed))
-				goto badcmd;
+			if (!train_goodspeed(speed)) goto badcmd;
 			ui_speed(state, train, speed);
 			state->train_speed[train] = speed;
 			train_speed(train, speed, state->tid_traincmdbuf);
@@ -485,8 +481,7 @@ static void handle_command(void* s, char *cmd, int size) {
 			ACCEPT('v');
 			ACCEPT(' ');
 			int train = strgetui(&c);
-			if (!train_goodtrain(train))
-				goto badcmd;
+			if (!train_goodtrain(train)) goto badcmd;
 			int speed_avg = state->train_speed[train];
 			ui_reverse(state, train);
 			train_speed(train, 0, state->tid_traincmdbuf);
@@ -502,13 +497,11 @@ static void handle_command(void* s, char *cmd, int size) {
 				switchno = *c++;
 			} else {
 				switchno = strgetui(&c);
-				if (!train_goodswitch(switchno))
-					goto badcmd;
+				if (!train_goodswitch(switchno)) goto badcmd;
 			}
 			ACCEPT(' ');
 			char pos = *c++;
-			if (!train_goodswitchpos(pos))
-				goto badcmd;
+			if (!train_goodswitchpos(pos)) goto badcmd;
 			if (switchno == '*') {
 				handle_train_switch_all(state, pos);
 			} else {
@@ -579,15 +572,15 @@ void a0() {
 	// sensor listeners
 	state.sensor_listeners = &sensor_listeners;
 	dumbbus_init(&sensor_listeners);
-	dumbbus_register(&sensor_listeners, &calib_sensor);
+	// dumbbus_register(&sensor_listeners, &calib_sensor);
 	dumbbus_register(&sensor_listeners, &print_landmark);
 
 	state.tid_traincmdbuf = traincmdbuffer_new();
 	traincmdrunner_new();
 	state.console_dump_line = CONSOLE_DUMP_LINE;
-	for (int i = 0; i <= TRAIN_MAX_TRAIN_ADDR; i++) {
+	TRAIN_FOREACH(i) {
 		state.train_speed[i] = 0;
-		for (int speed = 0; speed < TRAIN_MAX_SPEED; speed++) {
+		TRAIN_FOREACH_SPEED(speed) {
 			state.train_desc[i].tref[speed] = fixed_new(-1);
 		}
 	}

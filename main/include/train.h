@@ -18,7 +18,9 @@
 
 // train track data
 
+#define TRAIN_MIN_SPEED 0
 #define TRAIN_MAX_SPEED 30
+#define TRAIN_FOREACH_SPEED(x) for (int (x) = TRAIN_MIN_SPEED; (x) <= TRAIN_MAX_SPEED; (x)++)
 #define TRAIN_MIN_TRAIN_ADDR 1
 #define TRAIN_MAX_TRAIN_ADDR 80
 #define TRAIN_FOREACH(x) for (int (x) = TRAIN_MIN_TRAIN_ADDR; (x) <= TRAIN_MAX_TRAIN_ADDR; (x)++)
