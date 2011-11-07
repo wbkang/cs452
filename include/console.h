@@ -3,6 +3,14 @@
 #include <util.h>
 #include <stdio.h>
 
+#define CONSOLE_CLEAR "\x1B[2J"
+#define CONSOLE_ERASE_EOL "\x1B[K"
+#define CONSOLE_EFFECT(effect) "\033[" TOSTRING(effect) "m"
+#define CONSOLE_SHOWCURSOR "\x1B[?25h"
+#define CONSOLE_HIDECURSOR "\x1B[?25l"
+#define CONSOLE_SAVECURSOR "\x1B[s"
+#define CONSOLE_UNSAVECURSOR "\x1B[u"
+
 #define EFFECT_RESET 0
 #define EFFECT_REVERSE 7
 #define EFFECT_FG_BLUE 34
@@ -15,49 +23,29 @@
 #define EFFECT_FG_GREEN 32
 #define EFFECT_FG_WHITE 37
 
-#define CONSOLE_CLEAR "\x1B[2J"
-#define CONSOLE_ERASE_EOL "\x1B[K"
-#define CONSOLE_EFFECT(effect) "\033[" TOSTRING(effect) "m"
-#define CONSOLE_SHOWCURSOR "\x1B[?25h"
-#define CONSOLE_HIDECURSOR "\x1B[?25l"
-#define CONSOLE_SAVECURSOR "\x1B[s"
-#define CONSOLE_UNSAVECURSOR "\x1B[u"
+typedef struct console console;
 
-static inline int console_clear(char *buf) {
-	return sprintf(buf, CONSOLE_CLEAR);
-}
+#define CONSOLE_BUF_SIZE 4096
 
-static inline int console_erase_eol(char *buf) {
-	return sprintf(buf, CONSOLE_ERASE_EOL);
-}
+struct console {
+	int tid_console;
+	int buf_location;
+	char buf[CONSOLE_BUF_SIZE+1];
+};
 
-static inline int console_cursor_move(char *buf, int line, int column) {
-	return sprintf(buf, "\x1B[%d;%dH", line, column);
-}
+#define CONSOLE_PRINTF(c, ...) { (c)->buf_location += sprintf((c)->buf + (c)->buf_location, __VA_ARGS__); \
+	ASSERT((c)->buf_location <= CONSOLE_BUF_SIZE, "console buf overflow: %d", (c)->buf_location); }
 
-static inline int console_cursor_left(char *buf, int count) {
-	return sprintf(buf, "\x1B[%dD", count);
-}
 
-static inline int console_cursor_save(char *buf) {
-	return sprintf(buf, CONSOLE_SAVECURSOR);
-}
+void console_create(console *c, int tid);
+void console_flush(console *c);
 
-static inline int console_cursor_unsave(char *buf) {
-	return sprintf(buf, CONSOLE_UNSAVECURSOR);
-}
-
-static inline int console_scroll(char *buf, uint start, uint end) {
-	return sprintf(buf, "\x1B[%d;%dr", start, end);
-}
-
-static inline int console_fillrect(char *buf, char c, int x, int y, int width, int height) {
-	char *orig_buf = buf;
-	for (int i = y; i < y + height; i++) {
-		buf += console_cursor_move(buf, i, x);
-		for (int j = x; j < x + width; j++) {
-			*buf++ = c;
-		}
-	}
-	return buf - orig_buf;
-}
+void console_effect(console *c, int effect);
+void console_effect_reset(console *c);
+void console_clear(console *console);
+void console_erase_eol(console *c);
+void console_move(console *c, int line, int column);
+void console_cursor_left(console *c, int count);
+void console_cursor_save(console *c) ;
+void console_cursor_unsave(console *c);
+void console_scroll(console *c, uint start, uint end);
