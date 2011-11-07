@@ -20,8 +20,13 @@
 #define LEN_MSG (64 * 4)
 #define LEN_CMD 32
 
+#define CONSOLE_LOG_COL 1
 #define CONSOLE_LOG_LINE 29
+#define CONSOLE_CMD_COL 2
 #define CONSOLE_CMD_LINE 30
+
+#define CONSOLE_SENSOR_COL 17
+#define CONSOLE_SENSOR_LINE 6
 
 #define CONSOLE_DUMP_LINE CONSOLE_CMD_LINE + 4
 #define CONSOLE_DUMP_COL 1
@@ -37,6 +42,7 @@ typedef struct {
 	int tid_time;
 	int tid_com1;
 	int tid_com2;
+	console *con;
 	int tid_traincmdbuf;
 	// ui
 	int console_dump_line;
@@ -130,12 +136,6 @@ static inline void sensor_pic_def(
 static inline void ui_cmd_clear(a0state *state);
 
 static inline void ui_init(a0state *state) {
-	char buf[128];
-	char *b = buf;
-	b += console_clear(b);
-	b += console_cursor_move(b, 1, 1);
-	Putstr(COM2, buf, state->tid_com2);
-
 	// init sensor hist
 	for (int i = 0; i < LEN_SENSOR_HIST; i++) {
 		hist_mod[i] = 0;
@@ -189,7 +189,10 @@ static inline void ui_init(a0state *state) {
 	sensor_pic_def('C', 7, EAST, 8, WEST, 27, 27);
 	sensor_pic_def('C', 3, EAST, 4, WEST, 27, 42);
 
-	Putstr(COM2, TRACK_TEMPLATE, state->tid_com2);
+	console_clear(state->con);
+	console_move(state->con, 1, 1);
+	CONSOLE_PRINTF(state->con, TRACK_TEMPLATE);
+	console_flush(state->con);
 
 	ui_cmd_clear(state);
 
@@ -197,22 +200,14 @@ static inline void ui_init(a0state *state) {
 }
 
 static inline void ui_time(a0state *state, int ticks) {
-	char buf[32];
-	char *b = buf;
-	b += console_cursor_save(b);
-	b += console_cursor_move(b, 1, 9);
-	b += console_erase_eol(b);
-	ticks /= 10; // time in 100ms
-	b += sprintf(b, "%d.%ds", ticks / 10, ticks % 10);
-	b += console_cursor_unsave(b);
-	Putstr(COM2, buf, state->tid_com2);
+	console_move(state->con, 1, 9);
+	console_erase_eol(state->con);
+	CONSOLE_PRINTF(state->con, "%d.%ds", ticks / 10, ticks % 10);
+	console_flush(state->con);
 }
 
-static inline int ui_move2log(char * str) {
-	char * const orig_str = str;
-	str += console_cursor_move(str, 29, 1);
-	str += console_erase_eol(str);
-	return str - orig_str;
+static inline void ui_move2log(console *con) {
+	console_move(con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
 }
 
 static inline void ui_sensor(a0state *state, char module, int id) {
@@ -223,18 +218,15 @@ static inline void ui_sensor(a0state *state, char module, int id) {
 	hist_mod[0] = module;
 	hist_id[0] = id;
 
-	char buf[1024];
-	char *b = buf;
-	b += console_cursor_save(b);
-	b += console_cursor_move(b, 6, 17);
-	b += console_erase_eol(b);
+	console_move(state->con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
+	console_erase_eol(state->con);
 
 	int max_hist_idx = 0;
 
 	for (int i = 0; (i < LEN_SENSOR_HIST) && hist_mod[i]; i++) {
-		b += sprintf(b, "%c%d, ", hist_mod[i], hist_id[i]);
+		CONSOLE_PRINTF(state->con, "%c%d, ", hist_mod[i], hist_id[i]);
 		if (i == LEN_SENSOR_HIST) {
-			b += sprintf(b, "...");
+			CONSOLE_PRINTF(state->con, "...");
 		}
 
 		max_hist_idx = i;
@@ -244,126 +236,91 @@ static inline void ui_sensor(a0state *state, char module, int id) {
 		sensor_pic_info spinfo = sensor_pic_info_table[hist_mod[i]-'A'][hist_id[i]];
 
 		if (spinfo.dir != UNKNOWN) {
-			b += console_cursor_move(b, spinfo.row, spinfo.col);
+			console_move(state->con, spinfo.row, spinfo.col);
 
 			switch (i) {
 				case 0:
-					b += sprintf(b, CONSOLE_EFFECT(EFFECT_BRIGHT));
+					console_effect(state->con, EFFECT_BRIGHT);
 				case 1:
-					b += sprintf(b, CONSOLE_EFFECT(EFFECT_FG_CYAN));
+					console_effect(state->con, EFFECT_FG_CYAN);
 					break;
 				default:
-					b += sprintf(b, CONSOLE_EFFECT(EFFECT_FG_BLUE));
+					console_effect(state->con, EFFECT_FG_BLUE);
 					break;
 			}
 
-			b += sprintf(b, "%s" CONSOLE_EFFECT(EFFECT_RESET), direction_str[spinfo.dir]);
+			console_effect_reset(state->con);
+			CONSOLE_PRINTF(state->con, "%s", direction_str[spinfo.dir]);
 		}
 	}
-
-	b += console_cursor_unsave(b);
-	Putstr(COM2, buf, state->tid_com2);
+	console_flush(state->con);
 }
 
 static inline void ui_speed(a0state *state, int train, int speed_avg) {
-	char buf[128];
-	char *b = buf;
-	b += console_cursor_save(b);
-	b += ui_move2log(b);
-	b += sprintf(b, "set speed_avg of train %d to %d", train, speed_avg);
-	b += console_cursor_unsave(b);
-	Putstr(COM2, buf, state->tid_com2);
+	ui_move2log(state->con);
+	CONSOLE_PRINTF(state->con, "set speed_avg of train %d to %d", train, speed_avg);
+	console_flush(state->con);
 }
 
 static inline void ui_reverse(a0state *state, int train) {
-	char buf[128];
-	char *b = buf;
-	b += console_cursor_save(b);
-	b += ui_move2log(b);
-	b += sprintf(b, "reversed train %d", train);
-	b += console_cursor_unsave(b);
-	Putstr(COM2, buf, state->tid_com2);
+	ui_move2log(state->con);
+	CONSOLE_PRINTF(state->con, "reversed train %d", train);
+	console_flush(state->con);
 }
 
-static inline int ui_updateswitchstatus(char *buf, char no, char pos) {
-	char * const orig_buf = buf;
+static inline void ui_updateswitchstatus(console *c, char no, char pos) {
 	int idx = train_switchno2i(no); // 0 based
 	int statusrow = 2 + idx / 6;
 	int statuscol = 14 + 5 * (idx % 6);
 	char pos_name = train_switchpos_straight(pos) ? 'S' : 'C';
 
-	buf += console_cursor_move(buf, statusrow, statuscol);
-	buf += sprintf(buf, CONSOLE_EFFECT(EFFECT_BRIGHT) CONSOLE_EFFECT(EFFECT_FG_YELLOW)
-			"%c" CONSOLE_EFFECT(EFFECT_RESET), pos_name);
+	console_move(c, statusrow, statuscol);
+	console_effect(c, EFFECT_BRIGHT);
+	console_effect(c, EFFECT_FG_YELLOW);
+	CONSOLE_PRINTF(c, "%c", pos_name);
+	console_effect_reset(c);
 
 	switch_pic_info swinfo = switch_pic_info_table[idx];
 
-	buf += console_cursor_move(buf, swinfo.row, swinfo.col);
-	buf += sprintf(buf,
-			CONSOLE_EFFECT(EFFECT_BRIGHT)
-			CONSOLE_EFFECT(EFFECT_FG_YELLOW)
-			"%c"
-			CONSOLE_EFFECT(EFFECT_RESET),
-			(pos_name == 'S') ? swinfo.straight : swinfo.curved);
-
-	return buf - orig_buf;
+	console_move(c, swinfo.row, swinfo.col);
+	console_effect(c, EFFECT_BRIGHT);
+	console_effect(c, EFFECT_FG_YELLOW);
+	CONSOLE_PRINTF(c, "%c", (pos_name == 'S') ? swinfo.straight : swinfo.curved);
+	console_effect_reset(c);
 }
 
 static inline void ui_switch(a0state *state, char no, char pos) {
-	char buf[1024];
-	char *b = buf;
-	b += console_cursor_save(b);
-	b += ui_move2log(b);
-	b += sprintf(b, "switched switch %d to %c", no, pos);
-	b += ui_updateswitchstatus(buf, no, pos);
-	b += console_cursor_unsave(b);
-	Putstr(COM2, buf, state->tid_com2);
+	ui_move2log(state->con);
+	CONSOLE_PRINTF(state->con, "switched switch %d to %c", no, pos);
+	ui_updateswitchstatus(state->con, no, pos);
+	console_flush(state->con);
 }
 
 static inline void ui_switchall(a0state *state, char pos) {
-	char buf[4096];
-	char *b = buf;
-	b += console_cursor_save(b);
-	b += ui_move2log(b);
-	b += sprintf(b, "switched all switches to '%c'", pos);
+	ui_move2log(state->con);
+	CONSOLE_PRINTF(state->con, "switched all switches to '%c'", pos);
 	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
-		b += ui_updateswitchstatus(b, train_switchi2no(i), pos);
+		ui_updateswitchstatus(state->con, train_switchi2no(i), pos);
 	}
-	b += console_cursor_unsave(b);
-	Putstr(COM2, buf, state->tid_com2);
+	console_flush(state->con);
 }
 
 static inline void ui_setup_demo_track(a0state *state) {
-	char buf[1024];
-	char *b = buf;
-	b += ui_move2log(b);
-	b += sprintf(b, "adjusted all switches for demo");
-	b += console_cursor_unsave(b);
-	Putstr(COM2, buf, state->tid_com2);
+	ui_move2log(state->con);
+	CONSOLE_PRINTF(state->con, "adjusted all switches for demo");
+	console_flush(state->con);
 }
 
 static inline void ui_cmd_char(a0state *state, char c, int cmdpos) {
-	char buf[128];
-	char *b = buf;
-	b += console_cursor_move(b, 30, 2 + cmdpos);
-	b += sprintf(b, CONSOLE_EFFECT(EFFECT_RESET) "%c", c);
-	Putstr(COM2, buf, state->tid_com2);
-}
-
-static inline void ui_cmd_delchar(a0state *state) {
-	char buf[128];
-	char *b = buf;
-	b += console_cursor_left(b, 1);
-	b += console_erase_eol(b);
-	Putstr(COM2, buf, state->tid_com2);
+	console_move(state->con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL + cmdpos);
+	CONSOLE_PRINTF(state->con, "%c", c);
+	console_flush(state->con);
 }
 
 static inline void ui_cmd_clear(a0state *state) {
-	char buf[128];
-	char *b = buf;
-	b += console_cursor_move(b, 30, 3);
-	b += console_erase_eol(b);
-	Putstr(COM2, buf, state->tid_com2);
+	console_move(state->con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL);
+	console_erase_eol(state->con);
+	console_flush(state->con);
 }
 
 static inline void ui_cmd(a0state *state, char cmd[]) {
@@ -371,23 +328,17 @@ static inline void ui_cmd(a0state *state, char cmd[]) {
 }
 
 static inline void ui_cmd_bad(a0state *state, char cmd[]) {
-	char buf[128];
-	char *b = buf;
-	b += console_cursor_save(b);
-	b += ui_move2log(b);
-	b += sprintf(b, "invalid command: \"%s\"", cmd);
-	b += console_cursor_unsave(b);
-	Putstr(COM2, buf, state->tid_com2);
+	ui_move2log(state->con);
+	CONSOLE_PRINTF(state->con, "invalid command: \"%s\"", cmd);
+	console_flush(state->con);
 }
 
 static inline void ui_quit(a0state *state) {
-	char buf[128];
-	char *b = buf;
-	b += console_cursor_save(b);
-	b += ui_move2log(b);
-	b += sprintf(b, "quitting...");
-	b += console_cursor_move(b, 31, 1);
-	Putstr(COM2, buf, state->tid_com2);
+	ui_move2log(state->con);
+	console_erase_eol(state->con);
+	CONSOLE_PRINTF(state->con, "quitting...");
+	console_move(state->con, CONSOLE_CMD_LINE + 1, 1);
+	console_flush(state->con);
 }
 
 /*
@@ -474,26 +425,21 @@ static inline void calib_sensor(a0state *state, track_node *cur_node, int tick) 
 
 	// if (dist == -1) dist = find_dist(state->last_node->reverse, cur_node, 0, 2);
 
-	char msgbuf[1024];
-	char *b = msgbuf;
-	b += console_cursor_save(b);
-	b += console_cursor_move(b, state->console_dump_line++, CONSOLE_DUMP_COL);
-	b += console_erase_eol(b);
-	b += sprintf(b, "%s\t%s", state->last_node->name, cur_node->name);
-	b += sprintf(b, "\t%d", dist);
+	console_move(state->con, state->console_dump_line++, CONSOLE_DUMP_COL);
+	console_erase_eol(state->con);
+	CONSOLE_PRINTF(state->con, "%s\t%s\t%d", state->last_node->name, cur_node->name, dist);
+
 	for (int trial = 0; trial <= MAX_TRIAL; trial++) {
-		b += sprintf(b, "\t%d", data->dt[trial]);
+		CONSOLE_PRINTF(state->con, "\t%d", data->dt[trial]);
 	}
-	b += console_cursor_unsave(b);
-	Putstr(COM2, msgbuf, state->tid_com2);
+
+	console_flush(state->con);
 
 	exit:
 	data->trial++;
 }
 
 static void print_landmark(a0state *state, track_node *node, int tick) {
-	char buf[1024], *b = buf;
-
 	if (state->last_node && state->last_node != node) {
 		track_node *curnode = state->last_node;
 		track_edge *curedge = find_forward(curnode);
@@ -504,16 +450,14 @@ static void print_landmark(a0state *state, track_node *node, int tick) {
 		fixed tref = fixed_new(121); // TODO hardcoded
 		fixed total_beta = fixed_new(0);
 
-		b += console_cursor_save(b);
-		b += console_cursor_move(b, CONSOLE_LANDMARK_LINE + state->linecnt++ % 20, CONSOLE_LANDMARK_COL);
-		b += console_erase_eol(b);
+		console_move(state->con, CONSOLE_LANDMARK_LINE + state->linecnt++ % 20, CONSOLE_LANDMARK_COL);
+		console_erase_eol(state->con);
 
 		while (curnode != node) {
 			ASSERT(curedge, "curedge is null. finding %s to %s, curnode:%s total_beta: %F",
 					state->last_node->name, node->name, curnode->name, total_beta);
 			ASSERT(curedge->beta != fixed_new(-1), "edge %s->%s beta is uninitialized.",
 					PREV_EDGE(curedge)->name, curedge->dest->name);
-			b += sprintf(b, "%s->%s:%F|", PREV_EDGE(curedge)->name, curedge->dest->name, curedge->beta);
 			total_beta = fixed_add(total_beta, curedge->beta);
 			curnode = curedge->dest;
 			curedge = find_forward(curnode);
@@ -522,12 +466,11 @@ static void print_landmark(a0state *state, track_node *node, int tick) {
 		fixed expected_time = fixed_mul(total_beta, tref);
 		fixed actual_time = fixed_new(tick - state->last_tick);
 
-		b += sprintf(b, "%s,%s,%F,%F,%F",
+		CONSOLE_PRINTF(state->con, "%s,%s,%F,%F,%F",
 				state->last_node->name, node->name, expected_time, actual_time, total_beta);
 	}
 
-	b += console_cursor_unsave(b);
-	Putstr(COM2, buf, state->tid_com2);
+	console_flush(state->con);
 }
 
 static inline void handle_sensor(a0state *state, char msg[]) {
@@ -558,8 +501,8 @@ static inline void handle_com2in(a0state *state, msg_comin *comin) {
 		case '\b':
 			state->cmd_i--;
 			if (state->cmd_i >= 1) {
+				ui_cmd_char(state, ' ', state->cmd_i);
 				state->cmd_i -= 1;
-				ui_cmd_delchar(state);
 			}
 			break;
 		case '\r': {
@@ -677,9 +620,12 @@ static inline void handle_time(a0state *state, char msg[]) {
 
 void a0() {
 	a0state state;
+	console con;
 	state.tid_time = WhoIs(NAME_TIMESERVER);
 	state.tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	state.tid_com2 = WhoIs(NAME_IOSERVER_COM2);
+	state.con = &con;
+	console_create(state.con, state.tid_com2);
 	state.tid_traincmdbuf = traincmdbuffer_new();
 	traincmdrunner_new();
 	state.console_dump_line = CONSOLE_DUMP_LINE;
