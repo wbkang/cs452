@@ -45,7 +45,7 @@ typedef struct {
 } track_node_data;
 
 
-static inline void reset_track_node_data(track_node_data *data) {
+static void reset_track_node_data(track_node_data *data) {
 	data->trial = -1;
 	for (int i = 0; i < NUM_TRIALS; i++) {
 		data->dt[i] = -1;
@@ -99,7 +99,7 @@ static char direction_str[9][3] = { "", "/\\", "\\/", ">", "<", "/\\", "\\/", "/
 
 static sensor_pic_info sensor_pic_info_table[TRAIN_NUM_MODULES][TRAIN_NUM_SENSORS];
 
-static inline void sensor_pic_def(
+static void sensor_pic_def(
 		char mod,
 		int id1, enum direction dir1,
 		int id2, enum direction dir2,
@@ -112,7 +112,7 @@ static inline void sensor_pic_def(
 	sensor_pic_info_table[mod - 'A'][id2].col = col;
 }
 
-static inline void ui_init(a0state *state) {
+static void ui_init(a0state *state) {
 	// init sensor hist
 	for (int i = 0; i < LEN_SENSOR_HIST; i++) {
 		hist_mod[i] = 0;
@@ -176,14 +176,15 @@ static inline void ui_init(a0state *state) {
 	return;
 }
 
-static inline void ui_time(a0state *state, int ticks) {
+static void ui_time(a0state *state, int ticks) {
 	console_move(state->con, 1, 9);
 	console_erase_eol(state->con);
-	console_printf(state->con, "%Fs", fixed_div(fixed_new(ticks), fixed_new(1000 / MSPERTICK)));
+	int ms = TICK2MS(ticks);
+	console_printf(state->con, "%d.%ds", ms / 1000, (ms / 100) % 10);
 	console_flush(state->con);
 }
 
-static inline void ui_sensor(a0state *state, char module, int id) {
+static void ui_sensor(a0state *state, char module, int id) {
 	for (int i = LEN_SENSOR_HIST - 1; i > 0; i--) {
 		hist_mod[i] = hist_mod[i - 1];
 		hist_id[i] = hist_id[i - 1];
@@ -229,15 +230,15 @@ static inline void ui_sensor(a0state *state, char module, int id) {
 	console_flush(state->con);
 }
 
-static inline void ui_speed(a0state *state, int train, int speed) {
+static void ui_speed(a0state *state, int train, int speed) {
 	logstrip_printf(state->logstrip, "set speed of train %d to %d", train, speed);
 }
 
-static inline void ui_reverse(a0state *state, int train) {
+static void ui_reverse(a0state *state, int train) {
 	logstrip_printf(state->logstrip, "reversed train %d", train);
 }
 
-static inline void ui_updateswitchstatus(console *c, char no, char pos) {
+static void ui_updateswitchstatus(console *c, char no, char pos) {
 	int idx = train_switchno2i(no); // 0 based
 	int statusrow = 2 + idx / 6;
 	int statuscol = 14 + 5 * (idx % 6);
@@ -258,11 +259,11 @@ static inline void ui_updateswitchstatus(console *c, char no, char pos) {
 	console_effect_reset(c);
 }
 
-static inline void ui_switch(a0state *state, char no, char pos) {
+static void ui_switch(a0state *state, char no, char pos) {
 	logstrip_printf(state->logstrip, "switched switch %d to %c", no, pos);
 }
 
-static inline void ui_switchall(a0state *state, char pos) {
+static void ui_switchall(a0state *state, char pos) {
 	logstrip_printf(state->logstrip, "switched all switches to '%c'", pos);
 	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
 		ui_updateswitchstatus(state->con, train_switchi2no(i), pos);
@@ -270,11 +271,11 @@ static inline void ui_switchall(a0state *state, char pos) {
 	console_flush(state->con);
 }
 
-static inline void ui_setup_demo_track(a0state *state) {
+static void ui_setup_demo_track(a0state *state) {
 	logstrip_printf(state->logstrip, "adjusted all switches for demo");
 }
 
-static inline void ui_quit(a0state *state) {
+static void ui_quit(a0state *state) {
 	logstrip_printf(state->logstrip, "quitting...");
 	console_move(state->con, CONSOLE_CMD_LINE + 1, 1);
 	console_flush(state->con);
@@ -415,16 +416,28 @@ static void print_landmark(void* s) {
 	console_flush(state->con);
 }
 
-static inline void handle_sensor(a0state *state, char msg[]) {
-	msg_sensor *sensor = (msg_sensor*) msg;
+// static void measure_speed_from_sensor(a0state *state, track_node *sensor, msg_sensor *sensor_msg) {
+// 	if (sensor_msg->on == FALSE) {
+// 		console_move(state->con, state->console_dump_line++, CONSOLE_DUMP_COL);
+// 		int dx = 50;
+// 		int dt = TICK2MS(sensor_msg->ticks - state->last_tick);
+// 		console_printf(state->con, "dx: %d, dt: %d, dx/dt: %d\n", dx, dt, (100000 * dx) / dt);
+// 		console_flush(state->con);
+// 	}
+// }
+
+static void handle_sensor(a0state *state, char msg[]) {
+	msg_sensor *sensor_msg = (msg_sensor*) msg;
 	char modname[8];
-	sprintf(modname, "%c%d", sensor->module, sensor->id);
-	state->cur_node = lookup_get(state->nodemap, modname);
-	state->cur_tick = sensor->ticks;
-	ui_sensor(state, sensor->module, sensor->id);
+	sprintf(modname, "%c%d", sensor_msg->module, sensor_msg->id);
+	track_node *sensor = lookup_get(state->nodemap, modname);
+	// measure_speed_from_sensor(state, sensor, sensor_msg);
+	state->cur_node = sensor;
+	state->cur_tick = sensor_msg->ticks;
+	ui_sensor(state, sensor_msg->module, sensor_msg->id);
 	dumbbus_dispatch(state->sensor_listeners, state);
-	state->last_tick = sensor->ticks;
-	state->last_node = state->cur_node;
+	state->last_tick = state->cur_tick;
+	state->last_node = sensor;
 }
 
 #define ACCEPT(a) { \
@@ -538,13 +551,13 @@ static void handle_command(void* s, char *cmd, int size) {
 	logstrip_printf(state->logstrip, "invalid command: \"%s\"", cmd);
 }
 
-static inline void handle_comin(a0state *state, char msg[]) {
+static void handle_comin(a0state *state, char msg[]) {
 	msg_comin *comin = (msg_comin*) msg;
 	ASSERT(comin->channel == COM2, "no handler for channel %d", comin->channel);
 	cmdline_handleinput(state->cmdline, comin->c);
 }
 
-static inline void handle_time(a0state *state, char msg[]) {
+static void handle_time(a0state *state, char msg[]) {
 	msg_time *time = (msg_time*) msg;
 	ui_time(state, time->ticks);
 }

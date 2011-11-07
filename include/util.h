@@ -37,8 +37,8 @@ typedef char *va_list;
 #define NEXTHIGHESTWORD(x) BYTES2WORDS((x) + 3)
 #define LIKELY(x) __builtin_expect((x), 1)
 #define UNLIKELY(x) __builtin_expect((x), 0)
-#define INT_MIN -2147483648
-#define INT_MAX 2147483647
+#define INT_MIN (-(1 << 30))
+#define INT_MAX ((1 << 30)-1)
 #define MEMCHECK() malloc(0)
 
 #define PUTS(...) { \
