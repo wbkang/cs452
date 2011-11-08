@@ -37,13 +37,18 @@ static int char2digit(char ch) {
 	return -1;
 }
 
-static inline int putw(char *outbuf, int n, char fc, char *bf) {
+static inline int putw(char *outbuf, int width, char fillchar, char *buf, int left_align) {
 	char *orig_buf = outbuf;
 	char ch;
-	char *p = bf;
-	while (*p++ && n > 0) n--;
-	while (n-- > 0) *outbuf++ = fc;
-	while ((ch = *bf++)) *outbuf++ = ch;
+	char *p = buf;
+	while (*p++ && width > 0) width--;
+	if (!left_align) {
+		while (width-- > 0) *outbuf++ = fillchar;
+	}
+	while ((ch = *buf++)) *outbuf++ = ch;
+	if (left_align) {
+		while (width-- > 0) *outbuf++ = fillchar;
+	}
 	return outbuf - orig_buf;
 }
 
@@ -65,18 +70,24 @@ static inline char a2i(char ch, char const **src, int base, int *nump) {
 static inline int format(char *buf, char const *fmt, va_list va) {
 	char * const orig_buf = buf;
 	char bf[32 + 1];
-	char ch, lz;
-	int w;
+	char ch, fillchar;
+	int minus = 0;
+	int width;
 	while ((ch = *(fmt++))) {
 		if (ch != '%') {
 			*buf++ = ch;
 		} else {
-			lz = 0;
-			w = 0;
+			fillchar = ' ';
+			width = 0;
 			ch = *(fmt++);
 			switch (ch) {
+				case '-':
+					minus = 1;
+					ch = *(fmt++);
+					ch = a2i(ch, &fmt, 10, &width);
+					break;
 				case '0':
-					lz = 1;
+//					lz = 1;
 					ch = *(fmt++);
 					break;
 				case '1':
@@ -88,7 +99,10 @@ static inline int format(char *buf, char const *fmt, va_list va) {
 				case '7':
 				case '8':
 				case '9':
-					ch = a2i(ch, &fmt, 10, &w);
+					ch = a2i(ch, &fmt, 10, &width);
+					break;
+				default:
+					fillchar = 0; // no fillchar
 					break;
 			}
 			switch (ch) {
@@ -98,27 +112,27 @@ static inline int format(char *buf, char const *fmt, va_list va) {
 					*buf++ = va_arg( va, char );
 					break;
 				case 's':
-					buf += putw(buf, w, 0, va_arg( va, char* ));
+					buf += putw(buf, width, fillchar, va_arg( va, char* ), minus);
 					break;
 				case 'u':
 					uint2str(va_arg( va, uint ), 10, bf);
-					buf += putw(buf, w, lz, bf);
+					buf += putw(buf, width, fillchar, bf, minus);
 					break;
 				case 'd':
 					int2str(va_arg( va, int ), bf);
-					buf += putw(buf, w, lz, bf);
+					buf += putw(buf, width, fillchar, bf, minus);
 					break;
 				case 'b':
 					uint2str(va_arg( va, uint ), 2, bf);
 					*buf++ = '0';
 					*buf++ = 'x';
-					buf += putw(buf, w, lz, bf);
+					buf += putw(buf, width, fillchar, bf, minus);
 					break;
 				case 'x':
 					uint2str(va_arg( va, uint ), 16, bf);
 					*buf++ = '0';
 					*buf++ = 'x';
-					buf += putw(buf, w, lz, bf);
+					buf += putw(buf, width, fillchar, bf, minus);
 					break;
 				case 'F': {
 					buf += fixed_print(buf, va_arg(va, fixed));
