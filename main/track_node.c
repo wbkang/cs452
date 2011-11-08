@@ -91,6 +91,27 @@ int find_path_blind(track_node *orig, track_node *dest, blind_path_result *rv, i
 	}
 }
 
+int calc_distance_after(track_node *orig, int tick_diff, int tref) {
+	track_edge *expected_edge = find_forward(orig);
+	if (!expected_edge) {
+		return -1;
+	}
+
+	fixed beta = expected_edge->beta;
+	ASSERT(tick_diff > 0, "tick_diff is nonpositive");
+
+	// tick_diff * dist / (tref * beta)
+
+	// this overflows
+//	fixed est_dist_mm =
+//				fixed_div(fixed_new(tick_diff * expected_edge->dist), fixed_mul(beta, fixed_new(tref)))
+
+	// tick_diff / (tref * beta) * dist
+	fixed est_dist_mm = fixed_mul(fixed_div(fixed_new(tick_diff), fixed_mul(fixed_new(tref), beta)), fixed_new(expected_edge->dist));
+
+	return fixed_int(est_dist_mm) / 10;
+}
+
 fixed beta_sum(track_node *orig, track_node *dest) {
 	ASSERTNOTNULL(orig);
 	ASSERTNOTNULL(dest);
