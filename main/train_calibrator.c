@@ -27,17 +27,20 @@ static void reset_calib_state(int min, int max) {
 
 static int next_calib_speed() {
 	if (calib_state.ascending) {
-		if (++calib_state.cur_speed > calib_state.max_speed) {
+		calib_state.cur_speed++;
+		if (calib_state.cur_speed > calib_state.max_speed) {
 			calib_state.cur_speed = calib_state.max_speed - 1;
 			calib_state.ascending = 0;
 		}
+	} else {
+		calib_state.cur_speed--;
+	}
+
+	if (calib_state.cur_speed >= calib_state.min_speed && calib_state.max_speed >= calib_state.cur_speed) {
 		return calib_state.cur_speed;
 	} else {
-		if (--calib_state.cur_speed >= calib_state.min_speed) {
-			return calib_state.cur_speed;
-		}
+		return -1;
 	}
-	return -1;
 }
 
 
@@ -72,6 +75,7 @@ static void handle_sensor_response(void* s) {
 			train->tref[speedidx] = tref;
 			logdisplay_printf(state->expected_time_display, "tref set for train %d, speed %d, to %d. speedidx:%d. ",
 					calib_state.train_num, train->speed, tref, speedidx);
+			logdisplay_flushline(state->expected_time_display);
 		} else {
 			calib_state.testrun = FALSE;
 		}
