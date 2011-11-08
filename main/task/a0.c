@@ -572,8 +572,8 @@ void a0() {
 	state.cmdline = &cmd;
 	cmdline_create(&cmd, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, state.con, handle_command, &state);
 	state.sensorlog = logstrip_create(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, state.con);
-	state.console_dump = logdisplay_new(&con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, 1);
-	state.landmark_display = logdisplay_new(&con, CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL, 20, 0);
+	state.console_dump = logdisplay_new(&con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, ROUNDROBIN);
+	state.landmark_display = logdisplay_new(&con, CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL, 20, SCROLLING);
 	// sensor listeners
 	state.sensor_listeners = &sensor_listeners;
 	dumbbus_init(&sensor_listeners);

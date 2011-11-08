@@ -38,14 +38,14 @@ void logdisplay_puts(logdisplay *l, char* str) {
 
 void logdisplay_flushline(logdisplay *l) {
 	l->curcol = 0;
-	if (l->rotation) {
+	if (l->rotation == ROUNDROBIN) {
 		console_move(l->con, l->line + l->curline, l->col);
 		console_erase_eol(l->con);
 		console_printf(l->con, "%s", l->buf[l->curline]);
 		console_flush(l->con);
 		l->curline++;
 		l->curline = l->curline % l->totallines;
-	} else {
+	} else if (l->rotation == SCROLLING) {
 		for (int i = 0, cl = l->topline % l->totallines; i < l->totallines; i++) {
 			console_move(l->con, l->line + i, l->col);
 			console_erase_eol(l->con);
@@ -62,5 +62,7 @@ void logdisplay_flushline(logdisplay *l) {
 			l->topline++;
 			if (l->topline < 0) l->topline = 1;
 		}
+	} else {
+		ASSERT(0, "invalid rotation mode: %d", l->rotation);
 	}
 }
