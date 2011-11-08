@@ -576,7 +576,6 @@ void a0() {
 	a0state state;
 	console con;
 	cmdline cmd;
-	dumbbus sensor_listeners;
 
 	state.tid_time = WhoIs(NAME_TIMESERVER);
 	state.tid_com1 = WhoIs(NAME_IOSERVER_COM1);
@@ -593,10 +592,9 @@ void a0() {
 	state.console_dump = logdisplay_new(&con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, ROUNDROBIN);
 	state.landmark_display = logdisplay_new(&con, CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL, 20, SCROLLING);
 	// sensor listeners
-	state.sensor_listeners = &sensor_listeners;
-	dumbbus_init(&sensor_listeners);
+	state.sensor_listeners = dumbbus_new();
 	// dumbbus_register(&sensor_listeners, &calib_sensor);
-	dumbbus_register(&sensor_listeners, &print_landmark);
+	dumbbus_register(state.sensor_listeners, &print_landmark);
 
 	state.tid_traincmdbuf = traincmdbuffer_new();
 	traincmdrunner_new();
