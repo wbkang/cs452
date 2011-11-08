@@ -51,8 +51,6 @@ static void handle_sensor_response(void* s) {
 	track_node *node = state->cur_node;
 
 	if (!(node && state->last_node)) {
-		logdisplay_printf(state->landmark_display, "one of the nodes are null. %d", state->cur_tick);
-		logdisplay_flushline(state->landmark_display);
 		return;
 	}
 

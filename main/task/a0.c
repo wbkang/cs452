@@ -36,6 +36,7 @@
 
 #define CONSOLE_LANDMARK_LINE 8
 #define CONSOLE_LANDMARK_COL 65
+#define CONSOLE_LANDMARK_SIZE 10
 
 #define NUM_TRIALS 10
 #define MAX_TRIAL (NUM_TRIALS - 1)
@@ -376,7 +377,7 @@ static void calib_sensor(void *s) {
 	exit: data->trial++;
 }
 
-static void print_landmark(void* s) {
+static void print_expected_time(void* s) {
 	a0state *state = s;
 
 	if (state->cur_train == -1) {
@@ -384,6 +385,11 @@ static void print_landmark(void* s) {
 	}
 
 	train_descriptor *current_train = &state->train[state->cur_train];
+	int speedidx = train_speed2speed_idx(current_train);
+	if (current_train->tref[speedidx] == -1) {
+		return; // no calibration data exists
+	}
+
 	track_node *node = state->cur_node;
 	int tick = state->cur_tick;
 
@@ -392,16 +398,17 @@ static void print_landmark(void* s) {
 		track_edge *curedge = find_forward(curnode);
 		ASSERT(node, "node is null!!");
 		int totaldist = find_dist(state->last_node, node, 0, 1);
-		if (totaldist < 0)
+		if (totaldist < 0) {
 			return;
+		}
 		fixed tref = fixed_new(current_train->tref[train_speed2speed_idx(current_train)]);
-		if (tref < 0)
+		if (tref < 0) {
 			return;
+		}
 		fixed total_beta = fixed_new(0);
 
 		while (curnode != node) {
-			ASSERT(
-					curedge,
+			ASSERT(curedge,
 					"curedge is null. finding %s to %s, curnode:%s total_beta: %F", state->last_node->name, node->name, curnode->name, total_beta);
 			ASSERT(curedge->beta != fixed_new(-1),
 					"edge %s->%s beta is uninitialized.", PREV_EDGE(curedge)->name, curedge->dest->name);
@@ -410,11 +417,12 @@ static void print_landmark(void* s) {
 			curedge = find_forward(curnode);
 		}
 
-		fixed expected_time = fixed_mul(total_beta, tref);
-		fixed actual_time = fixed_new(tick - state->last_tick);
+		fixed secpertick = fixed_div(fixed_new(MSPERTICK), fixed_new(1000));
+		fixed expected_time = fixed_mul(fixed_mul(total_beta, tref), secpertick);
+		fixed actual_time = fixed_mul(fixed_new(tick - state->last_tick), secpertick);
 
 		logdisplay_printf(state->landmark_display,
-				"%s->%s\t%F\t%F\t%F\tidx:%d", state->last_node->name, node->name, expected_time, actual_time, fixed_sub(actual_time, expected_time), train_speed2speed_idx(current_train));
+				"Edge %3s->%-3s\tExpected:%10Fs  Actual:%10Fs  Diff:%10Fs", state->last_node->name, node->name, expected_time, actual_time, fixed_sub(actual_time, expected_time));
 		logdisplay_flushline(state->landmark_display);
 	}
 }
@@ -610,18 +618,18 @@ void a0() {
 	cmdline_create(&cmd, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, state.con, handle_command, &state);
 	state.sensorlog = logstrip_create(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, state.con);
 	state.console_dump = logdisplay_new(&con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, ROUNDROBIN);
-	state.landmark_display = logdisplay_new(&con, CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL, 20, SCROLLING);
+	state.landmark_display = logdisplay_new(&con, CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL, CONSOLE_LANDMARK_SIZE, SCROLLING);
 	// sensor listeners
 	state.sensor_listeners = dumbbus_new();
 	// dumbbus_register(&sensor_listeners, &calib_sensor);
-	dumbbus_register(state.sensor_listeners, &print_landmark);
+	dumbbus_register(state.sensor_listeners, &print_expected_time);
 
 	state.tid_traincmdbuf = traincmdbuffer_new();
 	traincmdrunner_new();
 	TRAIN_FOREACH(i) {
 		state.train[i].last_speed = 0;
 		state.train[i].speed = 0;
-		TRAIN_FOREACH_SPEED(speed) {
+		TRAIN_FOREACH_SPEEDIDX(speed) {
 			state.train[i].tref[speed] = -1;
 		}
 	}
