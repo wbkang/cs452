@@ -19,6 +19,7 @@
 #include <task/a0_track_template.h>
 #include <ui/logstrip.h>
 #include <ui/cmdline.h>
+#include <ui/logdisplay.h>
 #include <train_calibrator.h>
 
 #define LEN_MSG (64 * 4)
@@ -33,8 +34,8 @@
 #define CONSOLE_DUMP_LINE CONSOLE_CMD_LINE + 4
 #define CONSOLE_DUMP_COL 1
 
-#define CONSOLE_LANDMARK_LINE CONSOLE_DUMP_LINE
-#define CONSOLE_LANDMARK_COL 1
+#define CONSOLE_LANDMARK_LINE 8
+#define CONSOLE_LANDMARK_COL 65
 
 #define NUM_TRIALS 10
 #define MAX_TRIAL (NUM_TRIALS-1)
@@ -43,7 +44,6 @@ typedef struct {
 	int trial;
 	int dt[NUM_TRIALS];
 } track_node_data;
-
 
 static inline void reset_track_node_data(track_node_data *data) {
 	data->trial = -1;
@@ -65,33 +65,34 @@ typedef struct {
 	char straight, curved;
 } switch_pic_info;
 
-static switch_pic_info switch_pic_info_table[22] = {
-		{ 23, 7, '\\', '=' }, 	// 1
-		{ 25, 9, '\\', '=' },	// 2
-		{ 27, 11, '=', '\\' },	// 3
-		{ 11, 7, '/', '=' },	// 4
-		{ 27, 39, '=', '/' },	// 5
-		{ 25, 29, '=', '\\' },	// 6
-		{ 25, 40, '=', '/' },	// 7
-		{ 23, 52, '/', '=' },	// 8
-		{ 11, 52, '\\', '=' },	// 9
-		{ 11, 38, '=', '/' },	// 10
-		{ 9, 16, '=', '/' },	// 11
-		{ 9, 9, '=', '/' },		// 12
-		{ 11, 28, '=', '\\' },	// 13
-		{ 11, 15, '/', '=' },	// 14
-		{ 23, 15, '\\', '=' },	// 15
-		{ 23, 29, '=', '/' },	// 16
-		{ 23, 39, '=', '\\' },	// 17
-		{ 27, 30, '=', '\\' },	// 18
-		{ 19, 33, '|', '/' },	// 153
-		{ 18, 34, '|', '\\' },	// 154
-		{ 15, 34, '|', '/' },	// 155
-		{ 16, 33, '|', '\\' }	// 156
+static switch_pic_info switch_pic_info_table[22] = { { 23, 7, '\\', '=' }, // 1
+		{ 25, 9, '\\', '=' }, // 2
+		{ 27, 11, '=', '\\' }, // 3
+		{ 11, 7, '/', '=' }, // 4
+		{ 27, 39, '=', '/' }, // 5
+		{ 25, 29, '=', '\\' }, // 6
+		{ 25, 40, '=', '/' }, // 7
+		{ 23, 52, '/', '=' }, // 8
+		{ 11, 52, '\\', '=' }, // 9
+		{ 11, 38, '=', '/' }, // 10
+		{ 9, 16, '=', '/' }, // 11
+		{ 9, 9, '=', '/' }, // 12
+		{ 11, 28, '=', '\\' }, // 13
+		{ 11, 15, '/', '=' }, // 14
+		{ 23, 15, '\\', '=' }, // 15
+		{ 23, 29, '=', '/' }, // 16
+		{ 23, 39, '=', '\\' }, // 17
+		{ 27, 30, '=', '\\' }, // 18
+		{ 19, 33, '|', '/' }, // 153
+		{ 18, 34, '|', '\\' }, // 154
+		{ 15, 34, '|', '/' }, // 155
+		{ 16, 33, '|', '\\' } // 156
 };
 
 typedef struct {
-	enum direction { UNKNOWN, NORTH, SOUTH, EAST, WEST, NORTHEAST, SOUTHEAST, NORTHWEST, SOUTHWEST } dir;
+	enum direction {
+		UNKNOWN, NORTH, SOUTH, EAST, WEST, NORTHEAST, SOUTHEAST, NORTHWEST, SOUTHWEST
+	} dir;
 	int row, col;
 } sensor_pic_info;
 
@@ -99,11 +100,8 @@ static char direction_str[9][3] = { "", "/\\", "\\/", ">", "<", "/\\", "\\/", "/
 
 static sensor_pic_info sensor_pic_info_table[TRAIN_NUM_MODULES][TRAIN_NUM_SENSORS];
 
-static inline void sensor_pic_def(
-		char mod,
-		int id1, enum direction dir1,
-		int id2, enum direction dir2,
-		int row, int col) {
+static inline void sensor_pic_def(char mod, int id1, enum direction dir1, int id2, enum direction dir2, int row,
+		int col) {
 	sensor_pic_info_table[mod - 'A'][id1].dir = dir1;
 	sensor_pic_info_table[mod - 'A'][id1].row = row;
 	sensor_pic_info_table[mod - 'A'][id1].col = col;
@@ -126,7 +124,7 @@ static inline void ui_init(a0state *state) {
 	}
 
 	sensor_pic_def('A', 1, EAST, 2, WEST, 9, 6);
-	sensor_pic_def('C', 13, EAST, 14, WEST, 9 ,19);
+	sensor_pic_def('C', 13, EAST, 14, WEST, 9, 19);
 	sensor_pic_def('E', 7, EAST, 8, WEST, 9, 33);
 	sensor_pic_def('D', 7, EAST, 8, WEST, 9, 48);
 	sensor_pic_def('A', 13, EAST, 14, WEST, 11, 4);
@@ -195,18 +193,18 @@ static inline void ui_sensor(a0state *state, char module, int id) {
 	console_erase_eol(state->con);
 
 	int max_hist_idx = 0;
-
+	char buf[1024], *p = buf;
 	for (int i = 0; (i < LEN_SENSOR_HIST) && hist_mod[i]; i++) {
-		console_printf(state->con, "%c%d, ", hist_mod[i], hist_id[i]);
+		p += sprintf(p, "%c%d, ", hist_mod[i], hist_id[i]);
 		if (i == LEN_SENSOR_HIST) {
-			console_printf(state->con, "...");
+			p += sprintf(p, "...");
 		}
-
 		max_hist_idx = i;
 	}
+	logstrip_printf(state->sensorlog, buf);
 
 	for (int i = max_hist_idx; i >= 0; i--) {
-		sensor_pic_info spinfo = sensor_pic_info_table[hist_mod[i]-'A'][hist_id[i]];
+		sensor_pic_info spinfo = sensor_pic_info_table[hist_mod[i] - 'A'][hist_id[i]];
 
 		if (spinfo.dir != UNKNOWN) {
 			console_move(state->con, spinfo.row, spinfo.col);
@@ -230,11 +228,11 @@ static inline void ui_sensor(a0state *state, char module, int id) {
 }
 
 static inline void ui_speed(a0state *state, int train, int speed) {
-	logstrip_printf(state->logstrip, "set speed of train %d to %d", train, speed);
+	logstrip_printf(state->cmdlog, "set speed of train %d to %d", train, speed);
 }
 
 static inline void ui_reverse(a0state *state, int train) {
-	logstrip_printf(state->logstrip, "reversed train %d", train);
+	logstrip_printf(state->cmdlog, "reversed train %d", train);
 }
 
 static inline void ui_updateswitchstatus(console *c, char no, char pos) {
@@ -259,11 +257,11 @@ static inline void ui_updateswitchstatus(console *c, char no, char pos) {
 }
 
 static inline void ui_switch(a0state *state, char no, char pos) {
-	logstrip_printf(state->logstrip, "switched switch %d to %c", no, pos);
+	logstrip_printf(state->cmdlog, "switched switch %d to %c", no, pos);
 }
 
 static inline void ui_switchall(a0state *state, char pos) {
-	logstrip_printf(state->logstrip, "switched all switches to '%c'", pos);
+	logstrip_printf(state->cmdlog, "switched all switches to '%c'", pos);
 	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
 		ui_updateswitchstatus(state->con, train_switchi2no(i), pos);
 	}
@@ -271,11 +269,11 @@ static inline void ui_switchall(a0state *state, char pos) {
 }
 
 static inline void ui_setup_demo_track(a0state *state) {
-	logstrip_printf(state->logstrip, "adjusted all switches for demo");
+	logstrip_printf(state->cmdlog, "adjusted all switches for demo");
 }
 
 static inline void ui_quit(a0state *state) {
-	logstrip_printf(state->logstrip, "quitting...");
+	logstrip_printf(state->cmdlog, "quitting...");
 	console_move(state->con, CONSOLE_CMD_LINE + 1, 1);
 	console_flush(state->con);
 }
@@ -314,11 +312,14 @@ static lookup *ask_track(int tid_com2, track_node* data) {
 		char c = Getc(COM2, tid_com2);
 		lookup *nodemap;
 		switch (c) {
-			case 'a': nodemap = init_tracka(data);
-			case 'b': nodemap = init_trackb(data);
-			populate_beta(nodemap);
-			return nodemap;
-			default: Putstr(COM2, "fail\n", tid_com2);
+			case 'a':
+				nodemap = init_tracka(data);
+			case 'b':
+				nodemap = init_trackb(data);
+				populate_beta(nodemap);
+				return nodemap;
+			default:
+				Putstr(COM2, "fail\n", tid_com2);
 		}
 	}
 	return NULL;
@@ -328,19 +329,20 @@ static void calib_sensor(void *s) {
 	a0state *state = s;
 	track_node *cur_node = state->cur_node;
 	int tick = state->cur_tick;
-	if (strcmp(cur_node->name, "E4") == 0) return;
+	if (strcmp(cur_node->name, "E4") == 0)
+		return;
 
 	/*else if (strcmp(cur_node->name, "D5") == 0) {
-		handle_train_switch(state, 153, 'C');
-		handle_train_switch(state, 154, 'S');
-		handle_train_switch(state, 155, 'C');
-		handle_train_switch(state, 156, 'S');
-	} else if (strcmp(cur_node->name, "C11") == 0) {
-		handle_train_switch(state, 153, 'S');
-		handle_train_switch(state, 154, 'C');
-		handle_train_switch(state, 155, 'S');
-		handle_train_switch(state, 156, 'C');
-	}*/
+	 handle_train_switch(state, 153, 'C');
+	 handle_train_switch(state, 154, 'S');
+	 handle_train_switch(state, 155, 'C');
+	 handle_train_switch(state, 156, 'S');
+	 } else if (strcmp(cur_node->name, "C11") == 0) {
+	 handle_train_switch(state, 153, 'S');
+	 handle_train_switch(state, 154, 'C');
+	 handle_train_switch(state, 155, 'S');
+	 handle_train_switch(state, 156, 'C');
+	 }*/
 
 	int dist = find_dist(state->last_node, cur_node, 0, 2); // tolerate at most 1 missed sensors
 
@@ -354,10 +356,7 @@ static void calib_sensor(void *s) {
 		reset_track_node_data(data);
 	}
 
-	if (data->trial == -1) goto exit;
-
-	if (data->trial > MAX_TRIAL) {
-		state->console_dump_line = CONSOLE_DUMP_LINE;
+	if (data->trial == -1 || data->trial > MAX_TRIAL) {
 		goto exit;
 	}
 
@@ -365,18 +364,16 @@ static void calib_sensor(void *s) {
 
 	if (data->trial < MAX_TRIAL) goto exit;
 
-	console_move(state->con, state->console_dump_line++, CONSOLE_DUMP_COL);
-	console_erase_eol(state->con);
-	console_printf(state->con, "%s\t%s\t%d", state->last_node->name, cur_node->name, dist);
+	logdisplay_printf(state->console_dump, "%s\t%s\t%d", state->last_node->name, cur_node->name, dist);
 
 	for (int trial = 0; trial <= MAX_TRIAL; trial++) {
-		console_printf(state->con, "\t%d", data->dt[trial]);
+		logdisplay_printf(state->console_dump, "\t%d", data->dt[trial]);
 	}
 
-	console_flush(state->con);
+	logdisplay_flushline(state->console_dump);
 
 	exit:
-	data->trial++;
+		data->trial++;
 }
 
 static void print_landmark(void* s) {
@@ -389,17 +386,15 @@ static void print_landmark(void* s) {
 		track_edge *curedge = find_forward(curnode);
 		ASSERT(node, "node is null!!");
 		int totaldist = find_dist(state->last_node, node, 0, 1);
-		if (totaldist < 0) return;
-		fixed tref = state->train_desc[37].tref[(int) state->train_speed[37]]; // hardcoded
-		if (tref < 0) return;
+		if (totaldist < 0)
+			return;
+		fixed tref = state->train_desc[38].tref[(int) state->train_speed[38]]; // hardcoded
+		if (tref < 0)
+			return;
 		fixed total_beta = fixed_new(0);
 
-		console_move(state->con, CONSOLE_LANDMARK_LINE + state->linecnt++ % 20, CONSOLE_LANDMARK_COL);
-		console_erase_eol(state->con);
-
 		while (curnode != node) {
-			ASSERT(curedge, "curedge is null. finding %s to %s, curnode:%s total_beta: %F",
-					state->last_node->name, node->name, curnode->name, total_beta);
+			ASSERT(curedge, "curedge is null. finding %s to %s, curnode:%s total_beta: %F", state->last_node->name, node->name, curnode->name, total_beta);
 			ASSERT(curedge->beta != fixed_new(-1), "edge %s->%s beta is uninitialized.", PREV_EDGE(curedge)->name, curedge->dest->name);
 			total_beta = fixed_add(total_beta, curedge->beta);
 			curnode = curedge->dest;
@@ -409,10 +404,10 @@ static void print_landmark(void* s) {
 		fixed expected_time = fixed_mul(total_beta, tref);
 		fixed actual_time = fixed_new(tick - state->last_tick);
 
-		console_printf(state->con, "%s,%s,%F,%F,%F", state->last_node->name, node->name, expected_time, actual_time, total_beta);
+		logdisplay_printf(state->landmark_display, "%s,%s,%F,%F,%F",
+				state->last_node->name, node->name, expected_time, actual_time, total_beta);
+		logdisplay_flushline(state->landmark_display);
 	}
-
-	console_flush(state->con);
 }
 
 static inline void handle_sensor(a0state *state, char msg[]) {
@@ -439,7 +434,8 @@ static void handle_command(void* s, char *cmd, int size) {
 	char *c = cmd;
 	cmdline_clear(state->cmdline);
 
-	if (!size) goto badcmd;
+	if (!size)
+		goto badcmd;
 
 	switch (*c++) {
 		case 'c': {
@@ -447,7 +443,8 @@ static void handle_command(void* s, char *cmd, int size) {
 			ACCEPT('l');
 			ACCEPT(' ');
 			int train = strgetui(&c);
-			if (!train_goodtrain(train)) goto badcmd;
+			if (!train_goodtrain(train))
+				goto badcmd;
 			start_train_calibration(state, train);
 			break;
 		}
@@ -466,10 +463,11 @@ static void handle_command(void* s, char *cmd, int size) {
 			ACCEPT('r');
 			ACCEPT(' ');
 			int train = strgetui(&c);
-			if (!train_goodtrain(train)) goto badcmd;
-			ACCEPT(' ');
+			if (!train_goodtrain(train))
+				goto badcmd;ACCEPT(' ');
 			int speed = strgetui(&c);
-			if (!train_goodspeed(speed)) goto badcmd;
+			if (!train_goodspeed(speed))
+				goto badcmd;
 			ui_speed(state, train, speed);
 			state->train_speed[train] = speed;
 			train_speed(train, speed, state->tid_traincmdbuf);
@@ -479,7 +477,8 @@ static void handle_command(void* s, char *cmd, int size) {
 			ACCEPT('v');
 			ACCEPT(' ');
 			int train = strgetui(&c);
-			if (!train_goodtrain(train)) goto badcmd;
+			if (!train_goodtrain(train))
+				goto badcmd;
 			int speed_avg = state->train_speed[train];
 			ui_reverse(state, train);
 			train_speed(train, 0, state->tid_traincmdbuf);
@@ -495,11 +494,13 @@ static void handle_command(void* s, char *cmd, int size) {
 				switchno = *c++;
 			} else {
 				switchno = strgetui(&c);
-				if (!train_goodswitch(switchno)) goto badcmd;
+				if (!train_goodswitch(switchno))
+					goto badcmd;
 			}
 			ACCEPT(' ');
 			char pos = *c++;
-			if (!train_goodswitchpos(pos)) goto badcmd;
+			if (!train_goodswitchpos(pos))
+				goto badcmd;
 			if (switchno == '*') {
 				handle_train_switch_all(state, pos);
 			} else {
@@ -535,7 +536,7 @@ static void handle_command(void* s, char *cmd, int size) {
 
 	return;
 	badcmd:
-	logstrip_printf(state->logstrip, "invalid command: \"%s\"", cmd);
+	logstrip_printf(state->cmdlog, "invalid command: \"%s\"", cmd);
 }
 
 static inline void handle_comin(a0state *state, char msg[]) {
@@ -563,10 +564,12 @@ void a0() {
 	// ui
 	state.con = &con;
 	console_create(state.con, state.tid_com2);
-	state.logstrip = logstrip_create(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, state.con);
+	state.cmdlog = logstrip_create(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, state.con);
 	state.cmdline = &cmd;
 	cmdline_create(&cmd, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, state.con, handle_command, &state);
-
+	state.sensorlog = logstrip_create(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, state.con);
+	state.console_dump = logdisplay_new(&con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, 1);
+	state.landmark_display = logdisplay_new(&con, CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL, 20, 0);
 	// sensor listeners
 	state.sensor_listeners = &sensor_listeners;
 	dumbbus_init(&sensor_listeners);
@@ -575,7 +578,6 @@ void a0() {
 
 	state.tid_traincmdbuf = traincmdbuffer_new();
 	traincmdrunner_new();
-	state.console_dump_line = CONSOLE_DUMP_LINE;
 	TRAIN_FOREACH(i) {
 		state.train_speed[i] = 0;
 		TRAIN_FOREACH_SPEED(speed) {
