@@ -72,6 +72,7 @@ static void handle_sensor_response(void* s) {
 
 		if (!calib_state.testrun) {
 			int speedidx = train_speed2speed_idx(train);
+			ASSERT(speedidx < TRAIN_NUM_SPEED_IDX, "wrong speedidx");
 			train->tref[speedidx] = tref;
 			logdisplay_printf(state->expected_time_display, "tref set for train %d, speed %d, to %d. speedidx:%d. ",
 					calib_state.train_num, train->speed, tref, speedidx);

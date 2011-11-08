@@ -107,7 +107,7 @@ int Time(int timeserver) {
 }
 
 int Delay(int ticks, int tid) {
-	ASSERT(ticks > 0, "negative ticks");
+	ASSERT(ticks >= 0, "negative ticks %d", ticks);
 	timeserver_req req;
 	req.no = TIMESERVER_DELAY;
 	req.ticks = ticks;

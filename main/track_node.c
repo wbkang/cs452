@@ -1,4 +1,18 @@
 #include <track_node.h>
+#include <constants.h>
+
+track_node * find_next_sensor(track_node *orig) {
+	track_edge *edge = find_forward(orig);
+	track_node *node;
+	while (edge) {
+		node = edge->dest;
+		if (node->type == NODE_SENSOR) {
+			return node;
+		}
+		edge = find_forward(node);
+	}
+	return NULL;
+}
 
 track_edge * find_forward(track_node *orig) {
 	switch (orig->type) {
@@ -96,7 +110,7 @@ int calc_distance_after(track_node *orig, int tick_diff, int tref) {
 	if (!expected_edge) {
 		return -1;
 	}
-
+	// TOOD reject big tick_diff values
 	fixed beta = expected_edge->beta;
 	ASSERT(tick_diff > 0, "tick_diff is nonpositive");
 

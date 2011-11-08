@@ -10,6 +10,7 @@
 #include <fixed.h>
 #include <dumbbus.h>
 #include <betaimporter.h>
+#include <stop_distance.h>
 #include <server/sensornotifier.h>
 #include <server/comnotifier.h>
 #include <server/timenotifier.h>
@@ -213,15 +214,15 @@ static void ui_sensor(a0state *state, char module, int id) {
 			console_move(state->con, spinfo.row, spinfo.col);
 
 			switch (i) {
-			case 0:
-				console_effect(state->con, EFFECT_BRIGHT);
-			case 1:
-				console_effect(state->con, EFFECT_FG_CYAN);
-				break;
-			default:
-				console_effect(state->con, EFFECT_FG_BLUE);
-				break;
-			}
+				case 0:
+					console_effect(state->con, EFFECT_BRIGHT);
+				case 1:
+					console_effect(state->con, EFFECT_FG_CYAN);
+					break;
+				default:
+					console_effect(state->con, EFFECT_FG_BLUE);
+					break;
+				}
 
 			console_printf(state->con, "%s", direction_str[spinfo.dir]);
 			console_effect_reset(state->con);
@@ -313,17 +314,17 @@ static lookup *ask_track(int tid_com2, track_node* data) {
 		char c = Getc(COM2, tid_com2);
 		lookup *nodemap;
 		switch (c) {
-		case 'a':
-			nodemap = init_tracka(data);
-			populate_beta(nodemap);
-			return nodemap;
-		case 'b':
-			nodemap = init_trackb(data);
-			populate_beta(nodemap);
-			return nodemap;
-		default:
-			Putstr(COM2, "fail\n", tid_com2);
-			break;
+			case 'a':
+				nodemap = init_tracka(data);
+				populate_beta(nodemap);
+				return nodemap;
+			case 'b':
+				nodemap = init_trackb(data);
+				populate_beta(nodemap);
+				return nodemap;
+			default:
+				Putstr(COM2, "fail\n", tid_com2);
+				break;
 		}
 	}
 	return NULL;
@@ -496,106 +497,112 @@ static void handle_command(void* s, char *cmd, int size) {
 		goto badcmd;
 
 	switch (*c++) {
-	case 'c': {
-		ACCEPT('a');
-		ACCEPT('l');
-		ACCEPT(' ');
-		int train = strgetui(&c);
-		if (!train_goodtrain(train)) goto badcmd;
-		ACCEPT(' ');
-		int min = strgetui(&c);
-		if (!calib_goodmin(min)) goto badcmd;
-		ACCEPT(' ');
-		int max = strgetui(&c);
-		if (!calib_goodmax(max)) goto badcmd;
-		if (min > max) goto badcmd;
-		logstrip_printf(state->cmdlog, "calibrating train %d from speed %d to %d", train, min, max);
-		start_train_calibration(state, train, min, max);
-		break;
-	}
-	case 'd': {
-		handle_train_switch_all(state, 'C');
-		handle_train_switch(state, 9, 'S');
-		handle_train_switch(state, 10, 'S');
-		handle_train_switch(state, 15, 'S');
-		handle_train_switch(state, 16, 'S');
-		handle_train_switch(state, 14, 'S');
-		train_solenoidoff(state->tid_traincmdbuf);
-		ui_setup_demo_track(state);
-		break;
-	}
-	case 't': { // set train speed(tr # #)
-		ACCEPT('r');
-		ACCEPT(' ');
-		int train = strgetui(&c);
-		if (!train_goodtrain(train))
-			goto badcmd;ACCEPT(' ');
-		int speed = strgetui(&c);
-		if (!train_goodspeed(speed))
-			goto badcmd;
-		ui_speed(state, train, speed);
-		handle_train_speed(state, train, speed);
-		break;
-	}
-	case 'r': { // reverse train (rv #)
-		ACCEPT('v');
-		ACCEPT(' ');
-		int train = strgetui(&c);
-		if (!train_goodtrain(train))
-			goto badcmd;
-		int speed = state->train[train].speed;
-		ui_reverse(state, train);
-		handle_train_speed(state, train, 0);
-		train_reverse(train, state->tid_traincmdbuf);
-		handle_train_speed(state, train, speed);
-		break;
-	}
-	case 's': {
-		if (*c == 't') { // set switch position (st [a-zA-Z]*[0-9]*)
-			ACCEPT('t');
+		case 'c': {
+			ACCEPT('a');
+			ACCEPT('l');
 			ACCEPT(' ');
-			char word[4];
-			uint len = strgetw(c, word, 4);
-			if (len == 0)
-				goto badcmd;
-			c += len;
-			int num = strgetui(&c);
-			if (num == 0)
-				goto badcmd;
-			// make the train stop at the right time
-		} else if (*c == 'w') { // set switch position (sw #* [cCsS])
-			ACCEPT('w');
+			int train = strgetui(&c);
+			if (!train_goodtrain(train)) goto badcmd;
 			ACCEPT(' ');
-			char switchno;
-			if (*c == '*') {
-				switchno = *c++;
-			} else {
-				switchno = strgetui(&c);
-				if (!train_goodswitch(switchno))
-					goto badcmd;
-			}ACCEPT(' ');
-			char pos = *c++;
-			if (!train_goodswitchpos(pos))
-				goto badcmd;
-			if (switchno == '*') {
-				handle_train_switch_all(state, pos);
-			} else {
-				handle_train_switch(state, switchno, pos);
-			}
-			train_solenoidoff(state->tid_traincmdbuf);
-		} else {
-			goto badcmd;
+			int min = strgetui(&c);
+			if (!calib_goodmin(min)) goto badcmd;
+			ACCEPT(' ');
+			int max = strgetui(&c);
+			if (!calib_goodmax(max)) goto badcmd;
+			if (min > max) goto badcmd;
+			logstrip_printf(state->cmdlog, "calibrating train %d from speed %d to %d", train, min, max);
+			start_train_calibration(state, train, min, max);
+			break;
 		}
-		break;
-	}
-	case 'q': { // quit kernel
-		quit = TRUE;
-		break;
-	}
-	default: {
-		goto badcmd;
-		break;
-	}
+		case 'd': {
+			handle_train_switch_all(state, 'C');
+			handle_train_switch(state, 9, 'S');
+			handle_train_switch(state, 10, 'S');
+			handle_train_switch(state, 15, 'S');
+			handle_train_switch(state, 16, 'S');
+			handle_train_switch(state, 14, 'S');
+			train_solenoidoff(state->tid_traincmdbuf);
+			ui_setup_demo_track(state);
+			break;
+		}
+		case 't': { // set train speed(tr # #)
+			ACCEPT('r');
+			ACCEPT(' ');
+			int train = strgetui(&c);
+			if (!train_goodtrain(train))
+				goto badcmd;ACCEPT(' ');
+			int speed = strgetui(&c);
+			if (!train_goodspeed(speed))
+				goto badcmd;
+			ui_speed(state, train, speed);
+			handle_train_speed(state, train, speed);
+			break;
+		}
+		case 'r': { // reverse train (rv #)
+			ACCEPT('v');
+			ACCEPT(' ');
+			int train = strgetui(&c);
+			if (!train_goodtrain(train))
+				goto badcmd;
+			int speed = state->train[train].speed;
+			ui_reverse(state, train);
+			handle_train_speed(state, train, 0);
+			train_reverse(train, state->tid_traincmdbuf);
+			handle_train_speed(state, train, speed);
+			break;
+		}
+		case 's': {
+			if (*c == 't') { // set switch position (st [a-zA-Z]*[0-9]*)
+				ACCEPT('t');
+				ACCEPT(' ');
+				int train = strgetui(&c);
+				if (!train_goodtrain(train))
+					goto badcmd;
+				ACCEPT(' ');
+				char type[4];
+				uint len = strgetw(c, type, 4);
+				if (len == 0)
+					goto badcmd;
+				c += len;
+				int modnum = strgetui(&c);
+				ACCEPT(' ');
+				int dist_cm = strgetui(&c);
+				// ??? no exact stop ?? if (num == 0) goto badcmd;
+				train_stopper_setup(state, train, type, modnum, dist_cm);
+			} else if (*c == 'w') { // set switch position (sw #* [cCsS])
+				ACCEPT('w');
+				ACCEPT(' ');
+				char switchno;
+				if (*c == '*') {
+					switchno = *c++;
+				} else {
+					switchno = strgetui(&c);
+					if (!train_goodswitch(switchno))
+						goto badcmd;
+				}
+				ACCEPT(' ');
+				char pos = *c++;
+				if (!train_goodswitchpos(pos))
+					goto badcmd;
+				if (switchno == '*') {
+					handle_train_switch_all(state, pos);
+				} else {
+					handle_train_switch(state, switchno, pos);
+				}
+				train_solenoidoff(state->tid_traincmdbuf);
+			} else {
+				goto badcmd;
+			}
+			break;
+		}
+		case 'q': { // quit kernel
+			quit = TRUE;
+			break;
+		}
+		default: {
+			goto badcmd;
+			break;
+		}
 	}
 
 	if (quit) {
@@ -663,10 +670,14 @@ void a0() {
 	state.tid_traincmdbuf = traincmdbuffer_new();
 	traincmdrunner_new();
 	TRAIN_FOREACH(i) {
-		state.train[i].last_speed = 0;
-		state.train[i].speed = 0;
+		train_descriptor *train = &state.train[i];
+		train->stop_dist_offset = 0;
+		train->stop_dist_slope = 0;
+		train->last_speed = 0;
+		train->speed = 0;
+		populate_stop_distance(train, i);
 		TRAIN_FOREACH_SPEEDIDX(speed) {
-			state.train[i].tref[speed] = -1;
+			train->tref[speed] = -1;
 		}
 	}
 	track_node *track_data = malloc(sizeof(track_node) * TRACK_MAX);
@@ -696,17 +707,17 @@ void a0() {
 		Reply(tid, NULL, 0);
 		msg_header *header = (msg_header*) msg;
 		switch (header->type) {
-		case SENSOR:
-			handle_sensor(&state, msg);
-			break;
-		case COM_IN:
-			handle_comin(&state, msg);
-			break;
-		case TIME:
-			handle_time(&state, msg);
-			break;
-		default:
-			break;
-		}
+			case SENSOR:
+				handle_sensor(&state, msg);
+				break;
+			case COM_IN:
+				handle_comin(&state, msg);
+				break;
+			case TIME:
+				handle_time(&state, msg);
+				break;
+			default:
+				break;
+			}
 	}
 }

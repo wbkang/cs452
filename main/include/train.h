@@ -23,7 +23,7 @@
 #define TRAIN_MAX_SPEED 14
 #define TRAIN_NUM_SPEED_IDX (TRAIN_MAX_SPEED * 2)
 #define TRAIN_FOREACH_SPEED(x) for (int (x) = TRAIN_MIN_SPEED; (x) <= TRAIN_MAX_SPEED; (x)++)
-#define TRAIN_FOREACH_SPEEDIDX(x) for (int (x) = TRAIN_MIN_SPEED; (x) <= TRAIN_NUM_SPEED_IDX; (x)++)
+#define TRAIN_FOREACH_SPEEDIDX(x) for (int (x) = TRAIN_MIN_SPEED; (x) < TRAIN_NUM_SPEED_IDX; (x)++)
 #define TRAIN_MIN_TRAIN_ADDR 1
 #define TRAIN_MAX_TRAIN_ADDR 80
 #define TRAIN_FOREACH(x) for (int (x) = TRAIN_MIN_TRAIN_ADDR; (x) <= TRAIN_MAX_TRAIN_ADDR; (x)++)
@@ -37,6 +37,8 @@
 
 typedef struct {
 	int tref[TRAIN_NUM_SPEED_IDX]; // -1 if unknown
+	fixed stop_dist_slope; // 0 if unknown
+	fixed stop_dist_offset; // 0 if unknown
 	char speed;
 	char last_speed;
 } train_descriptor;
@@ -44,14 +46,17 @@ typedef struct {
 static inline int train_speed2speed_idx(train_descriptor *td) {
 	int lastspeed = td->last_speed;
 	int curspeed = td->speed;
+	int rv;
 
 	if (curspeed <= lastspeed || curspeed == TRAIN_MAX_SPEED) {
 		// descending or equal case
-		return curspeed ;
+		rv = curspeed;
 	} else {
 		// ascending case
-		return curspeed + TRAIN_MAX_SPEED;
+		rv = curspeed + TRAIN_MAX_SPEED;
 	}
+	ASSERT(rv < TRAIN_NUM_SPEED_IDX, "rv = %d, last:%d, cur:%d", rv, td->last_speed, td->speed);
+	return rv;
 }
 
 static inline int train_speed_idx2speed(int speedidx) {
