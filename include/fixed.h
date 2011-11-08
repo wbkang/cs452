@@ -13,8 +13,8 @@
 typedef int fixed;
 
 static inline int fixed_new(int n) {
-	ASSERT(n >= FIXED_MIN_N, "n too small");
-	ASSERT(n <= FIXED_MAX_N, "n too big");
+	ASSERT(n >= FIXED_MIN_N, "n too small. n: %d", n);
+	ASSERT(n <= FIXED_MAX_N, "n too big n: %d", n);
 	return n << FIXED_Q;
 }
 

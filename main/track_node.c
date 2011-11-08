@@ -90,3 +90,32 @@ int find_path_blind(track_node *orig, track_node *dest, blind_path_result *rv, i
 		return -1;
 	}
 }
+
+fixed beta_sum(track_node *orig, track_node *dest) {
+	ASSERTNOTNULL(orig);
+	ASSERTNOTNULL(dest);
+	ASSERT(orig != dest, "orig and dest are the same. orig:%s, dest: %s", orig->name, dest->name);
+
+	track_node *curnode = orig;
+	track_edge *curedge = find_forward(curnode);
+	ASSERTNOTNULL(curedge);
+
+	int totaldist = find_dist(orig, dest, 0, 1);
+	if (totaldist < 0) {
+		return 0;
+	}
+
+	fixed total_beta = fixed_new(0);
+
+	while (curnode != dest) {
+		ASSERT(curedge,
+				"curedge is null. finding %s to %s, curnode:%s total_beta: %F", orig->name, dest->name, curnode->name, total_beta);
+		ASSERT(curedge->beta != fixed_new(-1),
+				"edge %s->%s beta is uninitialized.", PREV_EDGE(curedge)->name, curedge->dest->name);
+		total_beta = fixed_add(total_beta, curedge->beta);
+		curnode = curedge->dest;
+		curedge = find_forward(curnode);
+	}
+
+	return total_beta;
+}

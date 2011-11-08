@@ -381,48 +381,38 @@ static void print_expected_time(void* s) {
 	a0state *state = s;
 
 	if (state->cur_train == -1) {
+		logdisplay_puts(state->landmark_display, "no train calibrated;");
+		logdisplay_flushline(state->landmark_display);
 		return; // no train is calibrated.
 	}
 
 	train_descriptor *current_train = &state->train[state->cur_train];
 	int speedidx = train_speed2speed_idx(current_train);
-	if (current_train->tref[speedidx] == -1) {
+	int tref = current_train->tref[speedidx];
+	if (tref == -1) {
 		return; // no calibration data exists
 	}
 
-	track_node *node = state->cur_node;
+	track_node *cur_node = state->cur_node;
 	int tick = state->cur_tick;
 
-	if (state->last_node && state->last_node != node) {
-		track_node *curnode = state->last_node;
-		track_edge *curedge = find_forward(curnode);
-		ASSERT(node, "node is null!!");
-		int totaldist = find_dist(state->last_node, node, 0, 1);
-		if (totaldist < 0) {
-			return;
+	if (state->last_node && state->last_node != cur_node) {
+		fixed total_beta = beta_sum(state->last_node, state->cur_node);
+		if (total_beta == 0) {
+			return; // unknown path
 		}
-		fixed tref = fixed_new(current_train->tref[train_speed2speed_idx(current_train)]);
-		if (tref < 0) {
-			return;
-		}
-		fixed total_beta = fixed_new(0);
-
-		while (curnode != node) {
-			ASSERT(curedge,
-					"curedge is null. finding %s to %s, curnode:%s total_beta: %F", state->last_node->name, node->name, curnode->name, total_beta);
-			ASSERT(curedge->beta != fixed_new(-1),
-					"edge %s->%s beta is uninitialized.", PREV_EDGE(curedge)->name, curedge->dest->name);
-			total_beta = fixed_add(total_beta, curedge->beta);
-			curnode = curedge->dest;
-			curedge = find_forward(curnode);
-		}
-
-		fixed secpertick = fixed_div(fixed_new(MSPERTICK), fixed_new(1000));
-		fixed expected_time = fixed_mul(fixed_mul(total_beta, tref), secpertick);
-		fixed actual_time = fixed_mul(fixed_new(tick - state->last_tick), secpertick);
+		fixed tref_fixed = fixed_new(tref);
+		fixed mspertick = fixed_new(MSPERTICK);
+		fixed expected_time = fixed_mul(fixed_mul(total_beta, tref_fixed), mspertick);
+		fixed actual_time = fixed_mul(fixed_new(tick - state->last_tick), mspertick);
 
 		logdisplay_printf(state->landmark_display,
-				"Edge %3s->%-3s\tExpected:%10Fs  Actual:%10Fs  Diff:%10Fs", state->last_node->name, node->name, expected_time, actual_time, fixed_sub(actual_time, expected_time));
+				"Edge %3s->%-3s\tExpected:%10Fms  Actual:%10Fms  Diff:%10Fms",
+				state->last_node->name,
+				cur_node->name,
+				expected_time,
+				actual_time,
+				fixed_sub(actual_time, expected_time));
 		logdisplay_flushline(state->landmark_display);
 	}
 }
@@ -478,10 +468,16 @@ static void handle_command(void* s, char *cmd, int size) {
 		ACCEPT('l');
 		ACCEPT(' ');
 		int train = strgetui(&c);
-		if (!train_goodtrain(train))
-			goto badcmd;
-		logstrip_printf(state->cmdlog, "calibrating train %d", train);
-		start_train_calibration(state, train);
+		if (!train_goodtrain(train)) goto badcmd;
+		ACCEPT(' ');
+		int min = strgetui(&c);
+		if (!calib_goodmin(min)) goto badcmd;
+		ACCEPT(' ');
+		int max = strgetui(&c);
+		if (!calib_goodmax(max)) goto badcmd;
+		if (min > max) goto badcmd;
+		logstrip_printf(state->cmdlog, "calibrating train %d from speed %d to %d", train, min, max);
+		start_train_calibration(state, train, min, max);
 		break;
 	}
 	case 'd': {
