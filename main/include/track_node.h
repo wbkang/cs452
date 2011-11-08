@@ -43,5 +43,5 @@ struct blind_path_result {
 };
 
 int find_path_blind(track_node *orig, track_node *dest, blind_path_result *rv, int maxsensordepth);
-
+fixed beta_sum(track_node *orig, track_node *dest);
 #define PREV_EDGE(edge) (edge->reverse->dest->reverse)

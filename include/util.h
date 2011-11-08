@@ -124,6 +124,8 @@ void print_stack_trace();
 #define ASSERT(X,...)
 #endif
 
+#define ASSERTNOTNULL(X) ASSERT((X), TOSTRING(X) "is null")
+
 #define ERROR(...) { \
 	bwprintf(1, "ERROR:" __VA_ARGS__); \
 	bwprintf(1, CRLF "File: " __FILE__ " line: " TOSTRING(__LINE__) CRLF); \
