@@ -8,7 +8,7 @@
 #include <lookup.h>
 #include <ui/logstrip.h>
 #include <ui/cmdline.h>
-
+#include <ui/logdisplay.h>
 
 typedef struct {
 	// server ids
@@ -18,9 +18,11 @@ typedef struct {
 	console *con;
 	int tid_traincmdbuf;
 	// ui
-	int console_dump_line;
-	logstrip logstrip;
+	logstrip cmdlog;
 	cmdline *cmdline;
+	logstrip sensorlog;
+	logdisplay *console_dump;
+	logdisplay *landmark_display;
 	dumbbus *sensor_listeners;
 	// train data
 	char train_speed[TRAIN_MAX_TRAIN_ADDR + 1];
