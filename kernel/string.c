@@ -95,6 +95,21 @@ uint strgetui(char **c) {
 	return num;
 }
 
+static inline int isletter(char c) {
+	return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
+}
+
+uint strgetw(char src[], char dst[], int lim) {
+	int i = 0;
+	for (; (i < lim) && isletter(src[i]); i++) {
+		dst[i] = src[i];
+	}
+	ASSERT(!isletter(src[i]), "lim not big enough");
+	ASSERT(i < lim, "no room for \\0");
+	dst[i] = '\0';
+	return i;
+}
+
 //void *memcpy9(void *dst, void const *src, uint len) {
 //	if (LIKELY(len > 0)) {
 ////		ASSERT(((int) src & 3) == 0, "src unaligned: %x", src);

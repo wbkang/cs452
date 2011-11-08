@@ -30,14 +30,14 @@
 #define CONSOLE_CMD_LINE 30
 #define CONSOLE_SENSOR_COL 17
 #define CONSOLE_SENSOR_LINE 6
-#define CONSOLE_DUMP_LINE CONSOLE_CMD_LINE + 4
+#define CONSOLE_DUMP_LINE (CONSOLE_CMD_LINE + 4)
 #define CONSOLE_DUMP_COL 1
 
 #define CONSOLE_LANDMARK_LINE CONSOLE_DUMP_LINE
 #define CONSOLE_LANDMARK_COL 1
 
 #define NUM_TRIALS 10
-#define MAX_TRIAL (NUM_TRIALS-1)
+#define MAX_TRIAL (NUM_TRIALS - 1)
 
 typedef struct {
 	int trial;
@@ -504,25 +504,39 @@ static void handle_command(void* s, char *cmd, int size) {
 			train_speed(train, speed_avg, state->tid_traincmdbuf);
 			break;
 		}
-		case 's': { // set switch position (sw [#*] [cCsS])
-			ACCEPT('w');
-			ACCEPT(' ');
-			char switchno;
-			if (*c == '*') {
-				switchno = *c++;
+		case 's': {
+			if (*c == 't') { // set switch position (st [a-zA-Z]*[0-9]*)
+				ACCEPT('t');
+				ACCEPT(' ');
+				char word[4];
+				uint len = strgetw(c, word, 4);
+				if (len == 0) goto badcmd;
+				c += len;
+				int num = strgetui(&c);
+				if (num == 0) goto badcmd;
+				// make the train stop at the right time
+			} else if (*c == 'w') { // set switch position (sw #* [cCsS])
+				ACCEPT('w');
+				ACCEPT(' ');
+				char switchno;
+				if (*c == '*') {
+					switchno = *c++;
+				} else {
+					switchno = strgetui(&c);
+					if (!train_goodswitch(switchno)) goto badcmd;
+				}
+				ACCEPT(' ');
+				char pos = *c++;
+				if (!train_goodswitchpos(pos)) goto badcmd;
+				if (switchno == '*') {
+					handle_train_switch_all(state, pos);
+				} else {
+					handle_train_switch(state, switchno, pos);
+				}
+				train_solenoidoff(state->tid_traincmdbuf);
 			} else {
-				switchno = strgetui(&c);
-				if (!train_goodswitch(switchno)) goto badcmd;
+				goto badcmd;
 			}
-			ACCEPT(' ');
-			char pos = *c++;
-			if (!train_goodswitchpos(pos)) goto badcmd;
-			if (switchno == '*') {
-				handle_train_switch_all(state, pos);
-			} else {
-				handle_train_switch(state, switchno, pos);
-			}
-			train_solenoidoff(state->tid_traincmdbuf);
 			break;
 		}
 		case 'q': { // quit kernel
