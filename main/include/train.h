@@ -3,6 +3,7 @@
 #include <fixed.h>
 #include <syscall.h>
 #include <hardware.h>
+#include <uconst.h>
 #include <server/traincmdbuffer.h>
 
 // train controller commands
@@ -19,22 +20,47 @@
 // train track data
 
 #define TRAIN_MIN_SPEED 0
-#define TRAIN_MAX_SPEED 30
+#define TRAIN_MAX_SPEED 14
+#define TRAIN_NUM_SPEED_IDX (TRAIN_MAX_SPEED * 2)
 #define TRAIN_FOREACH_SPEED(x) for (int (x) = TRAIN_MIN_SPEED; (x) <= TRAIN_MAX_SPEED; (x)++)
+#define TRAIN_FOREACH_SPEEDIDX(x) for (int (x) = TRAIN_MIN_SPEED; (x) <= TRAIN_NUM_SPEED_IDX; (x)++)
 #define TRAIN_MIN_TRAIN_ADDR 1
 #define TRAIN_MAX_TRAIN_ADDR 80
 #define TRAIN_FOREACH(x) for (int (x) = TRAIN_MIN_TRAIN_ADDR; (x) <= TRAIN_MAX_TRAIN_ADDR; (x)++)
 #define TRAIN_MIN_SWITCHADDR 0
 #define TRAIN_MAX_SWITCHADDR 255
-#define TRAIN_PAUSE_SOLENOID 15
-#define TRAIN_PAUSE_REVERSE 400
+#define TRAIN_PAUSE_SOLENOID MS2TICK(150)
+#define TRAIN_PAUSE_REVERSE MS2TICK(4000)
 #define TRAIN_NUM_MODULES 5
 #define TRAIN_NUM_SENSORS 16
 #define TRAIN_NUM_SWITCHADDR 22
 
 typedef struct {
-	fixed tref[TRAIN_MAX_SPEED]; // -1 if unknown
+	int tref[TRAIN_NUM_SPEED_IDX]; // -1 if unknown
+	char speed;
+	char last_speed;
 } train_descriptor;
+
+static inline int train_speed2speed_idx(train_descriptor *td) {
+	int lastspeed = td->last_speed;
+	int curspeed = td->speed;
+
+	if (curspeed <= lastspeed || curspeed == TRAIN_MAX_SPEED) {
+		// descending or equal case
+		return curspeed ;
+	} else {
+		// ascending case
+		return curspeed + TRAIN_MAX_SPEED;
+	}
+}
+
+static inline int train_speed_idx2speed(int speedidx) {
+	if (speedidx <= TRAIN_MAX_SPEED) {
+		return speedidx;
+	} else {
+		return speedidx - TRAIN_MAX_SPEED;
+	}
+}
 
 static inline int train_switchi2no(int i) {
 	ASSERT(0 <= i && i < TRAIN_NUM_SWITCHADDR, "bad i");
@@ -88,9 +114,9 @@ static inline void train_reverse(char train, int tid) {
 	traincmdbuffer_put(tid, REVERSE, train, NULL);
 }
 
-static inline void train_switch(char switchaddr, char pos, int tid) {
+static inline void train_switch(char no, char pos, int tid) {
 	ASSERT(train_goodswitchpos(pos), "bad position: %d", pos);
-	traincmdbuffer_put(tid, SWITCH, switchaddr, pos);
+	traincmdbuffer_put(tid, SWITCH, no, pos);
 	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_SOLENOID, NULL);
 }
 
@@ -120,6 +146,6 @@ static inline void train_stop(int tid) {
 
 static inline void train_switchall(char pos, int tid) {
 	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
-		train_switch(train_switchi2no(i), pos, tid);
+		train_switch(i, pos, tid);
 	}
 }
