@@ -1,6 +1,7 @@
 #pragma once
 #include <task/a0.h>
 
+#define CALIB_ORIENTING_SPEED 10
 #define CALIB_MIN_SPEED 4
 #define CALIB_MAX_SPEED 14
 
@@ -12,4 +13,6 @@ static inline int calib_goodmax(int max) {
 	return max <= CALIB_MAX_SPEED;
 }
 
-void start_train_calibration(a0state *state, int train, int min, int max);
+void calibrator_init();
+
+void calibrate_train(a0state *state, int train, int min, int max);

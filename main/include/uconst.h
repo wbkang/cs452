@@ -13,7 +13,7 @@ typedef struct {
 typedef struct {
 	msgtype type;
 	int ticks;
-	char module;
+	char module[2];
 	int id;
 	// char on;
 } msg_sensor;

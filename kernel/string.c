@@ -104,8 +104,8 @@ uint strgetw(char src[], char dst[], int lim) {
 	for (; (i < lim) && isletter(src[i]); i++) {
 		dst[i] = src[i];
 	}
-	ASSERT(!isletter(src[i]), "lim not big enough");
 	ASSERT(i < lim, "no room for \\0");
+	ASSERT(!isletter(src[i]), "lim not big enough, src: %s", src);
 	dst[i] = '\0';
 	return i;
 }

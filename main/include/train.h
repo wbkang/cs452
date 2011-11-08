@@ -26,21 +26,23 @@
 #define TRAIN_FOREACH_SPEEDIDX(x) for (int (x) = TRAIN_MIN_SPEED; (x) < TRAIN_NUM_SPEED_IDX; (x)++)
 #define TRAIN_MIN_TRAIN_ADDR 1
 #define TRAIN_MAX_TRAIN_ADDR 80
+#define TRAIN_GOODNO(x) (TRAIN_MIN_TRAIN_ADDR <= (x)) && ((x) <= TRAIN_MAX_TRAIN_ADDR)
 #define TRAIN_FOREACH(x) for (int (x) = TRAIN_MIN_TRAIN_ADDR; (x) <= TRAIN_MAX_TRAIN_ADDR; (x)++)
 #define TRAIN_MIN_SWITCHADDR 0
 #define TRAIN_MAX_SWITCHADDR 255
 #define TRAIN_PAUSE_SOLENOID MS2TICK(150)
 #define TRAIN_PAUSE_REVERSE MS2TICK(4000)
+#define TRAIN_PAUSE_AFTER_REVERSE MS2TICK(100)
 #define TRAIN_NUM_MODULES 5
 #define TRAIN_NUM_SENSORS 16
 #define TRAIN_NUM_SWITCHADDR 22
 
 typedef struct {
 	int tref[TRAIN_NUM_SPEED_IDX]; // -1 if unknown
-	fixed stop_dist_slope; // 0 if unknown
-	fixed stop_dist_offset; // 0 if unknown
-	char speed;
-	char last_speed;
+	fixed stopm; // 0 if unknown
+	fixed stopb; // 0 if unknown
+	int speed;
+	int last_speed;
 } train_descriptor;
 
 static inline int train_speed2speed_idx(train_descriptor *td) {
@@ -59,11 +61,11 @@ static inline int train_speed2speed_idx(train_descriptor *td) {
 	return rv;
 }
 
-static inline int train_speed_idx2speed(int speedidx) {
-	if (speedidx <= TRAIN_MAX_SPEED) {
-		return speedidx;
+static inline int train_speed_idx2speed(int speed_idx) {
+	if (speed_idx <= TRAIN_MAX_SPEED) {
+		return speed_idx;
 	} else {
-		return speedidx - TRAIN_MAX_SPEED;
+		return speed_idx - TRAIN_MAX_SPEED;
 	}
 }
 
@@ -117,6 +119,7 @@ static inline void train_reverse(char train, int tid) {
 	ASSERT(train_goodtrain(train), "bad train: %d", train);
 	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_REVERSE, NULL);
 	traincmdbuffer_put(tid, REVERSE, train, NULL);
+	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_AFTER_REVERSE, NULL); // @TODO: why?
 }
 
 static inline void train_switch(char no, char pos, int tid) {
@@ -145,12 +148,4 @@ static inline void train_go(int tid) {
 
 static inline void train_stop(int tid) {
 	traincmdbuffer_put(tid, STOP, NULL, NULL);
-}
-
-// extra
-
-static inline void train_switchall(char pos, int tid) {
-	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
-		train_switch(i, pos, tid);
-	}
 }

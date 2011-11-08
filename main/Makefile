@@ -32,7 +32,7 @@ server/traincmdrunner.o server/timenotifier.o server/buffertask.o \
 server/timeserver.o server/ioserver.o server/notifier.o \
 track_data.o track_node.o  betaimporter.o console.o \
 task/calib_test.o task/task1.o task/k3clients.o task/a0.o task/perfmon.o \
-ui/logstrip.o ui/cmdline.o ui/logdisplay.o
+ui/logstrip.o ui/cmdline.o ui/logdisplay.o engineer.o
 ################
 
 
