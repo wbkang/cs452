@@ -17,7 +17,8 @@ static void handle_sensor_response(void* s) {
 	track_node *node = state->cur_node;
 
 	if (!(node && state->last_node)) {
-		logstrip_printf(state->logstrip, "one of the nodes are null. %d", state->cur_tick);
+		logdisplay_printf(state->landmark_display, "one of the nodes are null. %d", state->cur_tick);
+		logdisplay_flushline(state->landmark_display);
 		return;
 	}
 
@@ -26,8 +27,9 @@ static void handle_sensor_response(void* s) {
 		if (last_calib_speed <= MAX_CALIB_SPEED) {
 			state->train_desc[last_train_num].tref[last_calib_speed] = fixed_new(state->cur_tick - state->last_tick);
 
-			logstrip_printf(state->logstrip, "tref set for train %d, speed %d, to %F",
+			logdisplay_printf(state->landmark_display, "tref set for train %d, speed %d, to %F",
 					last_train_num, last_calib_speed, fixed_new(state->cur_tick - state->last_tick));
+			logdisplay_flushline(state->landmark_display);
 		}
 
 		last_calib_speed--;
