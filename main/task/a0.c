@@ -223,8 +223,8 @@ static void ui_sensor(a0state *state, char module, int id) {
 					break;
 			}
 
-			console_effect_reset(state->con);
 			console_printf(state->con, "%s", direction_str[spinfo.dir]);
+			console_effect_reset(state->con);
 		}
 	}
 	console_flush(state->con);
