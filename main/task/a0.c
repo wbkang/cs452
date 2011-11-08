@@ -290,7 +290,7 @@ static void handle_train_switch(a0state *state, int num, char pos) {
 	train_switch(num, pos, state->tid_traincmdbuf);
 	ui_switch(state, num, pos);
 	sprintf(buf, "BR%d", num);
-	track_node *branch = (track_node*) lookup_get(state->nodemap, buf);
+	track_node *branch = lookup_get(state->nodemap, buf);
 	ASSERT(branch, "branch %s is null?", buf);
 	branch->switch_dir = POS2DIR(pos);
 }
@@ -298,12 +298,10 @@ static void handle_train_switch(a0state *state, int num, char pos) {
 static void handle_train_switch_all(a0state *state, char pos) {
 	train_switchall(pos, state->tid_traincmdbuf);
 	ui_switchall(state, pos);
-
 	char buf[10];
-
 	for (int i = 0; i < TRAIN_NUM_SWITCHADDR; i++) {
 		sprintf(buf, "BR%d", train_switchi2no(i));
-		track_node *branch = (track_node*) lookup_get(state->nodemap, buf);
+		track_node *branch = lookup_get(state->nodemap, buf);
 		ASSERT(branch, "branch %s is null?", buf);
 		branch->switch_dir = POS2DIR(pos);
 	}
@@ -315,11 +313,17 @@ static lookup *ask_track(int tid_com2, track_node* data) {
 		char c = Getc(COM2, tid_com2);
 		lookup *nodemap;
 		switch (c) {
-			case 'a': nodemap = init_tracka(data);
-			case 'b': nodemap = init_trackb(data);
-			populate_beta(nodemap);
-			return nodemap;
-			default: Putstr(COM2, "fail\n", tid_com2);
+			case 'a':
+				nodemap = init_tracka(data);
+				populate_beta(nodemap);
+				return nodemap;
+			case 'b':
+				nodemap = init_trackb(data);
+				populate_beta(nodemap);
+				return nodemap;
+			default:
+				Putstr(COM2, "fail\n", tid_com2);
+				break;
 		}
 	}
 	return NULL;

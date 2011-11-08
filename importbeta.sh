@@ -40,13 +40,13 @@ while read line; do
 	startnode=$(echo $line | cut -d',' -f1)
 	endnode=$(echo $line | cut -d',' -f2)
 	tmin=$(echo $line | cut -d',' -f3)
-	
+
 	echo "
 	path.depth = 0;
-	start_node = (track_node*) lookup_get(track_lookup, \"$startnode\");
-	end_node = (track_node*) lookup_get(track_lookup, \"$endnode\");
+	start_node = lookup_get(track_lookup, \"$startnode\");
+	end_node = lookup_get(track_lookup, \"$endnode\");
 	ASSERT(start_node, \"failed to lookup $startnode\");
-	ASSERT(strcmp(start_node->name, \"$startnode\") == 0, \"Expected: $startnode, what i got: %s\", start_node->name); 
+	ASSERT(strcmp(start_node->name, \"$startnode\") == 0, \"Expected: $startnode, what i got: %s\", start_node->name);
 	ASSERT(end_node, \"failed to lookup $endnode\");
 	ASSERT(strcmp(end_node->name, \"$endnode\") == 0, \"Expected: $endnode, what i got: %s\", end_node->name);
 	tmin = fixed_new($tmin);
@@ -57,4 +57,4 @@ while read line; do
 done
 
 echo "}
-">> $outfile 
+">> $outfile
