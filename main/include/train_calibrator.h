@@ -1,7 +1,7 @@
 #pragma once
 #include <task/a0.h>
 
-#define CALIB_MIN_SPEED 8
+#define CALIB_MIN_SPEED 4
 #define CALIB_MAX_SPEED 14
 
 static inline int calib_goodmin(int min) {

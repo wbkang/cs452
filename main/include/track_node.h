@@ -35,6 +35,7 @@ struct track_node {
 
 track_edge *find_forward(track_node *orig);
 int find_dist(track_node *orig, track_node *dest, int curdist, int maxsensordepth);
+int calc_distance_after(track_node *orig, int tick_diff, int tref);
 
 typedef struct blind_path_result blind_path_result;
 struct blind_path_result {

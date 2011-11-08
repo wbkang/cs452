@@ -57,8 +57,8 @@ static void handle_sensor_response(void* s) {
 	}
 
 	if (strcmp(state->last_node->name, CALIB_SENSOR_WRONG_DIR) == 0) {
-		logdisplay_printf(state->landmark_display, "Coolly reversing the train...");
-		logdisplay_flushline(state->landmark_display);
+		logdisplay_printf(state->expected_time_display, "Coolly reversing the train...");
+		logdisplay_flushline(state->expected_time_display);
 //		train_reverse(last_train_num, state->tid_traincmdbuf);
 		return;
 	} else if (strcmp(state->last_node->name, CALIB_SENSOR_START) == 0
@@ -70,7 +70,7 @@ static void handle_sensor_response(void* s) {
 		if (!calib_state.testrun) {
 			int speedidx = train_speed2speed_idx(train);
 			train->tref[speedidx] = tref;
-			logdisplay_printf(state->landmark_display, "tref set for train %d, speed %d, to %d. speedidx:%d. ",
+			logdisplay_printf(state->expected_time_display, "tref set for train %d, speed %d, to %d. speedidx:%d. ",
 					calib_state.train_num, train->speed, tref, speedidx);
 		} else {
 			calib_state.testrun = FALSE;
@@ -80,14 +80,14 @@ static void handle_sensor_response(void* s) {
 		int speed = next_calib_speed();
 		if (speed != -1) {
 			handle_train_speed(state, calib_state.train_num, speed);
-			logdisplay_printf(state->landmark_display, "next calibration: speed %d", speed);
-			logdisplay_flushline(state->landmark_display);
+			logdisplay_printf(state->expected_time_display, "next calibration: speed %d", speed);
+			logdisplay_flushline(state->expected_time_display);
 		} else {
-			logdisplay_printf(state->landmark_display, "calibration: finished. current train set to %d", speed, calib_state.train_num);
-			logdisplay_flushline(state->landmark_display);
-			dumbbus_unregister(state->sensor_listeners, &handle_sensor_response);
-			handle_train_speed(state, calib_state.train_num, 0);
 			state->cur_train = calib_state.train_num;
+			handle_train_speed(state, calib_state.train_num, 0);
+			logdisplay_printf(state->expected_time_display, "calibration: finished. current train set to %d", calib_state.train_num);
+			logdisplay_flushline(state->expected_time_display);
+			dumbbus_unregister(state->sensor_listeners, &handle_sensor_response);
 		}
 	}
 }

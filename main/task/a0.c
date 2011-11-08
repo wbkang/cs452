@@ -34,9 +34,12 @@
 #define CONSOLE_DUMP_LINE (CONSOLE_CMD_LINE + 4)
 #define CONSOLE_DUMP_COL 1
 
-#define CONSOLE_LANDMARK_LINE 8
-#define CONSOLE_LANDMARK_COL 65
-#define CONSOLE_LANDMARK_SIZE 10
+#define CONSOLE_EXTIME_LINE 8
+#define CONSOLE_EXTIME_COL 65
+#define CONSOLE_EXTIME_SIZE 10
+
+#define CONSOLE_LANDMARK_LINE (CONSOLE_EXTIME_LINE + CONSOLE_EXTIME_SIZE + 3)
+#define CONSOLE_LANDMARK_COL CONSOLE_EXTIME_COL
 
 #define NUM_TRIALS 10
 #define MAX_TRIAL (NUM_TRIALS - 1)
@@ -377,12 +380,42 @@ static void calib_sensor(void *s) {
 	exit: data->trial++;
 }
 
+static void print_landmark(void* s) {
+	a0state *state = s;
+
+	if (state->cur_train == -1) {
+		logstrip_printf(state->landmark_display, "No train is calibrated.");
+		return;
+	}
+
+	train_descriptor *current_train = &state->train[state->cur_train];
+	int speedidx = train_speed2speed_idx(current_train);
+	int tref = current_train->tref[speedidx];
+	if (tref == -1) {
+		logstrip_printf(state->landmark_display, "I have no calibration data for train %d at speed %d.",
+				state->cur_train, current_train->speed);
+		return; // no calibration data exists
+	}
+
+	track_node *last_node = state->last_node;
+	ASSERTNOTNULL(last_node);
+	int est_dist_cm = calc_distance_after(last_node, Time(state->tid_time) - state->last_tick, tref);
+
+	if (est_dist_cm >= 0) {
+		logstrip_printf(state->landmark_display, "Train %2d is %4dcm ahead of %s.",
+					state->cur_train, est_dist_cm, last_node->name);
+	} else {
+		logstrip_printf(state->landmark_display, "Train %2d: I don't know any path ahead of %d",
+				state->cur_train, last_node->name);
+	}
+//	logstrip_printf(state->landmark_display, "dist: %d tref: %5d beta: %10F tick_diff: %10F",
+//			expected_edge->dist, tref, beta, tick_diff);
+}
+
 static void print_expected_time(void* s) {
 	a0state *state = s;
 
 	if (state->cur_train == -1) {
-		logdisplay_puts(state->landmark_display, "no train calibrated;");
-		logdisplay_flushline(state->landmark_display);
 		return; // no train is calibrated.
 	}
 
@@ -406,14 +439,14 @@ static void print_expected_time(void* s) {
 		fixed expected_time = fixed_mul(fixed_mul(total_beta, tref_fixed), mspertick);
 		fixed actual_time = fixed_mul(fixed_new(tick - state->last_tick), mspertick);
 
-		logdisplay_printf(state->landmark_display,
+		logdisplay_printf(state->expected_time_display,
 				"Edge %3s->%-3s\tExpected:%10Fms  Actual:%10Fms  Diff:%10Fms",
 				state->last_node->name,
 				cur_node->name,
 				expected_time,
 				actual_time,
 				fixed_sub(actual_time, expected_time));
-		logdisplay_flushline(state->landmark_display);
+		logdisplay_flushline(state->expected_time_display);
 	}
 }
 
@@ -594,6 +627,7 @@ static void handle_comin(a0state *state, char msg[]) {
 static void handle_time(a0state *state, char msg[]) {
 	msg_time *time = (msg_time*) msg;
 	ui_time(state, time->ticks);
+	dumbbus_dispatch(state->time_listeners, state);
 }
 
 void a0() {
@@ -614,11 +648,17 @@ void a0() {
 	cmdline_create(&cmd, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, state.con, handle_command, &state);
 	state.sensorlog = logstrip_create(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, state.con);
 	state.console_dump = logdisplay_new(&con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, ROUNDROBIN);
-	state.landmark_display = logdisplay_new(&con, CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL, CONSOLE_LANDMARK_SIZE, SCROLLING);
+	state.expected_time_display = logdisplay_new(&con, CONSOLE_EXTIME_LINE, CONSOLE_EXTIME_COL, CONSOLE_EXTIME_SIZE, SCROLLING);
+	state.landmark_display = logstrip_create(CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL, &con);
+
 	// sensor listeners
 	state.sensor_listeners = dumbbus_new();
 	// dumbbus_register(&sensor_listeners, &calib_sensor);
 	dumbbus_register(state.sensor_listeners, &print_expected_time);
+
+	// time listeners
+	state.time_listeners = dumbbus_new();
+	dumbbus_register(state.time_listeners, &print_landmark);
 
 	state.tid_traincmdbuf = traincmdbuffer_new();
 	traincmdrunner_new();

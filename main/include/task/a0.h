@@ -22,8 +22,10 @@ typedef struct {
 	cmdline *cmdline;
 	logstrip sensorlog;
 	logdisplay *console_dump;
-	logdisplay *landmark_display;
+	logdisplay *expected_time_display;
+	logstrip landmark_display;
 	dumbbus *sensor_listeners;
+	dumbbus *time_listeners;
 	// train data
 	train_descriptor train[TRAIN_MAX_TRAIN_ADDR + 1];
 	// track data
