@@ -1,7 +1,7 @@
 #include <track_node.h>
 #include <constants.h>
 
-track_node * find_next_sensor(track_node *orig) {
+track_node *find_next_sensor(track_node *orig) {
 	track_edge *edge = find_forward(orig);
 	track_node *node;
 	while (edge) {
@@ -14,7 +14,7 @@ track_node * find_next_sensor(track_node *orig) {
 	return NULL;
 }
 
-track_edge * find_forward(track_node *orig) {
+track_edge *find_forward(track_node *orig) {
 	switch (orig->type) {
 		case NODE_SENSOR:
 		case NODE_MERGE: {
@@ -34,13 +34,9 @@ track_edge * find_forward(track_node *orig) {
 
 int find_dist(track_node *orig, track_node *dest, int curdist, int maxsensordepth) {
 	//	NODE_SENSOR, NODE_BRANCH, NODE_MERGE, NODE_ENTER, NODE_EXIT
-	if (dest == orig) {
-		return curdist;
-	}
-
-	if (maxsensordepth == -1) {
-		return -1;
-	}
+	if (!orig || !dest) return -1;
+	if (dest == orig) return curdist;
+	if (maxsensordepth == -1) return -1;
 
 	switch (orig->type) {
 		case NODE_SENSOR: {

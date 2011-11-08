@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <console.h>
+
 //typedef struct {
 //	int line, col;
 //	int totallines;
@@ -11,7 +12,6 @@
 //	struct console *con;
 //	char buf[][MAX_LOG_COL];
 //} logdisplay;
-
 
 logdisplay* logdisplay_new(console *con, int line, int col, int totallines, int rotation) {
 	logdisplay *l = malloc(sizeof(logdisplay) + MAX_LOG_COL * totallines);
@@ -31,7 +31,7 @@ logdisplay* logdisplay_new(console *con, int line, int col, int totallines, int 
 	return l;
 }
 
-void logdisplay_puts(logdisplay *l, char* str) {
+void logdisplay_puts(logdisplay *l, char *str) {
 	ASSERT(strlen(str) + l->curcol < MAX_LOG_COL, "logdisplay overflow trying to put '%s'", str);
 	l->curcol += sprintf(l->buf[l->curline] + l->curcol, "%s", str);
 }

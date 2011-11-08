@@ -26,6 +26,7 @@ static void sensornotifier() {
 
 	msg_sensor msg;
 	msg.type = SENSOR;
+	msg.module[1] = '\0';
 
 	int last_ticks;
 	int ticks = Time(tid_time) - MS2TICK(61); // average return time
@@ -46,7 +47,7 @@ static void sensornotifier() {
 			while (sensors) {
 				int s = log2(sensors);
 				int mask = 1 << s;
-				msg.module = 'A' + m;
+				msg.module[0] = 'A' + m;
 				msg.id = 16 - s;
 				// msg.on = (module & mask) != 0;
 				Send(args.tid_target, &msg, sizeof(msg), NULL, 0);

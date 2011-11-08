@@ -9,8 +9,8 @@ void console_effect_reset(console *c) {
 	console_effect(c, EFFECT_RESET);
 }
 
-void console_clear(console *console) {
-	console_printf(console, CONSOLE_CLEAR);
+void console_clear(console *c) {
+	console_printf(c, CONSOLE_CLEAR);
 }
 
 void console_erase_eol(console *c) {

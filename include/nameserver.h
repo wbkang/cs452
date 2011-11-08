@@ -5,7 +5,7 @@
 /*
  * The registered names have to be exactly of the length 2.
  * The valid characters for the names are the ASCII printable characters.
- * http://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters
+ * http://eng.wikipedia.org/wiki/ASCII#ASCII_printable_characters
  * This gives us 95^2=9025 possibilities.
  */
 
