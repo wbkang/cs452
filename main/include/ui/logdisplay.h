@@ -10,7 +10,7 @@ typedef struct {
 	int curline;
 	int curcol;
 	int topline;
-	int rotation;
+	enum { ROUNDROBIN, SCROLLING } rotation;
 	struct console *con;
 	char buf[][MAX_LOG_COL + 1];
 } logdisplay;
