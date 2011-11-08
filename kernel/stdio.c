@@ -37,15 +37,15 @@ static int char2digit(char ch) {
 	return -1;
 }
 
-static inline int putw(char *outbuf, int width, char fillchar, char *buf, int left_align) {
+static inline int putw(char *outbuf, int width, char fillchar, char *inputbuf, int left_align) {
 	char *orig_buf = outbuf;
 	char ch;
-	char *p = buf;
+	char *p = inputbuf;
 	while (*p++ && width > 0) width--;
 	if (!left_align) {
 		while (width-- > 0) *outbuf++ = fillchar;
 	}
-	while ((ch = *buf++)) *outbuf++ = ch;
+	while ((ch = *inputbuf++)) *outbuf++ = ch;
 	if (left_align) {
 		while (width-- > 0) *outbuf++ = fillchar;
 	}
@@ -71,18 +71,19 @@ static inline int format(char *buf, char const *fmt, va_list va) {
 	char * const orig_buf = buf;
 	char bf[32 + 1];
 	char ch, fillchar;
-	int minus = 0;
+	int left_align;
 	int width;
 	while ((ch = *(fmt++))) {
 		if (ch != '%') {
 			*buf++ = ch;
 		} else {
+			left_align = 0;
 			fillchar = ' ';
 			width = 0;
 			ch = *(fmt++);
 			switch (ch) {
 				case '-':
-					minus = 1;
+					left_align = 1;
 					ch = *(fmt++);
 					ch = a2i(ch, &fmt, 10, &width);
 					break;
@@ -112,30 +113,31 @@ static inline int format(char *buf, char const *fmt, va_list va) {
 					*buf++ = va_arg( va, char );
 					break;
 				case 's':
-					buf += putw(buf, width, fillchar, va_arg( va, char* ), minus);
+					buf += putw(buf, width, fillchar, va_arg( va, char* ), left_align);
 					break;
 				case 'u':
 					uint2str(va_arg( va, uint ), 10, bf);
-					buf += putw(buf, width, fillchar, bf, minus);
+					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
 				case 'd':
 					int2str(va_arg( va, int ), bf);
-					buf += putw(buf, width, fillchar, bf, minus);
+					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
 				case 'b':
 					uint2str(va_arg( va, uint ), 2, bf);
 					*buf++ = '0';
 					*buf++ = 'x';
-					buf += putw(buf, width, fillchar, bf, minus);
+					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
 				case 'x':
 					uint2str(va_arg( va, uint ), 16, bf);
 					*buf++ = '0';
 					*buf++ = 'x';
-					buf += putw(buf, width, fillchar, bf, minus);
+					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
 				case 'F': {
-					buf += fixed_print(buf, va_arg(va, fixed));
+					fixed_print(bf, va_arg(va, fixed));
+					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
 				}
 				case '%':
