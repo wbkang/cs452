@@ -25,11 +25,11 @@ typedef struct {
 	logdisplay *landmark_display;
 	dumbbus *sensor_listeners;
 	// train data
-	char train_speed[TRAIN_MAX_TRAIN_ADDR + 1];
-	train_descriptor train_desc[TRAIN_MAX_TRAIN_ADDR + 1];
+	train_descriptor train[TRAIN_MAX_TRAIN_ADDR + 1];
 	// track data
 	lookup *nodemap;
 	// these are not scalable to multiple trains
+	int cur_train;
 	uint cur_tick;
 	track_node *cur_node;
 	uint last_tick;
