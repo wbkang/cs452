@@ -6,10 +6,11 @@ typedef void (*subscriber)(void*);
 typedef struct dumbbus dumbbus;
 
 struct dumbbus {
+	int size;
 	subscriber subscribers[NUM_SUBSCRIBERS];
 };
 
-void dumbbus_init(dumbbus *dbus);
+dumbbus* dumbbus_new();
 void dumbbus_register(dumbbus *dbus, subscriber s);
 void dumbbus_unregister(dumbbus *dbus, subscriber s);
 void dumbbus_dispatch(dumbbus *dbus, void*);
