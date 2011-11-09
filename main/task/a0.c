@@ -322,6 +322,34 @@ static char ask_track(a0state *state) {
 	return '\0';
 }
 
+static void update_train_velocity(void *s) {
+	// a0state *state = s;
+	// engineer *eng = state->eng;
+	// int train_no = state->cur_train;
+
+	// if (!TRAIN_GOODNO(train_no)) return;
+
+	// track_node *sensor = state->cur_node;
+	// track_node *last_sensor = state->last_node;
+
+	// int dx = find_dist(last_sensor, sensor, 0, 2);
+	// if (dx <= 0) return;
+	// int dt = state->cur_tick - state->last_tick;
+	// if (dt <= 0) return;
+	// fixed v = fixed_div(fixed_new(dx), fixed_new(dt));
+
+	// fixed beta = beta_sum(last_sensor, sensor);
+	// fixed speed_idx = engineer_get_speedidx(eng, train_no);
+	// fixed tref = engineer_get_tref(eng, train_no, speed_idx);
+	// fixed dt_ = fixed_mul(beta, tref);
+	// if (dt_ <= 0) return;
+	// fixed v_ = fixed_div(fixed_new(dx), fixed_new(dt_));
+
+	// logstrip_printf(state->cmdlog, "measured v: %F, stored v: %F", v, v_);
+
+	// engineer_set_velocity(eng, train_no, v);
+}
+
 static void calib_sensor(void *s) {
 	a0state *state = s;
 	track_node *cur_node = state->cur_node;
@@ -364,6 +392,7 @@ static void print_landmark(void* s) {
 	engineer *eng = state->eng;
 
 	int train_no = state->cur_train;
+	if (!TRAIN_GOODNO(train_no)) return;
 
 	if (train_no == -1) {
 		logstrip_printf(state->landmark_display, "No train is calibrated.");
@@ -396,8 +425,7 @@ static void print_expected_time(void* s) {
 	a0state *state = s;
 	engineer *eng = state->eng;
 	int train_no = state->cur_train;
-
-	if (train_no == -1) return; // no train is calibrated.
+	if (!TRAIN_GOODNO(train_no)) return; // no train calibrated
 
 	int speed_idx = engineer_get_speedidx(eng, train_no);
 	int tref = engineer_get_tref(eng, train_no, speed_idx);
@@ -429,12 +457,12 @@ static void handle_sensor(a0state *state, char msg[]) {
 	engineer *eng = state->eng;
 	msg_sensor *m = (msg_sensor*) msg;
 	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
-	state->cur_node = sensor;
-	state->cur_tick = m->ticks;
 	ui_sensor(state, m->module[0], m->id);
-	dumbbus_dispatch(state->sensor_listeners, state);
+	state->last_node = state->cur_node;
+	state->cur_node = sensor;
 	state->last_tick = state->cur_tick;
-	state->last_node = sensor;
+	state->cur_tick = m->ticks;
+	dumbbus_dispatch(state->sensor_listeners, state);
 }
 
 static void handle_setup_demotrack(a0state *state) {
@@ -608,6 +636,7 @@ void a0() {
 
 	// sensor listeners
 	state.sensor_listeners = dumbbus_new();
+	dumbbus_register(state.sensor_listeners, &update_train_velocity);
 	// dumbbus_register(&sensor_listeners, &calib_sensor);
 	dumbbus_register(state.sensor_listeners, &print_expected_time);
 

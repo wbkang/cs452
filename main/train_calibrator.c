@@ -94,12 +94,12 @@ static void handle_sensor_response(void* s) {
 				// set up the next calibration
 				speed = next_calib_speed();
 				if (speed == -1) {
-					state->cur_train = train_no;
 					engineer_set_speed(eng, train_no, 0);
 					logdisplay_printf(state->expected_time_display, "calibration: finished. current train set to %d", train_no);
 					logdisplay_flushline(state->expected_time_display);
 					dumbbus_unregister(state->sensor_listeners, &handle_sensor_response);
 					calibrator_init();
+					state->cur_train = train_no;
 				} else {
 					engineer_set_speed(eng, train_no, speed);
 					logdisplay_printf(state->expected_time_display, "next calibration: speed %d", speed);

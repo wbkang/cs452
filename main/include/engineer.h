@@ -11,7 +11,7 @@ typedef struct _tag_train_engineer {
 } engineer;
 
 engineer *engineer_new(char track_name);
-void engineer_set_tref(engineer *this, int train_no, int speed_idx, int tref);
+void engineer_set_tref(engineer *this, int train_no, int speed_idx, fixed tref);
 int engineer_get_tref(engineer *this, int train_no, int speed_idx);
 void engineer_set_stopinfo(engineer *this, int train_no, fixed m, fixed b);
 void engineer_get_stopinfo(engineer *this, int train_no, fixed *m, fixed *b);

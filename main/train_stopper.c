@@ -9,79 +9,115 @@
 
 struct {
 	track_node *dest;
-	int dist_cm;
+	int over;
 	int train_no;
 } ts_state;
 
 static void handle_sensor(void* s) {
 	a0state *state = s;
 	engineer *eng = state->eng;
+	int train_no = ts_state.train_no;
 
-	track_node *curnode = state->cur_node;
+	// track_node *last_sensor = state->last_node;
+	track_node *sensor = state->cur_node;
 	track_node *dest = ts_state.dest;
 
-	int dist = find_dist(curnode, dest, 0, DEFAULT_SEARCH_DEPTH);
+	logdisplay_printf(state->expected_time_display, "[sensor report] current: %s, dest: %s", sensor->name, dest->name);
+	logdisplay_flushline(state->expected_time_display);
 
-	if (dist == -1) {
-		logstrip_printf(state->cmdlog, "no dist found between %s->%s", curnode->name, dest->name);
+	if (sensor == dest) {
+		logdisplay_printf(state->expected_time_display, "zero path %s->%s", sensor->name, dest->name);
+		logdisplay_flushline(state->expected_time_display);
 		return;
 	}
 
-	int train_no = ts_state.train_no;
-
-	int overshoot_mm =  10 * ts_state.dist_cm;
-	int overshot_dest_dist = dist + overshoot_mm;
+	int dist = find_dist(sensor, dest, 0, DEFAULT_SEARCH_DEPTH);
+	if (dist == -1) {
+		logdisplay_printf(state->expected_time_display, "no path %s->%s", sensor->name, dest->name);
+		logdisplay_flushline(state->expected_time_display);
+		return;
+	}
+	fixed dx = fixed_new(dist);
 
 	fixed stopm, stopb;
 	engineer_get_stopinfo(eng, train_no, &stopm, &stopb);
 
-	// @TODO: take into account the velocity instead
+	// @TODO: use velocity instead
 	int speed = engineer_get_speed(eng, train_no);
 	fixed stopdist = fixed_add(fixed_mul(stopm, fixed_new(speed)), stopb);
 
-	track_edge *nextedge = find_forward(curnode);
-	track_node *nextsensor = find_next_sensor(curnode);
-	int dist_to_next_sensor = find_dist(curnode, nextsensor, 0, 2);
+	fixed offset = fixed_sub(fixed_new(ts_state.over), stopdist);
+	fixed stop_at = fixed_add(dx, offset);
 
-	if (dist_to_next_sensor != -1) {
-		int maxstopdist = fixed_int(fixed_add(fixed_new(dist_to_next_sensor), stopdist));
+	// if (fixed_new(dist) + 50 < stopdist) { // definitely not enough time to stop
+	// 	logstrip_printf(state->cmdlog, "not enough time to stop, dist: %F, stopdist: %F", dist, stopdist);
+	// 	return;
+	// }
 
-		if (overshot_dest_dist >= maxstopdist) {
-			logstrip_printf(state->cmdlog, "can't stop %s. slope:%F, offset:%F stopdist: %F, dist_to_next_sensor: %d",
-					curnode->name, stopm, stopb, stopdist, dist_to_next_sensor);
-			return;
-		}
+	// track_edge *nextedge = find_forward(sensor);
+	track_node *next_sensor = find_next_sensor(sensor);
+	int dist_to_next_sensor = find_dist(sensor, next_sensor, 0, DEFAULT_SEARCH_DEPTH);
+	ASSERT(dist_to_next_sensor > 0, "can't find next sensor");
+
+	// int maxstopdist = fixed_int(fixed_add(fixed_new(dist_to_next_sensor), stopdist));
+
+	const int dx_err = 50; // mm
+
+	if (fixed_int(stop_at) > (dist_to_next_sensor + dx_err)) { // should wait until next sensor
+		logdisplay_printf(state->expected_time_display, "should wait until next sensor, dist: %d, stop_at: %F, d2ns: %d, %s->%s", dist, stop_at, dist_to_next_sensor, sensor->name, dest->name);
+		logdisplay_flushline(state->expected_time_display);
+		// logstrip_printf(state->cmdlog, "should wait until next sensor, dist: %d, offset: %F, stopdist: %F, stop_at: %F, d2ns: %d, %s->%s", dist, offset, stopdist, stop_at, dist_to_next_sensor, sensor->name, next_sensor->name);
+		return;
 	}
+
+	fixed beta = beta_sum(sensor, dest);
+	fixed speed_idx = engineer_get_speedidx(eng, train_no);
+	fixed tref = fixed_new(engineer_get_tref(eng, train_no, speed_idx));
+	fixed dt = fixed_mul(beta, tref);
+	if (dt <= 0) {
+		logdisplay_printf(state->expected_time_display, "dt is low: %F, beta: %F, tref: %F", dt, beta, tref);
+		logdisplay_flushline(state->expected_time_display);
+		return;
+	}
+	fixed v = fixed_div(dx, dt);
+	fixed stop_time = fixed_div(stop_at, v); // stop_at / v
+
+	int delay = TICK2MS(fixed_int(stop_time));
+
+	logstrip_printf(state->cmdlog, "going to stop! node: %s, sa: %F, dx: %F, dt: %F, st: %F", sensor->name, stop_at, dx, dt, stop_time);
+
+	// logstrip_printf(state->cmdlog, "going to stop! stop_at: %F, d2ns: %d, stop_time: %F, dx: %F, dt: %F, v: %F, beta: %F, tref: %F", stop_at, dist_to_next_sensor, stop_time, dx, dt, v, beta, tref);
+
+	// fixed r = fixed_div(stop_at, dist);
 
 	// (s - (d - x)) /s * t_seg
 	// where s = dist to the dest, x, the overshoot, d, stopping dist
-	fixed r = dist ? fixed_div(
-						fixed_sub(
-							fixed_new(dist),
-							fixed_sub(stopdist, fixed_new(overshoot_mm))),
-						fixed_new(dist)): 0;
-	int speed_idx = engineer_get_speedidx(eng, train_no);
+	// fixed r = dist ? fixed_div(
+	// 					fixed_sub(
+	// 						fixed_new(dist),
+	// 						fixed_sub(stopdist, fixed_new(overshoot_mm))),
+	// 					fixed_new(dist)): 0;
+	// int speed_idx = engineer_get_speedidx(eng, train_no);
 
-	fixed tref = fixed_new(engineer_get_tref(eng, train_no, speed_idx));
-	fixed tseg = fixed_mul(tref, nextedge->beta);
+	// fixed tref = fixed_new(engineer_get_tref(eng, train_no, speed_idx));
+	// fixed tseg = fixed_mul(tref, nextedge->beta);
 
-	fixed delay = fixed_mul(r, tseg);
+	// fixed delay = fixed_mul(r, tseg);
 
-	logstrip_printf(state->cmdlog, "should stop in %Fticks at %s. tseg:%F, dist:%d, stopdist:%F, os:%d",
-			delay, curnode->name, tseg, dist, stopdist, overshoot_mm);
+	// logstrip_printf(state->cmdlog, "should stop in %Fticks at %s. tseg:%F, dist:%d, stopdist:%F, os:%d", delay, sensor->name, tseg, dist, stopdist, overshoot_mm);
 
-	if (fixed_int(delay) > 0) {
-		engineer_pause_train(eng, train_no, fixed_int(delay));
+	if (delay > 0) {
+		engineer_pause_train(eng, train_no, delay);
 	}
 	engineer_set_speed(eng, train_no, 0);
 	dumbbus_unregister(state->sensor_listeners, handle_sensor);
 }
 
-void train_stopper_setup(a0state *state, int train_no, char *type, int id, int dist_cm) {
+void train_stopper_setup(a0state *state, int train_no, char *type, int id, int over) {
 	ASSERTNOTNULL(state);
 	engineer *eng = state->eng;
 	ASSERTNOTNULL(type);
-	ASSERT(dist_cm >= 0, "dist negative: %d", dist_cm);
+	ASSERT(over >= 0, "dist negative: %d", over);
 
 	fixed stopm, stopb;
 	engineer_get_stopinfo(eng, train_no, &stopm, &stopb);
@@ -105,10 +141,10 @@ void train_stopper_setup(a0state *state, int train_no, char *type, int id, int d
 		return;
 	}
 
-	ASSERT(dist_cm >= 0, "dist_cm negative: %d", dist_cm);
+	ASSERT(over >= 0, "over negative: %d", over);
 	ts_state.train_no = train_no;
 	ts_state.dest = dest;
-	ts_state.dist_cm = dist_cm;
+	ts_state.over = 10 * over; // change to mm
 
 	dumbbus_register(state->sensor_listeners, handle_sensor);
 	logstrip_printf(state->cmdlog, "will stop train %d soon.", train_no);
