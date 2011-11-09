@@ -77,7 +77,9 @@ static void handle_sensor_response(void* s) {
 			} else {
 				engineer_set_speed(eng, train_no, 0);
 				calibrator_quit(state);
-				logdisplay_printf(state->expected_time_display, "train %d is not in the correct position, exiting calibration.", train_no);
+				logdisplay_printf(state->expected_time_display,
+						"train %d is not in the correct position, exiting calibration.(expected:%s,given:%s)",
+						train_no, CALIB_SENSOR_END, sensor->name);
 				logdisplay_flushline(state->expected_time_display);
 			}
 			break;

@@ -51,12 +51,12 @@ static inline int fixed_print(char *buf, fixed n) {
 }
 
 static inline fixed fixed_add(fixed a, fixed b) {
-	ASSERT(!overflow(a, b), "overflow");
+	ASSERT(!overflow(a, b), "overflow. a:%F, b:%F", a, b);
 	return a + b;
 }
 
 static inline fixed fixed_sub(fixed a, fixed b) {
-	ASSERT(!overflow(a, -b), "underflow");
+	ASSERT(!overflow(a, -b), "underflow a:%F, b:%F", a, b);
 	return a - b;
 }
 
@@ -69,7 +69,7 @@ static inline fixed fixed_mul(fixed a, fixed b) {
 
 // @TODO: add overflow assert
 static inline fixed fixed_div(fixed a, fixed b) {
-	ASSERT(b != 0, "div by zero");
+	ASSERT(b != 0, "div by zero. a:%F, b:%F", a, b);
 	long long tmp = ((long long) a) << FIXED_Q;
 	tmp += b >> 1; // round
 	return tmp / b;
