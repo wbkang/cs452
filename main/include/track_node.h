@@ -33,6 +33,7 @@ struct track_node {
 	void* data;
 };
 
+fixed guess_beta(track_edge *edge);
 track_node *find_next_sensor(track_node *orig);
 track_edge *find_forward(track_node *orig);
 int find_dist(track_node *orig, track_node *dest, int curdist, int maxsensordepth);
