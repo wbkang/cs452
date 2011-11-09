@@ -336,7 +336,7 @@ static void print_expected_time(void* s) {
 
 	if (last_sensor && find_dist(last_sensor, sensor, 0, 1) > 0) {
 		fixed total_beta = beta_sum(last_sensor, sensor);
-		if (total_beta == 0) return; // unknown path
+		if (fixed_iszero(total_beta)) return; // unknown path
 
 		fixed expected_time = fixed_mul(fixed_new(TICK2MS(tref)), total_beta);
 		fixed actual_time = fixed_new(TICK2MS(state->cur_tick - state->last_tick));

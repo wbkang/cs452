@@ -20,13 +20,14 @@ engineer *engineer_new(char track_name) {
 	// initialize train descriptors
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
-		train->stopm = 0;
-		train->stopb = 0;
+		train->stopm = fixed_new(0);
+		train->stopb = fixed_new(0);
 		train->speed = 0;
 		train->last_speed = 0;
 		train->direction = TRAIN_FORWARD;
 		TRAIN_FOREACH_SPEEDIDX(speed) {
 			train->tref[speed] = -1;
+			train->dref = -1;
 		}
 	}
 
@@ -62,6 +63,15 @@ int engineer_get_tref(engineer *this, int train_no, int speed_idx) {
 	return this->train[train_no].tref[speed_idx];
 }
 
+int engineer_get_dref(engineer *this, int train_no) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	return this->train[train_no].dref;
+}
+void engineer_set_dref(engineer *this, int train_no, int dref) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	this->train[train_no].dref = dref;
+}
+
 void engineer_set_stopinfo(engineer *this, int train_no, fixed m, fixed b) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
@@ -72,13 +82,21 @@ void engineer_set_stopinfo(engineer *this, int train_no, fixed m, fixed b) {
 fixed engineer_get_stopdist(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
-	fixed tref14 = train->tref[14];
-	fixed trefnow = train->tref[train_speed2speed_idx(train)];
+	fixed tref14 = fixed_new(train->tref[14]);
+	if (fixed_sign(tref14) < 0) { return fixed_new(-1); }
+	fixed trefnow = fixed_new(train->tref[train_speed2speed_idx(train)]);
 
-	if (trefnow != fixed_new(-1)) {
-		return fixed_add(fixed_mul(train->stopm, fixed_div(fixed_mul(tref14, fixed_new(14)), trefnow)), train->stopb);
+	fixed rv;
+	if (fixed_comp(trefnow, fixed_new(-1)) != 0) {
+		rv = fixed_add(fixed_mul(train->stopm, fixed_div(fixed_mul(tref14, fixed_new(14)), trefnow)), train->stopb);
 	} else {
-		return fixed_add(fixed_mul(train->stopm, fixed_new(train->speed)), train->stopb);
+		rv = fixed_add(fixed_mul(train->stopm, fixed_new(train->speed)), train->stopb);
+	}
+
+	if (fixed_sign(rv) >= 0) {
+		return rv;
+	} else {
+		return fixed_new(0);
 	}
 }
 
@@ -105,8 +123,18 @@ int engineer_get_speed(engineer *this, int train_no) {
 void engineer_reverse(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	int speed = engineer_get_speed(this, train_no);
+	fixed stopdist = engineer_get_stopdist(this, train_no);
+	fixed dref = fixed_new(engineer_get_dref(this, train_no));
+	fixed tref = fixed_new(engineer_get_tref(this, train_no, engineer_get_speedidx(this, train_no)));
+
 	engineer_set_speed(this, train_no, 0);
-	train_reverse(train_no, this->tid_traincmdbuf);
+	if (fixed_sign(stopdist) > 0 && fixed_sign(dref) > 0 && fixed_sign(tref) > 0) {
+		fixed stoptime = fixed_div(fixed_mul(stopdist, dref), tref);
+		traincmdbuffer_put(this->tid_traincmdbuf, PAUSE, fixed_int(stoptime), NULL);
+		traincmdbuffer_put(this->tid_traincmdbuf, REVERSE, train_no, NULL);
+	} else {
+		train_reverse(train_no, this->tid_traincmdbuf);
+	}
 	engineer_train_set_dir(this, train_no, opposite_direction(engineer_train_get_dir(this, train_no)));
 	engineer_set_speed(this, train_no, speed);
 }

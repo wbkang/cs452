@@ -106,6 +106,7 @@ static void handle_sensor_response(void* s) {
 				speed = next_calib_speed();
 				if (speed == -1) {
 					engineer_set_speed(eng, train_no, 0);
+					engineer_set_dref(eng, train_no, find_dist(last_sensor, sensor, 0, 1));
 					logdisplay_printf(state->expected_time_display, "calibration: finished. current train set to %d", train_no);
 					logdisplay_flushline(state->expected_time_display);
 					calibrator_quit(state);

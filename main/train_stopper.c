@@ -55,15 +55,15 @@ static void handle_sensor(void* s) {
 	}
 
 	fixed beta = beta_sum(sensor, dest);
-	if (beta <= 0) {
+	if (fixed_sign(beta) <= 0) {
 		logdisplay_printf(state->expected_time_display, "bad beta: %F", beta);
 		logdisplay_flushline(state->expected_time_display);
 		return;
 	}
-	fixed speed_idx = engineer_get_speedidx(eng, train_no);
+	int speed_idx = engineer_get_speedidx(eng, train_no);
 	fixed tref = fixed_new(engineer_get_tref(eng, train_no, speed_idx));
 	fixed dt = fixed_mul(beta, tref);
-	if (dt <= 0) {
+	if (fixed_sign(dt)) {
 		logdisplay_printf(state->expected_time_display, "dt is low: %F, beta: %F, tref: %F", dt, beta, tref);
 		logdisplay_flushline(state->expected_time_display);
 		return;
@@ -110,7 +110,7 @@ void train_stopper_setup(a0state *state, int train_no, char *type, int id, int o
 
 	fixed stopm, stopb;
 	engineer_get_stopinfo(eng, train_no, &stopm, &stopb);
-	if (!stopm) {
+	if (fixed_iszero(stopm)) {
 		logstrip_printf(state->cmdlog, "Sorry. Stop distance unknown for train %d.", train_no);
 		return;
 	}
