@@ -17,6 +17,8 @@ static struct {
 	int testrun;
 } calib_state;
 
+static void handle_sensor_response(void* s);
+
 void calibrator_init() {
 	calib_state.state = IDLE;
 }
@@ -46,6 +48,11 @@ static void calibrator_start(engineer *eng, int train_no) {
 	calib_state.state = CALIBRATING;
 }
 
+static void calibrator_quit(a0state *state) {
+	dumbbus_unregister(state->sensor_listeners, &handle_sensor_response);
+	calibrator_init();
+}
+
 static void handle_sensor_response(void* s) {
 	a0state *state = s;
 	engineer *eng = state->eng;
@@ -68,7 +75,7 @@ static void handle_sensor_response(void* s) {
 				calib_state.state = GO2END;
 			} else {
 				engineer_set_speed(eng, train_no, 0);
-				calibrator_init();
+				calibrator_quit(state);
 				logdisplay_printf(state->expected_time_display, "train %d is not in the correct position, exiting calibration.", train_no);
 				logdisplay_flushline(state->expected_time_display);
 			}
@@ -97,8 +104,7 @@ static void handle_sensor_response(void* s) {
 					engineer_set_speed(eng, train_no, 0);
 					logdisplay_printf(state->expected_time_display, "calibration: finished. current train set to %d", train_no);
 					logdisplay_flushline(state->expected_time_display);
-					dumbbus_unregister(state->sensor_listeners, &handle_sensor_response);
-					calibrator_init();
+					calibrator_quit(state);
 					state->cur_train = train_no;
 				} else {
 					engineer_set_speed(eng, train_no, speed);
