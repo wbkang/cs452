@@ -30,12 +30,8 @@ static void handle_sensor(void* s) {
 	}
 	fixed dx = fixed_new(dist);
 
-	fixed stopm, stopb;
-	engineer_get_stopinfo(eng, train_no, &stopm, &stopb);
-
 	// @TODO: use velocity instead
-	int speed = engineer_get_speed(eng, train_no);
-	fixed stopdist = fixed_add(fixed_mul(stopm, fixed_new(speed)), stopb);
+	fixed stopdist = engineer_get_stopdist(eng, train_no);
 
 	fixed offset = fixed_sub(fixed_new(ts_state.over), stopdist);
 	fixed stop_at = fixed_add(dx, offset);

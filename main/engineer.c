@@ -24,7 +24,7 @@ engineer *engineer_new(char track_name) {
 		train->stopb = 0;
 		train->speed = 0;
 		train->last_speed = 0;
-		populate_stop_distance(train, train_no);
+		train->direction = TRAIN_FORWARD;
 		TRAIN_FOREACH_SPEEDIDX(speed) {
 			train->tref[speed] = -1;
 		}
@@ -53,6 +53,7 @@ void engineer_set_tref(engineer *this, int train_no, int speed_idx, int tref) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	ASSERT(0 <= speed_idx && speed_idx < TRAIN_NUM_SPEED_IDX, "bad speed_idx");
 	this->train[train_no].tref[speed_idx] = tref;
+	populate_stop_distance(&this->train[train_no], train_no);
 }
 
 int engineer_get_tref(engineer *this, int train_no, int speed_idx) {
@@ -66,6 +67,19 @@ void engineer_set_stopinfo(engineer *this, int train_no, fixed m, fixed b) {
 	train_descriptor *train = &this->train[train_no];
 	train->stopm = m;
 	train->stopb = b;
+}
+
+fixed engineer_get_stopdist(engineer *this, int train_no) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	train_descriptor *train = &this->train[train_no];
+	fixed tref14 = train->tref[14];
+	fixed trefnow = train->tref[train_speed2speed_idx(train)];
+
+	if (trefnow != fixed_new(-1)) {
+		return fixed_add(fixed_mul(train->stopm, fixed_div(fixed_mul(tref14, fixed_new(14)), trefnow)), train->stopb);
+	} else {
+		return fixed_add(fixed_mul(train->stopm, fixed_new(train->speed)), train->stopb);
+	}
 }
 
 void engineer_get_stopinfo(engineer *this, int train_no, fixed *m, fixed *b) {
@@ -93,6 +107,7 @@ void engineer_reverse(engineer *this, int train_no) {
 	int speed = engineer_get_speed(this, train_no);
 	engineer_set_speed(this, train_no, 0);
 	train_reverse(train_no, this->tid_traincmdbuf);
+	engineer_train_set_dir(this, train_no, opposite_direction(engineer_train_getdir(this, train_no)));
 	engineer_set_speed(this, train_no, speed);
 }
 
@@ -143,6 +158,14 @@ void engineer_destroy(engineer *this) {
 	train_stop(this->tid_traincmdbuf);
 }
 
+train_direction engineer_train_get_dir(engineer *this, int train_no) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	return this->train[train_no].direction;
+}
+
+void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
+	this->train[train_no].direction = dir;
+}
 // @TODO: think this out. Would be nice to know current velocity
 // void engineer_set_velocity(engineer *this, int train_no, fixed measured_v, fixed predicted_v) {
 // 	if (measured_v == 0) return;
