@@ -11,21 +11,16 @@
 #include <server/comnotifier.h>
 #include <server/timenotifier.h>
 #include <task/a0.h>
-#include <task/a0_track_template.h>
+#include <ui/a0_track_template.h>
 #include <ui/logstrip.h>
 #include <ui/cmdline.h>
 #include <ui/logdisplay.h>
 #include <train_calibrator.h>
+#include <train_stopper.h>
 
 #define LEN_MSG (64 * 4)
 #define LEN_CMD 32
 
-#define CONSOLE_LOG_COL 1
-#define CONSOLE_LOG_LINE 29
-#define CONSOLE_CMD_COL 2
-#define CONSOLE_CMD_LINE 30
-#define CONSOLE_SENSOR_COL 17
-#define CONSOLE_SENSOR_LINE 6
 #define CONSOLE_DUMP_LINE (CONSOLE_CMD_LINE + 4)
 #define CONSOLE_DUMP_COL 1
 
@@ -59,114 +54,12 @@ static void reset_track_node_data(track_node_data *data) {
 static char hist_mod[LEN_SENSOR_HIST];
 static int hist_id[LEN_SENSOR_HIST];
 
-typedef struct {
-	int row, col;
-	char straight, curved;
-} switch_pic_info;
-
-static switch_pic_info switch_pic_info_table[22] = {
-	{ 23, 7, '\\', '=' }, // 1
-	{ 25, 9, '\\', '=' }, // 2
-	{ 27, 11, '=', '\\' }, // 3
-	{ 11, 7, '/', '=' }, // 4
-	{ 27, 39, '=', '/' }, // 5
-	{ 25, 29, '=', '\\' }, // 6
-	{ 25, 40, '=', '/' }, // 7
-	{ 23, 52, '/', '=' }, // 8
-	{ 11, 52, '\\', '=' }, // 9
-	{ 11, 38, '=', '/' }, // 10
-	{ 9, 16, '=', '/' }, // 11
-	{ 9, 9, '=', '/' }, // 12
-	{ 11, 28, '=', '\\' }, // 13
-	{ 11, 15, '/', '=' }, // 14
-	{ 23, 15, '\\', '=' }, // 15
-	{ 23, 29, '=', '/' }, // 16
-	{ 23, 39, '=', '\\' }, // 17
-	{ 27, 30, '=', '\\' }, // 18
-	{ 19, 33, '|', '/' }, // 153
-	{ 18, 34, '|', '\\' }, // 154
-	{ 15, 34, '|', '/' }, // 155
-	{ 16, 33, '|', '\\' } // 156
-};
-
-typedef struct {
-	enum direction {
-		UNKNOWN, NORTH, SOUTH, EAST, WEST, NORTHEAST, SOUTHEAST, NORTHWEST, SOUTHWEST
-	} dir;
-	int row, col;
-} sensor_pic_info;
-
-static char direction_str[9][3] = { "", "/\\", "\\/", ">", "<", "/\\", "\\/", "/\\", "\\/" };
-
-static sensor_pic_info sensor_pic_info_table[TRAIN_NUM_MODULES][TRAIN_NUM_SENSORS];
-
-static void sensor_pic_def(char mod, int id1, enum direction dir1, int id2, enum direction dir2, int row, int col) {
-	sensor_pic_info_table[mod - 'A'][id1].dir = dir1;
-	sensor_pic_info_table[mod - 'A'][id1].row = row;
-	sensor_pic_info_table[mod - 'A'][id1].col = col;
-	sensor_pic_info_table[mod - 'A'][id2].dir = dir2;
-	sensor_pic_info_table[mod - 'A'][id2].row = row;
-	sensor_pic_info_table[mod - 'A'][id2].col = col;
-}
-
 static void ui_init(a0state *state) {
 	// init sensor hist
 	for (int i = 0; i < LEN_SENSOR_HIST; i++) {
 		hist_mod[i] = 0;
 		hist_id[i] = 0;
 	}
-
-	for (int i = 0; i < TRAIN_NUM_MODULES; i++) {
-		for (int j = 0; j < TRAIN_NUM_SENSORS; j++) {
-			sensor_pic_info_table[i][j].dir = UNKNOWN;
-		}
-	}
-
-	sensor_pic_def('A', 1, EAST, 2, WEST, 9, 6);
-	sensor_pic_def('C', 13, EAST, 14, WEST, 9, 19);
-	sensor_pic_def('E', 7, EAST, 8, WEST, 9, 33);
-	sensor_pic_def('D', 7, EAST, 8, WEST, 9, 48);
-	sensor_pic_def('A', 13, EAST, 14, WEST, 11, 4);
-	sensor_pic_def('C', 11, EAST, 12, WEST, 11, 18);
-	sensor_pic_def('B', 5, EAST, 6, WEST, 11, 31);
-	sensor_pic_def('D', 3, EAST, 4, WEST, 11, 35);
-	sensor_pic_def('E', 5, EAST, 6, WEST, 11, 41);
-	sensor_pic_def('D', 6, EAST, 5, WEST, 11, 49);
-	sensor_pic_def('E', 15, NORTHWEST, 16, SOUTHEAST, 12, 28);
-	sensor_pic_def('E', 4, NORTHEAST, 3, SOUTHWEST, 12, 37);
-	sensor_pic_def('A', 16, EAST, 15, WEST, 13, 3);
-	sensor_pic_def('E', 2, NORTHWEST, 1, SOUTHEAST, 13, 29);
-	sensor_pic_def('D', 2, NORTHEAST, 1, SOUTHWEST, 13, 36);
-	sensor_pic_def('A', 3, NORTH, 4, SOUTH, 14, 14);
-	sensor_pic_def('B', 15, NORTH, 16, SOUTH, 20, 14);
-	sensor_pic_def('A', 11, EAST, 12, WEST, 21, 2);
-	sensor_pic_def('C', 2, NORTHEAST, 1, SOUTHWEST, 21, 30);
-	sensor_pic_def('B', 13, NORTHWEST, 14, SOUTHEAST, 21, 37);
-	sensor_pic_def('B', 3, NORTHEAST, 4, SOUTHWEST, 22, 29);
-	sensor_pic_def('D', 15, NORTHWEST, 16, SOUTHEAST, 22, 38);
-	sensor_pic_def('B', 7, EAST, 8, WEST, 23, 3);
-	sensor_pic_def('A', 10, EAST, 9, WEST, 23, 5);
-	sensor_pic_def('C', 10, EAST, 9, WEST, 23, 18);
-	sensor_pic_def('B', 1, EAST, 2, WEST, 23, 32);
-	sensor_pic_def('D', 14, EAST, 13, WEST, 23, 36);
-	sensor_pic_def('E', 14, EAST, 13, WEST, 23, 42);
-	sensor_pic_def('E', 9, EAST, 10, WEST, 23, 49);
-	sensor_pic_def('B', 11, EAST, 12, WEST, 25, 3);
-	sensor_pic_def('A', 8, EAST, 7, WEST, 25, 6);
-	sensor_pic_def('C', 5, EAST, 6, WEST, 25, 19);
-	sensor_pic_def('C', 15, EAST, 16, WEST, 25, 32);
-	sensor_pic_def('D', 12, EAST, 11, WEST, 25, 37);
-	sensor_pic_def('E', 11, EAST, 12, WEST, 25, 43);
-	sensor_pic_def('D', 10, EAST, 9, WEST, 25, 48);
-	sensor_pic_def('B', 9, EAST, 10, WEST, 27, 3);
-	sensor_pic_def('A', 5, EAST, 6, WEST, 27, 8);
-	sensor_pic_def('C', 7, EAST, 8, WEST, 27, 27);
-	sensor_pic_def('C', 3, EAST, 4, WEST, 27, 42);
-
-	console_clear(state->con);
-	console_move(state->con, 1, 1);
-	console_printf(state->con, TRACK_TEMPLATE);
-	console_flush(state->con);
 
 	cmdline_clear(state->cmdline);
 
@@ -180,6 +73,29 @@ static void ui_time(a0state *state, int ticks) {
 	console_printf(state->con, "%d.%ds", ms / 1000, (ms / 100) % 10);
 	console_flush(state->con);
 }
+
+
+static void ui_updateswitchstatus(console *c, char no, char pos) {
+	int idx = train_switchno2i(no); // 0 based
+	int statusrow = 2 + idx / 6;
+	int statuscol = 14 + 5 * (idx % 6);
+	char pos_name = train_switchpos_straight(pos) ? 'S' : 'C';
+
+	console_move(c, statusrow, statuscol);
+	console_effect(c, EFFECT_BRIGHT);
+	console_effect(c, EFFECT_FG_YELLOW);
+	console_printf(c, "%c", pos_name);
+	console_effect_reset(c);
+
+	switch_pic_info *swinfo = get_switch_pic_info(idx);
+
+	console_move(c, swinfo->row, swinfo->col);
+	console_effect(c, EFFECT_BRIGHT);
+	console_effect(c, EFFECT_FG_YELLOW);
+	console_printf(c, "%c", (pos_name == 'S') ? swinfo->straight : swinfo->curved);
+	console_effect_reset(c);
+}
+
 
 static void ui_sensor(a0state *state, char module, int id) {
 	for (int i = LEN_SENSOR_HIST - 1; i > 0; i--) {
@@ -200,13 +116,14 @@ static void ui_sensor(a0state *state, char module, int id) {
 			p += sprintf(p, "...");
 		}
 		max_hist_idx = i;
-	}logstrip_printf(state->sensorlog, buf);
+	}
+	logstrip_printf(state->sensorlog, buf);
 
 	for (int i = max_hist_idx; i >= 0; i--) {
-		sensor_pic_info spinfo = sensor_pic_info_table[hist_mod[i] - 'A'][hist_id[i]];
+		sensor_pic_info *spinfo = get_sensor_pic_info(hist_mod[i], hist_id[i]);
 
-		if (spinfo.dir != UNKNOWN) {
-			console_move(state->con, spinfo.row, spinfo.col);
+		if (spinfo->dir != UNKNOWN) {
+			console_move(state->con, spinfo->row, spinfo->col);
 
 			switch (i) {
 				case 0:
@@ -219,12 +136,13 @@ static void ui_sensor(a0state *state, char module, int id) {
 					break;
 				}
 
-			console_printf(state->con, "%s", direction_str[spinfo.dir]);
+			console_printf(state->con, "%s", spinfo->dir_str);
 			console_effect_reset(state->con);
 		}
 	}
 	console_flush(state->con);
 }
+
 
 static void ui_speed(a0state *state, int train, int speed) {
 	logstrip_printf(state->cmdlog, "set speed of train %d to %d", train, speed);
@@ -234,26 +152,6 @@ static void ui_reverse(a0state *state, int train) {
 	logstrip_printf(state->cmdlog, "reversed train %d", train);
 }
 
-static void ui_updateswitchstatus(console *c, char no, char pos) {
-	int idx = train_switchno2i(no); // 0 based
-	int statusrow = 2 + idx / 6;
-	int statuscol = 14 + 5 * (idx % 6);
-	char pos_name = train_switchpos_straight(pos) ? 'S' : 'C';
-
-	console_move(c, statusrow, statuscol);
-	console_effect(c, EFFECT_BRIGHT);
-	console_effect(c, EFFECT_FG_YELLOW);
-	console_printf(c, "%c", pos_name);
-	console_effect_reset(c);
-
-	switch_pic_info swinfo = switch_pic_info_table[idx];
-
-	console_move(c, swinfo.row, swinfo.col);
-	console_effect(c, EFFECT_BRIGHT);
-	console_effect(c, EFFECT_FG_YELLOW);
-	console_printf(c, "%c", (pos_name == 'S') ? swinfo.straight : swinfo.curved);
-	console_effect_reset(c);
-}
 
 static void ui_switch(a0state *state, char no, char pos) {
 	logstrip_printf(state->cmdlog, "switched switch %d to %c", no, pos);
@@ -306,14 +204,15 @@ static void handle_train_switch_all(a0state *state, char pos) {
 	ui_switchall(state, pos);
 }
 
-static char ask_track(a0state *state) {
+static track ask_track(a0state *state) {
 	for (;;) {
 		Putstr(COM2, "Track a or b?\n", state->tid_com2);
 		char c = Getc(COM2, state->tid_com2);
 		switch (c) {
 			case 'a':
+				return TRACK_A;
 			case 'b':
-				return c;
+				return TRACK_B;
 			default:
 				Putstr(COM2, "fail\n", state->tid_com2);
 				break;
@@ -644,8 +543,9 @@ void a0() {
 	state.time_listeners = dumbbus_new();
 	dumbbus_register(state.time_listeners, &print_landmark);
 
-	char track_name = ask_track(&state);
-	state.eng = engineer_new(track_name);
+	track track = ask_track(&state);
+	init_track_template(track, state.con);
+	state.eng = engineer_new(track == TRACK_A ? 'a' : 'b');
 	state.cur_train = -1;
 	state.last_tick = 0;
 	state.last_node = NULL;
