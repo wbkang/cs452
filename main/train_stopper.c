@@ -66,18 +66,6 @@ static void handle_sensor(void* s) {
 	}
 	fixed speed_idx = engineer_get_speedidx(eng, train_no);
 	fixed tref = fixed_new(engineer_get_tref(eng, train_no, speed_idx));
-
-	// we can try averaging the velocity here
-	track_node *last_node = state->last_node;
-	fixed dx_last = find_dist(last_node, sensor, 0, 1);
-	if (dx_last != -1) {
-		fixed beta_last = beta_sum(last_node, sensor);
-		if (beta_last >= 0) {
-			dx = fixed_add(dx, dx_last);
-			beta = fixed_add(beta, beta_last);
-		}
-	}
-
 	fixed dt = fixed_mul(beta, tref);
 	if (dt <= 0) {
 		logdisplay_printf(state->expected_time_display, "dt is low: %F, beta: %F, tref: %F", dt, beta, tref);
