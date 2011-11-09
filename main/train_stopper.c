@@ -22,18 +22,9 @@ static void handle_sensor(void* s) {
 	track_node *sensor = state->cur_node;
 	track_node *dest = ts_state.dest;
 
-	logdisplay_printf(state->expected_time_display, "[sensor report] current: %s, dest: %s", sensor->name, dest->name);
-	logdisplay_flushline(state->expected_time_display);
-
-	if (sensor == dest) {
-		logdisplay_printf(state->expected_time_display, "zero path %s->%s", sensor->name, dest->name);
-		logdisplay_flushline(state->expected_time_display);
-		return;
-	}
-
 	int dist = find_dist(sensor, dest, 0, DEFAULT_SEARCH_DEPTH);
-	if (dist == -1) {
-		logdisplay_printf(state->expected_time_display, "no path %s->%s", sensor->name, dest->name);
+	if (dist <= 0) {
+		logdisplay_printf(state->expected_time_display, "bad path %s->%s", sensor->name, dest->name);
 		logdisplay_flushline(state->expected_time_display);
 		return;
 	}
@@ -61,9 +52,7 @@ static void handle_sensor(void* s) {
 
 	// int maxstopdist = fixed_int(fixed_add(fixed_new(dist_to_next_sensor), stopdist));
 
-	const int dx_err = 50; // mm
-
-	if (fixed_int(stop_at) > (dist_to_next_sensor + dx_err)) { // should wait until next sensor
+	if (fixed_int(stop_at) > dist_to_next_sensor) { // should wait until next sensor
 		logdisplay_printf(state->expected_time_display, "should wait until next sensor, dist: %d, stop_at: %F, d2ns: %d, %s->%s", dist, stop_at, dist_to_next_sensor, sensor->name, dest->name);
 		logdisplay_flushline(state->expected_time_display);
 		// logstrip_printf(state->cmdlog, "should wait until next sensor, dist: %d, offset: %F, stopdist: %F, stop_at: %F, d2ns: %d, %s->%s", dist, offset, stopdist, stop_at, dist_to_next_sensor, sensor->name, next_sensor->name);
@@ -71,6 +60,11 @@ static void handle_sensor(void* s) {
 	}
 
 	fixed beta = beta_sum(sensor, dest);
+	if (beta <= 0) {
+		logdisplay_printf(state->expected_time_display, "bad beta: %F", beta);
+		logdisplay_flushline(state->expected_time_display);
+		return;
+	}
 	fixed speed_idx = engineer_get_speedidx(eng, train_no);
 	fixed tref = fixed_new(engineer_get_tref(eng, train_no, speed_idx));
 	fixed dt = fixed_mul(beta, tref);
@@ -79,8 +73,7 @@ static void handle_sensor(void* s) {
 		logdisplay_flushline(state->expected_time_display);
 		return;
 	}
-	fixed v = fixed_div(dx, dt);
-	fixed stop_time = fixed_div(stop_at, v); // stop_at / v
+	fixed stop_time = fixed_div(fixed_mul(stop_at, dt), dx);
 
 	int delay = TICK2MS(fixed_int(stop_time));
 
