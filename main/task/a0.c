@@ -311,11 +311,12 @@ static void print_landmark(void* s) {
 
 	int dt = Time(state->tid_time) - state->last_tick;
 	int est_dist_cm = calc_distance_after(last_node, dt, tref);
+	char *direction_str = (engineer_train_get_dir(eng, train_no) == TRAIN_FORWARD) ? "forward" : "backward";
 
 	if (est_dist_cm >= 0) {
-		logstrip_printf(state->landmark_display, "Train %2d is %4dcm ahead of %s.", train_no, est_dist_cm, last_node->name);
+		logstrip_printf(state->landmark_display, "Train %2d (%8s) is %4dcm ahead of %s.", train_no, est_dist_cm, last_node->name, direction_str);
 	} else {
-		logstrip_printf(state->landmark_display, "Train %2d: I don't know any path ahead of %d", train_no, last_node->name);
+		logstrip_printf(state->landmark_display, "Train %2d (%8s): I don't know any path ahead of %d", train_no, last_node->name, direction_str);
 	}
 	//	logstrip_printf(state->landmark_display, "dist: %d tref: %5d beta: %10F tick_diff: %10F", expected_edge->dist, tref, beta, tick_diff);
 }

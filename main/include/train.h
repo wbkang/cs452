@@ -37,12 +37,19 @@
 #define TRAIN_NUM_SENSORS 16
 #define TRAIN_NUM_SWITCHADDR 22
 
+typedef enum {
+	TRAIN_FORWARD, TRAIN_BACKWARD
+} train_direction;
+
+#define opposite_direction(x) ((x) == TRAIN_FORWARD ? TRAIN_BACKWARD : TRAIN_FORWARD)
+
 typedef struct {
 	int tref[TRAIN_NUM_SPEED_IDX]; // -1 if unknown
 	fixed stopm; // 0 if unknown
 	fixed stopb; // 0 if unknown
 	int speed;
 	int last_speed;
+	train_direction direction;
 } train_descriptor;
 
 static inline int train_speed2speed_idx(train_descriptor *td) {
