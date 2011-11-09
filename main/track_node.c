@@ -104,6 +104,11 @@ int calc_distance_after(track_node *orig, int tick_diff, int tref) {
 	return est_dist_mm / 10;
 }
 
+static fixed guess_beta(track_edge *edge) {
+	fixed reflength = fixed_new(785); //TODO FIXME do not hard code this
+	return fixed_div(fixed_new(edge->dist), reflength);
+}
+
 fixed beta_sum(track_node *orig, track_node *dest) {
 	ASSERTNOTNULL(orig);
 	ASSERTNOTNULL(dest);
@@ -115,10 +120,14 @@ fixed beta_sum(track_node *orig, track_node *dest) {
 
 	fixed total_beta = fixed_new(0);
 
-	while (curnode != dest) {
+	while (curnode != dest && curnode->type != NODE_EXIT) {
 		ASSERT(curedge, "curedge is null. finding %s to %s, curnode: %s total_beta: %F", orig->name, dest->name, curnode->name, total_beta);
-		ASSERT(curedge->beta != fixed_new(-1), "edge %s->%s beta is uninitialized.", PREV_EDGE(curedge)->name, curedge->dest->name);
-		total_beta = fixed_add(total_beta, curedge->beta);
+//		ASSERT(curedge->beta != fixed_new(-1), "edge %s->%s beta is uninitialized.", PREV_EDGE(curedge)->name, curedge->dest->name);
+		fixed beta = curedge->beta;
+		if (beta == fixed_new(-1)) {
+			beta = guess_beta(curedge);
+		}
+		total_beta = fixed_add(total_beta, beta);
 		curnode = curedge->dest;
 		curedge = find_forward(curnode);
 		if (curnode == orig) return fixed_new(0);
