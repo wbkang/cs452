@@ -85,9 +85,11 @@ static void handle_sensor(void* s) {
 		return;
 	}
 
-	fixed stop_ticks = fixed_div(fixed_mul(stop_at, dt), dx);
+//	int stop_ticks = fixed_int(fixed_div(fixed_mul(stop_at, dt), dx)); TODO overflow's a bitch
+	int stop_ticks = fixed_int(fixed_mul(fixed_div(stop_at, dx), dt));
 
-	logstrip_printf(state->cmdlog, "going to stop! node: %s, sa: %F, dx: %F, dt: %F, st: %F", sensor->name, stop_at, dx, dt, stop_ticks);
+	logstrip_printf(state->cmdlog, "going to stop! node: %s, sa: %F, dx: %F, dt: %F, st: %d",
+			sensor->name, stop_at, dx, dt, stop_ticks);
 
 	// logstrip_printf(state->cmdlog, "going to stop! stop_at: %F, d2ns: %d, stop_time: %F, dx: %F, dt: %F, v: %F, beta: %F, tref: %F", stop_at, dist_to_next_sensor, stop_time, dx, dt, v, beta, tref);
 
