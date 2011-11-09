@@ -48,11 +48,10 @@ static void handle_sensor(void* s) {
 	// track_edge *nextedge = find_forward(sensor);
 	track_node *next_sensor = find_next_sensor(sensor);
 	int dist_to_next_sensor = find_dist(sensor, next_sensor, 0, DEFAULT_SEARCH_DEPTH);
-	ASSERT(dist_to_next_sensor > 0, "can't find next sensor");
 
 	// int maxstopdist = fixed_int(fixed_add(fixed_new(dist_to_next_sensor), stopdist));
 
-	if (fixed_int(stop_at) > dist_to_next_sensor) { // should wait until next sensor
+	if (fixed_int(stop_at) > dist_to_next_sensor && dist_to_next_sensor > 0) { // should wait until next sensor
 		logdisplay_printf(state->expected_time_display, "should wait until next sensor, dist: %d, stop_at: %F, d2ns: %d, %s->%s", dist, stop_at, dist_to_next_sensor, sensor->name, dest->name);
 		logdisplay_flushline(state->expected_time_display);
 		// logstrip_printf(state->cmdlog, "should wait until next sensor, dist: %d, offset: %F, stopdist: %F, stop_at: %F, d2ns: %d, %s->%s", dist, offset, stopdist, stop_at, dist_to_next_sensor, sensor->name, next_sensor->name);
