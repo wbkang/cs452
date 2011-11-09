@@ -14,14 +14,17 @@ engineer *engineer_new(char track_name) {
 	this->tid_traincmdbuf = traincmdbuffer_new();
 	traincmdrunner_new();
 
+	// start
+	train_go(this->tid_traincmdbuf);
+
 	// initialize train descriptors
-	TRAIN_FOREACH(i) {
-		train_descriptor *train = &this->train[i];
+	TRAIN_FOREACH(train_no) {
+		train_descriptor *train = &this->train[train_no];
 		train->stopm = 0;
 		train->stopb = 0;
 		train->speed = 0;
 		train->last_speed = 0;
-		populate_stop_distance(train, i);
+		populate_stop_distance(train, train_no);
 		TRAIN_FOREACH_SPEEDIDX(speed) {
 			train->tref[speed] = -1;
 		}
@@ -43,40 +46,37 @@ engineer *engineer_new(char track_name) {
 			break;
 	}
 
-	// start
-	train_go(this->tid_traincmdbuf);
-
 	return this;
 }
 
 void engineer_set_tref(engineer *this, int train_no, int speed_idx, int tref) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no");
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	ASSERT(0 <= speed_idx && speed_idx < TRAIN_NUM_SPEED_IDX, "bad speed_idx");
 	this->train[train_no].tref[speed_idx] = tref;
 }
 
 int engineer_get_tref(engineer *this, int train_no, int speed_idx) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no");
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	ASSERT(0 <= speed_idx && speed_idx < TRAIN_NUM_SPEED_IDX, "bad speed_idx");
 	return this->train[train_no].tref[speed_idx];
 }
 
 void engineer_set_stopinfo(engineer *this, int train_no, fixed m, fixed b) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no");
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
 	train->stopm = m;
 	train->stopb = b;
 }
 
 void engineer_get_stopinfo(engineer *this, int train_no, fixed *m, fixed *b) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no");
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
 	*m = train->stopm;
 	*b = train->stopb;
 }
 
 void engineer_set_speed(engineer *this, int train_no, int speed) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no");
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
 	train->last_speed = train->speed;
 	train->speed = speed;
@@ -84,12 +84,12 @@ void engineer_set_speed(engineer *this, int train_no, int speed) {
 }
 
 int engineer_get_speed(engineer *this, int train_no) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no");
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	return this->train[train_no].speed;
 }
 
 void engineer_reverse(engineer *this, int train_no) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no");
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	int speed = engineer_get_speed(this, train_no);
 	engineer_set_speed(this, train_no, 0);
 	train_reverse(train_no, this->tid_traincmdbuf);
@@ -97,12 +97,12 @@ void engineer_reverse(engineer *this, int train_no) {
 }
 
 int engineer_get_speedidx(engineer *this, int train_no) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no");
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	return train_speed2speed_idx(&this->train[train_no]);
 }
 
 void engineer_pause_train(engineer *this, int train_no, int ticks) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no");
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	// @TODO: implement a way to pause trains independently
 	(void) train_no;
 	traincmdbuffer_put(this->tid_traincmdbuf, PAUSE, ticks, NULL);
@@ -142,3 +142,11 @@ void engineer_destroy(engineer *this) {
 	}
 	train_stop(this->tid_traincmdbuf);
 }
+
+// @TODO: think this out. Would be nice to know current velocity
+// void engineer_set_velocity(engineer *this, int train_no, fixed measured_v, fixed predicted_v) {
+// 	if (measured_v == 0) return;
+// 	if (abs(fixed_div(measure_v, predicted_v)) <= fixed_div(fixed_new(5), fixed_new(100)))
+// 	if (fixed_div())
+// 	this->valocity
+// }

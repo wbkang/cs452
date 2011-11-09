@@ -17,18 +17,13 @@ track_node *find_next_sensor(track_node *orig) {
 track_edge *find_forward(track_node *orig) {
 	switch (orig->type) {
 		case NODE_SENSOR:
-		case NODE_MERGE: {
+		case NODE_MERGE:
 			return &orig->edge[0];
-		}
-		case NODE_BRANCH: {
-			if (orig->switch_dir != -1) {
-				return &orig->edge[orig->switch_dir];
-			} else {
-				return 0;
-			}
-		}
+		case NODE_BRANCH:
+			if (orig->switch_dir == -1) return NULL;
+			return &orig->edge[orig->switch_dir];
 		default:
-			return 0;
+			return NULL;
 	}
 }
 
@@ -58,13 +53,9 @@ int find_dist(track_node *orig, track_node *dest, int curdist, int maxsensordept
 
 int find_path_blind(track_node *orig, track_node *dest, blind_path_result *rv, int maxsensordepth) {
 	//	NODE_SENSOR, NODE_BRANCH, NODE_MERGE, NODE_ENTER, NODE_EXIT
-	if (dest == orig) {
-		return 0;
-	}
+	if (dest == orig) return 0;
 
-	if (maxsensordepth == -1) {
-		return -1;
-	}
+	if (maxsensordepth == -1) return -1;
 
 	int len;
 	switch (orig->type) {
@@ -103,23 +94,14 @@ int find_path_blind(track_node *orig, track_node *dest, blind_path_result *rv, i
 
 int calc_distance_after(track_node *orig, int tick_diff, int tref) {
 	track_edge *expected_edge = find_forward(orig);
-	if (!expected_edge) {
-		return -1;
-	}
+	if (!expected_edge) return -1;
 	// TOOD reject big tick_diff values
 	fixed beta = expected_edge->beta;
 	ASSERT(tick_diff > 0, "tick_diff is nonpositive");
-
-	// tick_diff * dist / (tref * beta)
-
-	// this overflows
-//	fixed est_dist_mm =
-//				fixed_div(fixed_new(tick_diff * expected_edge->dist), fixed_mul(beta, fixed_new(tref)))
-
-	// tick_diff / (tref * beta) * dist
-	fixed est_dist_mm = fixed_mul(fixed_div(fixed_new(tick_diff), fixed_mul(fixed_new(tref), beta)), fixed_new(expected_edge->dist));
-
-	return fixed_int(est_dist_mm) / 10;
+	int dist = expected_edge->dist;
+	int tseg = fixed_int(fixed_mul(fixed_new(tref), beta));
+	int est_dist_mm = (dist * tick_diff) / tseg;
+	return est_dist_mm / 10;
 }
 
 fixed beta_sum(track_node *orig, track_node *dest) {
@@ -130,11 +112,6 @@ fixed beta_sum(track_node *orig, track_node *dest) {
 	track_node *curnode = orig;
 	track_edge *curedge = find_forward(curnode);
 	ASSERTNOTNULL(curedge);
-
-	int totaldist = find_dist(orig, dest, 0, 1);
-	if (totaldist < 0) {
-		return 0;
-	}
 
 	fixed total_beta = fixed_new(0);
 
