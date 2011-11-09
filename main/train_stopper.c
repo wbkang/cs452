@@ -66,17 +66,28 @@ static void handle_sensor(void* s) {
 	}
 	fixed speed_idx = engineer_get_speedidx(eng, train_no);
 	fixed tref = fixed_new(engineer_get_tref(eng, train_no, speed_idx));
+
+	// we can try averaging the velocity here
+	track_node *last_node = state->last_node;
+	fixed dx_last = find_dist(last_node, sensor, 0, 1);
+	if (dx_last != -1) {
+		fixed beta_last = beta_sum(last_node, sensor);
+		if (beta_last >= 0) {
+			dx = fixed_add(dx, dx_last);
+			beta = fixed_add(beta, beta_last);
+		}
+	}
+
 	fixed dt = fixed_mul(beta, tref);
 	if (dt <= 0) {
 		logdisplay_printf(state->expected_time_display, "dt is low: %F, beta: %F, tref: %F", dt, beta, tref);
 		logdisplay_flushline(state->expected_time_display);
 		return;
 	}
-	fixed stop_time = fixed_div(fixed_mul(stop_at, dt), dx);
 
-	int delay = TICK2MS(fixed_int(stop_time));
+	fixed stop_ticks = fixed_div(fixed_mul(stop_at, dt), dx);
 
-	logstrip_printf(state->cmdlog, "going to stop! node: %s, sa: %F, dx: %F, dt: %F, st: %F", sensor->name, stop_at, dx, dt, stop_time);
+	logstrip_printf(state->cmdlog, "going to stop! node: %s, sa: %F, dx: %F, dt: %F, st: %F", sensor->name, stop_at, dx, dt, stop_ticks);
 
 	// logstrip_printf(state->cmdlog, "going to stop! stop_at: %F, d2ns: %d, stop_time: %F, dx: %F, dt: %F, v: %F, beta: %F, tref: %F", stop_at, dist_to_next_sensor, stop_time, dx, dt, v, beta, tref);
 
@@ -98,8 +109,8 @@ static void handle_sensor(void* s) {
 
 	// logstrip_printf(state->cmdlog, "should stop in %Fticks at %s. tseg:%F, dist:%d, stopdist:%F, os:%d", delay, sensor->name, tseg, dist, stopdist, overshoot_mm);
 
-	if (delay > 0) {
-		engineer_pause_train(eng, train_no, delay);
+	if (stop_ticks > 0) {
+		engineer_pause_train(eng, train_no, stop_ticks);
 	}
 	engineer_set_speed(eng, train_no, 0);
 	dumbbus_unregister(state->sensor_listeners, handle_sensor);

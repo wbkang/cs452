@@ -43,9 +43,11 @@ int find_dist(track_node *orig, track_node *dest, int curdist, int maxsensordept
 			int dist = find_dist(orig->edge[dir].dest, dest, curdist + orig->edge[dir].dist, maxsensordepth);
 			return dist;
 		}
+		case NODE_ENTER:
 		case NODE_MERGE: {
 			return find_dist(orig->edge[0].dest, dest, curdist + orig->edge[0].dist, maxsensordepth);
 		}
+
 		default:
 			return -1;
 	}
@@ -104,7 +106,7 @@ int calc_distance_after(track_node *orig, int tick_diff, int tref) {
 	return est_dist_mm / 10;
 }
 
-static fixed guess_beta(track_edge *edge) {
+fixed guess_beta(track_edge *edge) {
 	fixed reflength = fixed_new(785); //TODO FIXME do not hard code this
 	return fixed_div(fixed_new(edge->dist), reflength);
 }
