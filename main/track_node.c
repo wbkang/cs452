@@ -132,7 +132,7 @@ fixed beta_sum(track_node *orig, track_node *dest) {
 		total_beta = fixed_add(total_beta, beta);
 		curnode = curedge->dest;
 		curedge = find_forward(curnode);
-		if (curnode == orig) return fixed_new(0);
+		if (curnode == orig) return fixed_new(-1);
 	}
 
 	return total_beta;

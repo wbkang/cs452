@@ -107,7 +107,7 @@ void engineer_reverse(engineer *this, int train_no) {
 	int speed = engineer_get_speed(this, train_no);
 	engineer_set_speed(this, train_no, 0);
 	train_reverse(train_no, this->tid_traincmdbuf);
-	engineer_train_set_dir(this, train_no, opposite_direction(engineer_train_getdir(this, train_no)));
+	engineer_train_set_dir(this, train_no, opposite_direction(engineer_train_get_dir(this, train_no)));
 	engineer_set_speed(this, train_no, speed);
 }
 
