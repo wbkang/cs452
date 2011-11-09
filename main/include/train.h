@@ -45,6 +45,7 @@ typedef enum {
 
 typedef struct {
 	int tref[TRAIN_NUM_SPEED_IDX]; // -1 if unknown
+	int dref;
 	fixed stopm; // 0 if unknown
 	fixed stopb; // 0 if unknown
 	int speed;
