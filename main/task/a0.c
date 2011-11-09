@@ -314,9 +314,9 @@ static void print_landmark(void* s) {
 	char *direction_str = (engineer_train_get_dir(eng, train_no) == TRAIN_FORWARD) ? "forward" : "backward";
 
 	if (est_dist_cm >= 0) {
-		logstrip_printf(state->landmark_display, "Train %2d (%8s) is %4dcm ahead of %s.", train_no, est_dist_cm, last_node->name, direction_str);
+		logstrip_printf(state->landmark_display, "Train %2d (%8s) is %4dcm ahead of %s.", train_no, direction_str, est_dist_cm, last_node->name);
 	} else {
-		logstrip_printf(state->landmark_display, "Train %2d (%8s): I don't know any path ahead of %d", train_no, last_node->name, direction_str);
+		logstrip_printf(state->landmark_display, "Train %2d (%8s): I don't know any path ahead of %d", train_no, direction_str, last_node->name);
 	}
 	//	logstrip_printf(state->landmark_display, "dist: %d tref: %5d beta: %10F tick_diff: %10F", expected_edge->dist, tref, beta, tick_diff);
 }
@@ -334,7 +334,7 @@ static void print_expected_time(void* s) {
 	track_node *sensor = state->cur_node;
 	track_node *last_sensor = state->last_node;
 
-	if (last_sensor && last_sensor != sensor) {
+	if (last_sensor && find_dist(last_sensor, sensor, 0, 1) > 0) {
 		fixed total_beta = beta_sum(last_sensor, sensor);
 		if (total_beta == 0) return; // unknown path
 
