@@ -122,7 +122,7 @@ static void test_memcpy() {
 	TEST_END();
 }
 
-static uint test_lookup_hashfn(void* key) {
+static int test_lookup_hashfn(void* key) {
 	return (uint) key;
 }
 

@@ -11,7 +11,7 @@ static void* memset(void* s, int c, unsigned int n) {
   return s;
 }
 
-uint sensor_mapper(void* key) {
+int sensor_mapper(void* key) {
   char *c = key;
   int idx = 0;
 
@@ -66,7 +66,6 @@ uint sensor_mapper(void* key) {
   return idx;
 
   badname:
-  ERROR("bad name: %s", key);
   return -1;
 }
 

@@ -18,8 +18,9 @@ static inline int nameserver_validname(char *name) {
 	return name && goodchar(name[0]) && goodchar(name[1]) && name[2] == '\0';
 }
 
-static uint name_hash(void* nameptr) {
+static int name_hash(void* nameptr) {
 	char *name = (char*) nameptr;
+	if (!nameserver_validname(nameptr)) return -1;
 	return name[0] * NUM_ASCII_PRINTABLE + name[1] - (NUM_ASCII_PRINTABLE + 1) * ASCII_PRINTABLE_START;
 }
 
