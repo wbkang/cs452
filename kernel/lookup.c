@@ -2,7 +2,7 @@
 #include <memory.h>
 #include <util.h>
 
-lookup *lookup_new(uint size, hash_fn hash, lookup_item default_item) {
+lookup *lookup_new(int size, hash_fn hash, lookup_item default_item) {
 	lookup *this = qmalloc(sizeof(lookup) + sizeof(lookup_item) * size);
 	this->size = size;
 	this->hash = hash;
