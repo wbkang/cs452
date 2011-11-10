@@ -514,7 +514,6 @@ static void handle_command(void* s, char *cmd, int size) {
 		// @TODO: pull this out with a "finally"
 		engineer_destroy(eng);
 		ui_quit(state);
-		Flush(state->tid_com1);
 		Flush(state->tid_com2);
 		ExitKernel(0);
 		ASSERT(0, "ExitKernel returned!");
@@ -543,7 +542,6 @@ void a0() {
 	cmdline cmd;
 
 	state.tid_time = WhoIs(NAME_TIMESERVER);
-	state.tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	state.tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	ASSERT(state.tid_com2 >= 0, "invalid com2 server: %d", state.tid_com2);
 

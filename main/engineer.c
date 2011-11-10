@@ -191,11 +191,12 @@ void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid) {
 
 void engineer_destroy(engineer *this) {
 	TRAIN_FOREACH(train_no) {
-		if (engineer_get_speed(this, train_no)) {
+		if (engineer_get_speed(this, train_no) > 0) {
 			engineer_set_speed(this, train_no, 0);
 		}
 	}
 	train_stop(this->tid_traincmdbuf);
+	Flush(WhoIs(NAME_IOSERVER_COM1));
 }
 
 train_direction engineer_train_get_dir(engineer *this, int train_no) {
