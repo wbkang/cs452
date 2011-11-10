@@ -3,16 +3,16 @@
 #include <util.h>
 #include <stdio.h>
 
-#define FIXED_Q 14 // corresponds to 4 correct decimal digits
+#define FIXED_Q 12 // corresponds to ~3.61 correct decimal digits
 #define FIXED_K (1 << (FIXED_Q - 1))
 #define FIXED_10toA 10000 // 10^floor(log10(2^Q - 1)) -- num frac digits to print
 
 #define FIXED_MAX_N ((1 << (32 - FIXED_Q - 1)) - 1)
 #define FIXED_MIN_N (-1 << (32 - FIXED_Q - 1))
 
-#define fixed_iszero(f) ((f.v) == 0)
-#define fixed_comp(a,b) ((a.v) - (b.v))
-#define fixed_sign(f) ((f.v))
+#define fixed_iszero(f) ((f).v == 0)
+#define fixed_comp(a,b) ((a).v - (b).v)
+#define fixed_sign(f) ((f).v)
 
 typedef struct {int v;} fixed;
 
@@ -61,14 +61,14 @@ static inline int fixed_print(char *buf, fixed f) {
 
 static inline fixed fixed_add(fixed fa, fixed fb) {
 	int a = fa.v; int b = fb.v;
-	ASSERT(!overflow(a, b), "overflow. a:%F, b:%F", fa, fb);
+	ASSERT(!overflow(a, b), "overflow. a: %F, b: %F", fa, fb);
 	fixed rv = { a + b };
 	return rv;
 }
 
 static inline fixed fixed_sub(fixed fa, fixed fb) {
 	int a = fa.v; int b = fb.v;
-	ASSERT(!overflow(a, -b), "underflow a:%F, b:%F", fa, fb);
+	ASSERT(!overflow(a, -b), "underflow a: %F, b: %F", fa, fb);
 	fixed rv = { a - b };
 	return rv;
 }
@@ -85,7 +85,7 @@ static inline fixed fixed_mul(fixed fa, fixed fb) {
 // @TODO: add overflow assert
 static inline fixed fixed_div(fixed fa, fixed fb) {
 	int a = fa.v; int b = fb.v;
-	ASSERT(b != 0, "div by zero. a:%F, b:%F", fa, fb);
+	ASSERT(b != 0, "div by zero. a: %F, b: %F", fa, fb);
 	long long tmp = ((long long) a) << FIXED_Q;
 	tmp += b >> 1; // round
 	fixed rv = { tmp / b };

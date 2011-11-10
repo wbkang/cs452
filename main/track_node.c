@@ -1,14 +1,13 @@
 #include <track_node.h>
 #include <constants.h>
+#include <string.h>
 
 track_node *find_next_sensor(track_node *orig) {
 	track_edge *edge = find_forward(orig);
 	track_node *node;
 	while (edge) {
 		node = edge->dest;
-		if (node->type == NODE_SENSOR) {
-			return node;
-		}
+		if (node->type == NODE_SENSOR && strcmp(node->name, "B3") != 0) return node;
 		edge = find_forward(node);
 	}
 	return NULL;
@@ -114,7 +113,7 @@ fixed guess_beta(track_edge *edge) {
 fixed beta_sum(track_node *orig, track_node *dest) {
 	ASSERTNOTNULL(orig);
 	ASSERTNOTNULL(dest);
-	ASSERT(orig != dest, "orig and dest are the same. orig:%s, dest: %s", orig->name, dest->name);
+	ASSERT(orig != dest, "orig and dest are the same. orig: %s, dest: %s", orig->name, dest->name);
 
 	track_node *curnode = orig;
 	track_edge *curedge = find_forward(curnode);

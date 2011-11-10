@@ -46,7 +46,7 @@ void* umalloc(uint size) {
 	memptr rv = td->heap;
 	memptr new_heap = rv + NEXTHIGHESTWORD(size);
 	ASSERT((uint) td->registers.r[REG_SP] > (uint) new_heap,
-			"No more memory. heap: %x, newheap:%x, sp: %x, size: %d",
+			"No more memory. heap: %x, newheap: %x, sp: %x, size: %d",
 			(uint) rv, (uint) new_heap, (uint) td->registers.r[REG_SP], size);
 	td->heap = new_heap;
 	return rv;
