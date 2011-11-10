@@ -10,7 +10,7 @@
 #define CONSOLE_SENSOR_LINE 6
 
 typedef enum { TRACK_A, TRACK_B } track;
-	
+
 typedef struct {
 	enum direction {
 		UNKNOWN, NORTH, SOUTH, EAST, WEST, NORTHEAST, SOUTHEAST, NORTHWEST, SOUTHWEST
@@ -24,7 +24,7 @@ typedef struct {
 	char straight, curved;
 } switch_pic_info;
 
-void init_track_template(track t, console *c);
+void init_track_template(track t, console *this);
 sensor_pic_info *get_sensor_pic_info(char mod, int id);
 switch_pic_info *get_switch_pic_info(int iswitch);
 #define TRACK_TEMPLATE_A CONSOLE_CLEAR "Uptime: 00.00.00s\n" \

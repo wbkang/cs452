@@ -50,7 +50,7 @@ static void calibrator_start(engineer *eng, int train_no) {
 }
 
 static void calibrator_quit(a0state *state) {
-	dumbbus_unregister(state->sensor_listeners, &handle_sensor_response);
+	dumbbus_unregister(state->sensor_bus, &handle_sensor_response);
 	calibrator_init();
 }
 
@@ -165,5 +165,5 @@ void calibrate_train(a0state *state, int train_no, int min, int max) {
 	calib_state.testrun = TRUE;
 
 	// register for sensor notifications
-	dumbbus_register(state->sensor_listeners, &handle_sensor_response);
+	dumbbus_register(state->sensor_bus, &handle_sensor_response);
 }

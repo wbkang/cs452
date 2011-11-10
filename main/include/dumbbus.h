@@ -10,7 +10,7 @@ struct dumbbus {
 	subscriber subscribers[NUM_SUBSCRIBERS];
 };
 
-dumbbus* dumbbus_new();
-void dumbbus_register(dumbbus *dbus, subscriber s);
-void dumbbus_unregister(dumbbus *dbus, subscriber s);
-void dumbbus_dispatch(dumbbus *dbus, void*);
+dumbbus *dumbbus_new();
+void dumbbus_register(dumbbus *this, subscriber s);
+void dumbbus_unregister(dumbbus *this, subscriber s);
+void dumbbus_dispatch(dumbbus *this, void*);

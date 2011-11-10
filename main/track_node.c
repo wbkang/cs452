@@ -113,13 +113,15 @@ fixed guess_beta(track_edge *edge) {
 fixed beta_sum(track_node *orig, track_node *dest) {
 	ASSERTNOTNULL(orig);
 	ASSERTNOTNULL(dest);
-	ASSERT(orig != dest, "orig and dest are the same. orig: %s, dest: %s", orig->name, dest->name);
+
+	fixed total_beta = fixed_new(0);
+
+	// ASSERT(orig != dest, "orig and dest are the same. orig: %s, dest: %s", orig->name, dest->name);
+	if (orig == dest) return total_beta;
 
 	track_node *curnode = orig;
 	track_edge *curedge = find_forward(curnode);
 	ASSERTNOTNULL(curedge);
-
-	fixed total_beta = fixed_new(0);
 
 	while (curnode != dest && curnode->type != NODE_EXIT) {
 		ASSERT(curedge, "curedge is null. finding %s to %s, curnode: %s total_beta: %F", orig->name, dest->name, curnode->name, total_beta);

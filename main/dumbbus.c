@@ -2,28 +2,29 @@
 #include <util.h>
 #include <syscall.h>
 
-dumbbus* dumbbus_new() {
-	dumbbus *dbus = malloc(sizeof(dumbbus));
-	dbus->size = 0;
-	return dbus;
+dumbbus *dumbbus_new() {
+	dumbbus *this = malloc(sizeof(dumbbus));
+	this->size = 0;
+	return this;
 }
 
-void dumbbus_register(dumbbus *dbus, subscriber s) {
-	ASSERT(dbus->size < NUM_SUBSCRIBERS, "overflow. cursize: %d,item: %x", dbus->size, s);
-	dbus->subscribers[dbus->size++] = s;
+void dumbbus_register(dumbbus *this, subscriber s) {
+	ASSERT(this->size < NUM_SUBSCRIBERS, "overflow. cursize: %d,item: %x", this->size, s);
+	this->subscribers[this->size++] = s;
 }
 
-void dumbbus_unregister(dumbbus *dbus, subscriber s) {
-	for (int i = 0; i < dbus->size; i++) {
-		if (dbus->subscribers[i] == s) {
-			dbus->subscribers[i] = dbus->subscribers[--dbus->size];
+void dumbbus_unregister(dumbbus *this, subscriber s) {
+	for (int i = 0; i < this->size; i++) {
+		if (this->subscribers[i] == s) {
+			this->subscribers[i] = this->subscribers[--this->size];
 			return;
 		}
 	}
 	ASSERT(0, "couldn't find the subscriber %x", s);
 }
-void dumbbus_dispatch(dumbbus *dbus, void* data) {
-	for (int i = 0; i < dbus->size; i++) {
-		dbus->subscribers[i](data);
+
+void dumbbus_dispatch(dumbbus *this, void* data) {
+	for (int i = 0; i < this->size; i++) {
+		this->subscribers[i](data);
 	}
 }
