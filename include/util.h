@@ -112,7 +112,7 @@ void print_stack_trace();
 		VMEM(VIC2 + INTENCLR_OFFSET) = ~0; \
 		int lr, pc; READ_REGISTER(lr); READ_REGISTER(pc); \
 		bwprintf(1, "\x1B[2J" "\x1B[1;1H"); \
-		bwprintf(1, "assertion failed in file " __FILE__ " line:" TOSTRING(__LINE__) " lr:%x pc:%x" CRLF, lr, pc); \
+		bwprintf(1, "assertion failed in file " __FILE__ " line:" TOSTRING(__LINE__) " lr: %x pc: %x" CRLF, lr, pc); \
 		bwprintf(1, "[%s] ", __func__); \
 		bwprintf(1, __VA_ARGS__); \
 		bwprintf(1, "\n"); \

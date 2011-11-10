@@ -9,7 +9,7 @@ dumbbus* dumbbus_new() {
 }
 
 void dumbbus_register(dumbbus *dbus, subscriber s) {
-	ASSERT(dbus->size < NUM_SUBSCRIBERS, "overflow. cursize:%d,item:%x", dbus->size, s);
+	ASSERT(dbus->size < NUM_SUBSCRIBERS, "overflow. cursize: %d,item: %x", dbus->size, s);
 	dbus->subscribers[dbus->size++] = s;
 }
 
