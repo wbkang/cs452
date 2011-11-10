@@ -37,6 +37,7 @@ static void get_destination(track_node **rv_dest, int *rv_over) {
 
 
 // logging should be handled better
+// should take into account the time passed since sensor hit and now, as the train moved
 static void handle_sensor(void* s) {
 	a0state *state = s;
 	engineer *eng = state->eng;
@@ -50,14 +51,13 @@ static void handle_sensor(void* s) {
 
 	int dist = find_dist(sensor, dest, 0, DEFAULT_SEARCH_DEPTH);
 	if (dist < 0) {
-		logdisplay_printf(state->expected_time_display, "bad path %s->%s", sensor->name, dest->name);
+		logdisplay_printf(state->expected_time_display, "no path %s->%s", sensor->name, dest->name);
 		logdisplay_flushline(state->expected_time_display);
 		return;
 	}
+
 	fixed dx = fixed_new(dist);
-
 	fixed stopdist = engineer_sim_stopdist(eng, train_no);
-
 	fixed offset = fixed_sub(fixed_new(over), stopdist);
 	fixed stop_at = fixed_add(dx, offset);
 
@@ -93,7 +93,6 @@ static void handle_sensor(void* s) {
 		return;
 	}
 
-//	int stop_ticks = fixed_int(fixed_div(fixed_mul(stop_at, dt), dx)); TODO overflow's a bitch
 	fixed v = fixed_div(dx, dt);
 	int stop_ticks = fixed_int(fixed_div(stop_at, v));
 

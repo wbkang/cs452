@@ -7,7 +7,7 @@ track_node *find_next_sensor(track_node *orig) {
 	track_node *node;
 	while (edge) {
 		node = edge->dest;
-		if (node->type == NODE_SENSOR && strcmp(node->name, "B3") != 0) return node;
+		if (node->type == NODE_SENSOR) return node;
 		edge = find_forward(node);
 	}
 	return NULL;
