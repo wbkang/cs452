@@ -1,14 +1,13 @@
 #include <track_node.h>
 #include <constants.h>
+#include <string.h>
 
 track_node *find_next_sensor(track_node *orig) {
 	track_edge *edge = find_forward(orig);
 	track_node *node;
 	while (edge) {
 		node = edge->dest;
-		if (node->type == NODE_SENSOR) {
-			return node;
-		}
+		if (node->type == NODE_SENSOR && strcmp(node->name, "B3") != 0) return node;
 		edge = find_forward(node);
 	}
 	return NULL;
@@ -94,27 +93,27 @@ int find_path_blind(track_node *orig, track_node *dest, blind_path_result *rv, i
 	}
 }
 
-int calc_distance_after(track_node *orig, int tick_diff, int tref) {
+int calc_distance_after(track_node *orig, int dt, int tref) {
 	track_edge *expected_edge = find_forward(orig);
 	if (!expected_edge) return -1;
-	// TOOD reject big tick_diff values
+	// TOOD reject big dt values
 	fixed beta = expected_edge->beta;
-	ASSERT(tick_diff > 0, "tick_diff is nonpositive");
+	ASSERT(dt > 0, "dt is nonpositive");
 	int dist = expected_edge->dist;
 	int tseg = fixed_int(fixed_mul(fixed_new(tref), beta));
-	int est_dist_mm = (dist * tick_diff) / tseg;
+	int est_dist_mm = (dist * dt) / tseg;
 	return est_dist_mm / 10;
 }
 
 fixed guess_beta(track_edge *edge) {
-	fixed reflength = fixed_new(785); //TODO FIXME do not hard code this
-	return fixed_div(fixed_new(edge->dist), reflength);
+	fixed dref = fixed_new(785); //TODO FIXME do not hard code this
+	return fixed_div(fixed_new(edge->dist), dref);
 }
 
 fixed beta_sum(track_node *orig, track_node *dest) {
 	ASSERTNOTNULL(orig);
 	ASSERTNOTNULL(dest);
-	ASSERT(orig != dest, "orig and dest are the same. orig:%s, dest: %s", orig->name, dest->name);
+	ASSERT(orig != dest, "orig and dest are the same. orig: %s, dest: %s", orig->name, dest->name);
 
 	track_node *curnode = orig;
 	track_edge *curedge = find_forward(curnode);
