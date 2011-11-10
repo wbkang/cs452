@@ -39,12 +39,12 @@ typedef struct {
 	int dt[NUM_TRIALS];
 } track_node_data;
 
-static void reset_track_node_data(track_node_data *data) {
-	data->trial = -1;
-	for (int i = 0; i < NUM_TRIALS; i++) {
-		data->dt[i] = -1;
-	}
-}
+// static void reset_track_node_data(track_node_data *data) {
+// 	data->trial = -1;
+// 	for (int i = 0; i < NUM_TRIALS; i++) {
+// 		data->dt[i] = -1;
+// 	}
+// }
 
 /*
  * UI
@@ -220,6 +220,7 @@ static track ask_track(a0state *state) {
 	return '\0';
 }
 
+/*
 static void calib_sensor(void *s) {
 	a0state *state = s;
 	track_node *cur_node = state->cur_node;
@@ -252,6 +253,7 @@ static void calib_sensor(void *s) {
 
 	exit: data->trial++;
 }
+*/
 
 static void print_landmark(void* s) {
 	a0state *state = s;
@@ -397,12 +399,13 @@ static void handle_command(void* s, char *cmd, int size) {
 			int max = strgetui(&c);
 			if (!calib_goodmax(max)) goto badcmd;
 			if (min > max) goto badcmd;
+			ACCEPT('\0');
 			logstrip_printf(state->cmdlog, "calibrating train %d from speed %d to %d", train, min, max);
 			calibrate_train(state, train, min, max);
 			break;
 		}
 		case 'd': {
-			ACCEPT('\n');
+			ACCEPT('\0');
 			handle_setup_demotrack(state);
 			break;
 		}
@@ -414,6 +417,7 @@ static void handle_command(void* s, char *cmd, int size) {
 			ACCEPT(' ');
 			int speed = strgetui(&c);
 			if (!train_goodspeed(speed)) goto badcmd;
+			ACCEPT('\0');
 			ui_speed(state, train, speed);
 			engineer_set_speed(eng, train, speed);
 			break;
@@ -423,6 +427,7 @@ static void handle_command(void* s, char *cmd, int size) {
 			ACCEPT(' ');
 			int train = strgetui(&c);
 			if (!train_goodtrain(train)) goto badcmd;
+			ACCEPT('\0');
 			ui_reverse(state, train);
 			engineer_reverse(eng, train);
 			break;
@@ -441,6 +446,7 @@ static void handle_command(void* s, char *cmd, int size) {
 				int id = strgetui(&c);
 				ACCEPT(' ');
 				int dist_cm = strgetui(&c);
+				ACCEPT('\0');
 				train_stopper_setup(state, train, type, id, dist_cm);
 			} else if (*c == 'w') { // set switch position (sw #+ [cCsS])
 				ACCEPT('w');
@@ -454,8 +460,8 @@ static void handle_command(void* s, char *cmd, int size) {
 				}
 				ACCEPT(' ');
 				char pos = *c++;
-				if (!train_goodswitchpos(pos))
-					goto badcmd;
+				if (!train_goodswitchpos(pos)) goto badcmd;
+				ACCEPT('\0');
 				if (id == '*') {
 					handle_train_switch_all(state, pos);
 				} else {
@@ -468,6 +474,7 @@ static void handle_command(void* s, char *cmd, int size) {
 			break;
 		}
 		case 'q': { // quit kernel
+			ACCEPT('\0');
 			quit = TRUE;
 			break;
 		}
