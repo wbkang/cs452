@@ -38,10 +38,8 @@
 #define TRAIN_NUM_SWITCHADDR 22
 
 typedef enum {
-	TRAIN_FORWARD, TRAIN_BACKWARD
+	TRAIN_UNKNOWN, TRAIN_FORWARD, TRAIN_BACKWARD
 } train_direction;
-
-#define opposite_direction(x) ((x) == TRAIN_FORWARD ? TRAIN_BACKWARD : TRAIN_FORWARD)
 
 typedef struct {
 	int tref[TRAIN_NUM_SPEED_IDX]; // -1 if unknown
@@ -52,6 +50,11 @@ typedef struct {
 	int last_speed;
 	train_direction direction;
 } train_descriptor;
+
+static inline train_direction train_opposite_direction(train_direction dir) {
+	if (dir == TRAIN_UNKNOWN) return dir;
+	return dir == TRAIN_FORWARD ? TRAIN_BACKWARD : TRAIN_FORWARD;
+}
 
 static inline int train_speed2speed_idx(train_descriptor *td) {
 	int lastspeed = td->last_speed;
@@ -65,7 +68,7 @@ static inline int train_speed2speed_idx(train_descriptor *td) {
 		// ascending case
 		rv = curspeed + TRAIN_MAX_SPEED;
 	}
-	ASSERT(rv < TRAIN_NUM_SPEED_IDX, "rv = %d, last:%d, cur:%d", rv, td->last_speed, td->speed);
+	ASSERT(rv < TRAIN_NUM_SPEED_IDX, "rv = %d, last: %d, cur: %d", rv, td->last_speed, td->speed);
 	return rv;
 }
 

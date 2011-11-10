@@ -311,10 +311,21 @@ static void print_landmark(void* s) {
 
 	int dt = Time(state->tid_time) - state->last_tick;
 	int est_dist_cm = calc_distance_after(last_node, dt, tref);
-	char *direction_str = (engineer_train_get_dir(eng, train_no) == TRAIN_FORWARD) ? "forward" : "backward";
+	char *direction_str;
+	switch (engineer_train_get_dir(eng, train_no)) {
+		case TRAIN_FORWARD:
+			direction_str = "forward";
+			break;
+		case TRAIN_BACKWARD:
+			direction_str = "backward";
+			break;
+		default:
+			direction_str = "unknown";
+			break;
+	}
 
 	if (est_dist_cm >= 0) {
-		logstrip_printf(state->landmark_display, "Train %2d (%8s) is %4dcm ahead of %s.", train_no, direction_str, est_dist_cm, last_node->name);
+		logstrip_printf(state->landmark_display, "Train %2d (%8s) is %4dcm ahead of %s", train_no, direction_str, est_dist_cm, last_node->name);
 	} else {
 		logstrip_printf(state->landmark_display, "Train %2d (%8s): I don't know any path ahead of %d", train_no, direction_str, last_node->name);
 	}
@@ -357,6 +368,19 @@ static void handle_sensor(a0state *state, char msg[]) {
 	engineer *eng = state->eng;
 	msg_sensor *m = (msg_sensor*) msg;
 	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
+
+	/*if (strcmp(sensor->name, "D5") == 0) {
+		engineer_set_switch(eng, 153, 'C', FALSE);
+		engineer_set_switch(eng, 154, 'S', FALSE);
+		engineer_set_switch(eng, 155, 'C', FALSE);
+		engineer_set_switch(eng, 156, 'S', TRUE);
+	} else if (strcmp(sensor->name, "C11") == 0) {
+		engineer_set_switch(eng, 153, 'S', FALSE);
+		engineer_set_switch(eng, 154, 'C', FALSE);
+		engineer_set_switch(eng, 155, 'S', FALSE);
+		engineer_set_switch(eng, 156, 'C', TRUE);
+	}*/
+
 	ui_sensor(state, m->module[0], m->id);
 	state->last_node = state->cur_node;
 	state->cur_node = sensor;

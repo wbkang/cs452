@@ -7,7 +7,7 @@
 
 typedef struct _tag_nameserver_req {
 	char no;
-	char ch[2];
+	char ch[3];
 } nameserver_req;
 
 static inline int goodchar(char ch) {
@@ -43,13 +43,15 @@ void nameserver() {
 					rv = 0;
 					break;
 				case NAMESERVER_WHOIS: {
-					int registered_tid = (int) lookup_get(nametidmap, req.ch);
-					if (registered_tid == -1) {
-						rv = NAMESERVER_ERROR_NOTREGISTERED;
-						ASSERT(FALSE, "name \"%c%c\" not found", req.ch[0], req.ch[1]);
-					} else {
-						rv = registered_tid;
+					if (lookup_goodkey(nametidmap, req.ch)) {
+						int registered_tid = (int) lookup_get(nametidmap, req.ch);
+						if (registered_tid != -1) {
+							rv = registered_tid;
+							break;
+						}
 					}
+					rv = NAMESERVER_ERROR_NOTREGISTERED;
+					ASSERT(FALSE, "name \"%c%c\" not found", req.ch[0], req.ch[1]);
 					break;
 				}
 				default:
@@ -69,6 +71,7 @@ static inline int nameserver_send(char reqno, char *name) {
 	req.no = reqno;
 	req.ch[0] = name[0];
 	req.ch[1] = name[1];
+	req.ch[2] = name[2];
 	int rv;
 	int len = Send(NameServerTid(), &req, sizeof req, &rv, sizeof rv);
 	if (len < 0) return len;
