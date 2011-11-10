@@ -16,14 +16,14 @@ typedef struct {
 	int tid_com2;
 	console *con;
 	// ui
-	logstrip cmdlog;
+	logstrip *cmdlog;
 	cmdline *cmdline;
-	logstrip sensorlog;
+	logstrip *sensorlog;
 	logdisplay *console_dump;
 	logdisplay *expected_time_display;
-	logstrip landmark_display;
-	dumbbus *sensor_listeners;
-	dumbbus *time_listeners;
+	logstrip *landmark_display;
+	dumbbus *sensor_bus;
+	dumbbus *time_bus;
 	// train data
 	engineer *eng;
 	// these are not scalable to multiple trains
@@ -33,8 +33,6 @@ typedef struct {
 	uint last_tick;
 	track_node *last_node;
 	uint trial;
-	// sensor expectation data
-	int linecnt;
 } a0state;
 
 void a0();

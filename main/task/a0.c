@@ -74,7 +74,6 @@ static void ui_time(a0state *state, int ticks) {
 	console_flush(state->con);
 }
 
-
 static void ui_updateswitchstatus(console *c, char no, char pos) {
 	int idx = train_switchno2i(no); // 0 based
 	int statusrow = 2 + idx / 6;
@@ -95,7 +94,6 @@ static void ui_updateswitchstatus(console *c, char no, char pos) {
 	console_printf(c, "%c", (pos_name == 'S') ? swinfo->straight : swinfo->curved);
 	console_effect_reset(c);
 }
-
 
 static void ui_sensor(a0state *state, char module, int id) {
 	for (int i = LEN_SENSOR_HIST - 1; i > 0; i--) {
@@ -181,6 +179,7 @@ static void ui_quit(a0state *state) {
 	logstrip_printf(state->cmdlog, "quitting...");
 	console_move(state->con, CONSOLE_CMD_LINE + 1, 1);
 	console_flush(state->con);
+	Flush(state->tid_com2);
 }
 
 /*
@@ -221,34 +220,6 @@ static track ask_track(a0state *state) {
 	return '\0';
 }
 
-static void update_train_velocity(void *s) {
-	// a0state *state = s;
-	// engineer *eng = state->eng;
-	// int train_no = state->cur_train;
-
-	// if (!TRAIN_GOODNO(train_no)) return;
-
-	// track_node *sensor = state->cur_node;
-	// track_node *last_sensor = state->last_node;
-
-	// int dx = find_dist(last_sensor, sensor, 0, 2);
-	// if (dx <= 0) return;
-	// int dt = state->cur_tick - state->last_tick;
-	// if (dt <= 0) return;
-	// fixed v = fixed_div(fixed_new(dx), fixed_new(dt));
-
-	// fixed beta = beta_sum(last_sensor, sensor);
-	// fixed speed_idx = engineer_get_speedidx(eng, train_no);
-	// fixed tref = engineer_get_tref(eng, train_no, speed_idx);
-	// fixed dt_ = fixed_mul(beta, tref);
-	// if (dt_ <= 0) return;
-	// fixed v_ = fixed_div(fixed_new(dx), fixed_new(dt_));
-
-	// logstrip_printf(state->cmdlog, "measured v: %F, stored v: %F", v, v_);
-
-	// engineer_set_velocity(eng, train_no, v);
-}
-
 static void calib_sensor(void *s) {
 	a0state *state = s;
 	track_node *cur_node = state->cur_node;
@@ -267,20 +238,16 @@ static void calib_sensor(void *s) {
 		reset_track_node_data(data);
 	}
 
-	if (data->trial == -1 || data->trial > MAX_TRIAL) {
-		goto exit;
-	}
+	if (data->trial == -1 || data->trial > MAX_TRIAL) goto exit;
 
 	data->dt[data->trial] = tick - state->last_tick;
 
 	if (data->trial < MAX_TRIAL) goto exit;
 
 	logdisplay_printf(state->console_dump, "%s\t%s\t%d", state->last_node->name, cur_node->name, dist);
-
 	for (int trial = 0; trial <= MAX_TRIAL; trial++) {
 		logdisplay_printf(state->console_dump, "\t%d", data->dt[trial]);
 	}
-
 	logdisplay_flushline(state->console_dump);
 
 	exit: data->trial++;
@@ -386,7 +353,7 @@ static void handle_sensor(a0state *state, char msg[]) {
 	state->cur_node = sensor;
 	state->last_tick = state->cur_tick;
 	state->cur_tick = m->ticks;
-	dumbbus_dispatch(state->sensor_listeners, state);
+	dumbbus_dispatch(state->sensor_bus, state);
 }
 
 static void handle_setup_demotrack(a0state *state) {
@@ -414,8 +381,7 @@ static void handle_command(void* s, char *cmd, int size) {
 	char *c = cmd;
 	cmdline_clear(state->cmdline);
 
-	if (!size)
-		goto badcmd;
+	if (!size) goto badcmd;
 
 	switch (*c++) {
 		case 'c': {
@@ -436,6 +402,7 @@ static void handle_command(void* s, char *cmd, int size) {
 			break;
 		}
 		case 'd': {
+			ACCEPT('\n');
 			handle_setup_demotrack(state);
 			break;
 		}
@@ -514,14 +481,12 @@ static void handle_command(void* s, char *cmd, int size) {
 		// @TODO: pull this out with a "finally"
 		engineer_destroy(eng);
 		ui_quit(state);
-		Flush(state->tid_com2);
 		ExitKernel(0);
-		ASSERT(0, "ExitKernel returned!");
 	}
 
 	return;
 	badcmd:
-	logstrip_printf(state->cmdlog, "invalid command: \"%s\"", cmd);
+	logstrip_printf(state->cmdlog, "bad command: \"%s\"", cmd);
 }
 
 static void handle_comin(a0state *state, char msg[]) {
@@ -533,38 +498,33 @@ static void handle_comin(a0state *state, char msg[]) {
 static void handle_time(a0state *state, char msg[]) {
 	msg_time *time = (msg_time*) msg;
 	ui_time(state, time->ticks);
-	dumbbus_dispatch(state->time_listeners, state);
+	dumbbus_dispatch(state->time_bus, state);
 }
 
 void a0() {
 	a0state state;
-	console con;
-	cmdline cmd;
 
 	state.tid_time = WhoIs(NAME_TIMESERVER);
 	state.tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	ASSERT(state.tid_com2 >= 0, "invalid com2 server: %d", state.tid_com2);
 
 	// ui
-	state.con = &con;
-	console_create(state.con, state.tid_com2);
-	state.cmdlog = logstrip_create(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, state.con);
-	state.cmdline = &cmd;
-	cmdline_create(&cmd, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, state.con, handle_command, &state);
-	state.sensorlog = logstrip_create(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, state.con);
-	state.console_dump = logdisplay_new(&con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, ROUNDROBIN);
-	state.expected_time_display = logdisplay_new(&con, CONSOLE_EXTIME_LINE, CONSOLE_EXTIME_COL, CONSOLE_EXTIME_SIZE, SCROLLING);
-	state.landmark_display = logstrip_create(CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL, &con);
+	state.con = console_new(state.tid_com2);
+	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
+	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
+	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
+	state.console_dump = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, ROUNDROBIN);
+	state.expected_time_display = logdisplay_new(state.con, CONSOLE_EXTIME_LINE, CONSOLE_EXTIME_COL, CONSOLE_EXTIME_SIZE, SCROLLING);
+	state.landmark_display = logstrip_new(state.con, CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL);
 
-	// sensor listeners
-	state.sensor_listeners = dumbbus_new();
-	dumbbus_register(state.sensor_listeners, &update_train_velocity);
-	// dumbbus_register(&sensor_listeners, &calib_sensor);
-	dumbbus_register(state.sensor_listeners, &print_expected_time);
+	// sensor bus
+	state.sensor_bus = dumbbus_new();
+	// dumbbus_register(&sensor_bus, &calib_sensor);
+	dumbbus_register(state.sensor_bus, &print_expected_time);
 
-	// time listeners
-	state.time_listeners = dumbbus_new();
-	dumbbus_register(state.time_listeners, &print_landmark);
+	// time bus
+	state.time_bus = dumbbus_new();
+	dumbbus_register(state.time_bus, &print_landmark);
 
 	track track = ask_track(&state);
 	init_track_template(track, state.con);
@@ -575,8 +535,6 @@ void a0() {
 	state.trial = 0;
 
 	calibrator_init();
-
-	state.linecnt = 0;
 
 	ui_init(&state);
 

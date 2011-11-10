@@ -104,7 +104,7 @@ static void handle_sensor(void* s) {
 	// logstrip_printf(state->cmdlog, "should stop in %Fticks at %s. tseg: %F, dist: %d, stopdist: %F, os: %d", delay, sensor->name, tseg, dist, stopdist, overshoot_mm);
 	engineer_pause_train(eng, train_no, stop_ticks);
 	engineer_set_speed(eng, train_no, 0);
-	dumbbus_unregister(state->sensor_listeners, handle_sensor);
+	dumbbus_unregister(state->sensor_bus, handle_sensor);
 }
 
 void train_stopper_setup(a0state *state, int train_no, char *type, int id, int over) {
@@ -135,6 +135,6 @@ void train_stopper_setup(a0state *state, int train_no, char *type, int id, int o
 	ts_state.dest = dest;
 	ts_state.over = 10 * over; // change to mm
 
-	dumbbus_register(state->sensor_listeners, handle_sensor);
+	dumbbus_register(state->sensor_bus, handle_sensor);
 	logstrip_printf(state->cmdlog, "will stop train %d soon.", train_no);
 }

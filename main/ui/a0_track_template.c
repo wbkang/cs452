@@ -60,11 +60,9 @@ static char direction_str[9][3] = { "", "/\\", "\\/", ">", "<", "/\\", "\\/", "/
 
 static sensor_pic_info sensor_pic_info_table[TRAIN_NUM_MODULES][TRAIN_NUM_SENSORS];
 
-
 static enum direction opposite_direction[] = {
 	UNKNOWN, SOUTH, NORTH, WEST, EAST, SOUTHWEST, NORTHWEST, SOUTHEAST, NORTHEAST
 };
-
 
 static void sensor_pic_def(char mod, int id1, enum direction dir1, int id2, int row, int col) {
 	sensor_pic_info_table[mod - 'A'][id1].dir = dir1;

@@ -3,7 +3,7 @@
 #include <util.h>
 #include <stdio.h>
 
-#define FIXED_Q 14 // corresponds to log10(2^Q) correct decimal digits
+#define FIXED_Q 13 // corresponds to log10(2^Q) correct decimal digits
 #define FIXED_K (1 << (FIXED_Q - 1))
 #define FIXED_10toA 10000 // 10^floor(log10(2^Q - 1)) -- num frac digits to print
 

@@ -24,13 +24,13 @@ typedef struct _tag_buffertask_state {
 	queue *get_blocked;
 } buffertask_state;
 
-static inline void tx(buffertask_state* state, int tid) {
+static inline void tx(buffertask_state *state, int tid) {
 	char item[state->item_size];
 	buffer_get(state->items, item);
 	Reply(tid, item, state->item_size);
 }
 
-static inline void handle_put(buffertask_state* state, int tid, void* item) {
+static inline void handle_put(buffertask_state *state, int tid, void* item) {
 	ASSERT(!buffer_full(state->items), "buffer full");
 	buffer_put(state->items, item);
 	Reply(tid, NULL, 0);
@@ -39,7 +39,7 @@ static inline void handle_put(buffertask_state* state, int tid, void* item) {
 	}
 }
 
-static inline void handle_get(buffertask_state* state, int tid) {
+static inline void handle_get(buffertask_state *state, int tid) {
 	if (buffer_empty(state->items)) {
 		ASSERT(!queue_full(state->get_blocked), "buffer full");
 		queue_put(state->get_blocked, (void*) tid);
@@ -100,7 +100,7 @@ int buffertask_new(char *name, int priority, int item_size) {
 	int size = sizeof(buffertask_args) + sizeof(char) * namesize;
 	char mem[size];
 	buffertask_args *args = (void*) mem;
-	args->size = 1024; // change to (65536 - x) / item_size
+	args->size = (STACK_SIZE - 1000) / item_size; // guess free memory
 	args->item_size = item_size;
 	memcpy(args->name, name, namesize);
 	int n = Send(tid, args, size, NULL, 0);

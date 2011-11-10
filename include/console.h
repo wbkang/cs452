@@ -33,19 +33,20 @@ struct console {
 	char buf[CONSOLE_BUF_SIZE+1];
 };
 
-#define console_printf(c, ...) { (c)->buf_location += sprintf((c)->buf + (c)->buf_location, __VA_ARGS__); \
-	ASSERT((c)->buf_location <= CONSOLE_BUF_SIZE, "console buf overflow: %d", (c)->buf_location); }
+#define console_printf(c, ...) { \
+	(c)->buf_location += sprintf((c)->buf + (c)->buf_location, __VA_ARGS__); \
+	ASSERT((c)->buf_location <= CONSOLE_BUF_SIZE, "console buf overflow: %d", (c)->buf_location); \
+}
 
+console *console_new(int tid);
+void console_flush(console *this);
 
-void console_create(console *c, int tid);
-void console_flush(console *c);
-
-void console_effect(console *c, int effect);
-void console_effect_reset(console *c);
+void console_effect(console *this, int effect);
+void console_effect_reset(console *this);
 void console_clear(console *console);
-void console_erase_eol(console *c);
-void console_move(console *c, int line, int column);
-void console_cursor_left(console *c, int count);
-void console_cursor_save(console *c) ;
-void console_cursor_unsave(console *c);
-void console_scroll(console *c, uint start, uint end);
+void console_erase_eol(console *this);
+void console_move(console *this, int line, int column);
+void console_cursor_left(console *this, int count);
+void console_cursor_save(console *this) ;
+void console_cursor_unsave(console *this);
+void console_scroll(console *this, uint start, uint end);

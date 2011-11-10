@@ -1,50 +1,53 @@
 #include <ui/cmdline.h>
+#include <syscall.h>
 
-#define CMDLINE_PUTC(cmd, c) {\
-	console_move((cmd)->con, (cmd)->line, (cmd)->col + (cmd)->cmdidx); \
-	console_printf((cmd)->con, "%c", c); \
-	console_flush((cmd)->con); }
+#define cmdline_putc(this, c) {\
+	console_move((this)->con, (this)->line, (this)->col + (this)->cmdidx); \
+	console_printf((this)->con, "%c", c); \
+	console_flush((this)->con); }
 
-void cmdline_create(cmdline *cmd, int line, int col, console *con, cmdprocessor cmdproc, void *state) {
-	cmd->cmdidx = 0;
-	cmd->cmdprocessor = cmdproc;
-	cmd->cmdprocstate = state;
-	cmd->col = col;
-	cmd->line = line;
-	cmd->con = con;
+cmdline *cmdline_new(console *con, int line, int col, cmdprocessor cmdproc, void *state) {
+	cmdline *this = malloc(sizeof(cmdline));
+	this->con = con;
+	this->line = line;
+	this->col = col;
+	this->cmdidx = 0;
+	this->cmdprocessor = cmdproc;
+	this->cmdprocstate = state;
+	return this;
 }
 
-void cmdline_handleinput(cmdline *cmd, char c) {
-	if (cmd->cmdidx + 2 == LEN_CMD && c != '\b' && c != '\r') return; // full, ignore
+void cmdline_handleinput(cmdline *this, char c) {
+	if (this->cmdidx + 2 == LEN_CMD && c != '\b' && c != '\r') return; // full, ignore
 
-	cmd->cmdbuf[cmd->cmdidx++] = c;
-	cmd->cmdbuf[cmd->cmdidx] = '\0';
+	this->cmdbuf[this->cmdidx++] = c;
+	this->cmdbuf[this->cmdidx] = '\0';
 
-	console_move(cmd->con, cmd->line, cmd->col + cmd->cmdidx);
-	console_printf(cmd->con, "%c", c);
-	console_flush(cmd->con);
+	console_move(this->con, this->line, this->col + this->cmdidx);
+	console_printf(this->con, "%c", c);
+	console_flush(this->con);
 
 	switch(c) {
 		case '\b':
-			cmd->cmdidx--;
-			if (cmd->cmdidx >= 1) {
-				CMDLINE_PUTC(cmd, ' ');
-				cmd->cmdidx -= 1;
+			this->cmdidx--;
+			if (this->cmdidx >= 1) {
+				cmdline_putc(this, ' ');
+				this->cmdidx -= 1;
 			}
 			break;
 		case '\r':
-			cmd->cmdbuf[--cmd->cmdidx] = '\0';
-			cmd->cmdprocessor(cmd->cmdprocstate, cmd->cmdbuf, cmd->cmdidx);
+			this->cmdbuf[--this->cmdidx] = '\0';
+			this->cmdprocessor(this->cmdprocstate, this->cmdbuf, this->cmdidx);
 			break;
 		default:
-			CMDLINE_PUTC(cmd, c);
+			cmdline_putc(this, c);
 			break;
 	}
 }
 
-void cmdline_clear(cmdline *cmd) {
-	cmd->cmdidx = 0;
-	console_move(cmd->con, cmd->line, cmd->col);
-	console_erase_eol(cmd->con);
-	console_flush(cmd->con);
+void cmdline_clear(cmdline *this) {
+	this->cmdidx = 0;
+	console_move(this->con, this->line, this->col);
+	console_erase_eol(this->con);
+	console_flush(this->con);
 }

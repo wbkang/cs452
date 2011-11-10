@@ -2,13 +2,15 @@
 #include <console.h>
 
 typedef struct {
-	int line, col;
 	console *con;
+	int line, col;
 } logstrip;
 
-logstrip logstrip_create(int line, int col, console *con);
+logstrip *logstrip_new(console *con, int line, int col);
 
-#define logstrip_printf(l, ...) { \
-	console_move((l).con, (l).line, (l).col); console_erase_eol((l).con); \
-	console_printf((l).con, __VA_ARGS__); \
-	console_flush((l).con); }
+#define logstrip_printf(this, ...) { \
+	console_move((this)->con, (this)->line, (this)->col); \
+	console_erase_eol((this)->con); \
+	console_printf((this)->con, __VA_ARGS__); \
+	console_flush((this)->con); \
+}
