@@ -21,6 +21,10 @@ void console_clear(console *this) {
 	console_printf(this, CONSOLE_CLEAR);
 }
 
+void console_erase_bol(console *this) {
+	console_printf(this, CONSOLE_ERASE_SOL);
+}
+
 void console_erase_eol(console *this) {
 	console_printf(this, CONSOLE_ERASE_EOL);
 }

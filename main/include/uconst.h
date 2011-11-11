@@ -15,7 +15,7 @@ typedef struct {
 	int ticks;
 	char module[2];
 	int id;
-	// char on;
+	int state;
 } msg_sensor;
 
 typedef struct {

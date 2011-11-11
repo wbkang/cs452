@@ -336,6 +336,17 @@ static void print_expected_time(void* s) {
 static void handle_sensor(a0state *state, char msg[]) {
 	engineer *eng = state->eng;
 	msg_sensor *m = (msg_sensor*) msg;
+
+	logdisplay_printf(state->console_dump,
+		"[%7d] Sensor %s%d is %s",
+		TICK2MS(m->ticks),
+		m->module, m->id,
+		m->state == ON ? "on" : "off"
+	);
+	logdisplay_flushline(state->console_dump);
+
+	if (m->state == OFF) return;
+
 	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
 
 	/*if (strcmp(sensor->name, "D5") == 0) {
@@ -350,11 +361,12 @@ static void handle_sensor(a0state *state, char msg[]) {
 		engineer_set_switch(eng, 156, 'C', TRUE);
 	}*/
 
-	ui_sensor(state, m->module[0], m->id);
 	state->last_node = state->cur_node;
 	state->cur_node = sensor;
 	state->last_tick = state->cur_tick;
 	state->cur_tick = m->ticks;
+
+	ui_sensor(state, m->module[0], m->id);
 	dumbbus_dispatch(state->sensor_bus, state);
 }
 
@@ -520,7 +532,7 @@ void a0() {
 	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
-	state.console_dump = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, ROUNDROBIN);
+	state.console_dump = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 10, ROUNDROBIN);
 	state.expected_time_display = logdisplay_new(state.con, CONSOLE_EXTIME_LINE, CONSOLE_EXTIME_COL, CONSOLE_EXTIME_SIZE, SCROLLING);
 	state.landmark_display = logstrip_new(state.con, CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL);
 
