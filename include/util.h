@@ -24,15 +24,14 @@ typedef char *va_list;
 #define VMEM(x) (*(vmemptr)(x))
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
-#define MAX(x, y) ( ( (x) > (y) ) ? (x) : (y) )
-#define MIN(x, y) ( ( (x) < (y) ) ? (x) : (y) )
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define INSTALL_INTERRUPT_HANDLER(vec, jmp) { VMEM((vec) + 0x20) = (uint)(jmp); }
 #define READ_INTERRUPT_HANDLER(vec) VMEM((vec) + 0x20)
 // turn mask bits on/off in word based on flags
 #define BIT_TOGGLE(word, mask, flag) ((word) ^= (-(flag) ^ (word)) & (mask))
 #define BYTES2WORDS(x) ((x) >> 2)
 #define WORDS2BYTES(x) ((x) << 2)
-#define CEILING4(x) ((x + 3) & ~3)
 #define ALIGN(x, boundary) ((x + boundary - 1) & ~(boundary - 1))
 #define NEXTHIGHESTWORD(x) BYTES2WORDS((x) + 3)
 #define LIKELY(x) __builtin_expect((x), 1)
@@ -93,7 +92,7 @@ static inline int overflow(int x, int y) {
 #define TEST_REALLY_ENABLED (ASSERT_ENABLED && TEST_ENABLED)
 #define KTEST_REALLY_ENABLED (ASSERT_ENABLED && KERNELTEST_ENABLED)
 #define LONG_TEST_ENABLED 0
-void bwprintf(int channel, char *fmt, ... );
+void bwprintf(int channel, char *fmt, ...);
 
 void errormsg(char *msg);
 void die();
@@ -124,7 +123,7 @@ void print_stack_trace();
 #define ASSERT(X,...)
 #endif
 
-#define ASSERTNOTNULL(X) ASSERT((X), TOSTRING(X) "is null")
+#define ASSERTNOTNULL(X) ASSERT((X), TOSTRING(X) " is null")
 
 #define ERROR(...) { \
 	bwprintf(1, "ERROR:" __VA_ARGS__); \

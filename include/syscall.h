@@ -20,7 +20,7 @@
 #define SYSCALL_EXITKERNEL 11
 
 #define SENDER_MSGLEN(a4) ((a4) & 0xffff)
-#define SENDER_REPLYLEN(a4) (((uint ) a4) >> 16)
+#define SENDER_REPLYLEN(a4) (((uint) a4) >> 16)
 
 int Send(int tid, void* msg, int msglen, void* reply, int replylen);
 int RegisterAs(char *name);

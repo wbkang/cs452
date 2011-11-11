@@ -35,7 +35,7 @@ static void kerneltest_max_tasks() {
 	TRACE("Testing Create with invalid code.");
 	tid = Create(1, NULL);
 	EXPECTMSG(-3, tid, "Should return -3 for an invalid code");
-	tid = Create(1, (func_t )0xdeadbeef);
+	tid = Create(1, (func_t) 0xdeadbeef);
 	EXPECTMSG(-3, tid, "Should return -3 for an invalid code");
 
 #if 0

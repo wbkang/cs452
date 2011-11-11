@@ -51,8 +51,8 @@ static void handle_sensor(void* s) {
 
 	int dist = find_dist(sensor, dest, 0, DEFAULT_SEARCH_DEPTH);
 	if (dist < 0) {
-		logdisplay_printf(state->expected_time_display, "no path %s->%s", sensor->name, dest->name);
-		logdisplay_flushline(state->expected_time_display);
+		logdisplay_printf(state->log, "no path %s->%s", sensor->name, dest->name);
+		logdisplay_flushline(state->log);
 		return;
 	}
 
@@ -66,15 +66,15 @@ static void handle_sensor(void* s) {
 
 	if (fixed_int(stop_at) > dist_to_next_sensor && dist_to_next_sensor > 0) {
 		// should wait until next sensor
-		logdisplay_printf(state->expected_time_display, "should wait until next sensor, dist: %d, stop_at: %F, d2ns: %d, %s->%s", dist, stop_at, dist_to_next_sensor, sensor->name, dest->name);
-		logdisplay_flushline(state->expected_time_display);
+		logdisplay_printf(state->log, "should wait until next sensor, dist: %d, stop_at: %F, d2ns: %d, %s->%s", dist, stop_at, dist_to_next_sensor, sensor->name, dest->name);
+		logdisplay_flushline(state->log);
 		return;
 	}
 
 	fixed beta = beta_sum(sensor, dest);
 	if (fixed_sign(beta) <= 0) {
-		logdisplay_printf(state->expected_time_display, "bad beta: %F", beta);
-		logdisplay_flushline(state->expected_time_display);
+		logdisplay_printf(state->log, "bad beta: %F", beta);
+		logdisplay_flushline(state->log);
 		return;
 	}
 
@@ -82,14 +82,14 @@ static void handle_sensor(void* s) {
 	int speed_idx = engineer_get_speedidx(eng, train_no);
 	fixed tref = fixed_new(engineer_get_tref(eng, train_no, speed_idx));
 	if (fixed_sign(tref) < 0) {
-		logdisplay_printf(state->expected_time_display, "train %d not calibrated for speed %d.", train_no, speed, speed_idx);
-		logdisplay_flushline(state->expected_time_display);
+		logdisplay_printf(state->log, "train %d not calibrated for speed %d.", train_no, speed, speed_idx);
+		logdisplay_flushline(state->log);
 		return;
 	}
 	fixed dt = fixed_mul(beta, tref);
 	if (fixed_sign(dt) <= 0) {
-		logdisplay_printf(state->expected_time_display, "dt is low: %F, beta: %F, tref: %F", dt, beta, tref);
-		logdisplay_flushline(state->expected_time_display);
+		logdisplay_printf(state->log, "dt is low: %F, beta: %F, tref: %F", dt, beta, tref);
+		logdisplay_flushline(state->log);
 		return;
 	}
 

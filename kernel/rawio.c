@@ -106,27 +106,27 @@ void bwformat(int channel, char *fmt, va_list va) {
 				case '\0':
 					return;
 				case 'c':
-					bwputc(channel, va_arg( va, char ));
+					bwputc(channel, va_arg(va, char));
 					break;
 				case 's':
-					bwputw(channel, w, 0, va_arg( va, char* ));
+					bwputw(channel, w, 0, va_arg(va, char*));
 					break;
 				case 'u':
-					uint2str(va_arg( va, uint ), 10, bf);
+					uint2str(va_arg(va, uint), 10, bf);
 					bwputw(channel, w, lz, bf);
 					break;
 				case 'd':
-					int2str(va_arg( va, int ), bf);
+					int2str(va_arg(va, int), bf);
 					bwputw(channel, w, lz, bf);
 					break;
 				case 'b':
-					uint2str(va_arg( va, uint ), 2, bf);
+					uint2str(va_arg(va, uint), 2, bf);
 					bwputc(channel, '0');
 					bwputc(channel, 'b');
 					bwputw(channel, w, lz, bf);
 					break;
 				case 'x':
-					uint2str(va_arg( va, uint ), 16, bf);
+					uint2str(va_arg(va, uint), 16, bf);
 					bwputc(channel, '0');
 					bwputc(channel, 'x');
 					bwputw(channel, w, lz, bf);
