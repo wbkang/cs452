@@ -36,7 +36,7 @@ static void sensornotifier() {
 		last_ticks = ticks;
 		ticks = Time(tid_time);
 		// attribute the timestamp halfway between now and last query
-		msg.ticks = (last_ticks + ticks) >> 1;
+		msg.timestamp = (last_ticks + ticks) >> 1;
 		for (int m = 0; m < TRAIN_NUM_MODULES; m++) {
 			int upper = Getc(COM1, tid_com1);
 			int lower = Getc(COM1, tid_com1);

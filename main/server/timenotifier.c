@@ -21,7 +21,7 @@ static void timenotifier() {
 
 	for (;;) {
 		Delay(args.ticks, tid_time);
-		msg.ticks = Time(tid_time);
+		msg.timestamp = Time(tid_time);
 		Send(args.tid_target, &msg, sizeof(msg), NULL, 0);
 	}
 }
