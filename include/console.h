@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #define CONSOLE_CLEAR "\x1B[2J"
+#define CONSOLE_ERASE_SOL "\x1B[1K"
 #define CONSOLE_ERASE_EOL "\x1B[K"
 #define CONSOLE_EFFECT(effect) "\033[" TOSTRING(effect) "m"
 #define CONSOLE_SHOWCURSOR "\x1B[?25h"
@@ -43,7 +44,8 @@ void console_flush(console *this);
 
 void console_effect(console *this, int effect);
 void console_effect_reset(console *this);
-void console_clear(console *console);
+void console_clear(console *this);
+void console_erase_bol(console *this);
 void console_erase_eol(console *this);
 void console_move(console *this, int line, int column);
 void console_cursor_left(console *this, int count);

@@ -13,56 +13,59 @@
 //	char buf[][MAX_LOG_COL];
 //} logdisplay;
 
-logdisplay* logdisplay_new(console *con, int line, int col, int totallines, int rotation) {
-	logdisplay *l = malloc(sizeof(logdisplay) + MAX_LOG_COL * totallines);
-	l->con = con;
-	l->line = line;
-	l->col = col;
-	l->totallines = totallines;
-	l->curcol = 0;
-	l->curline = 0;
-	l->topline = 0;
+logdisplay *logdisplay_new(console *con, int line, int col, int totallines, int rotation) {
+	logdisplay *this = malloc(sizeof(logdisplay) + MAX_LOG_COL * totallines);
+	this->con = con;
+	this->line = line;
+	this->col = col;
+	this->totallines = totallines;
+	this->curcol = 0;
+	this->curline = 0;
+	this->topline = 0;
 
 	for (int i = 0; i < totallines; i++) {
-		l->buf[i][0] = '\0';
+		this->buf[i][0] = '\0';
 	}
 
-	l->rotation = rotation;
-	return l;
+	this->rotation = rotation;
+	return this;
 }
 
-void logdisplay_puts(logdisplay *l, char *str) {
-	ASSERT(strlen(str) + l->curcol < MAX_LOG_COL, "logdisplay overflow trying to put '%s'", str);
-	l->curcol += sprintf(l->buf[l->curline] + l->curcol, "%s", str);
+void logdisplay_puts(logdisplay *this, char *str) {
+	ASSERT(strlen(str) + this->curcol < MAX_LOG_COL, "logdisplay overflow trying to put '%s'", str);
+	this->curcol += sprintf(this->buf[this->curline] + this->curcol, "%s", str);
 }
 
-void logdisplay_flushline(logdisplay *l) {
-	l->curcol = 0;
-	if (l->rotation == ROUNDROBIN) {
-		console_move(l->con, l->line + l->curline, l->col);
-		console_erase_eol(l->con);
-		console_printf(l->con, "%s", l->buf[l->curline]);
-		console_flush(l->con);
-		l->curline++;
-		l->curline = l->curline % l->totallines;
-	} else if (l->rotation == SCROLLING) {
-		for (int i = 0, cl = l->topline % l->totallines; i < l->totallines; i++) {
-			console_move(l->con, l->line + i, l->col);
-			console_erase_eol(l->con);
-			console_printf(l->con, "%s", l->buf[cl]);
+void logdisplay_flushline(logdisplay *this) {
+	this->curcol = 0;
+	if (this->rotation == ROUNDROBIN) {
+		int last_line = (this->totallines + this->curline - 1) % this->totallines;
+		console_move(this->con, this->line + last_line, this->col);
+		console_printf(this->con, " ", this->buf[last_line]);
+		console_move(this->con, this->line + this->curline, this->col);
+		console_erase_eol(this->con);
+		console_printf(this->con, "> %s", this->buf[this->curline]);
+		console_flush(this->con);
+		this->curline++;
+		this->curline = this->curline % this->totallines;
+	} else if (this->rotation == SCROLLING) {
+		for (int i = 0, cl = this->topline % this->totallines; i < this->totallines; i++) {
+			console_move(this->con, this->line + i, this->col);
+			console_erase_eol(this->con);
+			console_printf(this->con, "%s", this->buf[cl]);
 			cl++;
-			cl = cl % l->totallines;
+			cl = cl % this->totallines;
 		}
-		console_flush(l->con);
+		console_flush(this->con);
 
-		l->curline++;
-		l->curline = l->curline % l->totallines;
+		this->curline++;
+		this->curline = this->curline % this->totallines;
 
-		if (l->topline || (l->topline == 0 && l->curline == 0)) {
-			l->topline++;
-			if (l->topline < 0) l->topline = 1;
+		if (this->topline || (this->topline == 0 && this->curline == 0)) {
+			this->topline++;
+			if (this->topline < 0) this->topline = 1;
 		}
 	} else {
-		ASSERT(0, "invalid rotation mode: %d", l->rotation);
+		ASSERT(0, "invalid rotation mode: %d", this->rotation);
 	}
 }

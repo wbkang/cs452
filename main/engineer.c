@@ -172,8 +172,12 @@ void engineer_set_track(engineer *this, int s[], int ns, int c[], int nc) {
 track_node *engineer_get_tracknode(engineer *this, char *type, int id) {
 	char name[8];
 	sprintf(name, "%s%d", type, id);
-	if (!lookup_goodkey(this->track_nodes, name)) return NULL;
-	return lookup_get(this->track_nodes, name);
+	track_node *rv = NULL;
+	if (lookup_goodkey(this->track_nodes, name)) {
+		rv = lookup_get(this->track_nodes, name);
+	}
+	ASSERTNOTNULL(rv);
+	return NULL;
 }
 
 void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid) {
@@ -207,6 +211,7 @@ train_direction engineer_train_get_dir(engineer *this, int train_no) {
 void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
 	this->train[train_no].direction = dir;
 }
+
 // @TODO: think this out. Would be nice to know current velocity
 // void engineer_set_velocity(engineer *this, int train_no, fixed measured_v, fixed predicted_v) {
 // 	if (measured_v == 0) return;

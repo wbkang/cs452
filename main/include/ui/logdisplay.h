@@ -16,8 +16,11 @@ typedef struct {
 } logdisplay;
 
 logdisplay *logdisplay_new(console *con, int line, int col, int totallines, int rotation);
-void logdisplay_puts(logdisplay *l, char* str);
-void logdisplay_flushline(logdisplay *l);
+void logdisplay_puts(logdisplay *this, char* str);
+void logdisplay_flushline(logdisplay *this);
 
-#define logdisplay_printf(l, ...) { \
-	char __logbuf[MAX_LOG_COL]; sprintf(__logbuf, __VA_ARGS__); logdisplay_puts(l, __logbuf);}
+#define logdisplay_printf(this, ...) { \
+	char __logbuf[MAX_LOG_COL]; \
+	sprintf(__logbuf, __VA_ARGS__); \
+	logdisplay_puts(this, __logbuf); \
+}
