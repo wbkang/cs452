@@ -107,3 +107,8 @@ static inline int fixed_iszero(fixed f) {
 static inline int fixed_comp(fixed a, fixed b) {
 	return fixed_sign(fixed_sub(a, b));
 }
+
+static inline fixed fixed_abs(fixed f) {
+	fixed rv = { fixed_sign(f) < 0 ? -f.v : f.v };
+	return rv;
+}

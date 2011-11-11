@@ -43,6 +43,7 @@ typedef enum {
 } train_direction;
 
 typedef struct {
+	int no;
 	int tref[TRAIN_NUM_SPEED_IDX]; // -1 if unknown
 	int dref;
 	fixed stopm; // 0 if unknown
@@ -53,7 +54,9 @@ typedef struct {
 	track_edge *loc_edge;
 	fixed loc_offset;
 	fixed v;
+	track_node *last_sensor;
 	int timestamp_last_sensor;
+	int timestamp_last_spdcmd;
 } train_descriptor;
 
 static inline train_direction train_opposite_direction(train_direction dir) {

@@ -4,11 +4,16 @@
 #include <train.h>
 #include <lookup.h>
 #include <fixed.h>
+#include <console.h> // @TODO: replace for a ui task
+#include <ui/logdisplay.h> // @TODO: replace for a ui task
 
 typedef struct _tag_train_engineer {
 	int tid_traincmdbuf;
 	train_descriptor train[TRAIN_MAX_TRAIN_ADDR + 1];
 	lookup *track_nodes;
+	console *con; // @TODO: replace with a ui task tid
+	logdisplay *log; // @TODO: replace with a ui task tid
+	int tid_time;
 } engineer;
 
 engineer *engineer_new(char track_name);

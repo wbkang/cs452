@@ -48,6 +48,9 @@ fixed guess_beta(track_edge *edge);
 track_node *find_next_sensor(track_node *orig);
 track_edge *find_forward(track_node *orig);
 int find_dist(track_node *orig, track_node *dest, int curdist, int maxsensordepth);
+track_edge *track_next_edge(track_node *node);
+track_node *track_next_node(track_node *node);
+int track_distance(track_node *from, track_node *to);
 int calc_distance_after(track_node *orig, int tick_diff, int tref);
 
 typedef struct blind_path_result blind_path_result;
@@ -57,5 +60,5 @@ struct blind_path_result {
 };
 
 int find_path_blind(track_node *orig, track_node *dest, blind_path_result *rv, int maxsensordepth);
-fixed beta_sum(track_node *orig, track_node *dest);
+fixed beta_sum(track_node *from, track_node *to);
 #define PREV_EDGE(edge) (edge->reverse->dest->reverse)
