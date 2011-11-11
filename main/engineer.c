@@ -6,6 +6,7 @@
 #include <track_data.h>
 #include <stop_distance.h>
 #include <betaimporter.h>
+#include <uconst.h>
 
 engineer *engineer_new(char track_name) {
 	engineer *this = malloc(sizeof(engineer));
@@ -24,7 +25,10 @@ engineer *engineer_new(char track_name) {
 		train->stopb = fixed_new(0);
 		train->speed = 0;
 		train->last_speed = 0;
-		train->direction = TRAIN_FORWARD;
+		train->dir = TRAIN_FORWARD;
+		train->loc_edge = NULL;
+		train->loc_offset = fixed_new(0);
+		train->v = fixed_new(0);
 		TRAIN_FOREACH_SPEEDIDX(speed) {
 			train->tref[speed] = -1;
 			train->dref = -1;
@@ -205,11 +209,18 @@ void engineer_destroy(engineer *this) {
 
 train_direction engineer_train_get_dir(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	return this->train[train_no].direction;
+	return this->train[train_no].dir;
 }
 
 void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
-	this->train[train_no].direction = dir;
+	this->train[train_no].dir = dir;
+}
+
+void engineer_onsensor(engineer *this, char data[]) {
+	msg_sensor *msg = (msg_sensor*) data;
+	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
+	// work
+	// msg->timestamp
 }
 
 // @TODO: think this out. Would be nice to know current velocity

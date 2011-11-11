@@ -30,3 +30,4 @@ void engineer_set_track(engineer *this, int s[], int ns, int c[], int nc);
 track_node *engineer_get_tracknode(engineer *this, char *type, int id);
 void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid);
 void engineer_destroy(engineer *this);
+void engineer_onsensor(engineer *this, char data[]);

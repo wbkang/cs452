@@ -4,6 +4,7 @@
 #include <syscall.h>
 #include <hardware.h>
 #include <uconst.h>
+#include <track_node.h>
 #include <server/traincmdbuffer.h>
 
 // train controller commands
@@ -48,7 +49,11 @@ typedef struct {
 	fixed stopb; // 0 if unknown
 	int speed;
 	int last_speed;
-	train_direction direction;
+	train_direction dir;
+	track_edge *loc_edge;
+	fixed loc_offset;
+	fixed v;
+	int timestamp_last_sensor;
 } train_descriptor;
 
 static inline train_direction train_opposite_direction(train_direction dir) {
@@ -103,18 +108,6 @@ static inline int train_goodspeed(int speed) {
 static inline int train_goodswitch(int switchno) {
 	// TRAIN_MIN_SWITCHADDR <= switchno && switchno <= TRAIN_MAX_SWITCHADDR;
 	return 1;
-}
-
-static inline int train_switchpos_straight(int pos) {
-	return pos == 's' || pos == 'S';
-}
-
-static inline int train_switchpos_curved(int pos) {
-	return pos == 'c' || pos == 'C';
-}
-
-static inline int train_goodswitchpos(int pos) {
-	return train_switchpos_straight(pos) || train_switchpos_curved(pos);
 }
 
 static inline int train_goodmodule(int module) {

@@ -12,7 +12,7 @@ typedef struct {
 
 typedef struct {
 	msgtype type;
-	int ticks;
+	int timestamp;
 	char module[2];
 	int id;
 	int state;
@@ -20,12 +20,12 @@ typedef struct {
 
 typedef struct {
 	msgtype type;
-	// int ticks;
+	// int timestamp;
 	char channel;
 	char c;
 } msg_comin;
 
 typedef struct {
 	msgtype type;
-	int ticks;
+	int timestamp;
 } msg_time;

@@ -1,6 +1,5 @@
 #pragma once
 #include <fixed.h>
-#include <train.h>
 
 typedef enum {
 	NODE_NONE, NODE_SENSOR, NODE_BRANCH, NODE_MERGE, NODE_ENTER, NODE_EXIT,
@@ -9,8 +8,6 @@ typedef enum {
 #define DIR_AHEAD 0
 #define DIR_STRAIGHT 0
 #define DIR_CURVED 1
-
-#define POS2DIR(pos) (train_switchpos_curved(pos) ? DIR_CURVED : DIR_STRAIGHT)
 
 struct track_node;
 typedef struct track_node track_node;
@@ -32,6 +29,20 @@ struct track_node {
 	int switch_dir;
 	void* data;
 };
+
+#define POS2DIR(pos) (train_switchpos_curved(pos) ? DIR_CURVED : DIR_STRAIGHT)
+
+static inline int train_switchpos_straight(int pos) {
+	return pos == 's' || pos == 'S';
+}
+
+static inline int train_switchpos_curved(int pos) {
+	return pos == 'c' || pos == 'C';
+}
+
+static inline int train_goodswitchpos(int pos) {
+	return train_switchpos_straight(pos) || train_switchpos_curved(pos);
+}
 
 fixed guess_beta(track_edge *edge);
 track_node *find_next_sensor(track_node *orig);

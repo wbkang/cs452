@@ -275,11 +275,12 @@ static void print_landmark(void* s) {
 		return;
 	}
 
-	track_node *last_node = state->last_node;
-	ASSERTNOTNULL(last_node);
+	track_node *sensor = state->cur_node;
+	ASSERTNOTNULL(sensor);
 
-	int dt = Time(state->tid_time) - state->last_tick;
-	int est_dist_cm = calc_distance_after(last_node, dt, tref);
+	int dt = Time(state->tid_time) - state->cur_tick;
+	int est_dist_cm = calc_distance_after(sensor, dt, tref);
+
 	char *direction_str;
 	switch (engineer_train_get_dir(eng, train_no)) {
 		case TRAIN_FORWARD:
@@ -294,9 +295,9 @@ static void print_landmark(void* s) {
 	}
 
 	if (est_dist_cm >= 0) {
-		logstrip_printf(state->landmark_display, "Train %2d (%8s) is %4dcm ahead of %s", train_no, direction_str, est_dist_cm, last_node->name);
+		logstrip_printf(state->landmark_display, "Train %2d (%8s) is %4dcm ahead of %s", train_no, direction_str, est_dist_cm, sensor->name);
 	} else {
-		logstrip_printf(state->landmark_display, "Train %2d (%8s): I don't know any path ahead of %d", train_no, direction_str, last_node->name);
+		logstrip_printf(state->landmark_display, "Train %2d (%8s): I don't know any path ahead of %d", train_no, direction_str, sensor->name);
 	}
 	//	logstrip_printf(state->landmark_display, "dist: %d tref: %5d beta: %10F tick_diff: %10F", expected_edge->dist, tref, beta, tick_diff);
 }
@@ -333,14 +334,14 @@ static void print_expected_time(void* s) {
 	}
 }
 
-static void handle_sensor(a0state *state, char msg[]) {
+static void handle_sensor(a0state *state, char rawmsg[]) {
 	engineer *eng = state->eng;
-	msg_sensor *m = (msg_sensor*) msg;
+	msg_sensor *m = (msg_sensor*) rawmsg;
 	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
 
 	logdisplay_printf(state->log,
 		"[%7d] Sensor %s is %s",
-		TICK2MS(m->ticks),
+		TICK2MS(m->timestamp),
 		sensor->name,
 		m->state == ON ? "on" : "off"
 	);
@@ -363,10 +364,11 @@ static void handle_sensor(a0state *state, char msg[]) {
 	state->last_node = state->cur_node;
 	state->cur_node = sensor;
 	state->last_tick = state->cur_tick;
-	state->cur_tick = m->ticks;
+	state->cur_tick = m->timestamp;
 
 	ui_sensor(state, m->module[0], m->id);
 	dumbbus_dispatch(state->sensor_bus, state);
+	engineer_onsensor(eng, rawmsg);
 }
 
 static void handle_setup_demotrack(a0state *state) {
@@ -515,7 +517,7 @@ static void handle_comin(a0state *state, char msg[]) {
 
 static void handle_time(a0state *state, char msg[]) {
 	msg_time *time = (msg_time*) msg;
-	ui_time(state, time->ticks);
+	ui_time(state, time->timestamp);
 	dumbbus_dispatch(state->time_bus, state);
 }
 
@@ -531,7 +533,7 @@ void a0() {
 	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
-	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 10, ROUNDROBIN);
+	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 10, SCROLLING);
 	state.expected_time_display = logdisplay_new(state.con, CONSOLE_EXTIME_LINE, CONSOLE_EXTIME_COL, CONSOLE_EXTIME_SIZE, SCROLLING);
 	state.landmark_display = logstrip_new(state.con, CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL);
 
