@@ -60,10 +60,7 @@ static void ui_init(a0state *state) {
 		hist_mod[i] = 0;
 		hist_id[i] = 0;
 	}
-
 	cmdline_clear(state->cmdline);
-
-	return;
 }
 
 static void ui_time(a0state *state, int ticks) {
