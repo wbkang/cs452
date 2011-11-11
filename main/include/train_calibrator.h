@@ -1,9 +1,9 @@
 #pragma once
 #include <task/a0.h>
 
-#define CALIB_ORIENTING_SPEED 10
 #define CALIB_MIN_SPEED 4
 #define CALIB_MAX_SPEED 14
+#define CALIB_ORIENTING_SPEED CALIB_MAX_SPEED
 
 static inline int calib_goodmin(int min) {
 	return CALIB_MIN_SPEED <= min;

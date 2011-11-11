@@ -177,7 +177,7 @@ track_node *engineer_get_tracknode(engineer *this, char *type, int id) {
 		rv = lookup_get(this->track_nodes, name);
 	}
 	ASSERTNOTNULL(rv);
-	return NULL;
+	return rv;
 }
 
 void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid) {

@@ -19,7 +19,7 @@ typedef struct {
 	logstrip *cmdlog;
 	cmdline *cmdline;
 	logstrip *sensorlog;
-	logdisplay *console_dump;
+	logdisplay *log;
 	logdisplay *expected_time_display;
 	logstrip *landmark_display;
 	dumbbus *sensor_bus;

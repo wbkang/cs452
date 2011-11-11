@@ -39,7 +39,7 @@ void task1() {
 		Putstr(COM2, menubuf, tid_com2);
 		c = Getc(COM2, tid_com2);
 		idx = c - '0';
-	} while (idx >= program_count);
+	} while (!(0 <= idx && idx <= program_count));
 
 	Putstr(COM2, "You have selected: ", tid_com2);
 	Putc(COM2, c, tid_com2);

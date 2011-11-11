@@ -25,7 +25,7 @@
 #define CONSOLE_DUMP_COL 1
 
 #define CONSOLE_EXTIME_LINE 8
-#define CONSOLE_EXTIME_COL 65
+#define CONSOLE_EXTIME_COL 56
 #define CONSOLE_EXTIME_SIZE 10
 
 #define CONSOLE_LANDMARK_LINE (CONSOLE_EXTIME_LINE + CONSOLE_EXTIME_SIZE + 3)
@@ -245,11 +245,11 @@ static void calib_sensor(void *s) {
 
 	if (data->trial < MAX_TRIAL) goto exit;
 
-	logdisplay_printf(state->console_dump, "%s\t%s\t%d", state->last_node->name, cur_node->name, dist);
+	logdisplay_printf(state->log, "%s\t%s\t%d", state->last_node->name, cur_node->name, dist);
 	for (int trial = 0; trial <= MAX_TRIAL; trial++) {
-		logdisplay_printf(state->console_dump, "\t%d", data->dt[trial]);
+		logdisplay_printf(state->log, "\t%d", data->dt[trial]);
 	}
-	logdisplay_flushline(state->console_dump);
+	logdisplay_flushline(state->log);
 
 	exit: data->trial++;
 }
@@ -271,7 +271,7 @@ static void print_landmark(void* s) {
 	int speed_idx = engineer_get_speedidx(eng, train_no);
 	int tref = engineer_get_tref(eng, train_no, speed_idx);
 	if (tref == -1) {
-		logstrip_printf(state->landmark_display, "I have no calibration data for train %d at speed %d.", train_no, speed);
+		logstrip_printf(state->landmark_display, "I have no calibration data for train %d at speed %d%c.", train_no, speed, speed_idx < 14 ? 'D' : 'A');
 		return;
 	}
 
@@ -322,7 +322,7 @@ static void print_expected_time(void* s) {
 		fixed actual_time = fixed_new(TICK2MS(state->cur_tick - state->last_tick));
 
 		logdisplay_printf(state->expected_time_display,
-			"Edge %3s->%-3s\tExpected:%10Fms  Actual:%10Fms  Diff:%10Fms",
+			"Edge %3s->%-3s Expected:%10Fms  Actual:%10Fms (%10Fms)",
 			last_sensor->name,
 			sensor->name,
 			expected_time,
@@ -336,18 +336,17 @@ static void print_expected_time(void* s) {
 static void handle_sensor(a0state *state, char msg[]) {
 	engineer *eng = state->eng;
 	msg_sensor *m = (msg_sensor*) msg;
+	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
 
-	logdisplay_printf(state->console_dump,
-		"[%7d] Sensor %s%d is %s",
+	logdisplay_printf(state->log,
+		"[%7d] Sensor %s is %s",
 		TICK2MS(m->ticks),
-		m->module, m->id,
+		sensor->name,
 		m->state == ON ? "on" : "off"
 	);
-	logdisplay_flushline(state->console_dump);
+	logdisplay_flushline(state->log);
 
 	if (m->state == OFF) return;
-
-	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
 
 	/*if (strcmp(sensor->name, "D5") == 0) {
 		engineer_set_switch(eng, 153, 'C', FALSE);
@@ -532,7 +531,7 @@ void a0() {
 	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
-	state.console_dump = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 10, ROUNDROBIN);
+	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 10, ROUNDROBIN);
 	state.expected_time_display = logdisplay_new(state.con, CONSOLE_EXTIME_LINE, CONSOLE_EXTIME_COL, CONSOLE_EXTIME_SIZE, SCROLLING);
 	state.landmark_display = logstrip_new(state.con, CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL);
 

@@ -110,27 +110,27 @@ static inline int format(char *buf, char const *fmt, va_list va) {
 				case '\0':
 					goto done;
 				case 'c':
-					*buf++ = va_arg( va, char );
+					*buf++ = va_arg(va, char);
 					break;
 				case 's':
-					buf += putw(buf, width, fillchar, va_arg( va, char* ), left_align);
+					buf += putw(buf, width, fillchar, va_arg(va, char*), left_align);
 					break;
 				case 'u':
-					uint2str(va_arg( va, uint ), 10, bf);
+					uint2str(va_arg(va, uint), 10, bf);
 					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
 				case 'd':
-					int2str(va_arg( va, int ), bf);
+					int2str(va_arg(va, int), bf);
 					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
 				case 'b':
-					uint2str(va_arg( va, uint ), 2, bf);
+					uint2str(va_arg(va, uint), 2, bf);
 					*buf++ = '0';
 					*buf++ = 'x';
 					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
 				case 'x':
-					uint2str(va_arg( va, uint ), 16, bf);
+					uint2str(va_arg(va, uint), 16, bf);
 					*buf++ = '0';
 					*buf++ = 'x';
 					buf += putw(buf, width, fillchar, bf, left_align);
@@ -150,12 +150,12 @@ static inline int format(char *buf, char const *fmt, va_list va) {
 	return buf - orig_buf;
 }
 
-int sprintf(char *buf, const char *fmt, ... ) {
+int sprintf(char *buf, const char *fmt, ...) {
 	ASSERT(buf, "invalid buffer");
 	char const * const orig_buf = buf;
 	va_list va;
 	va_start(va,fmt);
-	buf += format(buf, fmt, va );
+	buf += format(buf, fmt, va);
 	va_end(va);
 	*buf = '\0';
 	return buf - orig_buf;
