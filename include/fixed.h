@@ -96,19 +96,19 @@ static inline fixed fixed_div(fixed fa, fixed fb) {
 	return rv;
 }
 
-static inline int fixed_sign(fixed f) {
+static inline int fixed_sgn(fixed f) {
 	return f.v;
 }
 
-static inline int fixed_iszero(fixed f) {
+static inline int fixed_is0(fixed f) {
 	return f.v == 0;
 }
 
-static inline int fixed_comp(fixed a, fixed b) {
-	return fixed_sign(fixed_sub(a, b));
+static inline int fixed_cmp(fixed a, fixed b) {
+	return fixed_sgn(fixed_sub(a, b));
 }
 
 static inline fixed fixed_abs(fixed f) {
-	fixed rv = { fixed_sign(f) < 0 ? -f.v : f.v };
+	fixed rv = { fixed_sgn(f) < 0 ? -f.v : f.v };
 	return rv;
 }

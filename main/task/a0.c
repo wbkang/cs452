@@ -147,7 +147,6 @@ static void ui_reverse(a0state *state, int train) {
 	logstrip_printf(state->cmdlog, "reversed train %d", train);
 }
 
-
 static void ui_switch(a0state *state, char no, char pos) {
 	logstrip_printf(state->cmdlog, "switched switch %d to %c", no, pos);
 	ui_updateswitchstatus(state->con, no, pos);
@@ -253,82 +252,95 @@ static void calib_sensor(void *s) {
 */
 
 static void print_landmark(void* s) {
-	a0state *state = s;
-	engineer *eng = state->eng;
+	// a0state *state = s;
+	// engineer *eng = state->eng;
 
-	int train_no = state->cur_train;
-	if (!TRAIN_GOODNO(train_no)) return;
+	// int train_no = state->cur_train;
+	// if (!TRAIN_GOODNO(train_no)) return;
 
-	if (train_no == -1) {
-		logstrip_printf(state->landmark_display, "No train is calibrated.");
-		return;
-	}
+	// if (train_no == -1) {
+	// 	logstrip_printf(state->landmark_display, "No train is calibrated.");
+	// 	return;
+	// }
 
-	int speed = engineer_get_speed(eng, train_no);
-	int speed_idx = engineer_get_speedidx(eng, train_no);
-	int tref = engineer_get_tref(eng, train_no, speed_idx);
-	if (tref == -1) {
-		logstrip_printf(state->landmark_display, "I have no calibration data for train %d at speed %d%c.", train_no, speed, speed_idx < 14 ? 'D' : 'A');
-		return;
-	}
+	// int speed = engineer_get_speed(eng, train_no);
+	// if (speed == 0) return;
 
-	track_node *sensor = state->cur_node;
-	ASSERTNOTNULL(sensor);
+	// track_node *sensor = state->cur_node;
+	// ASSERTNOTNULL(sensor);
 
-	int dt = Time(state->tid_time) - state->cur_tick;
-	int est_dist_cm = calc_distance_after(sensor, dt, tref);
+	// int dt = TICK2MS(Time(state->tid_time) - state->cur_tick);
+	// fixed v = engineer_get_velocity(eng, train_no);
+	// if (fixed_sgn(v) < 0) {
+	// 	logstrip_printf(state->landmark_display, "Train velocity must settle");
+	// 	return;
+	// }
+	// fixed est_dist = fixed_mul(v, fixed_new(dt));
+	// est_dist = fixed_div(est_dist, fixed_new(10));
 
-	char *direction_str;
-	switch (engineer_train_get_dir(eng, train_no)) {
-		case TRAIN_FORWARD:
-			direction_str = "forward";
-			break;
-		case TRAIN_BACKWARD:
-			direction_str = "backward";
-			break;
-		default:
-			direction_str = "unknown";
-			break;
-	}
+	// char *direction_str;
+	// switch (engineer_train_get_dir(eng, train_no)) {
+	// 	case TRAIN_FORWARD:
+	// 		direction_str = "forward";
+	// 		break;
+	// 	case TRAIN_BACKWARD:
+	// 		direction_str = "backward";
+	// 		break;
+	// 	default:
+	// 		direction_str = "unknown";
+	// 		break;
+	// }
 
-	if (est_dist_cm >= 0) {
-		logstrip_printf(state->landmark_display, "Train %2d (%8s) is %4dcm ahead of %s", train_no, direction_str, est_dist_cm, sensor->name);
-	} else {
-		logstrip_printf(state->landmark_display, "Train %2d (%8s): I don't know any path ahead of %d", train_no, direction_str, sensor->name);
-	}
+	// track_edge *edge;
+	// fixed offset;
+	// engineer_get_loc(eng, train_no, &edge, &offset);
+	// offset = fixed_div(offset, fixed_new(10)); // change to cm
+
+	// if (fixed_sgn(est_dist) >= 0) {
+	// 	logstrip_printf(state->landmark_display,
+	// 		"Train %2d (%8s) is %4Fcm ahead of %-5s [%-5s + %Fmm]",
+	// 		train_no, direction_str, est_dist, sensor->name,
+	// 		edge->src->name, offset
+	// 	);
+	// } else {
+	// 	logstrip_printf(state->landmark_display, "Train %2d (%8s): I don't know any path ahead of %d", train_no, direction_str, sensor->name);
+	// }
 	//	logstrip_printf(state->landmark_display, "dist: %d tref: %5d beta: %10F tick_diff: %10F", expected_edge->dist, tref, beta, tick_diff);
 }
 
 static void print_expected_time(void* s) {
-	a0state *state = s;
-	engineer *eng = state->eng;
-	int train_no = state->cur_train;
-	if (!TRAIN_GOODNO(train_no)) return; // no train calibrated
+	// a0state *state = s;
+	// engineer *eng = state->eng;
+	// int train_no = state->cur_train;
+	// if (!TRAIN_GOODNO(train_no)) return; // no train calibrated
 
-	int speed_idx = engineer_get_speedidx(eng, train_no);
-	int tref = engineer_get_tref(eng, train_no, speed_idx);
-	if (tref == -1) return; // no calibration data exists at this speed
+	// fixed v = engineer_get_velocity(eng, train_no);
+	// if (fixed_sgn(v) < 0) {
+	// 	logstrip_printf(state->landmark_display, "Train velocity must settle");
+	// 	return;
+	// }
 
-	track_node *sensor = state->cur_node;
-	track_node *last_sensor = state->last_node;
+	// track_node *sensor = state->cur_node;
+	// track_node *last_sensor = state->last_node;
 
-	if (last_sensor && find_dist(last_sensor, sensor, 0, 1) > 0) {
-		fixed total_beta = beta_sum(last_sensor, sensor);
-		if (fixed_iszero(total_beta)) return; // unknown path
+	// if (last_sensor && find_dist(last_sensor, sensor, 0, 1) > 0) {
+	// 	int dist = track_distance(last_sensor, sensor);
+	// 	fixed total_beta = beta_sum(last_sensor, sensor);
+	// 	if (fixed_is0(total_beta)) return; // unknown path
 
-		fixed expected_time = fixed_mul(fixed_new(TICK2MS(tref)), total_beta);
-		fixed actual_time = fixed_new(TICK2MS(state->cur_tick - state->last_tick));
+	// 	fixed expected_time = fixed_div(fixed_new(dist), v);
+	// 	fixed actual_time = fixed_new(TICK2MS(state->cur_tick - state->last_tick));
 
-		logdisplay_printf(state->expected_time_display,
-			"Edge %3s->%-3s Expected:%10Fms  Actual:%10Fms (%10Fms)",
-			last_sensor->name,
-			sensor->name,
-			expected_time,
-			actual_time,
-			fixed_sub(actual_time, expected_time)
-		);
-		logdisplay_flushline(state->expected_time_display);
-	}
+	// 	logdisplay_printf(state->expected_time_display,
+	// 		"Edge %3s->%-3s Expected:%10Fms  Actual:%10Fms (%10Fms)",
+	// 		last_sensor->name,
+	// 		sensor->name,
+	// 		expected_time,
+	// 		actual_time,
+	// 		fixed_sub(actual_time, expected_time)
+	// 	);
+	// 	logdisplay_flushline(state->expected_time_display);
+	// }
 }
 
 static void handle_sensor(a0state *state, char rawmsg[]) {
@@ -378,6 +390,11 @@ static void handle_setup_demotrack(a0state *state) {
 	// update ui
 	ui_set_track(state, s, ns, c, nc);
 	ui_setup_demo_track(state);
+}
+
+static void tick_engineer(void* s) {
+	a0state *state = s;
+	engineer_ontick(state->eng);
 }
 
 #define ACCEPT(a) { \
@@ -542,6 +559,7 @@ void a0() {
 	// time bus
 	state.time_bus = dumbbus_new();
 	dumbbus_register(state.time_bus, &print_landmark);
+	dumbbus_register(state.time_bus, &tick_engineer);
 
 	track track = ask_track(&state);
 	init_track_template(track, state.con);

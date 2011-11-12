@@ -57,6 +57,7 @@ typedef struct {
 	track_node *last_sensor;
 	int timestamp_last_sensor;
 	int timestamp_last_spdcmd;
+	int timestamp_last_nudged;
 } train_descriptor;
 
 static inline train_direction train_opposite_direction(train_direction dir) {

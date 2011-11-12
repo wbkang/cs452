@@ -21,7 +21,7 @@ static void sensornotifier() {
 
 	int modules[TRAIN_NUM_MODULES];
 	for (int m = 0; m < TRAIN_NUM_MODULES; m++) {
-		modules[0] = 0;
+		modules[m] = 0;
 	}
 
 	msg_sensor msg;
@@ -46,7 +46,8 @@ static void sensornotifier() {
 			int sensors = module ^ old_module;
 			while (sensors) {
 				int s = log2(sensors);
-				int mask = 1 << s;
+				ASSERT(s < 16, "bad s, module: %b, old_module: %b, sensors: %b", module, old_module, sensors);
+				uint mask = 1 << s;
 				msg.module[0] = 'A' + m;
 				msg.id = 16 - s;
 				msg.state = (module & mask) ? ON : OFF;
