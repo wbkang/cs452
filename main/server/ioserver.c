@@ -16,7 +16,7 @@
  */
 
 #define INPUT_BUFFER_SIZE 64
-#define OUTPUT_BUFFER_SIZE (1 << 12) // 8192
+#define OUTPUT_BUFFER_SIZE (1 << 13)
 #define REQUEST_STR_SIZE OUTPUT_BUFFER_SIZE
 #define INPUT_BLOCKED_QUEUE_SIZE 1
 #define FLUSH_BLOCKED_QUEUE_SIZE 1
@@ -87,6 +87,8 @@ static void ioserver() {
 
 	uint req_size = sizeof(ioserver_req) + sizeof(char) * REQUEST_STR_SIZE;
 	ioserver_req *req = malloc(req_size);
+
+	MEMCHECK();
 
 	// sync with notifier
 	Receive(&tid, NULL, 0);

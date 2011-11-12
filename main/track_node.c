@@ -172,7 +172,7 @@ fixed beta_sum(track_node *orig, track_node *dest) {
 		ASSERT(curedge, "curedge is null. finding %s to %s, curnode: %s total_beta: %F", orig->name, dest->name, curnode->name, total_beta);
 //		ASSERT(curedge->beta != fixed_new(-1), "edge %s->%s beta is uninitialized.", PREV_EDGE(curedge)->name, curedge->dest->name);
 		fixed beta = curedge->beta;
-		if (fixed_comp(beta, fixed_new(-1)) == 0) {
+		if (fixed_cmp(beta, fixed_new(-1)) == 0) {
 			beta = guess_beta(curedge);
 		}
 		total_beta = fixed_add(total_beta, beta);

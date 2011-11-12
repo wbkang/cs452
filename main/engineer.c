@@ -32,6 +32,8 @@ engineer *engineer_new(char track_name) {
 		train->v = fixed_new(0);
 		train->last_sensor = NULL;
 		train->timestamp_last_sensor = 0;
+		train->timestamp_last_spdcmd = 0;
+		train->timestamp_last_nudged = 0;
 		TRAIN_FOREACH_SPEEDIDX(speed) {
 			train->tref[speed] = -1;
 			train->dref = -1;
@@ -105,7 +107,7 @@ fixed engineer_sim_stopdist(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
 	fixed rv = fixed_add(fixed_mul(train->stopm, fixed_new(train->speed)), train->stopb);
-	if (fixed_sign(rv) < 0) return fixed_new(0);
+	if (fixed_sgn(rv) < 0) return fixed_new(0);
 	return rv;
 }
 
@@ -114,6 +116,7 @@ void engineer_set_speed(engineer *this, int train_no, int speed) {
 	train_descriptor *train = &this->train[train_no];
 	train->last_speed = train->speed;
 	train->speed = speed;
+	train->v = fixed_new(-1); // invalidate velocity
 	train->timestamp_last_spdcmd = Time(this->tid_time);
 	train_speed(train_no, speed, this->tid_traincmdbuf);
 }
@@ -121,6 +124,18 @@ void engineer_set_speed(engineer *this, int train_no, int speed) {
 int engineer_get_speed(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	return this->train[train_no].speed;
+}
+
+fixed engineer_get_velocity(engineer *this, int train_no) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	return this->train[train_no].v;
+}
+
+void engineer_get_loc(engineer *this, int train_no, track_edge **edge, fixed *offset) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	train_descriptor *train = &this->train[train_no];
+	*edge = train->loc_edge;
+	*offset = train->loc_offset;
 }
 
 void engineer_reverse(engineer *this, int train_no) {
@@ -132,7 +147,7 @@ void engineer_reverse(engineer *this, int train_no) {
 	fixed tref = fixed_new(engineer_get_tref(this, train_no, speed_idx));
 
 	engineer_set_speed(this, train_no, 0);
-	if (fixed_sign(dstop) > 0 && fixed_sign(dref) > 0 && fixed_sign(tref) > 0) {
+	if (fixed_sgn(dstop) > 0 && fixed_sgn(dref) > 0 && fixed_sgn(tref) > 0) {
 		fixed v = fixed_div(dref, tref); // approximate v_seg
 		fixed stoptime = fixed_div(fixed_mul(fixed_new(2), dstop), v);
 		stoptime = fixed_add(stoptime, fixed_new(MS2TICK(500)));
@@ -177,7 +192,7 @@ track_node *engineer_get_tracknode(engineer *this, char *type, int id) {
 	if (lookup_goodkey(this->track_nodes, name)) {
 		rv = lookup_get(this->track_nodes, name);
 	}
-	ASSERTNOTNULL(rv);
+	ASSERT(rv, "rv is null, type: %s, id: %d", type, id);
 	return rv;
 }
 
@@ -223,7 +238,7 @@ static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *s
 
 // static fixed engineer_estimate_dt(engineer *this, int train_no, track_node *from, track_node *to) {
 // 	fixed beta = beta_sum(from, to);
-// 	if (fixed_sign(beta) < 0) return fixed_new(-1); // bad beta
+// 	if (fixed_sgn(beta) < 0) return fixed_new(-1); // bad beta
 // 	int speed_idx = engineer_get_speedidx(this, train_no);
 // 	if (speed_idx < 0) return fixed_new(-2); // bad speed idx
 // 	int tref = engineer_get_tref(this, train_no, speed_idx);
@@ -236,7 +251,8 @@ void engineer_onsensor(engineer *this, char data[]) {
 	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
 	train_descriptor *train = engineer_attribute_sensor(this, sensor);
 	if (!train) return; // spurious sensor, ignore
-	if (train->timestamp_last_spdcmd > Time(this->tid_time) - MS2TICK(4000)) {
+	int now = Time(this->tid_time);
+	if (train->timestamp_last_spdcmd > now - MS2TICK(4000)) {
 		// let the velocity settle
 		train->v = fixed_new(-1);
 		return;
@@ -245,6 +261,7 @@ void engineer_onsensor(engineer *this, char data[]) {
 	int timestamp_last = train->timestamp_last_sensor;
 	train->timestamp_last_sensor = timestamp;
 	int dt = TICK2MS(timestamp - timestamp_last);
+	ASSERT(dt > 0, "bad dt %d", dt);
 
 	track_node *last_sensor = train->last_sensor;
 	train->last_sensor = sensor;
@@ -253,33 +270,69 @@ void engineer_onsensor(engineer *this, char data[]) {
 	// fixed fdt = fixed_new(dt);
 	// const fixed max_err = fixed_div(fixed_new(2), fixed_new(10));
 	// fixed rat = fixed_abs(fixed_div(dt_est, fdt));
-	// if (fixed_comp(rat, max_err) > 0) return; // out of bounds
+	// if (fixed_cmp(rat, max_err) > 0) return; // out of bounds
 
 	int dx = track_distance(last_sensor, sensor);
-	fixed v = fixed_div(fixed_new(dx), fixed_new(dt));
+	fixed new_v;
+	fixed new_loc_offset;
+	if (dx > 0 && dt > 0) {
+		new_v = fixed_div(fixed_new(dx), fixed_new(dt));
+		new_loc_offset = fixed_mul(new_v, fixed_new(TICK2MS(now - timestamp)));
+	} else {
+		new_v = fixed_new(-1);
+		new_loc_offset = fixed_new(-1);
+	}
+	track_edge *new_edge = &sensor->edge[0];
 
-	train->loc_edge = &sensor->edge[0];
-	train->loc_offset = fixed_mul(v, fixed_new(Time(this->tid_time) - timestamp));
-	train->v = v;
+	if (train->loc_edge) {
+		fixed dist = fixed_new(track_distance(train->loc_edge->src, sensor));
+		if (fixed_sgn(dist) >= 0) {
+			dist = fixed_add(dist, new_loc_offset);
+			dist = fixed_sub(dist, train->loc_offset);
+			logdisplay_printf(this->log,
+				"[%7d] @%-5s + %Fmm (%Fmm/ms) %-5Fmm",
+				TICK2MS(timestamp),
+				train->loc_edge->src->name,
+				train->loc_offset,
+				train->v,
+				dist
+			);
+			logdisplay_flushline(this->log);
+			logdisplay_printf(this->log,
+				"[%7d] @%-5s + %Fmm (%Fmm/ms), %d/%d",
+				TICK2MS(timestamp),
+				sensor->name,
+				new_loc_offset,
+				new_v,
+				dx,
+				dt
+			);
+			logdisplay_flushline(this->log);
+		}
+	}
 
-	logdisplay_printf(this->log,
-		"[%7d] @%s + %F, %d/%d (%F)",
-		TICK2MS(timestamp),
-		sensor->name,
-		train->loc_offset,
-		dx,
-		dt,
-		train->v
-	);
-	logdisplay_flushline(this->log);
-	// work
-	// msg->timestamp
+	train->loc_edge = new_edge;
+	train->loc_offset = new_loc_offset;
+	train->v = new_v;
+	train->timestamp_last_nudged = now;
 }
 
-// @TODO: think this out. Would be nice to know current velocity
-// void engineer_set_velocity(engineer *this, int train_no, fixed measured_v, fixed predicted_v) {
-// 	if (measured_v == 0) return;
-// 	if (abs(fixed_div(measure_v, predicted_v)) <= fixed_div(fixed_new(5), fixed_new(100)))
-// 	if (fixed_div())
-// 	this->valocity
-// }
+void engineer_ontick(engineer *this) {
+	TRAIN_FOREACH(train_no) {
+		train_descriptor *train = &this->train[train_no];
+		int timestamp = Time(this->tid_time);
+		if (train->loc_edge && fixed_sgn(train->v) > 0) {
+			fixed dt = fixed_new(TICK2MS(timestamp - train->timestamp_last_nudged));
+			fixed dx = fixed_mul(train->v, dt);
+			train->loc_offset = fixed_add(train->loc_offset, dx);
+			do {
+				fixed edge_len = fixed_new(train->loc_edge->dist);
+				if (fixed_cmp(train->loc_offset, edge_len) < 0) break;
+				train->loc_offset = fixed_sub(train->loc_offset, edge_len);
+				train->loc_edge = track_next_edge(train->loc_edge->dest);
+			} while (train->loc_edge);
+			ASSERT(fixed_sgn(train->loc_offset) > 0, "negative new offset");
+		}
+		train->timestamp_last_nudged = timestamp;
+	}
+}
