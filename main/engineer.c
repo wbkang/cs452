@@ -251,10 +251,10 @@ void engineer_onsensor(engineer *this, char data[]) {
 	if (dx <= 0) return; // too fast?
 
 	fixed new_v = fixed_div(fixed_new(dx), fixed_new(dt));
+	fixed dt_sensorlag = fixed_new(TICK2MS(now - msg->timestamp));
+	fixed dx_sensorlag = fixed_mul(new_v, dt_sensorlag);
 	location new_loc;
-	location_init(&new_loc, sensor->edge, fixed_new(0));
-	int dt_sensorlag = TICK2MS(now - msg->timestamp);
-	location_inc(&new_loc, fixed_mul(new_v, fixed_new(dt_sensorlag)));
+	location_init(&new_loc, sensor->edge, dx_sensorlag);
 
 	if (!location_isundef(&train->loc)) {
 		fixed dist = location_dist(&train->loc, &new_loc);
@@ -293,8 +293,7 @@ void engineer_ontick(engineer *this) {
 		int timestamp = Time(this->tid_time);
 		if (!location_isundef(&train->loc) && fixed_sgn(train->v) > 0) {
 			int dt = TICK2MS(timestamp - train->timestamp_last_nudged);
-			fixed fdt = fixed_new(dt);
-			fixed dx = fixed_mul(train->v, fdt);
+			fixed dx = fixed_mul(train->v, fixed_new(dt));
 			location_inc(&train->loc, dx);
 		}
 		train->timestamp_last_nudged = timestamp;
