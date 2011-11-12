@@ -192,7 +192,6 @@ track_node *engineer_get_tracknode(engineer *this, char *type, int id) {
 
 void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid) {
 	track_node *br = engineer_get_tracknode(this, "BR", id);
-	ASSERTNOTNULL(br);
 	int dir = POS2DIR(pos);
 	if (br->switch_dir != dir) { // assume only engineer switches branches
 		br->switch_dir = dir;
@@ -230,6 +229,10 @@ static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *s
 	return NULL;
 }
 
+// @TODO: train->v is the average velocity between the last and current sensor
+//			perhaps here it should be set to the estimated/stored average velocity
+//			between the current and the next sensor? or at least the total average
+//			velocity for the entire track.
 void engineer_onsensor(engineer *this, char data[]) {
 	msg_sensor *msg = (msg_sensor*) data;
 	if (msg->state == OFF) return; // ignore sensor-off for now
@@ -287,21 +290,22 @@ void engineer_onsensor(engineer *this, char data[]) {
 	train->timestamp_last_sensor = msg->timestamp;
 }
 
-static void engineer_train_move(engineer *this, train_descriptor *train, int dt) {
-	int spotted = !location_isundef(&train->loc);
-	int moving = fixed_sgn(train->v) > 0;
-	if (spotted && moving) {
-		fixed dx = fixed_mul(train->v, fixed_new(dt));
-		location_inc(&train->loc, dx);
-	}
+// @TODO: add acceleration
+// @TODO: add jerk
+// @TODO: use track info to improve the following guess
+static void engineer_train_move(engineer *this, train_descriptor *train, int t_i, int t_f) {
+	if (location_isundef(&train->loc)) return; // lost
+	if (fixed_sgn(train->v) <= 0) return; // bad trajectory
+	fixed dt = fixed_new(TICK2MS(t_f - t_i));
+	fixed dx = fixed_mul(train->v, dt);
+	location_inc(&train->loc, dx);
 }
 
 void engineer_ontick(engineer *this) {
 	int timestamp = Time(this->tid_time);
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
-		int dt = TICK2MS(timestamp - train->timestamp_last_nudged);
-		engineer_train_move(this, train, dt);
+		engineer_train_move(this, train, train->timestamp_last_nudged, timestamp);
 		train->timestamp_last_nudged = timestamp;
 	}
 }
