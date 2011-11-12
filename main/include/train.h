@@ -5,6 +5,7 @@
 #include <hardware.h>
 #include <uconst.h>
 #include <track_node.h>
+#include <location.h>
 #include <server/traincmdbuffer.h>
 
 // train controller commands
@@ -51,8 +52,7 @@ typedef struct {
 	int speed;
 	int last_speed;
 	train_direction dir;
-	track_edge *loc_edge;
-	fixed loc_offset;
+	location loc;
 	fixed v;
 	track_node *last_sensor;
 	int timestamp_last_sensor;
