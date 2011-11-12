@@ -2,21 +2,20 @@
 #include <fixed.h>
 
 typedef enum {
-	NODE_NONE, NODE_SENSOR, NODE_BRANCH, NODE_MERGE, NODE_ENTER, NODE_EXIT,
+	NODE_NONE, NODE_SENSOR, NODE_BRANCH, NODE_MERGE, NODE_ENTER, NODE_EXIT
 } node_type;
 
 #define DIR_AHEAD 0
 #define DIR_STRAIGHT 0
 #define DIR_CURVED 1
 
-struct track_node;
 typedef struct track_node track_node;
 typedef struct track_edge track_edge;
 
 struct track_edge {
 	track_edge *reverse;
 	track_node *src, *dest;
-	int dist; /* in millimetres */
+	int dist; // mm
 	fixed beta; // initialized -1
 };
 
@@ -51,7 +50,7 @@ int find_dist(track_node *orig, track_node *dest, int curdist, int maxsensordept
 track_edge *track_next_edge(track_node *node);
 track_node *track_next_node(track_node *node);
 int track_distance(track_node *from, track_node *to);
-int calc_distance_after(track_node *orig, int tick_diff, int tref);
+int calc_distance_after(track_node *node, int tick_diff, int tref);
 
 typedef struct blind_path_result blind_path_result;
 struct blind_path_result {

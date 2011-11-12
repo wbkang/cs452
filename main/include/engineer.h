@@ -4,6 +4,7 @@
 #include <train.h>
 #include <lookup.h>
 #include <fixed.h>
+#include <location.h>
 #include <console.h> // @TODO: replace for a ui task
 #include <ui/logdisplay.h> // @TODO: replace for a ui task
 
@@ -24,12 +25,12 @@ int engineer_get_tref(engineer *this, int train_no, int speed_idx);
 void engineer_set_stopinfo(engineer *this, int train_no, fixed m, fixed b);
 void engineer_get_stopinfo(engineer *this, int train_no, fixed *m, fixed *b);
 fixed engineer_sim_stopdist(engineer *this, int train_no);
-int engineer_get_dref(engineer *this, int train_no);
 void engineer_set_dref(engineer *this, int train_no, int dref);
+int engineer_get_dref(engineer *this, int train_no);
 void engineer_set_speed(engineer *this, int train_no, int speed);
 int engineer_get_speed(engineer *this, int train_no);
 fixed engineer_get_velocity(engineer *this, int train_no);
-void engineer_get_loc(engineer *this, int train_no, track_edge **edge, fixed *offset);
+void engineer_get_loc(engineer *this, int train_no, location *loc);
 void engineer_reverse(engineer *this, int train_no);
 int engineer_get_speedidx(engineer *this, int train_no);
 void engineer_pause_train(engineer *this, int train_no, int ticks);
