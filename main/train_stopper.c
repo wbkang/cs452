@@ -21,8 +21,8 @@ static void get_destination(track_node **rv_dest, int *rv_over) {
 	for (;;) {
 		track_node *next = find_next_sensor(node);
 		if (!next) break;
-		int dist = find_dist(node, next, 0, DEFAULT_SEARCH_DEPTH);
-		if (dist == -1) break;
+		int dist = track_distance(node, next);
+		if (dist < 0) break;
 		if (dist < over) {
 			node = next;
 			over -= dist;
@@ -49,7 +49,7 @@ static void handle_sensor(void* s) {
 	int over;
 	get_destination(&dest, &over);
 
-	int dist = find_dist(sensor, dest, 0, DEFAULT_SEARCH_DEPTH);
+	int dist = track_distance(sensor, dest);
 	if (dist < 0) {
 		logdisplay_printf(state->log, "no path %s->%s", sensor->name, dest->name);
 		logdisplay_flushline(state->log);
@@ -62,7 +62,7 @@ static void handle_sensor(void* s) {
 	fixed stop_at = fixed_add(dx, offset);
 
 	track_node *next_sensor = find_next_sensor(sensor);
-	int dist_to_next_sensor = find_dist(sensor, next_sensor, 0, DEFAULT_SEARCH_DEPTH);
+	int dist_to_next_sensor = track_distance(sensor, next_sensor);
 
 	if (fixed_int(stop_at) > dist_to_next_sensor && dist_to_next_sensor > 0) {
 		// should wait until next sensor

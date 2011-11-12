@@ -37,7 +37,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "C7") == 0, "Expected: C7, what i got: %s", end_node->name);
 	tmin = fixed_new(125);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. A11->C7");
+	ASSERT(path_dist >= 0, "find_path_blind failed. A11->C7");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -50,7 +50,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "A11") == 0, "Expected: A11, what i got: %s", end_node->name);
 	tmin = fixed_new(122);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. A15->A11");
+	ASSERT(path_dist >= 0, "find_path_blind failed. A15->A11");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -63,7 +63,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "B16") == 0, "Expected: B16, what i got: %s", end_node->name);
 	tmin = fixed_new(68);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. A4->B16");
+	ASSERT(path_dist >= 0, "find_path_blind failed. A4->B16");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -76,7 +76,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "B10") == 0, "Expected: B10, what i got: %s", end_node->name);
 	tmin = fixed_new(99);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. A6->B10");
+	ASSERT(path_dist >= 0, "find_path_blind failed. A6->B10");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -89,7 +89,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "B12") == 0, "Expected: B12, what i got: %s", end_node->name);
 	tmin = fixed_new(74);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. A7->B12");
+	ASSERT(path_dist >= 0, "find_path_blind failed. A7->B12");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -102,7 +102,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "B8") == 0, "Expected: B8, what i got: %s", end_node->name);
 	tmin = fixed_new(44);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. A9->B8");
+	ASSERT(path_dist >= 0, "find_path_blind failed. A9->B8");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -115,7 +115,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "D14") == 0, "Expected: D14, what i got: %s", end_node->name);
 	tmin = fixed_new(63);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. B1->D14");
+	ASSERT(path_dist >= 0, "find_path_blind failed. B1->D14");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -128,7 +128,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "D16") == 0, "Expected: D16, what i got: %s", end_node->name);
 	tmin = fixed_new(32);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. B14->D16");
+	ASSERT(path_dist >= 0, "find_path_blind failed. B14->D16");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -141,7 +141,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "C10") == 0, "Expected: C10, what i got: %s", end_node->name);
 	tmin = fixed_new(56);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. B16->C10");
+	ASSERT(path_dist >= 0, "find_path_blind failed. B16->C10");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -154,7 +154,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "C5") == 0, "Expected: C5, what i got: %s", end_node->name);
 	tmin = fixed_new(74);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. B16->C5");
+	ASSERT(path_dist >= 0, "find_path_blind failed. B16->C5");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -167,7 +167,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "C12") == 0, "Expected: C12, what i got: %s", end_node->name);
 	tmin = fixed_new(56);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. B6->C12");
+	ASSERT(path_dist >= 0, "find_path_blind failed. B6->C12");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -180,7 +180,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "B1") == 0, "Expected: B1, what i got: %s", end_node->name);
 	tmin = fixed_new(54);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C10->B1");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C10->B1");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -193,7 +193,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "C2") == 0, "Expected: C2, what i got: %s", end_node->name);
 	tmin = fixed_new(86);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C10->C2");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C10->C2");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -206,7 +206,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "A4") == 0, "Expected: A4, what i got: %s", end_node->name);
 	tmin = fixed_new(53);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C12->A4");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C12->A4");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -219,7 +219,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "A14") == 0, "Expected: A14, what i got: %s", end_node->name);
 	tmin = fixed_new(96);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C14->A14");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C14->A14");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -232,7 +232,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "A15") == 0, "Expected: A15, what i got: %s", end_node->name);
 	tmin = fixed_new(108);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C14->A15");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C14->A15");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -245,7 +245,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "A2") == 0, "Expected: A2, what i got: %s", end_node->name);
 	tmin = fixed_new(72);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C14->A2");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C14->A2");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -258,7 +258,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "A4") == 0, "Expected: A4, what i got: %s", end_node->name);
 	tmin = fixed_new(90);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C14->A4");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C14->A4");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -271,7 +271,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "D12") == 0, "Expected: D12, what i got: %s", end_node->name);
 	tmin = fixed_new(62);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C15->D12");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C15->D12");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -284,7 +284,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "E2") == 0, "Expected: E2, what i got: %s", end_node->name);
 	tmin = fixed_new(75);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C2->E2");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C2->E2");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -297,7 +297,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "C15") == 0, "Expected: C15, what i got: %s", end_node->name);
 	tmin = fixed_new(43);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C5->C15");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C5->C15");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -310,7 +310,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "C3") == 0, "Expected: C3, what i got: %s", end_node->name);
 	tmin = fixed_new(129);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C5->C3");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C5->C3");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -323,7 +323,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "C3") == 0, "Expected: C3, what i got: %s", end_node->name);
 	tmin = fixed_new(92);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C7->C3");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C7->C3");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -336,7 +336,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "E11") == 0, "Expected: E11, what i got: %s", end_node->name);
 	tmin = fixed_new(125);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C7->E11");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C7->E11");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -349,7 +349,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "A6") == 0, "Expected: A6, what i got: %s", end_node->name);
 	tmin = fixed_new(53);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C8->A6");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C8->A6");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -362,7 +362,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "A7") == 0, "Expected: A7, what i got: %s", end_node->name);
 	tmin = fixed_new(84);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C8->A7");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C8->A7");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -375,7 +375,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "A9") == 0, "Expected: A9, what i got: %s", end_node->name);
 	tmin = fixed_new(114);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. C8->A9");
+	ASSERT(path_dist >= 0, "find_path_blind failed. C8->A9");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -388,7 +388,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "B14") == 0, "Expected: B14, what i got: %s", end_node->name);
 	tmin = fixed_new(71);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. D1->B14");
+	ASSERT(path_dist >= 0, "find_path_blind failed. D1->B14");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -401,7 +401,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "C1") == 0, "Expected: C1, what i got: %s", end_node->name);
 	tmin = fixed_new(73);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. D1->C1");
+	ASSERT(path_dist >= 0, "find_path_blind failed. D1->C1");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -414,7 +414,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "D5") == 0, "Expected: D5, what i got: %s", end_node->name);
 	tmin = fixed_new(110);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. D10->D5");
+	ASSERT(path_dist >= 0, "find_path_blind failed. D10->D5");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -427,7 +427,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "D8") == 0, "Expected: D8, what i got: %s", end_node->name);
 	tmin = fixed_new(122);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. D10->D8");
+	ASSERT(path_dist >= 0, "find_path_blind failed. D10->D8");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -440,7 +440,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "E11") == 0, "Expected: E11, what i got: %s", end_node->name);
 	tmin = fixed_new(44);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. D12->E11");
+	ASSERT(path_dist >= 0, "find_path_blind failed. D12->E11");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -453,7 +453,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "E14") == 0, "Expected: E14, what i got: %s", end_node->name);
 	tmin = fixed_new(44);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. D14->E14");
+	ASSERT(path_dist >= 0, "find_path_blind failed. D14->E14");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -466,7 +466,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "E14") == 0, "Expected: E14, what i got: %s", end_node->name);
 	tmin = fixed_new(44);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. D16->E14");
+	ASSERT(path_dist >= 0, "find_path_blind failed. D16->E14");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -479,7 +479,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "B6") == 0, "Expected: B6, what i got: %s", end_node->name);
 	tmin = fixed_new(59);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. D4->B6");
+	ASSERT(path_dist >= 0, "find_path_blind failed. D4->B6");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -492,7 +492,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "E6") == 0, "Expected: E6, what i got: %s", end_node->name);
 	tmin = fixed_new(44);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. D5->E6");
+	ASSERT(path_dist >= 0, "find_path_blind failed. D5->E6");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -505,7 +505,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "E8") == 0, "Expected: E8, what i got: %s", end_node->name);
 	tmin = fixed_new(56);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. D8->E8");
+	ASSERT(path_dist >= 0, "find_path_blind failed. D8->E8");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -518,7 +518,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "B14") == 0, "Expected: B14, what i got: %s", end_node->name);
 	tmin = fixed_new(70);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. E1->B14");
+	ASSERT(path_dist >= 0, "find_path_blind failed. E1->B14");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -531,7 +531,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "D10") == 0, "Expected: D10, what i got: %s", end_node->name);
 	tmin = fixed_new(42);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. E11->D10");
+	ASSERT(path_dist >= 0, "find_path_blind failed. E11->D10");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -544,7 +544,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "E9") == 0, "Expected: E9, what i got: %s", end_node->name);
 	tmin = fixed_new(43);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. E14->E9");
+	ASSERT(path_dist >= 0, "find_path_blind failed. E14->E9");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -557,7 +557,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "C12") == 0, "Expected: C12, what i got: %s", end_node->name);
 	tmin = fixed_new(53);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. E15->C12");
+	ASSERT(path_dist >= 0, "find_path_blind failed. E15->C12");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -570,7 +570,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "E15") == 0, "Expected: E15, what i got: %s", end_node->name);
 	tmin = fixed_new(30);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. E2->E15");
+	ASSERT(path_dist >= 0, "find_path_blind failed. E2->E15");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -583,7 +583,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "D1") == 0, "Expected: D1, what i got: %s", end_node->name);
 	tmin = fixed_new(29);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. E3->D1");
+	ASSERT(path_dist >= 0, "find_path_blind failed. E3->D1");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -596,7 +596,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "D4") == 0, "Expected: D4, what i got: %s", end_node->name);
 	tmin = fixed_new(42);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. E6->D4");
+	ASSERT(path_dist >= 0, "find_path_blind failed. E6->D4");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -609,7 +609,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "E3") == 0, "Expected: E3, what i got: %s", end_node->name);
 	tmin = fixed_new(43);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. E6->E3");
+	ASSERT(path_dist >= 0, "find_path_blind failed. E6->E3");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -622,7 +622,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "C14") == 0, "Expected: C14, what i got: %s", end_node->name);
 	tmin = fixed_new(115);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. E8->C14");
+	ASSERT(path_dist >= 0, "find_path_blind failed. E8->C14");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -635,7 +635,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "D5") == 0, "Expected: D5, what i got: %s", end_node->name);
 	tmin = fixed_new(97);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. E9->D5");
+	ASSERT(path_dist >= 0, "find_path_blind failed. E9->D5");
     assign_path_beta(tmin, tref, path, path_dist);
 
 
@@ -648,7 +648,7 @@ fixed tref = fixed_new(115);
 	ASSERT(strcmp(end_node->name, "D8") == 0, "Expected: D8, what i got: %s", end_node->name);
 	tmin = fixed_new(109);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, "find_dist_blind failed. E9->D8");
+	ASSERT(path_dist >= 0, "find_path_blind failed. E9->D8");
     assign_path_beta(tmin, tref, path, path_dist);
 //    while(1);
 }

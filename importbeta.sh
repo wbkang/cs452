@@ -51,7 +51,7 @@ while read line; do
 	ASSERT(strcmp(end_node->name, \"$endnode\") == 0, \"Expected: $endnode, what i got: %s\", end_node->name);
 	tmin = fixed_new($tmin);
 	path_dist = find_path_blind(start_node, end_node, &path, 1);
-	ASSERT(path_dist >= 0, \"find_dist_blind failed. $startnode->$endnode\");
+	ASSERT(path_dist >= 0, \"find_path_blind failed. $startnode->$endnode\");
     assign_path_beta(tmin, tref, path, path_dist);
     " >> $outfile
 done

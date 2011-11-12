@@ -223,7 +223,7 @@ static void calib_sensor(void *s) {
 	int tick = state->cur_tick;
 	if (strcmp(cur_node->name, "E4") == 0) return;
 
-	int dist = find_dist(state->last_node, cur_node, 0, 2); // tolerate at most 1 missed sensors
+	int dist = track_distance(state->last_node, cur_node);
 
 	// get a reference to the sensor track node data
 	track_node_data *data;
@@ -235,7 +235,7 @@ static void calib_sensor(void *s) {
 		reset_track_node_data(data);
 	}
 
-	if (data->trial == -1 || data->trial > MAX_TRIAL) goto exit;
+	if (data->trial < 0 || data->trial > MAX_TRIAL) goto exit;
 
 	data->dt[data->trial] = tick - state->last_tick;
 
@@ -258,7 +258,7 @@ static void print_landmark(void* s) {
 	// int train_no = state->cur_train;
 	// if (!TRAIN_GOODNO(train_no)) return;
 
-	// if (train_no == -1) {
+	// if (train_no < 0) {
 	// 	logstrip_printf(state->landmark_display, "No train is calibrated.");
 	// 	return;
 	// }
@@ -323,7 +323,7 @@ static void print_expected_time(void* s) {
 	// track_node *sensor = state->cur_node;
 	// track_node *last_sensor = state->last_node;
 
-	// if (last_sensor && find_dist(last_sensor, sensor, 0, 1) > 0) {
+	// if (last_sensor && track_distance(last_sensor, sensor) > 0) {
 	// 	int dist = track_distance(last_sensor, sensor);
 	// 	fixed total_beta = beta_sum(last_sensor, sensor);
 	// 	if (fixed_is0(total_beta)) return; // unknown path

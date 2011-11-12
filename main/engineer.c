@@ -287,15 +287,21 @@ void engineer_onsensor(engineer *this, char data[]) {
 	train->timestamp_last_sensor = msg->timestamp;
 }
 
+static void engineer_train_move(engineer *this, train_descriptor *train, int dt) {
+	int spotted = !location_isundef(&train->loc);
+	int moving = fixed_sgn(train->v) > 0;
+	if (spotted && moving) {
+		fixed dx = fixed_mul(train->v, fixed_new(dt));
+		location_inc(&train->loc, dx);
+	}
+}
+
 void engineer_ontick(engineer *this) {
+	int timestamp = Time(this->tid_time);
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
-		int timestamp = Time(this->tid_time);
-		if (!location_isundef(&train->loc) && fixed_sgn(train->v) > 0) {
-			int dt = TICK2MS(timestamp - train->timestamp_last_nudged);
-			fixed dx = fixed_mul(train->v, fixed_new(dt));
-			location_inc(&train->loc, dx);
-		}
+		int dt = TICK2MS(timestamp - train->timestamp_last_nudged);
+		engineer_train_move(this, train, dt);
 		train->timestamp_last_nudged = timestamp;
 	}
 }

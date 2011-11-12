@@ -1,4 +1,5 @@
 #include <location.h>
+#include <util.h>
 
 void location_init(location *this, track_edge *edge, fixed offset) {
 	ASSERTNOTNULL(this);
