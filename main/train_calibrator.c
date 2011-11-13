@@ -42,6 +42,7 @@ static int next_calib_speed() {
 }
 
 static void calibrator_start(engineer *eng, int train_no) {
+	engineer_train_set_dir(eng, train_no, TRAIN_FORWARD);
 	engineer_set_speed(eng, train_no, 0);
 	engineer_pause_train(eng, train_no, MS2TICK(2000));
 	engineer_set_speed(eng, train_no, calib_state.min_speed);
@@ -73,7 +74,6 @@ static void handle_sensor_response(void* s) {
 				calibrator_start(eng, train_no);
 			} else if (strcmp(sensor->name, CALIB_SENSOR_WRONG_DIR) == 0) {
 				engineer_reverse(eng, train_no);
-				engineer_train_set_dir(eng, train_no, TRAIN_FORWARD);
 				calib_state.state = GO2END;
 			} else {
 				engineer_set_speed(eng, train_no, 0);
