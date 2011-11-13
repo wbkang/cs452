@@ -101,7 +101,7 @@ void engineer_get_stopinfo(engineer *this, int train_no, fixed *m, fixed *b) {
 }
 
 // this function simulates the distance that the train would travel if it were to stop immediately
-// @TODO: use velocity instead
+// @TODO: gather the stopping distance in terms of velocity to make this code more robust
 fixed engineer_sim_stopdist(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
@@ -110,6 +110,8 @@ fixed engineer_sim_stopdist(engineer *this, int train_no) {
 	return rv;
 }
 
+// @TODO: there is a delay between putting the bytes in UART and when the train is aware of them. we need to include this delay here. we could use a blocking putc and a command runner that pings the engineer back saying the command was put into the UART. until then assume that the command has not been sent yet.
+// @TODO: improve "speed & last_speed" to include last N timestamped speed changes and use these to improve "engineer_train_move"
 void engineer_set_speed(engineer *this, int train_no, int speed) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
@@ -221,11 +223,14 @@ void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
 	this->train[train_no].dir = dir;
 }
 
+// @TODO: improve this by using train location & trajectory
 static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *sensor) {
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
 		if (train->speed > 0) return train;
 	}
+	logdisplay_printf(this->log, "spurious sensor %s", sensor->name);
+	logdisplay_flushline(this->log);
 	return NULL;
 }
 
@@ -233,6 +238,7 @@ static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *s
 //			perhaps here it should be set to the estimated/stored average velocity
 //			between the current and the next sensor? or at least the total average
 //			velocity for the entire track.
+// @TODO: also use sensor OFF as it is just as accurate
 void engineer_onsensor(engineer *this, char data[]) {
 	msg_sensor *msg = (msg_sensor*) data;
 	if (msg->state == OFF) return; // ignore sensor-off for now
@@ -245,7 +251,7 @@ void engineer_onsensor(engineer *this, char data[]) {
 	if (train->timestamp_last_spdcmd > now - MS2TICK(4000)) return; // let train settle
 
 	int dt = TICK2MS(msg->timestamp - train->timestamp_last_sensor);
-	if (dt <= 0) return; // too fast?
+	if (dt <= 0) return; // too soon?
 
 	track_node *last_sensor = train->last_sensor;
 	train->last_sensor = sensor;
@@ -292,7 +298,7 @@ void engineer_onsensor(engineer *this, char data[]) {
 
 // @TODO: add acceleration
 // @TODO: add jerk
-// @TODO: use track info to improve the following guess
+// @TODO: use track info
 static void engineer_train_move(engineer *this, train_descriptor *train, int t_i, int t_f) {
 	if (location_isundef(&train->loc)) return; // lost
 	if (fixed_sgn(train->v) <= 0) return; // bad trajectory
