@@ -33,7 +33,7 @@ fixed location_dist(location *from, location *to) {
 	if (!location_isundef(from) && !location_isundef(to)) {
 		int dist = track_distance(from->edge->src, to->edge->src);
 		if (dist >= 0) {
-			return fixed_sub(fixed_add(fixed_new(dist), from->offset), to->offset);
+			return fixed_sub(fixed_add(fixed_new(dist), to->offset), from->offset);
 		}
 	}
 	fixed rv = {-1};
