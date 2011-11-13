@@ -45,7 +45,7 @@ engineer *engineer_new(char track_name) {
 	switch (track_name) {
 		case 'a':
 			this->track_nodes = init_tracka(tn);
-			// @TODO: instead of populating this with track b betas, get track a betas
+			// @TODO: instead of using track b betas, get track a betas
 			populate_beta(this->track_nodes);
 			break;
 		case 'b':
@@ -59,6 +59,7 @@ engineer *engineer_new(char track_name) {
 
 	this->con = console_new(WhoIs(NAME_IOSERVER_COM2));
 	this->log = logdisplay_new(this->con, 24, 55, 10, ROUNDROBIN);
+	this->trainloc = logstrip_new(this->con, 35, 55);
 	this->tid_time = WhoIs(NAME_TIMESERVER);
 
 	return this;
@@ -110,16 +111,20 @@ fixed engineer_sim_stopdist(engineer *this, int train_no) {
 	return rv;
 }
 
-// @TODO: there is a delay between putting the bytes in UART and when the train is aware of them. we need to include this delay here. we could use a blocking putc and a command runner that pings the engineer back saying the command was put into the UART. until then assume that the command has not been sent yet.
 // @TODO: improve "speed & last_speed" to include last N timestamped speed changes and use these to improve "engineer_train_move"
-void engineer_set_speed(engineer *this, int train_no, int speed) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+static void engineer_on_set_speed(engineer *this, int train_no, int speed) {
 	train_descriptor *train = &this->train[train_no];
 	train->last_speed = train->speed;
 	train->speed = speed;
 	train->v = fixed_new(-1); // invalidate velocity
 	train->timestamp_last_spdcmd = Time(this->tid_time);
+}
+
+void engineer_set_speed(engineer *this, int train_no, int speed) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_speed(train_no, speed, this->tid_traincmdbuf);
+	// @TODO: there is a delay between putting the bytes in UART and when the train is aware of them. we need to include this delay right here. we could use a blocking putc and a command runner that pings the engineer back saying the command was put into the UART. we delay the following line until then.
+	engineer_on_set_speed(this, train_no, speed);
 }
 
 int engineer_get_speed(engineer *this, int train_no) {
@@ -294,11 +299,31 @@ void engineer_onsensor(engineer *this, char data[]) {
 // @TODO: add jerk
 // @TODO: use track info
 static void engineer_train_move(engineer *this, train_descriptor *train, int t_i, int t_f) {
-	if (location_isundef(&train->loc)) return; // lost
+	location *loc = &train->loc;
+	if (location_isundef(loc)) return; // lost
 	if (fixed_sgn(train->v) <= 0) return; // bad trajectory
 	fixed dt = fixed_new(TICK2MS(t_f - t_i));
 	fixed dx = fixed_mul(train->v, dt);
-	location_inc(&train->loc, dx);
+	location_inc(loc, dx);
+	// print
+	char *direction_str;
+	switch (train->dir) {
+		case TRAIN_FORWARD:
+			direction_str = "forward";
+			break;
+		case TRAIN_BACKWARD:
+			direction_str = "backward";
+			break;
+		default:
+			direction_str = "unknown";
+			break;
+	}
+	logstrip_printf(this->trainloc,
+		"%-5s + %Fcm (%s)",
+		loc->edge->src->name,
+		fixed_div(loc->offset, fixed_new(10)),
+		direction_str
+	);
 }
 
 void engineer_ontick(engineer *this) {

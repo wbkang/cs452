@@ -7,6 +7,7 @@
 #include <location.h>
 #include <console.h> // @TODO: replace for a ui task
 #include <ui/logdisplay.h> // @TODO: replace for a ui task
+#include <ui/logstrip.h> // @TODO: replace with a ui task
 
 typedef struct _tag_train_engineer {
 	int tid_traincmdbuf;
@@ -14,6 +15,7 @@ typedef struct _tag_train_engineer {
 	lookup *track_nodes;
 	console *con; // @TODO: replace with a ui task tid
 	logdisplay *log; // @TODO: replace with a ui task tid
+	logstrip *trainloc; // @TODO: replace with a ui task tid
 	int tid_time;
 } engineer;
 
