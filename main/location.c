@@ -27,14 +27,15 @@ int location_isvalid(location *this) {
 	return TRUE;
 }
 
-// @TODO: rethink this function. distance should always return a positive number unless error? What if from is after to? this works right now only if from->edge->src <= to->edge->src, what if not? perhaps we should do the distance twice, and take the smallest valid one?
+// @TODO: this works right now only if from->edge->src <= to->edge->src, what if not? perhaps we should do the distance from->to and to->from, and take the smallest valid one?
 fixed location_dist(location *from, location *to) {
 	ASSERT(location_isvalid(from), "bad 'from' location");
 	ASSERT(location_isvalid(to), "bad 'to' location");
 	if (!location_isundef(from) && !location_isundef(to)) {
 		int dist = track_distance(from->edge->src, to->edge->src);
 		if (dist >= 0) {
-			return fixed_sub(fixed_add(fixed_new(dist), to->offset), from->offset);
+			fixed rv = fixed_sub(fixed_add(fixed_new(dist), to->offset), from->offset);
+			return fixed_abs(rv);
 		}
 	}
 	fixed rv = {-1};

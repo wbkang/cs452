@@ -21,26 +21,29 @@ static void ontick(void* s) {
 	int train_no = ts_state.train_no;
 	location *dest = &ts_state.dest;
 
-	location train_loc;
-	engineer_get_loc(eng, train_no, &train_loc);
+	location tloc;
+	location *train_loc = &tloc;
+	engineer_get_loc(eng, train_no, train_loc);
 
-	if (location_isundef(&train_loc)) return; // unknown train position
+	if (location_isundef(train_loc)) return; // unknown train position
 
 	fixed stop_dist = engineer_sim_stopdist(eng, train_no);
 	if (fixed_sgn(stop_dist) <= 0) return; // unknown stop distance
-	location_inc(&train_loc, stop_dist);
 
-	fixed stop_at = location_dist(&train_loc, dest);
-	const fixed margin = fixed_new(0);
+	fixed stop_from = location_dist(train_loc, dest);
+	if (fixed_sgn(stop_from) < 0) return; // bad path
+
+	// @TODO: this should be a function of average error in position. something like nudge_dt * v / 2
+	const fixed margin = fixed_new(5);
 
 	logstrip_printf(log,
-		"stopdx: %F, stop@: %F, mrgn: %F",
+		"stop_from: %F, stop_dist: %F, margin: %F",
+		stop_from,
 		stop_dist,
-		stop_at,
 		margin
 	);
 
-	if (fixed_cmp(stop_at, margin) > 0) return; // wait
+	if (fixed_cmp(stop_from, fixed_add(stop_dist, margin)) > 0) return; // wait
 
 	engineer_set_speed(eng, train_no, 0);
 	dumbbus_unregister(((a0state*) s)->time_bus, ontick);
@@ -81,7 +84,7 @@ void train_stopper_setup(a0state *state, int train_no, char *type, int id, int o
 
 	dumbbus_register(state->time_bus, ontick);
 	logstrip_printf(state->cmdlog,
-		"working on stopping train %d at %s+%dmm",
+		"working on stopping train %d at %s+%Fmm",
 		train_no,
 		dest_loc->edge->src->name,
 		dest_loc->offset
