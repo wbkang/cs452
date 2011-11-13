@@ -58,7 +58,7 @@ engineer *engineer_new(char track_name) {
 	}
 
 	this->con = console_new(WhoIs(NAME_IOSERVER_COM2));
-	this->log = logdisplay_new(this->con, 24, 65, 10, SCROLLING);
+	this->log = logdisplay_new(this->con, 24, 55, 10, ROUNDROBIN);
 	this->tid_time = WhoIs(NAME_TIMESERVER);
 
 	return this;
@@ -224,6 +224,7 @@ void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
 }
 
 // @TODO: improve this by using train location & trajectory
+// @TODO: if a train's location is unknown but it is the only one in motion, attribute the sensor to it (calibration)
 static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *sensor) {
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
@@ -269,22 +270,15 @@ void engineer_onsensor(engineer *this, char data[]) {
 		fixed dist = location_dist(&train->loc, &new_loc);
 		if (fixed_sgn(dist) > 0) {
 			logdisplay_printf(this->log,
-				"[%7d] @%-5s + %Fmm (%Fmm/ms) %-5Fmm",
+				"[%7d] %s+%Fmm ~ %s+%Fmm (%Fmm/ms ~ %Fmm/ms) %Fmm",
 				TICK2MS(msg->timestamp),
 				train->loc.edge->src->name,
 				train->loc.offset,
-				train->v,
-				dist
-			);
-			logdisplay_flushline(this->log);
-			logdisplay_printf(this->log,
-				"[%7d] @%-5s + %Fmm (%Fmm/ms), %d/%d",
-				TICK2MS(msg->timestamp),
 				sensor->name,
 				new_loc.offset,
+				train->v,
 				new_v,
-				dx,
-				dt
+				dist
 			);
 			logdisplay_flushline(this->log);
 		}
