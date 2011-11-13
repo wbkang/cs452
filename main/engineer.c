@@ -106,9 +106,7 @@ void engineer_get_stopinfo(engineer *this, int train_no, fixed *m, fixed *b) {
 fixed engineer_sim_stopdist(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
-	fixed rv = fixed_add(fixed_mul(train->stopm, fixed_new(train->speed)), train->stopb);
-	if (fixed_sgn(rv) < 0) return fixed_new(0);
-	return rv;
+	return fixed_add(fixed_mul(train->stopm, fixed_new(train->speed)), train->stopb);
 }
 
 // @TODO: improve "speed & last_speed" to include last N timestamped speed changes and use these to improve "engineer_train_move"

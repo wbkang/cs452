@@ -8,104 +8,45 @@
 #define DEFAULT_SEARCH_DEPTH 10
 
 struct {
-	track_node *dest;
-	int over;
 	int train_no;
+	location dest;
 } ts_state;
 
-// find the closest sensor to physical stop location (without going over)
-static void get_destination(track_node **rv_dest, int *rv_over) {
-	track_node *node = ts_state.dest;
-	int over = ts_state.over;
 
-	for (;;) {
-		track_node *next = find_next_sensor(node);
-		if (!next) break;
-		int dist = track_distance(node, next);
-		if (dist < 0) break;
-		if (dist < over) {
-			node = next;
-			over -= dist;
-		} else {
-			break;
-		}
-	}
+// @TODO: logging should be handled better
+static void ontick(void* s) {
+	engineer *eng = ((a0state*) s)->eng;
+	logstrip *log = ((a0state*) s)->stopinfo;
 
-	*rv_dest = node;
-	*rv_over = over;
-}
-
-
-// logging should be handled better
-// should take into account the time passed since sensor hit and now, as the train moved
-static void handle_sensor(void* s) {
-	a0state *state = s;
-	engineer *eng = state->eng;
 	int train_no = ts_state.train_no;
+	location *dest = &ts_state.dest;
 
-	// track_node *last_sensor = state->last_node;
-	track_node *sensor = state->cur_node;
-	track_node *dest;
-	int over;
-	get_destination(&dest, &over);
+	location train_loc;
+	engineer_get_loc(eng, train_no, &train_loc);
 
-	int dist = track_distance(sensor, dest);
-	if (dist < 0) {
-		logdisplay_printf(state->log, "no path %s->%s", sensor->name, dest->name);
-		logdisplay_flushline(state->log);
-		return;
-	}
+	if (location_isundef(&train_loc)) return; // unknown train position
 
-	fixed dx = fixed_new(dist);
-	fixed stopdist = engineer_sim_stopdist(eng, train_no);
-	fixed offset = fixed_sub(fixed_new(over), stopdist);
-	fixed stop_at = fixed_add(dx, offset);
+	fixed stop_dist = engineer_sim_stopdist(eng, train_no);
+	if (fixed_sgn(stop_dist) <= 0) return; // unknown stop distance
+	location_inc(&train_loc, stop_dist);
 
-	track_node *next_sensor = find_next_sensor(sensor);
-	int dist_to_next_sensor = track_distance(sensor, next_sensor);
+	fixed stop_at = location_dist(&train_loc, dest);
+	const fixed margin = fixed_new(0);
 
-	if (fixed_int(stop_at) > dist_to_next_sensor && dist_to_next_sensor > 0) {
-		// should wait until next sensor
-		logdisplay_printf(state->log, "should wait until next sensor, dist: %d, stop_at: %F, d2ns: %d, %s->%s", dist, stop_at, dist_to_next_sensor, sensor->name, dest->name);
-		logdisplay_flushline(state->log);
-		return;
-	}
+	logstrip_printf(log,
+		"stopdx: %F, stop@: %F, mrgn: %F",
+		stop_dist,
+		stop_at,
+		margin
+	);
 
-	fixed beta = beta_sum(sensor, dest);
-	if (fixed_sgn(beta) <= 0) {
-		logdisplay_printf(state->log, "bad beta: %F", beta);
-		logdisplay_flushline(state->log);
-		return;
-	}
+	if (fixed_cmp(stop_at, margin) > 0) return; // wait
 
-	int speed = engineer_get_speed(eng, train_no);
-	int speed_idx = engineer_get_speedidx(eng, train_no);
-	fixed tref = fixed_new(engineer_get_tref(eng, train_no, speed_idx));
-	if (fixed_sgn(tref) < 0) {
-		logdisplay_printf(state->log, "train %d not calibrated for speed %d.", train_no, speed, speed_idx);
-		logdisplay_flushline(state->log);
-		return;
-	}
-	fixed dt = fixed_mul(beta, tref);
-	if (fixed_sgn(dt) <= 0) {
-		logdisplay_printf(state->log, "dt is low: %F, beta: %F, tref: %F", dt, beta, tref);
-		logdisplay_flushline(state->log);
-		return;
-	}
-
-	fixed v = fixed_div(dx, dt);
-	int stop_ticks = fixed_int(fixed_div(stop_at, v));
-
-	logstrip_printf(state->cmdlog, "going to stop! node: %s, sa: %F, dx: %F, dt: %F, st: %d", sensor->name, stop_at, dx, dt, stop_ticks);
-
-	// logstrip_printf(state->cmdlog, "going to stop! stop_at: %F, d2ns: %d, stop_time: %F, dx: %F, dt: %F, v: %F, beta: %F, tref: %F", stop_at, dist_to_next_sensor, stop_time, dx, dt, v, beta, tref);
-
-	// logstrip_printf(state->cmdlog, "should stop in %Fticks at %s. tseg: %F, dist: %d, stopdist: %F, os: %d", delay, sensor->name, tseg, dist, stopdist, overshoot_mm);
-	engineer_pause_train(eng, train_no, stop_ticks);
 	engineer_set_speed(eng, train_no, 0);
-	dumbbus_unregister(state->sensor_bus, handle_sensor);
+	dumbbus_unregister(((a0state*) s)->time_bus, ontick);
 }
 
+// over must be in mm
 void train_stopper_setup(a0state *state, int train_no, char *type, int id, int over) {
 	ASSERTNOTNULL(state);
 	engineer *eng = state->eng;
@@ -119,21 +60,30 @@ void train_stopper_setup(a0state *state, int train_no, char *type, int id, int o
 		return;
 	}
 
-	// int speed = engineer_get_speed(eng, train_no);
-	// int speed_idx = engineer_get_speedidx(eng, train_no);
-	// int tref = engineer_get_tref(eng, train_no, speed_idx);
-
 	track_node *dest = engineer_get_tracknode(eng, type, id);
 	if (!dest) {
 		logstrip_printf(state->cmdlog, "Sorry. Landmark %s%d does not exist.", type, id);
 		return;
 	}
 
-	ASSERT(over >= 0, "over negative: %d", over);
 	ts_state.train_no = train_no;
-	ts_state.dest = dest;
-	ts_state.over = 10 * over; // change to mm
+	location *dest_loc = &ts_state.dest;
+	location_init(dest_loc, track_next_edge(dest), fixed_new(over));
 
-	dumbbus_register(state->sensor_bus, handle_sensor);
-	logstrip_printf(state->cmdlog, "will stop train %d soon.", train_no);
+	if (location_isundef(dest_loc)) {
+		logstrip_printf(state->cmdlog,
+			"Sorry. Location %s+%dmm is invalid.",
+			dest->name,
+			over
+		);
+		return;
+	}
+
+	dumbbus_register(state->time_bus, ontick);
+	logstrip_printf(state->cmdlog,
+		"working on stopping train %d at %s+%dmm",
+		train_no,
+		dest_loc->edge->src->name,
+		dest_loc->offset
+	);
 }

@@ -251,63 +251,6 @@ static void calib_sensor(void *s) {
 }
 */
 
-static void print_landmark(void* s) {
-	// a0state *state = s;
-	// engineer *eng = state->eng;
-
-	// int train_no = state->cur_train;
-	// if (!TRAIN_GOODNO(train_no)) return;
-
-	// if (train_no < 0) {
-	// 	logstrip_printf(state->landmark_display, "No train is calibrated.");
-	// 	return;
-	// }
-
-	// int speed = engineer_get_speed(eng, train_no);
-	// if (speed == 0) return;
-
-	// track_node *sensor = state->cur_node;
-	// ASSERTNOTNULL(sensor);
-
-	// int dt = TICK2MS(Time(state->tid_time) - state->cur_tick);
-	// fixed v = engineer_get_velocity(eng, train_no);
-	// if (fixed_sgn(v) < 0) {
-	// 	logstrip_printf(state->landmark_display, "Train velocity must settle");
-	// 	return;
-	// }
-	// fixed est_dist = fixed_mul(v, fixed_new(dt));
-	// est_dist = fixed_div(est_dist, fixed_new(10));
-
-	// char *direction_str;
-	// switch (engineer_train_get_dir(eng, train_no)) {
-	// 	case TRAIN_FORWARD:
-	// 		direction_str = "forward";
-	// 		break;
-	// 	case TRAIN_BACKWARD:
-	// 		direction_str = "backward";
-	// 		break;
-	// 	default:
-	// 		direction_str = "unknown";
-	// 		break;
-	// }
-
-	// track_edge *edge;
-	// fixed offset;
-	// engineer_get_loc(eng, train_no, &edge, &offset);
-	// offset = fixed_div(offset, fixed_new(10)); // change to cm
-
-	// if (fixed_sgn(est_dist) >= 0) {
-	// 	logstrip_printf(state->landmark_display,
-	// 		"Train %2d (%8s) is %4Fcm ahead of %-5s [%-5s + %Fmm]",
-	// 		train_no, direction_str, est_dist, sensor->name,
-	// 		edge->src->name, offset
-	// 	);
-	// } else {
-	// 	logstrip_printf(state->landmark_display, "Train %2d (%8s): I don't know any path ahead of %d", train_no, direction_str, sensor->name);
-	// }
-	//	logstrip_printf(state->landmark_display, "dist: %d tref: %5d beta: %10F tick_diff: %10F", expected_edge->dist, tref, beta, tick_diff);
-}
-
 static void print_expected_time(void* s) {
 	// a0state *state = s;
 	// engineer *eng = state->eng;
@@ -474,7 +417,7 @@ static void handle_command(void* s, char *cmd, int size) {
 				ACCEPT(' ');
 				int dist_cm = strgetui(&c);
 				ACCEPT('\0');
-				train_stopper_setup(state, train, type, id, dist_cm);
+				train_stopper_setup(state, train, type, id, 10 * dist_cm);
 			} else if (*c == 'w') { // set switch position (sw #+ [cCsS])
 				ACCEPT('w');
 				ACCEPT(' ');
@@ -545,6 +488,7 @@ void a0() {
 	// ui
 	state.con = console_new(state.tid_com2);
 	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
+	state.stopinfo = logstrip_new(state.con, 2, 55);
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
 	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 10, SCROLLING);
@@ -558,7 +502,6 @@ void a0() {
 
 	// time bus
 	state.time_bus = dumbbus_new();
-	dumbbus_register(state.time_bus, &print_landmark);
 	dumbbus_register(state.time_bus, &tick_engineer);
 
 	track track = ask_track(&state);
@@ -577,7 +520,7 @@ void a0() {
 
 	sensornotifier_new(MyTid());
 	comnotifier_new(MyTid(), 10, COM2, state.tid_com2);
-	timenotifier_new(MyTid(), 10, MS2TICK(100));
+	timenotifier_new(MyTid(), 10, MS2TICK(20));
 
 	for (;;) {
 		int tid;
