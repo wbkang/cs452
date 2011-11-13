@@ -111,6 +111,7 @@ fixed engineer_sim_stopdist(engineer *this, int train_no) {
 
 // @TODO: improve "speed & last_speed" to include last N timestamped speed changes and use these to improve "engineer_train_move"
 static void engineer_on_set_speed(engineer *this, int train_no, int speed) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
 	train->last_speed = train->speed;
 	train->speed = speed;
@@ -120,6 +121,7 @@ static void engineer_on_set_speed(engineer *this, int train_no, int speed) {
 
 void engineer_set_speed(engineer *this, int train_no, int speed) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	if (engineer_get_speed(this, train_no) == speed) return;
 	train_speed(train_no, speed, this->tid_traincmdbuf);
 	// @TODO: there is a delay between putting the bytes in UART and when the train is aware of them. we need to include this delay right here. we could use a blocking putc and a command runner that pings the engineer back saying the command was put into the UART. we delay the following line until then.
 	engineer_on_set_speed(this, train_no, speed);
@@ -226,58 +228,41 @@ void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
 	this->train[train_no].dir = dir;
 }
 
-// @TODO: improve this by using train location & trajectory
-// @TODO: if a train's location is unknown but it is the only one in motion, attribute the sensor to it (calibration)
-static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *sensor) {
-	TRAIN_FOREACH(train_no) {
-		train_descriptor *train = &this->train[train_no];
-		if (train->speed > 0) return train;
-	}
-	logdisplay_printf(this->log, "spurious sensor %s", sensor->name);
-	logdisplay_flushline(this->log);
-	return NULL;
-}
-
 // @TODO: train->v is the average velocity between the last and current sensor
 //			perhaps here it should be set to the estimated/stored average velocity
 //			between the current and the next sensor? or at least the total average
 //			velocity for the entire track.
-// @TODO: also use sensor OFF as it is just as accurate
-void engineer_onsensor(engineer *this, char data[]) {
-	msg_sensor *msg = (msg_sensor*) data;
-	if (msg->state == OFF) return; // ignore sensor-off for now
-
-	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
-	train_descriptor *train = engineer_attribute_sensor(this, sensor);
-	if (!train) return; // spurious sensor, ignore
-
-	int now = Time(this->tid_time);
-	if (train->timestamp_last_spdcmd > now - MS2TICK(4000)) return; // let train settle
-
-	int dt = TICK2MS(msg->timestamp - train->timestamp_last_sensor);
-	if (dt <= 0) return; // too soon?
-
+static void engineer_train_onsensor(engineer *this, train_descriptor *train, track_node *sensor, int timestamp) {
 	track_node *last_sensor = train->last_sensor;
 	train->last_sensor = sensor;
+	int timestamp_last_sensor = train->timestamp_last_sensor;
+	train->timestamp_last_sensor = timestamp;
+
+	if (train->timestamp_last_spdcmd > timestamp_last_sensor - MS2TICK(4000)) return; // let train settle
+
+	int dt = TICK2MS(timestamp - timestamp_last_sensor);
+	if (dt <= 0) return; // too soon?
 
 	int dx = track_distance(last_sensor, sensor);
 	if (dx <= 0) return; // too fast?
 
 	fixed new_v = fixed_div(fixed_new(dx), fixed_new(dt));
-	fixed dt_sensorlag = fixed_new(TICK2MS(now - msg->timestamp));
+
+	int now = Time(this->tid_time);
+	fixed dt_sensorlag = fixed_new(TICK2MS(now - timestamp));
 	fixed dx_sensorlag = fixed_mul(new_v, dt_sensorlag);
 	location new_loc;
 	location_init(&new_loc, sensor->edge, dx_sensorlag);
 
-	if (!location_isundef(&train->loc)) {
+	if (!location_isundef(&train->loc) && fixed_sgn(train->v) > 0) {
 		fixed dist = location_dist(&train->loc, &new_loc);
 		if (fixed_sgn(dist) > 0) {
 			logdisplay_printf(this->log,
 				"[%7d] %s+%Fmm ~ %s+%Fmm (%Fmm/ms ~ %Fmm/ms) %Fmm",
-				TICK2MS(msg->timestamp),
+				TICK2MS(timestamp),
 				train->loc.edge->src->name,
 				train->loc.offset,
-				sensor->name,
+				new_loc.edge->src->name,
 				new_loc.offset,
 				train->v,
 				new_v,
@@ -290,7 +275,32 @@ void engineer_onsensor(engineer *this, char data[]) {
 	train->loc = new_loc;
 	train->v = new_v;
 	train->timestamp_last_nudged = now;
-	train->timestamp_last_sensor = msg->timestamp;
+}
+
+// @TODO: improve this by using train location & trajectory
+// @TODO: if a train's location is unknown but it is the only one in motion, attribute the sensor to it (calibration)
+static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *sensor, int timestamp) {
+	TRAIN_FOREACH(train_no) {
+		train_descriptor *train = &this->train[train_no];
+		if (train->speed > 0) return train;
+	}
+	logdisplay_printf(this->log, "spurious sensor %s", sensor->name);
+	logdisplay_flushline(this->log);
+	return NULL;
+}
+
+// @TODO: also use sensor OFF as it is just as accurate
+void engineer_onsensor(engineer *this, char data[]) {
+	msg_sensor *msg = (msg_sensor*) data;
+	if (msg->state == OFF) return; // ignore sensor-off for now
+
+	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
+	ASSERTNOTNULL(sensor);
+
+	train_descriptor *train = engineer_attribute_sensor(this, sensor, msg->timestamp);
+	if (!train) return; // spurious sensor, ignore
+
+	engineer_train_onsensor(this, train, sensor, msg->timestamp);
 }
 
 // @TODO: add acceleration
