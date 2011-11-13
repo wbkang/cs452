@@ -27,6 +27,7 @@ int location_isvalid(location *this) {
 	return TRUE;
 }
 
+// @TODO: rethink this function. distance should always return a positive number unless error? What if from is after to? this works right now only if from->edge->src <= to->edge->src, what if not? perhaps we should do the distance twice, and take the smallest valid one?
 fixed location_dist(location *from, location *to) {
 	ASSERT(location_isvalid(from), "bad 'from' location");
 	ASSERT(location_isvalid(to), "bad 'to' location");
@@ -45,6 +46,7 @@ fixed location_dist(location *from, location *to) {
 void location_inc(location *this, fixed dx) {
 	ASSERT(location_isvalid(this), "bad location");
 	ASSERT(!location_isundef(this), "undefined locations");
+	ASSERT(fixed_sgn(dx) >= 0, "negative dx"); // @TODO: add support for decrementing
 	this->offset = fixed_add(this->offset, dx);
 	do {
 		fixed edge_len = fixed_new(this->edge->dist);

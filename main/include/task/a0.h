@@ -22,6 +22,7 @@ typedef struct {
 	logdisplay *log;
 	logdisplay *expected_time_display;
 	logstrip *landmark_display;
+	logstrip *stopinfo;
 	dumbbus *sensor_bus;
 	dumbbus *time_bus;
 	// train data
