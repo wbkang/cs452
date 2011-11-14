@@ -61,9 +61,9 @@ static void handle_sensor_response(void* s) {
 
 	int train_no = calib_state.train_no;
 
-	track_node *sensor = state->cur_node;
+	track_node *sensor = state->cur_sensor;
 	ASSERTNOTNULL(sensor);
-	track_node *last_sensor = state->last_node;
+	track_node *last_sensor = state->last_sensor;
 
 	switch (calib_state.state) {
 		case IDLE:
@@ -96,7 +96,7 @@ static void handle_sensor_response(void* s) {
 					logdisplay_flushline(state->log);
 					break;
 				}
-				int tref = state->cur_tick - state->last_tick;
+				int tref = state->timestamp_cur_sensor - state->timestamp_last_sensor;
 				int speed = calib_state.cur_speed;
 				int speed_idx = engineer_get_speedidx(eng, train_no);
 				engineer_set_tref(eng, train_no, speed_idx, tref);
