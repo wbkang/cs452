@@ -1,6 +1,11 @@
 #include <task.h>
 #include <memory.h>
 
+static char const * task_state_name[] = {
+		"FREE", "NEW", "READY", "RUNNING", "RETIRED",
+		"WAITING4SEND", "WAITING4RECEIVE", "WAITING4REPLY", "WAITING4EVENT"
+};
+
 static struct _tag_task_descriptor_list {
 	task_descriptor head_free;
 	task_descriptor *td;
@@ -19,7 +24,7 @@ void td_print_crash_dump() {
 	for (int i = 0; i < tdsize; i++) {
 		task_descriptor *td = task_descriptors.td + i;
 		if (td->state != TD_STATE_FREE && td->state != TD_STATE_RETIRED) {
-			PRINT("Task %d (priority %d)", td->id, td->priority);
+			PRINT("Task %d (priority %d, state:%s)", td->id, td->priority, task_state_name[td->state]);
 			print_stack_trace(td->registers.r[REG_FP]);
 		}
 	}

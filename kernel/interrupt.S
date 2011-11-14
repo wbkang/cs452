@@ -69,6 +69,12 @@ asm_switch_to_usermode:
 	@ resume task
 	movs pc, lr @ go to there
 
+.global asm_handle_abort
+asm_handle_abort:
+	mov r0, fp
+	bl print_stack_trace
+	dead:
+	b dead
 
 @ syscall code.
 
