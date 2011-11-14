@@ -253,39 +253,24 @@ static void calib_sensor(void *s) {
 }
 */
 
-static void print_expected_time(void* s) {
-	// a0state *state = s;
-	// engineer *eng = state->eng;
-	// int train_no = state->cur_train;
-	// if (!TRAIN_GOODNO(train_no)) return; // no train calibrated
-
-	// fixed v = engineer_get_velocity(eng, train_no);
-	// if (fixed_sgn(v) < 0) {
-	// 	logstrip_printf(state->landmark_display, "Train velocity must settle");
-	// 	return;
-	// }
-
-	// track_node *sensor = state->cur_sensor;
-	// track_node *last_sensor = state->last_sensor;
-
-	// if (last_sensor && track_distance(last_sensor, sensor) > 0) {
-	// 	int dist = track_distance(last_sensor, sensor);
-	// 	fixed total_beta = beta_sum(last_sensor, sensor);
-	// 	if (fixed_is0(total_beta)) return; // unknown path
-
-	// 	fixed expected_time = fixed_div(fixed_new(dist), v);
-	// 	fixed actual_time = fixed_new(TICK2MS(state->timestamp_cur_sensor - state->timestamp_last_sensor));
-
-	// 	logdisplay_printf(state->expected_time_display,
-	// 		"Edge %3s->%-3s Expected:%10Fms  Actual:%10Fms (%10Fms)",
-	// 		last_sensor->name,
-	// 		sensor->name,
-	// 		expected_time,
-	// 		actual_time,
-	// 		fixed_sub(actual_time, expected_time)
-	// 	);
-	// 	logdisplay_flushline(state->expected_time_display);
-	// }
+static void calib_stopdist(void* s) {
+	a0state *state = s;
+	engineer *eng = state->eng;
+	int train_no = state->cur_train;
+	if (train_no < 0) return;
+	track_node *cur_sensor = state->cur_sensor;
+	if (strcmp(cur_sensor->name, "E8") == 0) {
+		engineer_set_speed(eng, train_no, 0);
+		engineer_train_pause(eng, train_no, MS2TICK(5000));
+	}
+	int speed = engineer_get_speed(eng, train_no);
+	if (speed == 14) {
+		engineer_set_speed(eng, train_no, 1);
+		engineer_train_pause(eng, train_no, MS2TICK(1000));
+		engineer_set_speed(eng, train_no, 4);
+	} else {
+		engineer_set_speed(eng, train_no, speed + 1);
+	}
 }
 
 static void handle_sensor(a0state *state, char rawmsg[]) {
@@ -506,7 +491,7 @@ void a0() {
 	// sensor bus
 	state.sensor_bus = dumbbus_new();
 	// dumbbus_register(&sensor_bus, &calib_sensor);
-	dumbbus_register(state.sensor_bus, &print_expected_time);
+	dumbbus_register(state.sensor_bus, &calib_stopdist);
 
 	// time bus
 	state.bus10hz = dumbbus_new();

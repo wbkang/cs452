@@ -27,7 +27,7 @@ int location_isvalid(location *this) {
 	return TRUE;
 }
 
-// @TODO: this works right now only if from->edge->src <= to->edge->src, what if not? perhaps we should do the distance from->to and to->from, and take the smallest valid one?
+// @TODO: something feels off about this function, reconsider
 fixed location_dist(location *from, location *to) {
 	ASSERT(location_isvalid(from), "bad 'from' location");
 	ASSERT(location_isvalid(to), "bad 'to' location");
