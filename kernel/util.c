@@ -40,10 +40,14 @@ static inline char* find_function_name(uint pc) {
 }
 
 void print_stack_trace(uint fp) {
+	if (!fp) {
+		return;
+	}
+
 	__init_funclist();
-	int pc = 0, lr = 0;
-	bwprintf(1, CONSOLE_EFFECT(EFFECT_RESET) "stack trace:\n");
-	bwprintf(1, CONSOLE_EFFECT(EFFECT_BRIGHT) "---------TOP---------\n");
+	int pc = 0, lr = 0, depth = 20;
+//	bwprintf(1, CONSOLE_EFFECT(EFFECT_RESET) "stack trace:\n");
+	bwprintf(1, CONSOLE_EFFECT(EFFECT_RESET) CONSOLE_EFFECT(EFFECT_BRIGHT) "------stack trace----\n");
 	bwprintf(1, CONSOLE_EFFECT(EFFECT_FG_BLUE) "asmline\t\torigin\t\tfunction\n" CONSOLE_EFFECT(EFFECT_RESET));
 	do {
 		pc = VMEM(fp) - 16;
@@ -54,10 +58,13 @@ void print_stack_trace(uint fp) {
 
 		lr = VMEM(fp - 4);
 		fp = VMEM(fp - 12);
-		if (fp < &_KERNEL_MEM_START || &_KERNEL_MEM_END <= fp) {
-			bwprintf(1, "next fp out of range:%x\n", fp);
+		if (fp < (int)&_KERNEL_MEM_START || (int)&_KERNEL_MEM_END <= fp) {
+//			bwprintf(1, "next fp out of range:%x\n", fp);
+			break;
+		} else if (depth-- < 0) {
+//			bwprintf(1, "stack trace too deep\n", fp);
 			break;
 		}
 	} while (pc != REDBOOT_ENTRYPOINT && pc != (int) main);
-	bwprintf(1, CONSOLE_EFFECT(EFFECT_BRIGHT) "--------BOTTOM-------\n" CONSOLE_EFFECT(EFFECT_RESET));
+	bwprintf(1, CONSOLE_EFFECT(EFFECT_RESET));
 }

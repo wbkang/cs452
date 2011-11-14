@@ -4,3 +4,4 @@
 #define IOSERVER_ERROR_BADDATA -5
 
 int ioserver_create(int channel, int fifo, int speed, int stopbits, int databits, int parity);
+void ioserver();

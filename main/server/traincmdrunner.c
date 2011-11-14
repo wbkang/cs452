@@ -4,7 +4,7 @@
 #include <server/traincmdrunner.h>
 #include <server/traincmdbuffer.h>
 
-static void traincmdrunner() {
+void traincmdrunner() {
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	// int tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	int tid_time = WhoIs(NAME_TIMESERVER);

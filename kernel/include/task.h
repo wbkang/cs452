@@ -4,6 +4,7 @@
 #include <hardware.h>
 #include <memory.h>
 
+#define REG_FP 11
 #define REG_SP 13
 #define REG_LR 14
 #define REG_PC 15
@@ -47,3 +48,4 @@ inline task_descriptor *td_new();
 void td_free(task_descriptor *td);
 inline task_descriptor *td_find(uint id);
 void reginfo(register_set *reg);
+void td_print_crash_dump();

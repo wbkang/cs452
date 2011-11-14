@@ -7,7 +7,7 @@ typedef struct _tag_timenotifier_msg {
 	int ticks;
 } timenotifier_args;
 
-static void timenotifier() {
+void timenotifier() {
 	// init
 	int tid;
 	timenotifier_args args;

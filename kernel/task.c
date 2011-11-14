@@ -13,6 +13,18 @@ uint get_td_list_size() {
 	return task_descriptors.size;
 }
 
+void td_print_crash_dump() {
+	int tdsize = get_td_list_size();
+
+	for (int i = 0; i < tdsize; i++) {
+		task_descriptor *td = task_descriptors.td + i;
+		if (td->state != TD_STATE_FREE && td->state != TD_STATE_RETIRED) {
+			PRINT("Task %d (priority %d)", td->id, td->priority);
+			print_stack_trace(td->registers.r[REG_FP]);
+		}
+	}
+}
+
 void td_init(uint task_list_size) {
 	task_descriptors.td = kmalloc(task_list_size * sizeof(task_descriptor));
 	task_descriptors.size = task_list_size;
@@ -24,6 +36,7 @@ void td_init(uint task_list_size) {
 	for (int i = 0; i < task_list_size; ++i, ++td) {
 		td->id = i;
 		td->state = TD_STATE_FREE;
+		td->registers.r[REG_FP] = 0;
 		td_list_push(head_free, td);
 	}
 
@@ -75,6 +88,7 @@ inline task_descriptor *td_new() {
 
 inline void td_free(task_descriptor *td) {
 	td->id += 0x10000; // increment generation
+	td->registers.r[REG_FP] = 0;
 	if (td->id >= 0) {
 		td_list_push(&task_descriptors.head_free, td);
 		td->state = TD_STATE_FREE;

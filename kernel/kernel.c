@@ -125,6 +125,10 @@ static inline void handle_swi(register_set *reg) {
 			errno = a1;
 			exitkernel = TRUE;
 			break;
+		case SYSCALL_CRASHDUMP:
+			td_print_crash_dump();
+			exitkernel = TRUE;
+			break;
 		default:
 			ERROR("unknown system call %d (%x)\n", req_no, req_no);
 			break;
