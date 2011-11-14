@@ -57,7 +57,7 @@ static inline void txchar(ioserver_state *state);
 static inline void handle_flush(ioserver_state *state, int tid);
 static inline void flush_garbage();
 
-static void ioserver() {
+void ioserver() {
 	int tid;
 	ioserver_arg args;
 
@@ -160,7 +160,9 @@ static inline void handle_general(ioserver_state *state) {
 		ASSERT(uart_flag & RXFF_MASK, "incoming register empty");
 		ASSERT(!buffer_full(state->input), "input buffer full");
 		int c = rxchar(state);
-		if (queue_empty(state->input_blocked)) {
+		if (c == 0x1b && state->channel == COM2) { // this is the crashdump
+			CrashDump();
+		} else if (queue_empty(state->input_blocked)) {
 			buffer_put(state->input, &c);
 		} else {
 			int tid = (int) queue_get(state->input_blocked);

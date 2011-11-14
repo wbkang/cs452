@@ -5,7 +5,7 @@ typedef struct _tag_notifier_msg {
 	int eventid;
 } notifier_args;
 
-static void notifier() {
+void notifier() {
 	// init
 	int tid;
 	notifier_args args;

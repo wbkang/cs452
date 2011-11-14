@@ -131,3 +131,8 @@ AwaitEvent:
 ExitKernel:
 	swi 11
 	mov pc, lr
+
+.global CrashDump
+CrashDump:
+	swi 12
+	mov pc, lr

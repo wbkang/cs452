@@ -18,6 +18,7 @@
 #define SYSCALL_NAMESERVERTID 9
 #define SYSCALL_AWAITEVENT 10
 #define SYSCALL_EXITKERNEL 11
+#define SYSCALL_CRASHDUMP 12
 
 #define SENDER_MSGLEN(a4) ((a4) & 0xffff)
 #define SENDER_REPLYLEN(a4) (((uint) a4) >> 16)
@@ -45,3 +46,4 @@ int Reply(int tid, void* reply, int replylen);
 int NameServerTid();
 int AwaitEvent(int eventid);
 void ExitKernel(int errno);
+void CrashDump();
