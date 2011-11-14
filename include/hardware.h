@@ -6,6 +6,8 @@
 #define COM2    1
 #define COM_COUNT 2
 #define SWI_VECTOR 0x8
+#define PFABT_VECTOR 0xc
+#define DTABT_VECTOR 0x10
 #define HWI_VECTOR 0x18
 
 #define UART_BASE(_x) (((_x) == COM1) ? UART1_BASE : UART2_BASE)

@@ -15,6 +15,8 @@ static int nameserver_tid;
 static int idleserver_tid;
 static uint old_swi_vector;
 static uint old_hwi_vector;
+static uint old_dtabort_vector;
+static uint old_pfabort_vector;
 
 static inline int kernel_mytid();
 static inline int kernel_myparenttid();
@@ -43,8 +45,12 @@ static void flush_dcache() {
 static void install_interrupt_handlers() {
 	old_swi_vector = READ_INTERRUPT_HANDLER(SWI_VECTOR);
 	old_hwi_vector = READ_INTERRUPT_HANDLER(HWI_VECTOR);
+	old_pfabort_vector = READ_INTERRUPT_HANDLER(PFABT_VECTOR);
+	old_dtabort_vector = READ_INTERRUPT_HANDLER(DTABT_VECTOR);
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
 	INSTALL_INTERRUPT_HANDLER(HWI_VECTOR, asm_handle_swi);
+	INSTALL_INTERRUPT_HANDLER(PFABT_VECTOR, asm_handle_abort);
+	INSTALL_INTERRUPT_HANDLER(DTABT_VECTOR, asm_handle_abort);
 	VMEM(VIC1 + PROTECTION_OFFSET) = 0;
 	VMEM(VIC1 + INTSELECT_OFFSET) = 0;
 	VMEM(VIC1 + INTENCLR_OFFSET) = ~0;
@@ -54,6 +60,8 @@ static void install_interrupt_handlers() {
 static void uninstall_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, old_swi_vector);
 	INSTALL_INTERRUPT_HANDLER(HWI_VECTOR, old_hwi_vector);
+	INSTALL_INTERRUPT_HANDLER(PFABT_VECTOR, old_pfabort_vector);
+	INSTALL_INTERRUPT_HANDLER(DTABT_VECTOR, old_dtabort_vector);
 	VMEM(VIC1 + INTENCLR_OFFSET) = ~0;
 	VMEM(VIC2 + INTENCLR_OFFSET) = ~0;
 	VMEM(TIMER1_BASE + CRTL_OFFSET) &= ~ENABLE_MASK;
