@@ -253,23 +253,67 @@ static void calib_sensor(void *s) {
 }
 */
 
+#define STOP_INIT 0
+#define STOP_UP2SPEED1 1
+#define STOP_UP2SPEED2 2
+#define STOP_STOPPING 3
+#define STOP_REVERSING 4
+
+struct {
+	int state;
+	int speed;
+} csdstate;
+
+static void init_csdstate() {
+	csdstate.state = STOP_INIT;
+	csdstate.speed = 4;
+}
+
 static void calib_stopdist(void* s) {
 	a0state *state = s;
 	engineer *eng = state->eng;
 	int train_no = state->cur_train;
 	if (train_no < 0) return;
 	track_node *cur_sensor = state->cur_sensor;
-	if (strcmp(cur_sensor->name, "E8") == 0) {
-		engineer_set_speed(eng, train_no, 0);
-		engineer_train_pause(eng, train_no, MS2TICK(5000));
-	}
-	int speed = engineer_get_speed(eng, train_no);
-	if (speed == 14) {
-		engineer_set_speed(eng, train_no, 1);
-		engineer_train_pause(eng, train_no, MS2TICK(1000));
-		engineer_set_speed(eng, train_no, 4);
-	} else {
-		engineer_set_speed(eng, train_no, speed + 1);
+	switch (csdstate.state) {
+		case STOP_INIT:
+			engineer_set_switch(eng, 11, 'c', TRUE);
+			engineer_set_speed(eng, train_no, csdstate.speed);
+			csdstate.state = STOP_UP2SPEED1;
+			break;
+		case STOP_UP2SPEED1:
+			if (strcmp(cur_sensor->name, "E8") == 0) {
+				csdstate.state = STOP_STOPPING;
+			}
+			break;
+		case STOP_UP2SPEED2:
+			if (strcmp(cur_sensor->name, "E8") == 0) {
+				csdstate.state = STOP_STOPPING;
+			}
+			break;
+		case STOP_STOPPING:
+			if (strcmp(cur_sensor->name, "E8") == 0) {
+				engineer_set_switch(eng, 11, 's', TRUE);
+				engineer_set_speed(eng, train_no, 0);
+				engineer_train_pause(eng, train_no, MS2TICK(5000));
+				if (csdstate.speed == 14) {
+					csdstate.speed = 4;
+				} else {
+					csdstate.speed += 1;
+				}
+				engineer_reverse(eng, train_no);
+				engineer_set_speed(eng, train_no, 14);
+				csdstate.state = STOP_REVERSING;
+			}
+			break;
+		case STOP_REVERSING:
+			if (strcmp(cur_sensor->name, "E7") == 0) {
+				engineer_set_switch(eng, 11, 'c', TRUE);
+				engineer_reverse(eng, train_no);
+				engineer_set_speed(eng, train_no, csdstate.speed);
+				csdstate.state = STOP_UP2SPEED1;
+			}
+			break;
 	}
 }
 
@@ -491,6 +535,7 @@ void a0() {
 	// sensor bus
 	state.sensor_bus = dumbbus_new();
 	// dumbbus_register(&sensor_bus, &calib_sensor);
+	init_csdstate();
 	dumbbus_register(state.sensor_bus, &calib_stopdist);
 
 	// time bus

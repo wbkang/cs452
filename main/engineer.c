@@ -342,7 +342,7 @@ static void engineer_train_move(engineer *this, train_descriptor *train, int t_i
 	}
 	logstrip_printf(this->trainloc,
 		"%-5s + %Fcm (%s)",
-		loc->edge->src->name,
+		location_isundef(loc) ? "?" : loc->edge->src->name,
 		fixed_div(loc->offset, fixed_new(10)),
 		direction_str
 	);

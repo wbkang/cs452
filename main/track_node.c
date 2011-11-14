@@ -2,17 +2,6 @@
 #include <constants.h>
 #include <string.h>
 
-track_node *find_next_sensor(track_node *orig) {
-	track_edge *edge = find_forward(orig);
-	track_node *node;
-	while (edge) {
-		node = edge->dest;
-		if (node->type == NODE_SENSOR) return node;
-		edge = find_forward(node);
-	}
-	return NULL;
-}
-
 track_edge *find_forward(track_node *orig) {
 	switch (orig->type) {
 		case NODE_SENSOR:
@@ -25,32 +14,6 @@ track_edge *find_forward(track_node *orig) {
 			return NULL;
 	}
 }
-
-// int find_dist(track_node *orig, track_node *dest, int curdist, int maxsensordepth) {
-// 	//	NODE_SENSOR, NODE_BRANCH, NODE_MERGE, NODE_ENTER, NODE_EXIT
-// 	if (!orig || !dest) return -1;
-// 	if (dest == orig) return curdist;
-// 	if (maxsensordepth < 0) return -1;
-
-// 	switch (orig->type) {
-// 		case NODE_SENSOR: {
-// 			return find_dist(orig->edge[0].dest, dest, curdist + orig->edge[0].dist, maxsensordepth - 1);
-// 		}
-// 		case NODE_BRANCH: {
-// 			int dir = orig->switch_dir;
-// 			if (dir < 0) return -1;
-// 			int dist = find_dist(orig->edge[dir].dest, dest, curdist + orig->edge[dir].dist, maxsensordepth);
-// 			return dist;
-// 		}
-// 		case NODE_ENTER:
-// 		case NODE_MERGE: {
-// 			return find_dist(orig->edge[0].dest, dest, curdist + orig->edge[0].dist, maxsensordepth);
-// 		}
-
-// 		default:
-// 			return -1;
-// 	}
-// }
 
 track_edge *track_next_edge(track_node *node) {
 	if (!node) return NULL; // bad node
@@ -86,11 +49,9 @@ int track_distance(track_node *from, track_node *to) {
 		track_edge *edge = track_next_edge(jump1);
 		if (!edge) return -2; // no more edges
 		dist += edge->dist;
-		jump1 = track_next_node(jump1);
+		jump1 = edge->dest;
 		if (!jump1) return -3; // unending edge
-		for (int i = 0; i < 2; i++) {
-			jump2 = track_next_node(jump2);
-		}
+		jump2 = track_next_node(track_next_node(jump2));
 		if (jump1 == jump2) return -4; // cycle
 	}
 
