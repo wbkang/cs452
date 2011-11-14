@@ -578,154 +578,154 @@ node EX10:
 edge A1 MR12:
   distance 218 mm
 edge A2 EX5:
-  distance 500 mm
+  distance 523 mm
 edge A3 BR14:
   distance 62 mm
 edge A4 B16:
-  distance 440 mm
+  distance 445 mm
 edge A5 MR3:
   distance 216 mm
 edge A6 B10:
-  distance 649 mm
+  distance 665 mm
 edge A7 B12:
-  distance 473 mm
+  distance 465 mm
 edge A8 MR2:
-  distance 211 mm
+  distance 216 mm
 edge A9 B8:
-  distance 289 mm
+  distance 275 mm
 edge A10 MR1:
-  distance 210 mm
+  distance 216 mm
 edge A11 MR1:
-  distance 265 mm
+  distance 262 mm
 edge A12 A16:
-  distance 774 mm
+  distance 805 mm
 edge A13 MR4:
-  distance 215 mm
+  distance 216 mm
 edge A14 EX4:
-  distance 320 mm
+  distance 333 mm
 edge A16 MR4:
-  distance 260 mm
+  distance 262 mm
 edge B1 D14:
-  distance 398 mm
-edge B2 MR16:
-  distance 225 mm
-edge B3 C2:
-  distance 230 mm
-edge B4 MR16:
-  distance 220 mm
-edge B5 D3:
-  distance 405 mm
-edge B6 MR13:
-  distance 214 mm
-edge B8 EX7:
-  distance 60 mm
-edge B10 EX9:
-  distance 70 mm
-edge B12 EX10:
-  distance 70 mm
-edge B13 MR154:
-  distance 224 mm
-edge B14 D16:
-  distance 202 mm
-edge B16 BR15:
-  distance 70 mm
-edge C2 MR153:
-  distance 228 mm
-edge C3 EX3:
   distance 410 mm
-edge C4 MR5:
-  distance 226 mm
-edge C5 BR6:
-  distance 79 mm
-edge C6 MR15:
-  distance 411 mm
-edge C7 MR18:
+edge B2 MR16:
+  distance 216 mm
+edge B3 C2:
+  distance 205 mm
+edge B4 MR16:
+  distance 228 mm
+edge B5 D3:
+  distance 410 mm
+edge B6 MR13:
   distance 215 mm
+edge B8 EX7:
+  distance 50 mm
+edge B10 EX9:
+  distance 45 mm
+edge B12 EX10:
+  distance 50 mm
+edge B13 MR154:
+  distance 230 mm
+edge B14 D16:
+  distance 205 mm
+edge B16 BR15:
+  distance 60 mm
+edge C2 MR153:
+  distance 210 mm
+edge C3 EX3:
+  distance 415 mm
+edge C4 MR5:
+  distance 225 mm
+edge C5 BR6:
+  distance 76 mm
+edge C6 MR15:
+  distance 425 mm
+edge C7 MR18:
+  distance 213 mm
 edge C8 BR3:
   distance 145 mm
 edge C9 MR15:
-  distance 305 mm
+  distance 315 mm
 edge C10 BR16:
-  distance 146 mm
+  distance 140 mm
 edge C11 BR13:
   distance 140 mm
 edge C12 MR14:
-  distance 314 mm
+  distance 323 mm
 edge C13 E7:
-  distance 785 mm
+  distance 780 mm
 edge C14 BR11:
-  distance 60 mm
+  distance 66 mm
 edge C15 D12:
   distance 405 mm
 edge C16 MR6:
-  distance 223 mm
-edge D1 MR155:
-  distance 227 mm
-edge D2 E4:
-  distance 200 mm
-edge D3 MR10:
-  distance 223 mm
-edge D5 E6:
-  distance 275 mm
-edge D6 MR9:
-  distance 213 mm
-edge D7 MR9:
-  distance 290 mm
-edge D8 E8:
-  distance 375 mm
-edge D9 E12:
-  distance 284 mm
-edge D10 MR8:
-  distance 291 mm
-edge D12 MR7:
-  distance 220 mm
-edge D14 MR17:
-  distance 225 mm
-edge D16 MR17:
-  distance 230 mm
-edge E1 MR156:
-  distance 222 mm
-edge E2 E15:
-  distance 203 mm
-edge E4 MR10:
-  distance 220 mm
-edge E6 BR10:
-  distance 74 mm
-edge E9 MR8:
   distance 215 mm
+edge D1 MR155:
+  distance 235 mm
+edge D2 E4:
+  distance 205 mm
+edge D3 MR10:
+  distance 216 mm
+edge D5 E6:
+  distance 285 mm
+edge D6 MR9:
+  distance 200 mm
+edge D7 MR9:
+  distance 298 mm
+edge D8 E8:
+  distance 386 mm
+edge D9 E12:
+  distance 290 mm
+edge D10 MR8:
+  distance 306 mm
+edge D12 MR7:
+  distance 225 mm
+edge D14 MR17:
+  distance 216 mm
+edge D16 MR17:
+  distance 228 mm
+edge E1 MR156:
+  distance 227 mm
+edge E2 E15:
+  distance 205 mm
+edge E4 MR10:
+  distance 228 mm
+edge E6 BR10:
+  distance 66 mm
+edge E9 MR8:
+  distance 228 mm
 edge E10 E13:
-  distance 275 mm
+  distance 290 mm
 edge E12 BR7:
-  distance 65 mm
+  distance 60 mm
 edge E13 BR17:
-  distance 62 mm
+  distance 60 mm
 edge E15 MR13:
-  distance 230 mm
+  distance 235 mm
 edge MR1 MR2:
-  distance 191 mm
+  distance 188 mm
 edge MR2 MR3:
-  distance 182 mm
+  distance 190 mm
 edge MR4 MR12:
-  distance 185 mm
+  distance 188 mm
 edge BR5 MR7:
-  distance 334 mm
+  distance 340 mm
 edge MR5 BR18:
-  distance 187 mm
+  distance 185 mm
 edge BR6 MR18:
-  distance 338 mm
+  distance 340 mm
 edge MR8 BR9:
-  distance 193 mm
+  distance 187 mm
 edge BR11 BR12:
   distance 190 mm
 edge BR11 MR14:
-  distance 445 mm
+  distance 471 mm
 edge BR153 EX1:
-  distance 230 mm
+  distance 290 mm
 edge MR153 MR154:
   distance 24 mm
 edge MR154 BR156:
   distance 32 mm
 edge BR155 EX2:
-  distance 247 mm
+  distance 290 mm
 edge MR155 MR156:
   distance 24 mm
