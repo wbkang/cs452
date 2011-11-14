@@ -24,16 +24,21 @@ typedef struct {
 	logstrip *landmark_display;
 	logstrip *stopinfo;
 	dumbbus *sensor_bus;
-	dumbbus *time_bus;
+	dumbbus *bus10hz;
+	dumbbus *simbus;
+	int timestamp;
 	// train data
 	engineer *eng;
 	// these are not scalable to multiple trains
 	int cur_train;
-	uint cur_tick;
-	track_node *cur_node;
-	uint last_tick;
-	track_node *last_node;
+	uint timestamp_cur_sensor;
+	track_node *cur_sensor;
+	uint timestamp_last_sensor;
+	track_node *last_sensor;
 	uint trial;
+	// timers
+	int tid_refresh;
+	int tid_simstep;
 } a0state;
 
 void a0();

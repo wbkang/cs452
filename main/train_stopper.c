@@ -46,7 +46,7 @@ static void ontick(void* s) {
 	if (fixed_cmp(stop_from, fixed_add(stop_dist, margin)) > 0) return; // wait
 
 	engineer_set_speed(eng, train_no, 0);
-	dumbbus_unregister(((a0state*) s)->time_bus, ontick);
+	dumbbus_unregister(((a0state*) s)->simbus, ontick);
 }
 
 // over must be in mm
@@ -82,7 +82,7 @@ void train_stopper_setup(a0state *state, int train_no, char *type, int id, int o
 		return;
 	}
 
-	dumbbus_register(state->time_bus, ontick);
+	dumbbus_register(state->simbus, ontick);
 	logstrip_printf(state->cmdlog,
 		"working on stopping train %d at %s+%Fmm",
 		train_no,

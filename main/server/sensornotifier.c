@@ -28,15 +28,15 @@ static void sensornotifier() {
 	msg.type = SENSOR;
 	msg.module[1] = '\0';
 
-	int last_ticks;
-	int ticks = Time(tid_time) - MS2TICK(61); // average return time
+	int timestamp_last;
+	int timestamp = Time(tid_time) - MS2TICK(61); // average return time
 
 	for (;;) {
 		train_querysenmods(TRAIN_NUM_MODULES, tid_traincmdbuf); // @TODO: make this block
-		last_ticks = ticks;
-		ticks = Time(tid_time);
+		timestamp_last = timestamp;
+		timestamp = Time(tid_time);
 		// attribute the timestamp halfway between now and last query
-		msg.timestamp = (last_ticks + ticks) >> 1;
+		msg.timestamp = (timestamp_last + timestamp) >> 1;
 		for (int m = 0; m < TRAIN_NUM_MODULES; m++) {
 			int upper = Getc(COM1, tid_com1);
 			int lower = Getc(COM1, tid_com1);

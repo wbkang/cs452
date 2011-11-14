@@ -63,7 +63,9 @@ static void ui_init(a0state *state) {
 	cmdline_clear(state->cmdline);
 }
 
-static void ui_time(a0state *state, int ticks) {
+static void ui_time(void* s) {
+	a0state *state = s;
+	int ticks = state->timestamp;
 	console_move(state->con, 1, 9);
 	console_erase_eol(state->con);
 	int ms = TICK2MS(ticks);
@@ -219,29 +221,29 @@ static track ask_track(a0state *state) {
 /*
 static void calib_sensor(void *s) {
 	a0state *state = s;
-	track_node *cur_node = state->cur_node;
-	int tick = state->cur_tick;
-	if (strcmp(cur_node->name, "E4") == 0) return;
+	track_node *cur_sensor = state->cur_sensor;
+	int tick = state->timestamp_cur_sensor;
+	if (strcmp(cur_sensor->name, "E4") == 0) return;
 
-	int dist = track_distance(state->last_node, cur_node);
+	int dist = track_distance(state->last_sensor, cur_sensor);
 
 	// get a reference to the sensor track node data
 	track_node_data *data;
-	if (cur_node->data) {
-		data = (track_node_data*) cur_node->data;
+	if (cur_sensor->data) {
+		data = (track_node_data*) cur_sensor->data;
 	} else {
-		cur_node->data = malloc(sizeof(track_node_data));
-		data = (track_node_data*) cur_node->data;
+		cur_sensor->data = malloc(sizeof(track_node_data));
+		data = (track_node_data*) cur_sensor->data;
 		reset_track_node_data(data);
 	}
 
 	if (data->trial < 0 || data->trial > MAX_TRIAL) goto exit;
 
-	data->dt[data->trial] = tick - state->last_tick;
+	data->dt[data->trial] = tick - state->timestamp_last_sensor;
 
 	if (data->trial < MAX_TRIAL) goto exit;
 
-	logdisplay_printf(state->log, "%s\t%s\t%d", state->last_node->name, cur_node->name, dist);
+	logdisplay_printf(state->log, "%s\t%s\t%d", state->last_sensor->name, cur_sensor->name, dist);
 	for (int trial = 0; trial <= MAX_TRIAL; trial++) {
 		logdisplay_printf(state->log, "\t%d", data->dt[trial]);
 	}
@@ -263,8 +265,8 @@ static void print_expected_time(void* s) {
 	// 	return;
 	// }
 
-	// track_node *sensor = state->cur_node;
-	// track_node *last_sensor = state->last_node;
+	// track_node *sensor = state->cur_sensor;
+	// track_node *last_sensor = state->last_sensor;
 
 	// if (last_sensor && track_distance(last_sensor, sensor) > 0) {
 	// 	int dist = track_distance(last_sensor, sensor);
@@ -272,7 +274,7 @@ static void print_expected_time(void* s) {
 	// 	if (fixed_is0(total_beta)) return; // unknown path
 
 	// 	fixed expected_time = fixed_div(fixed_new(dist), v);
-	// 	fixed actual_time = fixed_new(TICK2MS(state->cur_tick - state->last_tick));
+	// 	fixed actual_time = fixed_new(TICK2MS(state->timestamp_cur_sensor - state->timestamp_last_sensor));
 
 	// 	logdisplay_printf(state->expected_time_display,
 	// 		"Edge %3s->%-3s Expected:%10Fms  Actual:%10Fms (%10Fms)",
@@ -313,10 +315,10 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 		engineer_set_switch(eng, 156, 'C', TRUE);
 	}*/
 
-	state->last_node = state->cur_node;
-	state->cur_node = sensor;
-	state->last_tick = state->cur_tick;
-	state->cur_tick = m->timestamp;
+	state->last_sensor = state->cur_sensor;
+	state->cur_sensor = sensor;
+	state->timestamp_last_sensor = state->timestamp_cur_sensor;
+	state->timestamp_cur_sensor = m->timestamp;
 
 	ui_sensor(state, m->module[0], m->id);
 	dumbbus_dispatch(state->sensor_bus, state);
@@ -472,10 +474,16 @@ static void handle_comin(a0state *state, char msg[]) {
 	cmdline_handleinput(state->cmdline, comin->c);
 }
 
-static void handle_time(a0state *state, char msg[]) {
+static void handle_time(a0state *state, char msg[], int tid) {
 	msg_time *time = (msg_time*) msg;
-	ui_time(state, time->timestamp);
-	dumbbus_dispatch(state->time_bus, state);
+	state->timestamp = time->timestamp;
+	if (tid == state->tid_refresh) {
+		dumbbus_dispatch(state->bus10hz, state);
+	} else if (tid == state->tid_simstep) {
+		dumbbus_dispatch(state->simbus, state);
+	} else {
+		ASSERT(0, "time message from unknown task");
+	}
 }
 
 void a0() {
@@ -501,15 +509,18 @@ void a0() {
 	dumbbus_register(state.sensor_bus, &print_expected_time);
 
 	// time bus
-	state.time_bus = dumbbus_new();
-	dumbbus_register(state.time_bus, &tick_engineer);
+	state.bus10hz = dumbbus_new();
+	dumbbus_register(state.bus10hz, &ui_time);
+
+	state.simbus = dumbbus_new();
+	dumbbus_register(state.simbus, &tick_engineer);
 
 	track track = ask_track(&state);
 	init_track_template(track, state.con);
 	state.eng = engineer_new(track == TRACK_A ? 'a' : 'b');
 	state.cur_train = -1;
-	state.last_tick = 0;
-	state.last_node = NULL;
+	state.timestamp_last_sensor = 0;
+	state.last_sensor = NULL;
 	state.trial = 0;
 
 	calibrator_init();
@@ -520,7 +531,9 @@ void a0() {
 
 	sensornotifier_new(MyTid());
 	comnotifier_new(MyTid(), 10, COM2, state.tid_com2);
-	timenotifier_new(MyTid(), 10, MS2TICK(20));
+
+	state.tid_refresh = timenotifier_new(MyTid(), 10, MS2TICK(100));
+	state.tid_simstep = timenotifier_new(MyTid(), 10, MS2TICK(10));
 
 	for (;;) {
 		int tid;
@@ -537,7 +550,7 @@ void a0() {
 				handle_comin(&state, msg);
 				break;
 			case TIME:
-				handle_time(&state, msg);
+				handle_time(&state, msg, tid);
 				break;
 			default:
 				break;
