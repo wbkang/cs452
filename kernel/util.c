@@ -5,6 +5,9 @@
 #include <funcmap.h>
 #include <console.h>
 
+extern int _KERNEL_MEM_START;
+extern int _KERNEL_MEM_END;
+
 void die() {
 	for (;;);
 }
@@ -36,11 +39,10 @@ static inline char* find_function_name(uint pc) {
 	return "[unknown function]";
 }
 
-void print_stack_trace() {
+void print_stack_trace(uint fp) {
 	__init_funclist();
-	int fp; READ_REGISTER(fp);
 	int pc = 0, lr = 0;
-	bwprintf(1, "stack trace:\n");
+	bwprintf(1, CONSOLE_EFFECT(EFFECT_RESET) "stack trace:\n");
 	bwprintf(1, CONSOLE_EFFECT(EFFECT_BRIGHT) "---------TOP---------\n");
 	bwprintf(1, CONSOLE_EFFECT(EFFECT_FG_BLUE) "asmline\t\torigin\t\tfunction\n" CONSOLE_EFFECT(EFFECT_RESET));
 	do {
@@ -52,6 +54,10 @@ void print_stack_trace() {
 
 		lr = VMEM(fp - 4);
 		fp = VMEM(fp - 12);
+		if (fp < &_KERNEL_MEM_START || &_KERNEL_MEM_END <= fp) {
+			bwprintf(1, "next fp out of range:%x\n", fp);
+			break;
+		}
 	} while (pc != REDBOOT_ENTRYPOINT && pc != (int) main);
 	bwprintf(1, CONSOLE_EFFECT(EFFECT_BRIGHT) "--------BOTTOM-------\n" CONSOLE_EFFECT(EFFECT_RESET));
 }

@@ -102,20 +102,20 @@ void die();
 void Exit();
 int main();
 void dump_registers(int r0, int r1, int r2, int r3);
-void print_stack_trace();
+void print_stack_trace(uint fp);
 
 #if ASSERT_ENABLED
 #define ASSERT(X, ...) { \
 	if (!(X)) { \
 		VMEM(VIC1 + INTENCLR_OFFSET) = ~0; \
 		VMEM(VIC2 + INTENCLR_OFFSET) = ~0; \
-		int lr, pc; READ_REGISTER(lr); READ_REGISTER(pc); \
+		int fp, lr, pc; READ_REGISTER(fp); READ_REGISTER(lr); READ_REGISTER(pc); \
 		bwprintf(1, "\x1B[2J" "\x1B[1;1H"); \
 		bwprintf(1, "assertion failed in file " __FILE__ " line:" TOSTRING(__LINE__) " lr: %x pc: %x" CRLF, lr, pc); \
 		bwprintf(1, "[%s] ", __func__); \
 		bwprintf(1, __VA_ARGS__); \
 		bwprintf(1, "\n"); \
-		print_stack_trace(); \
+		print_stack_trace(fp); \
 		die(); \
 	} \
 }

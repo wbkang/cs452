@@ -54,6 +54,7 @@ SECTIONS
 	} > ram
 	
 	_USER_MEM_END = 0x1f00000; 
+	_KERNEL_MEM_END = 0x2000000;
 }
 
 
