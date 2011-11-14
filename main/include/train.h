@@ -55,6 +55,8 @@ typedef struct {
 	train_direction dir;
 	location loc;
 	fixed v;
+	int v_avg_d[TRAIN_NUM_SPEED_IDX];
+	int v_avg_t[TRAIN_NUM_SPEED_IDX];
 	track_node *last_sensor;
 	int timestamp_last_sensor;
 	int timestamp_last_spdcmd;

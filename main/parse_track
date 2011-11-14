@@ -326,7 +326,7 @@ static void* memset(void* s, int c, unsigned int n) {
   return s;
 }
 
-uint sensor_mapper(void* key) {
+int sensor_mapper(void* key) {
   char *c = key;
   int idx = 0;
 

@@ -35,8 +35,10 @@ engineer *engineer_new(char track_name) {
 		train->timestamp_last_nudged = 0;
 		TRAIN_FOREACH_SPEEDIDX(speed) {
 			train->tref[speed] = -1;
-			train->dref = -1;
+			train->v_avg_d[speed] = 0;
+			train->v_avg_t[speed] = 0;
 		}
+		train->dref = -1;
 		populate_stop_distance(&this->train[train_no], train_no);
 	}
 
@@ -247,7 +249,13 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 	int dx = track_distance(last_sensor, sensor);
 	if (dx <= 0) return; // too fast?
 
-	fixed new_v = fixed_div(fixed_new(dx), fixed_new(dt));
+	int speed_idx = engineer_get_speedidx(this, train->no);
+	train->v_avg_d[speed_idx] += dx;
+	train->v_avg_t[speed_idx] += dt;
+
+	int v1000 = (1000 * train->v_avg_d[speed_idx]) / train->v_avg_t[speed_idx];
+	fixed new_v = fixed_div(fixed_new(v1000), fixed_new(1000));
+	fixed pred_v = fixed_div(fixed_new(dx), fixed_new(dt));
 
 	int now = Time(this->tid_time);
 	fixed dt_sensorlag = fixed_new(TICK2MS(now - timestamp));
@@ -268,7 +276,7 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 			//tmp
 
 			logdisplay_printf(this->log,
-				"[%7d] %s+%Fmm [%s+%Fmm] ~ %s+%Fmm (%Fmm/ms ~ %Fmm/ms) %Fmm [%Fmm]",
+				"[%7d] %s+%Fmm [%s+%Fmm] ~ %s+%Fmm (%Fmm/ms ~ %Fmm/ms) %Fmm [%Fmm] {%F}",
 				TICK2MS(timestamp),
 				train->loc.edge->src->name,
 				train->loc.offset,
@@ -279,7 +287,8 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 				train->v,
 				new_v,
 				dist,
-				errfreedist
+				errfreedist,
+				pred_v
 			);
 			logdisplay_flushline(this->log);
 		}
