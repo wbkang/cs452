@@ -167,7 +167,7 @@ int engineer_get_speedidx(engineer *this, int train_no) {
 	return train_speed2speed_idx(&this->train[train_no]);
 }
 
-void engineer_pause_train(engineer *this, int train_no, int ticks) {
+void engineer_train_pause(engineer *this, int train_no, int ticks) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	// @TODO: implement a way to pause trains independently
 	(void) train_no;
