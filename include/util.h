@@ -102,7 +102,7 @@ void die();
 void Exit();
 int main();
 void dump_registers(int r0, int r1, int r2, int r3);
-void print_stack_trace(uint fp);
+void print_stack_trace(uint fp, int clearscreen);
 
 #if ASSERT_ENABLED
 #define ASSERT(X, ...) { \
@@ -115,7 +115,7 @@ void print_stack_trace(uint fp);
 		bwprintf(1, "[%s] ", __func__); \
 		bwprintf(1, __VA_ARGS__); \
 		bwprintf(1, "\n"); \
-		print_stack_trace(fp); \
+		print_stack_trace(fp, 0); \
 		die(); \
 	} \
 }
