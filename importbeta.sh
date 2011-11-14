@@ -16,8 +16,12 @@ static void assign_path_beta(fixed tmin, fixed tref, blind_path_result path, int
     for(int i = 0; i < path.depth; i++){
         track_edge *edge = path.edges[i];
         fixed edge_dist_fixed = fixed_new(edge->dist);
-        fixed edge_beta = fixed_div(fixed_mul(tmin, edge_dist_fixed), fixed_mul(path_dist_fixed, tref));
-        edge->beta = edge_beta;
+        // fixed edge_beta = fixed_div(fixed_mul(tmin, edge_dist_fixed), fixed_mul(path_dist_fixed, tref));
+        fixed tseg = fixed_div(tmin, tref);
+		fixed distratio = fixed_div(edge_dist_fixed, path_dist_fixed);
+		fixed edge_beta = fixed_mul(tseg, distratio);
+		
+		edge->beta = edge_beta;
         edge->reverse->beta = edge_beta;
     }
 }
@@ -58,3 +62,4 @@ done
 
 echo "}
 ">> $outfile
+

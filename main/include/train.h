@@ -43,7 +43,6 @@ typedef enum {
 	TRAIN_UNKNOWN, TRAIN_FORWARD, TRAIN_BACKWARD
 } train_direction;
 
-
 // @TODO: add the distances from pickup to nose, and pickup to tail and use them in the stopping distance calucations
 typedef struct {
 	int no;

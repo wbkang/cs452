@@ -233,6 +233,7 @@ void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
 //			between the current and the next sensor? or at least the total average
 //			velocity for the entire track.
 static void engineer_train_onsensor(engineer *this, train_descriptor *train, track_node *sensor, int timestamp) {
+	engineer_ontick(this); // update all states
 	track_node *last_sensor = train->last_sensor;
 	train->last_sensor = sensor;
 	int timestamp_last_sensor = train->timestamp_last_sensor;
@@ -257,16 +258,28 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 	if (!location_isundef(&train->loc) && fixed_sgn(train->v) > 0) {
 		fixed dist = location_dist(&train->loc, &new_loc);
 		if (fixed_sgn(dist) > 0) {
+
+			// tmp
+			fixed errfreeoff = fixed_mul(train->v, fixed_new(dt));
+			location errfreeloc;
+			location_init(&errfreeloc, last_sensor->edge, errfreeoff);
+			location_inc(&errfreeloc, dx_sensorlag);
+			fixed errfreedist = location_dist(&errfreeloc, &new_loc);
+			//tmp
+
 			logdisplay_printf(this->log,
-				"[%7d] %s+%Fmm ~ %s+%Fmm (%Fmm/ms ~ %Fmm/ms) %Fmm",
+				"[%7d] %s+%Fmm [%s+%Fmm] ~ %s+%Fmm (%Fmm/ms ~ %Fmm/ms) %Fmm [%Fmm]",
 				TICK2MS(timestamp),
 				train->loc.edge->src->name,
 				train->loc.offset,
+				errfreeloc.edge->src->name,
+				errfreeloc.offset,
 				new_loc.edge->src->name,
 				new_loc.offset,
 				train->v,
 				new_v,
-				dist
+				dist,
+				errfreedist
 			);
 			logdisplay_flushline(this->log);
 		}
@@ -306,6 +319,7 @@ void engineer_onsensor(engineer *this, char data[]) {
 // @TODO: add acceleration
 // @TODO: add jerk
 // @TODO: use track info
+// @TODO: this is very sensitive to small dt and small v, fix this somehow?
 static void engineer_train_move(engineer *this, train_descriptor *train, int t_i, int t_f) {
 	location *loc = &train->loc;
 	if (location_isundef(loc)) return; // lost
