@@ -39,14 +39,18 @@ static inline char* find_function_name(uint pc) {
 	return "[unknown function]";
 }
 
-void print_stack_trace(uint fp) {
+void print_stack_trace(uint fp, int clearscreen) {
 	if (!fp) {
 		return;
 	}
 
 	__init_funclist();
 	int pc = 0, lr = 0, depth = 20;
-//	bwprintf(1, CONSOLE_EFFECT(EFFECT_RESET) "stack trace:\n");
+
+	if (clearscreen) {
+		bwprintf(1, CONSOLE_CLEAR "\x1B[1;1H");
+	}
+
 	bwprintf(1, CONSOLE_EFFECT(EFFECT_RESET) CONSOLE_EFFECT(EFFECT_BRIGHT) "------stack trace----\n");
 	bwprintf(1, CONSOLE_EFFECT(EFFECT_FG_BLUE) "asmline\t\torigin\t\tfunction\n" CONSOLE_EFFECT(EFFECT_RESET));
 	do {
