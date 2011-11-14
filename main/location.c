@@ -32,10 +32,19 @@ fixed location_dist(location *from, location *to) {
 	ASSERT(location_isvalid(from), "bad 'from' location");
 	ASSERT(location_isvalid(to), "bad 'to' location");
 	if (!location_isundef(from) && !location_isundef(to)) {
-		int dist = track_distance(from->edge->src, to->edge->src);
-		if (dist >= 0) {
-			fixed rv = fixed_sub(fixed_add(fixed_new(dist), to->offset), from->offset);
-			return fixed_abs(rv);
+		fixed dista = fixed_new(track_distance(from->edge->src, to->edge->src));
+		fixed distb = fixed_new(track_distance(to->edge->src, from->edge->src));
+		fixed doff = fixed_sub(from->offset, to->offset);
+		int gooda = fixed_sgn(dista) >= 0;
+		int goodb = fixed_sgn(distb) >= 0;
+		if (gooda && goodb) {
+			fixed a = fixed_abs(fixed_sub(dista, doff));
+			fixed b = fixed_abs(fixed_add(distb, doff));
+			return fixed_min(a, b);
+		} else if (gooda) {
+			return fixed_abs(fixed_sub(dista, doff));
+		} else if (goodb) {
+			return fixed_abs(fixed_add(distb, doff));
 		}
 	}
 	fixed rv = {-1};
