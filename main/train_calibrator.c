@@ -44,7 +44,7 @@ static int next_calib_speed() {
 static void calibrator_start(engineer *eng, int train_no) {
 	engineer_train_set_dir(eng, train_no, TRAIN_FORWARD);
 	engineer_set_speed(eng, train_no, 0);
-	engineer_pause_train(eng, train_no, MS2TICK(2000));
+	engineer_train_pause(eng, train_no, MS2TICK(2000));
 	engineer_set_speed(eng, train_no, calib_state.min_speed);
 	calib_state.cur_speed = calib_state.min_speed;
 	calib_state.state = CALIBRATING;
