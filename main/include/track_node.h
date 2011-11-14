@@ -44,9 +44,7 @@ static inline int train_goodswitchpos(int pos) {
 }
 
 fixed guess_beta(track_edge *edge);
-track_node *find_next_sensor(track_node *orig);
 track_edge *find_forward(track_node *orig);
-// int find_dist(track_node *orig, track_node *dest, int curdist, int maxsensordepth);
 track_edge *track_next_edge(track_node *node);
 track_node *track_next_node(track_node *node);
 int track_distance(track_node *from, track_node *to);
