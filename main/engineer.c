@@ -75,10 +75,12 @@ void engineer_set_tref(engineer *this, int train_no, int speed_idx, int tref) {
 }
 
 // @TODO: remove speed_idx. return the tref for the current speed
-int engineer_get_tref(engineer *this, int train_no, int speed_idx) {
+int engineer_get_tref(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	train_descriptor *train = &this->train[train_no];
+	int speed_idx = train_speed2speed_idx(train);
 	ASSERT(0 <= speed_idx && speed_idx < TRAIN_NUM_SPEED_IDX, "bad speed_idx");
-	return this->train[train_no].tref[speed_idx];
+	return train->tref[speed_idx];
 }
 
 int engineer_get_dref(engineer *this, int train_no) {
@@ -131,7 +133,16 @@ static void engineer_on_set_speed(engineer *this, int train_no, int speed) {
 	train_descriptor *train = &this->train[train_no];
 	train->last_speed = train->speed;
 	train->speed = speed;
-	train->v = fixed_new(-1); // invalidate velocity
+	location_init_undef(&train->loc); // lose position
+	int speed_idx = engineer_get_speedidx(this, train_no);
+	int v_avg_d = train->v_avg_d[speed_idx];
+	int v_avg_t = train->v_avg_t[speed_idx];
+	if (v_avg_d > 0 && v_avg_t > 0) {
+		int v1000 = (1000 * v_avg_d) / v_avg_t;
+		train->v = fixed_div(fixed_new(v1000), fixed_new(1000));
+	} else {
+		train->v = fixed_new(-1); // invalidate velocity
+	}
 	train->timestamp_last_spdcmd = Time(this->tid_time);
 }
 
@@ -143,7 +154,6 @@ void engineer_set_speed(engineer *this, int train_no, int speed) {
 	// 	speed
 	// );
 	*getherp() = uptime();
-
 
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	if (engineer_get_speed(this, train_no) == speed) return;
@@ -331,39 +341,44 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 // @TODO: improve this by using train location & trajectory
 // @TODO: if a train's location is unknown but it is the only one in motion, attribute the sensor to it (calibration)
 static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *sensor, int timestamp) {
-	// location sensloc;
-	// location_init(&sensloc, sensor->edge, fixed_new(0));
-	// TRAIN_FOREACH(train_no) {
-	// 	train_descriptor *train = &this->train[train_no];
-	// 	if (train->speed > 0) {
-	// 		location *trainloc = &train->loc;
-	// 		if (!location_isundef(trainloc)) {
-	// 			fixed dist = location_dist_min(trainloc, &sensloc);
-	// 			if (fixed_sgn(dist) >= 0) {
-	// 				if (fixed_cmp(dist, fixed_new(200)) <= 0) {
-	// 					return train;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
-	// TRAIN_FOREACH(train_no) {
-	// 	train_descriptor *train = &this->train[train_no];
-	// 	if (train->speed > 0) {
-	// 		location *trainloc = &train->loc;
-	// 		if (location_isundef(trainloc)) {
-	// 			return train;
-	// 		}
-	// 	}
-	// }
+	location sensloc;
+	location_init(&sensloc, sensor->edge, fixed_new(0));
+	TRAIN_FOREACH(train_no) {
+		train_descriptor *train = &this->train[train_no];
+		fixed v = engineer_get_velocity(this, train_no);
+		if (fixed_sgn(v) >= 0) { // good trajectory
+			location *trainloc = &train->loc;
+			if (!location_isundef(trainloc)) { // not lost
+				fixed dist = location_dist_min(trainloc, &sensloc);
+				if (fixed_sgn(dist) >= 0) {
+					if (fixed_cmp(dist, fixed_new(200)) <= 0) {
+						logdisplay_printf(this->log, "attributing sensor %s to train %d", sensor->name, train_no);
+						logdisplay_flushline(this->log);
+						return train;
+					}
+				}
+			}
+		}
+	}
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
 		if (train->speed > 0) {
-			return train;
+			location *trainloc = &train->loc;
+			if (location_isundef(trainloc)) {
+				logdisplay_printf(this->log, "attributing sensor %s to train %d", sensor->name, train_no);
+				logdisplay_flushline(this->log);
+				return train;
+			}
 		}
 	}
-	// logdisplay_printf(this->log, "spurious sensor %s", sensor->name);
-	// logdisplay_flushline(this->log);
+	// TRAIN_FOREACH(train_no) {
+	// 	train_descriptor *train = &this->train[train_no];
+	// 	if (train->speed > 0) {
+	// 		return train;
+	// 	}
+	// }
+	logdisplay_printf(this->log, "spurious sensor %s", sensor->name);
+	logdisplay_flushline(this->log);
 	return NULL;
 }
 

@@ -22,7 +22,7 @@ engineer *engineer_new(char track_name);
 train_direction engineer_train_get_dir(engineer *this, int train_no);
 void engineer_train_set_dir(engineer *this, int train_no, train_direction dir);
 void engineer_set_tref(engineer *this, int train_no, int speed_idx, int tref);
-int engineer_get_tref(engineer *this, int train_no, int speed_idx);
+int engineer_get_tref(engineer *this, int train_no);
 void engineer_set_stopinfo(engineer *this, int train_no, fixed m, fixed b);
 void engineer_get_stopinfo(engineer *this, int train_no, fixed *m, fixed *b);
 fixed engineer_sim_stopdist(engineer *this, int train_no);
