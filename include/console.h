@@ -11,8 +11,6 @@
 #define CONSOLE_HIDECURSOR "\x1B[?25l"
 #define CONSOLE_SAVECURSOR "\x1B[s"
 #define CONSOLE_UNSAVECURSOR "\x1B[u"
-#define CONSOLE_HIDECURSOR  "\x1B?25l"
-#define CONSOLE_SHOWCURSOR  "\x1B?25h"
 
 #define EFFECT_RESET 0
 #define EFFECT_REVERSE 7
@@ -43,7 +41,7 @@ struct console {
 
 console *console_new(int tid);
 void console_flush(console *this);
-
+void console_hidecursor(console *this);
 void console_effect(console *this, int effect);
 void console_effect_reset(console *this);
 void console_clear(console *this);
