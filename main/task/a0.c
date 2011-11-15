@@ -262,11 +262,11 @@ static void calib_sensor(void *s) {
 struct {
 	int state;
 	int speed;
-} stopdiststate;
+} csdstate;
 
-static void init_stopdiststate() {
-	stopdiststate.state = STOP_INIT;
-	stopdiststate.speed = 4;
+static void init_csdstate() {
+	csdstate.state = STOP_INIT;
+	csdstate.speed = 4;
 }
 
 static void calib_stopdist(void* s) {
@@ -275,43 +275,44 @@ static void calib_stopdist(void* s) {
 	int train_no = state->cur_train;
 	if (train_no < 0) return;
 	track_node *cur_sensor = state->cur_sensor;
-	switch (stopdiststate.state) {
+	track_node *e8 = engineer_get_tracknode(eng, "E", 8);
+	switch (csdstate.state) {
 		case STOP_INIT:
 			engineer_set_switch(eng, 11, 'c', TRUE);
-			engineer_set_speed(eng, train_no, stopdiststate.speed);
-			stopdiststate.state = STOP_UP2SPEED1;
+			engineer_set_speed(eng, train_no, csdstate.speed);
+			csdstate.state = STOP_UP2SPEED1;
 			break;
 		case STOP_UP2SPEED1:
-			if (strcmp(cur_sensor->name, "E8") == 0) {
-				stopdiststate.state = STOP_UP2SPEED2;
+			if (cur_sensor == e8) {
+				csdstate.state = STOP_STOPPING;
 			}
 			break;
 		case STOP_UP2SPEED2:
-			if (strcmp(cur_sensor->name, "E8") == 0) {
-				stopdiststate.state = STOP_STOPPING;
+			if (cur_sensor == e8) {
+				csdstate.state = STOP_STOPPING;
 			}
 			break;
 		case STOP_STOPPING:
-			if (strcmp(cur_sensor->name, "E8") == 0) {
-				engineer_set_switch(eng, 11, 's', TRUE);
+			if (cur_sensor == e8) {
 				engineer_set_speed(eng, train_no, 0);
+				engineer_set_switch(eng, 11, 's', TRUE);
 				engineer_train_pause(eng, train_no, MS2TICK(5000));
-				if (stopdiststate.speed == 14) {
-					stopdiststate.speed = 4;
+				if (csdstate.speed == 14) {
+					csdstate.speed = 4;
 				} else {
-					stopdiststate.speed += 1;
+					csdstate.speed += 1;
 				}
 				engineer_reverse(eng, train_no);
 				engineer_set_speed(eng, train_no, 14);
-				stopdiststate.state = STOP_REVERSING;
+				csdstate.state = STOP_REVERSING;
 			}
 			break;
 		case STOP_REVERSING:
 			if (strcmp(cur_sensor->name, "E7") == 0) {
 				engineer_set_switch(eng, 11, 'c', TRUE);
 				engineer_reverse(eng, train_no);
-				engineer_set_speed(eng, train_no, stopdiststate.speed);
-				stopdiststate.state = STOP_UP2SPEED1;
+				engineer_set_speed(eng, train_no, csdstate.speed);
+				csdstate.state = STOP_UP2SPEED1;
 			}
 			break;
 	}
@@ -322,15 +323,22 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 	msg_sensor *m = (msg_sensor*) rawmsg;
 	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
 
-	logdisplay_printf(state->log,
-		"[%7d] Sensor %s is %s",
-		TICK2MS(m->timestamp),
-		sensor->name,
-		m->state == ON ? "on" : "off"
-	);
-	logdisplay_flushline(state->log);
+	// logdisplay_printf(state->log,
+	// 	"[%7d] Sensor %s is %s",
+	// 	TICK2MS(m->timestamp),
+	// 	sensor->name,
+	// 	m->state == ON ? "on" : "off"
+	// );
+	// logdisplay_flushline(state->log);
 
 	if (m->state == OFF) return;
+
+	// if (strcmp(sensor->name, "E8") == 0) {
+	// 	// Putc(COM1, 0, state->tid_com1);
+	// 	// Putc(COM1, 38, state->tid_com1);
+	// 	engineer_set_speed(eng, 38, 0);
+	// }
+	//return;
 
 	/*if (strcmp(sensor->name, "D5") == 0) {
 		engineer_set_switch(eng, 153, 'C', FALSE);
@@ -352,6 +360,43 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 	ui_sensor(state, m->module[0], m->id);
 	dumbbus_dispatch(state->sensor_bus, state);
 	engineer_onsensor(eng, rawmsg);
+}
+
+static void printloc(void* s) {
+	a0state *state = s;
+	engineer *eng = state->eng;
+
+	int train_no = state->cur_train;
+	if (train_no < 0) return;
+
+	fixed v = engineer_get_velocity(eng, train_no);
+	if (fixed_sgn(v) < 0) {
+		logstrip_printf(state->trainloc, "waiting for velocity to settle...");
+		return;
+	}
+
+	// print
+	char *direction_str;
+	switch (engineer_train_get_dir(eng, train_no)) {
+		case TRAIN_FORWARD:
+			direction_str = "forward";
+			break;
+		case TRAIN_BACKWARD:
+			direction_str = "backward";
+			break;
+		default:
+			direction_str = "somewhere";
+			break;
+	}
+
+	location loc;
+	engineer_get_loc(eng, train_no, &loc);
+	logstrip_printf(state->trainloc,
+		"%-5s + %Fcm heading %s",
+		location_isundef(&loc) ? "?" : loc.edge->src->name,
+		fixed_div(loc.offset, fixed_new(10)),
+		direction_str
+	);
 }
 
 static void handle_setup_demotrack(a0state *state) {
@@ -519,6 +564,7 @@ void a0() {
 	a0state state;
 
 	state.tid_time = WhoIs(NAME_TIMESERVER);
+	state.tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	state.tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	ASSERT(state.tid_com2 >= 0, "invalid com2 server: %d", state.tid_com2);
 
@@ -529,18 +575,19 @@ void a0() {
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
 	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 10, SCROLLING);
-	state.expected_time_display = logdisplay_new(state.con, CONSOLE_EXTIME_LINE, CONSOLE_EXTIME_COL, CONSOLE_EXTIME_SIZE, SCROLLING);
-	state.landmark_display = logstrip_new(state.con, CONSOLE_LANDMARK_LINE, CONSOLE_LANDMARK_COL);
+
+	state.trainloc = logstrip_new(state.con, 9, 58);
 
 	// sensor bus
 	state.sensor_bus = dumbbus_new();
 	// dumbbus_register(&sensor_bus, &calib_sensor);
-	init_stopdiststate();
+	init_csdstate();
 	// dumbbus_register(state.sensor_bus, &calib_stopdist);
 
 	// time bus
 	state.bus10hz = dumbbus_new();
 	dumbbus_register(state.bus10hz, &ui_time);
+	dumbbus_register(state.bus10hz, &printloc);
 
 	state.simbus = dumbbus_new();
 	dumbbus_register(state.simbus, &tick_engineer);
@@ -563,7 +610,7 @@ void a0() {
 	comnotifier_new(MyTid(), 10, COM2, state.tid_com2);
 
 	state.tid_refresh = timenotifier_new(MyTid(), 10, MS2TICK(100));
-	state.tid_simstep = timenotifier_new(MyTid(), 10, MS2TICK(20));
+	state.tid_simstep = timenotifier_new(MyTid(), 10, MS2TICK(15));
 
 	for (;;) {
 		int tid;

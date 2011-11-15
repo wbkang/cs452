@@ -18,7 +18,7 @@ void task1() {
 		func_t prog;
 		char name[256];
 	} programs[] = {
-		{ 1, a0, "A0" },
+		{ 7, a0, "A0" },
 		{ 1, perfmon, "Send-Receive-Reply Performance Test (receiver first, 64b)" },
 		{ 10, k3main, "Kernel 3 ???" },
 		{ 1, calib_test, "Calibration test executable" },

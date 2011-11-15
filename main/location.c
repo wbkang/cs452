@@ -27,24 +27,50 @@ int location_isvalid(location *this) {
 	return TRUE;
 }
 
-// @TODO: something feels off about this function, reconsider
-fixed location_dist(location *from, location *to) {
+fixed location_dist_min(location *from, location *to) {
 	ASSERT(location_isvalid(from), "bad 'from' location");
 	ASSERT(location_isvalid(to), "bad 'to' location");
 	if (!location_isundef(from) && !location_isundef(to)) {
 		fixed dista = fixed_new(track_distance(from->edge->src, to->edge->src));
 		fixed distb = fixed_new(track_distance(to->edge->src, from->edge->src));
-		fixed doff = fixed_sub(from->offset, to->offset);
+		fixed doff = fixed_sub(to->offset, from->offset);
 		int gooda = fixed_sgn(dista) >= 0;
 		int goodb = fixed_sgn(distb) >= 0;
 		if (gooda && goodb) {
-			fixed a = fixed_abs(fixed_sub(dista, doff));
-			fixed b = fixed_abs(fixed_add(distb, doff));
+			fixed a = fixed_abs(fixed_add(dista, doff));
+			fixed b = fixed_abs(fixed_sub(distb, doff));
 			return fixed_min(a, b);
 		} else if (gooda) {
-			return fixed_abs(fixed_sub(dista, doff));
+			return fixed_abs(fixed_add(dista, doff));
 		} else if (goodb) {
-			return fixed_abs(fixed_add(distb, doff));
+			return fixed_abs(fixed_sub(distb, doff));
+		}
+	}
+	fixed rv = {-1};
+	return rv;
+}
+
+fixed location_dist_dir(location *from, location *to) {
+	ASSERT(location_isvalid(from), "bad 'from' location");
+	ASSERT(location_isvalid(to), "bad 'to' location");
+	if (!location_isundef(from) && !location_isundef(to)) {
+		fixed doff = fixed_sub(to->offset, from->offset);
+		// loop around
+		if (from->edge == to->edge && fixed_cmp(from->offset, to->offset) > 0) {
+			track_node *from_next_node = track_next_node(from->edge->src);
+			ASSERTNOTNULL(from_next_node);
+			fixed dist = fixed_new(track_distance(from_next_node, from->edge->src));
+			ASSERT(from_next_node != from->edge->src, "same node");
+			if (fixed_sgn(dist) > 0) {
+				track_edge *next_edge = from->edge;
+				ASSERTNOTNULL(next_edge);
+				return fixed_sub(fixed_add(dist, fixed_new(next_edge->dist)), doff);
+			}
+		} else {
+			fixed dist = fixed_new(track_distance(from->edge->src, to->edge->src));
+			if (fixed_sgn(dist) >= 0) {
+				return fixed_add(dist, doff);
+			}
 		}
 	}
 	fixed rv = {-1};

@@ -22,7 +22,7 @@
 // train track data
 
 #define TRAIN_MIN_SPEED 0
-#define TRAIN_MAX_SPEED 14
+#define TRAIN_MAX_SPEED 30
 #define TRAIN_NUM_SPEED_IDX (TRAIN_MAX_SPEED * 2)
 #define TRAIN_FOREACH_SPEED(x) for (int (x) = TRAIN_MIN_SPEED; (x) <= TRAIN_MAX_SPEED; (x)++)
 #define TRAIN_FOREACH_SPEEDIDX(x) for (int (x) = TRAIN_MIN_SPEED; (x) < TRAIN_NUM_SPEED_IDX; (x)++)
@@ -53,6 +53,8 @@ typedef struct {
 	int speed;
 	int last_speed;
 	train_direction dir;
+	fixed dist2nose;
+	fixed dist2tail;
 	location loc;
 	fixed v;
 	int v_avg_d[TRAIN_NUM_SPEED_IDX];

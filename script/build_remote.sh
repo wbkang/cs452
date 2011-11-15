@@ -17,7 +17,7 @@ else
 fi
 
 REMOTEUSER=$1
-REMOTEHOST=linux024.student.cs.uwaterloo.ca
+REMOTEHOST=linux.student.cs.uwaterloo.ca
 PRIVATEKEY=$2
 
 if [ ! -z "$PRIVATEKEY" ]; then

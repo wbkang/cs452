@@ -27,7 +27,7 @@ static int name_hash(void* nameptr) {
 void nameserver() {
 	// init state
 	int hashsize = NUM_ASCII_PRINTABLE * NUM_ASCII_PRINTABLE; // two chars
-	lookup *nametidmap = lookup_new(hashsize, name_hash, (void*) -1);
+	lookup *nametidmap = lookup_new(hashsize, name_hash, NULL);
 
 	// init com args
 	int tid;
@@ -44,10 +44,13 @@ void nameserver() {
 					break;
 				case NAMESERVER_WHOIS: {
 					if (lookup_goodkey(nametidmap, req.ch)) {
-						int registered_tid = (int) lookup_get(nametidmap, req.ch);
-						if (registered_tid != -1) {
-							rv = registered_tid;
-							break;
+						void* data = lookup_get(nametidmap, req.ch);
+						if (data) {
+							int registered_tid = (int) data;
+							if (registered_tid >= 0) {
+								rv = registered_tid;
+								break;
+							}
 						}
 					}
 					rv = NAMESERVER_ERROR_NOTREGISTERED;

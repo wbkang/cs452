@@ -78,10 +78,9 @@ static void handle_sensor_response(void* s) {
 			} else {
 				engineer_set_speed(eng, train_no, 0);
 				calibrator_quit(state);
-				logdisplay_printf(state->log,
-						"train %d is not in the correct position, exiting calibration.(expected: %s or %s, given: %s)",
+				logstrip_printf(state->cmdlog,
+						"train %d in bad position, exiting calibration. (expected: %s or %s, given: %s)",
 						train_no, CALIB_SENSOR_END, CALIB_SENSOR_WRONG_DIR, sensor->name);
-				logdisplay_flushline(state->log);
 			}
 			break;
 		case GO2END:
@@ -92,29 +91,25 @@ static void handle_sensor_response(void* s) {
 		case CALIBRATING:
 			if (strcmp(sensor->name, CALIB_SENSOR_END) == 0) {
 				if (strcmp(last_sensor->name, CALIB_SENSOR_START) != 0) {
-					logdisplay_printf(state->log, "spurious sensor %s, ignoring this run", sensor->name);
-					logdisplay_flushline(state->log);
+					logstrip_printf(state->cmdlog, "spurious sensor %s, ignoring this run", sensor->name);
 					break;
 				}
 				int tref = state->timestamp_cur_sensor - state->timestamp_last_sensor;
 				int speed = calib_state.cur_speed;
 				int speed_idx = engineer_get_speedidx(eng, train_no);
 				engineer_set_tref(eng, train_no, speed_idx, tref);
-				logdisplay_printf(state->log, "tref set for train %d, speed %d, to %d. speed_idx: %d. ", train_no, speed, tref, speed_idx);
-				logdisplay_flushline(state->log);
+				logstrip_printf(state->cmdlog, "tref set for train %d, speed %d, to %d. speed_idx: %d. ", train_no, speed, tref, speed_idx);
 				// set up the next calibration
 				speed = next_calib_speed();
 				if (speed < 0) {
 					engineer_set_speed(eng, train_no, 0);
 					engineer_set_dref(eng, train_no, track_distance(last_sensor, sensor));
-					logdisplay_printf(state->log, "calibration: finished. current train set to %d", train_no);
-					logdisplay_flushline(state->log);
+					logstrip_printf(state->cmdlog, "calibration: finished. current train set to %d", train_no);
 					calibrator_quit(state);
 					state->cur_train = train_no;
 				} else {
 					engineer_set_speed(eng, train_no, speed);
-					logdisplay_printf(state->log, "next calibration: speed %d", speed);
-					logdisplay_flushline(state->log);
+					logstrip_printf(state->cmdlog, "next calibration: speed %d", speed);
 				}
 			}
 			break;
