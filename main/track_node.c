@@ -2,6 +2,15 @@
 #include <constants.h>
 #include <string.h>
 
+// int hash_sensor(char module[], int id) {
+// 	ASSERTNOTNULL(module);
+// 	int m = 'A' - module[0]; // should be in [0, 4]
+// 	ASSERT(0 <= m && m <= 4, "bad module");
+// 	int i = id - 1; // should be in [0, 15]
+// 	ASSERT(0 <= i && i <= 15, "bad id");
+// 	return 5 * i + m;
+// }
+
 track_edge *find_forward(track_node *orig) {
 	switch (orig->type) {
 		case NODE_SENSOR:

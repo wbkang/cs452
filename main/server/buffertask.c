@@ -83,7 +83,7 @@ void buffertask() {
 				handle_get(&state, tid);
 				break;
 			default:
-				ERROR("bad req no: %d", req->no);
+				ASSERT(0, "bad req no: %d, tid: %d", req->no, tid);
 				break;
 		}
 	}

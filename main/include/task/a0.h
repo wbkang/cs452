@@ -13,6 +13,7 @@
 typedef struct {
 	// server ids
 	int tid_time;
+	int tid_com1;
 	int tid_com2;
 	console *con;
 	// ui
@@ -20,9 +21,8 @@ typedef struct {
 	cmdline *cmdline;
 	logstrip *sensorlog;
 	logdisplay *log;
-	logdisplay *expected_time_display;
-	logstrip *landmark_display;
 	logstrip *stopinfo;
+	logstrip *trainloc;
 	dumbbus *sensor_bus;
 	dumbbus *bus10hz;
 	dumbbus *simbus;

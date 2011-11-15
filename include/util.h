@@ -68,6 +68,8 @@ static inline void uptime_teardown() {
 	VMEM(0x80810064) &= ~0x100;
 }
 
+int *getherp();
+
 // will overflow every 2^s * (2^32-1) / (983 kilohertz) = 1.2 hours * 2^s
 static inline uint uptime() {
 	int s = 0;

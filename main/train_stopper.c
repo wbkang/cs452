@@ -12,7 +12,6 @@ struct {
 	location dest;
 } ts_state;
 
-
 // @TODO: logging should be handled better
 static void ontick(void* s) {
 	engineer *eng = ((a0state*) s)->eng;
@@ -27,23 +26,37 @@ static void ontick(void* s) {
 
 	if (location_isundef(train_loc)) return; // unknown train position
 
+	// fixed v = engineer_get_velocity(eng, train_no);
+	// if (fixed_sgn(v) < 0) return; // unknown trajectory
+
 	fixed stop_dist = engineer_sim_stopdist(eng, train_no);
 	if (fixed_sgn(stop_dist) <= 0) return; // unknown stop distance
 
-	fixed stop_from = location_dist(train_loc, dest);
+	// stop_dist = fixed_sub(stop_dist, fixed_mul(v, fixed_new(60))); // average sensor query delay
+
+	location stat;
+	stat = tloc;
+	location_inc(&stat, stop_dist);
+
+	fixed stop_from = location_dist_dir(train_loc, dest);
 	if (fixed_sgn(stop_from) < 0) return; // bad path
 
+	fixed stop_at = fixed_abs(fixed_sub(stop_from, stop_dist));
+
 	// @TODO: this should be a function of average error in position. something like nudge_dt * v / 2
-	const fixed margin = fixed_new(5);
+	const fixed margin = fixed_new(15);
 
 	logstrip_printf(log,
-		"stop_from: %F, stop_dist: %F, margin: %F",
-		stop_from,
+		"s@: %F, sdx: %F, mrgn: %F, v: %F, @: %s+%F",
+		stop_at,
 		stop_dist,
-		margin
+		margin,
+		engineer_get_velocity(eng, train_no),
+		tloc.edge->src->name,
+		tloc.offset
 	);
 
-	if (fixed_cmp(stop_from, fixed_add(stop_dist, margin)) > 0) return; // wait
+	if (fixed_cmp(stop_at, margin) > 0) return; // wait
 
 	engineer_set_speed(eng, train_no, 0);
 	dumbbus_unregister(((a0state*) s)->simbus, ontick);

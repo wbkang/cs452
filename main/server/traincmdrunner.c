@@ -8,6 +8,7 @@ void traincmdrunner() {
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	// int tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	int tid_time = WhoIs(NAME_TIMESERVER);
+	int tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
 
 	for (;;) {
@@ -19,6 +20,10 @@ void traincmdrunner() {
 				char speed = cmd.arg2;
 				Putc(COM1, speed, tid_com1);
 				Putc(COM1, train, tid_com1);
+				// Flush(tid_com1);
+				// char buf[256];
+				// sprintf(buf, "\x1B[s" "\x1B[4;65H" "%d-%d (%d) ran %d (%d, %d)        " "\x1B[u", uptime(), *getherp(), (uptime() - *getherp()) / 983, cmd.name, cmd.arg1, cmd.arg2);
+				// Putstr(COM2, buf, tid_com2);
 				break;
 			}
 			case REVERSE: {

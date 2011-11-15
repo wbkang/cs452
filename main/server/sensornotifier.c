@@ -16,7 +16,7 @@ void sensornotifier() {
 
 	int tid_time = WhoIs(NAME_TIMESERVER);
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
-	//int tid_com2 = WhoIs(NAME_IOSERVER_COM2);
+	int tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
 
 	int modules[TRAIN_NUM_MODULES];
@@ -33,10 +33,16 @@ void sensornotifier() {
 
 	for (;;) {
 		train_querysenmods(TRAIN_NUM_MODULES, tid_traincmdbuf); // @TODO: make this block
+		// Putc(COM1, TRAIN_QUERYMODS | TRAIN_NUM_MODULES, tid_com1); // @TODO, this goes around everything...
 		timestamp_last = timestamp;
 		timestamp = Time(tid_time);
 		// attribute the timestamp halfway between now and last query
 		msg.timestamp = (timestamp_last + timestamp) >> 1;
+		// char buf[256];
+		// sprintf(buf, "\x1B[s" "\x1B[3;65H" "sensor: %d        " "\x1B[u",
+		// 	TICK2MS(timestamp - timestamp_last) >> 1
+		// );
+		// Putstr(COM2, buf, tid_com2);
 		for (int m = 0; m < TRAIN_NUM_MODULES; m++) {
 			int upper = Getc(COM1, tid_com1);
 			int lower = Getc(COM1, tid_com1);
@@ -51,7 +57,9 @@ void sensornotifier() {
 				msg.module[0] = 'A' + m;
 				msg.id = 16 - s;
 				msg.state = (module & mask) ? ON : OFF;
-				Send(args.tid_target, &msg, sizeof(msg), NULL, 0);
+				if (msg.state == ON) {
+					Send(args.tid_target, &msg, sizeof(msg), NULL, 0);
+				}
 				sensors &= ~mask;
 			}
 		}

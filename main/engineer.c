@@ -27,6 +27,8 @@ engineer *engineer_new(char track_name) {
 		train->speed = 0;
 		train->last_speed = 0;
 		train->dir = TRAIN_UNKNOWN;
+		train->dist2nose = fixed_new(0);
+		train->dist2tail = fixed_new(0);
 		location_init_undef(&train->loc);
 		train->v = fixed_new(0);
 		train->last_sensor = NULL;
@@ -39,7 +41,7 @@ engineer *engineer_new(char track_name) {
 			train->v_avg_t[speed] = 0;
 		}
 		train->dref = -1;
-		populate_stop_distance(&this->train[train_no], train_no);
+		populate_stop_distance(train, train_no);
 	}
 
 	// initialize track nodes
@@ -60,8 +62,7 @@ engineer *engineer_new(char track_name) {
 	}
 
 	this->con = console_new(WhoIs(NAME_IOSERVER_COM2));
-	this->log = logdisplay_new(this->con, 24, 55, 10, ROUNDROBIN);
-	this->trainloc = logstrip_new(this->con, 35, 55);
+	this->log = logdisplay_new(this->con, 11, 56, 8, ROUNDROBIN);
 	this->tid_time = WhoIs(NAME_TIMESERVER);
 
 	return this;
@@ -108,7 +109,20 @@ void engineer_get_stopinfo(engineer *this, int train_no, fixed *m, fixed *b) {
 fixed engineer_sim_stopdist(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
-	return fixed_add(fixed_mul(train->stopm, fixed_new(train->speed)), train->stopb);
+	fixed v = engineer_get_velocity(this, train_no);
+	if (fixed_sgn(v) >= 0) {
+		fixed dist = fixed_add(fixed_mul(train->stopm, v), train->stopb);
+		if (train->dir == TRAIN_FORWARD) {
+			dist = fixed_add(dist, train->dist2nose);
+		} else if (train->dir == TRAIN_BACKWARD) {
+			dist = fixed_add(dist, train->dist2tail);
+		} else {
+			// do nothing, dist is from pickup
+		}
+		return dist;
+	} else {
+		return fixed_new(0);
+	}
 }
 
 // @TODO: improve "speed & last_speed" to include last N timestamped speed changes and use these to improve "engineer_train_move"
@@ -122,6 +136,15 @@ static void engineer_on_set_speed(engineer *this, int train_no, int speed) {
 }
 
 void engineer_set_speed(engineer *this, int train_no, int speed) {
+	// logstrip_printf(this->trainloc,
+	// 	"(%d) setting speed of %d to %d",
+	// 	uptime(),
+	// 	train_no,
+	// 	speed
+	// );
+	*getherp() = uptime();
+
+
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	if (engineer_get_speed(this, train_no) == speed) return;
 	train_speed(train_no, speed, this->tid_traincmdbuf);
@@ -241,7 +264,7 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 	int timestamp_last_sensor = train->timestamp_last_sensor;
 	train->timestamp_last_sensor = timestamp;
 
-	if (train->timestamp_last_spdcmd > timestamp_last_sensor - MS2TICK(4000)) return; // let train settle
+	if (train->timestamp_last_spdcmd > timestamp_last_sensor - MS2TICK(5000)) return; // let train settle
 
 	int dt = TICK2MS(timestamp - timestamp_last_sensor);
 	if (dt <= 0) return; // too soon?
@@ -264,31 +287,37 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 	location_init(&new_loc, sensor->edge, dx_sensorlag);
 
 	if (!location_isundef(&train->loc) && fixed_sgn(train->v) > 0) {
-		fixed dist = location_dist(&train->loc, &new_loc);
+		fixed dist = location_dist_min(&train->loc, &new_loc);
 		if (fixed_sgn(dist) > 0) {
 
-			// tmp
+			// tmp, estimate numerical error
 			fixed errfreeoff = fixed_mul(train->v, fixed_new(dt));
 			location errfreeloc;
 			location_init(&errfreeloc, last_sensor->edge, errfreeoff);
 			location_inc(&errfreeloc, dx_sensorlag);
-			fixed errfreedist = location_dist(&errfreeloc, &new_loc);
+			fixed errfreedist = location_dist_min(&errfreeloc, &new_loc);
 			//tmp
 
+			// logdisplay_printf(this->log,
+			// 	"[%7d] %s+%Fmm [%s+%Fmm] ~ %s+%Fmm (%Fmm/ms ~ %Fmm/ms) %Fmm [%Fmm] {%F}",
+			// 	TICK2MS(timestamp),
+			// 	train->loc.edge->src->name,
+			// 	train->loc.offset,
+			// 	errfreeloc.edge->src->name,
+			// 	errfreeloc.offset,
+			// 	new_loc.edge->src->name,
+			// 	new_loc.offset,
+			// 	train->v,
+			// 	new_v,
+			// 	dist,
+			// 	errfreedist,
+			// 	pred_v
+			// );
 			logdisplay_printf(this->log,
-				"[%7d] %s+%Fmm [%s+%Fmm] ~ %s+%Fmm (%Fmm/ms ~ %Fmm/ms) %Fmm [%Fmm] {%F}",
-				TICK2MS(timestamp),
-				train->loc.edge->src->name,
-				train->loc.offset,
-				errfreeloc.edge->src->name,
-				errfreeloc.offset,
+				"%-5s + %Fmm (%F)",
 				new_loc.edge->src->name,
 				new_loc.offset,
-				train->v,
-				new_v,
-				dist,
-				errfreedist,
-				pred_v
+				dist
 			);
 			logdisplay_flushline(this->log);
 		}
@@ -306,8 +335,8 @@ static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *s
 		train_descriptor *train = &this->train[train_no];
 		if (train->speed > 0) return train;
 	}
-	logdisplay_printf(this->log, "spurious sensor %s", sensor->name);
-	logdisplay_flushline(this->log);
+	// logdisplay_printf(this->log, "spurious sensor %s", sensor->name);
+	// logdisplay_flushline(this->log);
 	return NULL;
 }
 
@@ -336,25 +365,6 @@ static void engineer_train_move(engineer *this, train_descriptor *train, int t_i
 	fixed dt = fixed_new(TICK2MS(t_f - t_i));
 	fixed dx = fixed_mul(train->v, dt);
 	location_inc(loc, dx);
-	// print
-	char *direction_str;
-	switch (train->dir) {
-		case TRAIN_FORWARD:
-			direction_str = "forward";
-			break;
-		case TRAIN_BACKWARD:
-			direction_str = "backward";
-			break;
-		default:
-			direction_str = "unknown";
-			break;
-	}
-	logstrip_printf(this->trainloc,
-		"%-5s + %Fcm (%s)",
-		location_isundef(loc) ? "?" : loc->edge->src->name,
-		fixed_div(loc->offset, fixed_new(10)),
-		direction_str
-	);
 }
 
 void engineer_ontick(engineer *this) {
