@@ -401,8 +401,8 @@ static void printloc(void* s) {
 
 static void handle_setup_demotrack(a0state *state) {
 	engineer *eng = state->eng;
-	int s[] = {9, 10, 14, 15, 16,};
-	int c[] = {1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 17, 18, 153, 154, 155, 156};
+	int s[] = {6, 9, 10, 14, 15, 16,};
+	int c[] = {1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 17, 18, 153, 154, 155, 156};
 	int ns = sizeof(s) / sizeof(int);
 	int nc = sizeof(c) / sizeof(int);
 	engineer_set_track(eng, s, ns, c, nc);
@@ -438,15 +438,18 @@ static void handle_command(void* s, char *cmd, int size) {
 			ACCEPT(' ');
 			int train = strgetui(&c);
 			if (!train_goodtrain(train)) goto badcmd;
-			ACCEPT(' ');
-			int min = strgetui(&c);
-			if (!calib_goodmin(min)) goto badcmd;
-			ACCEPT(' ');
-			int max = strgetui(&c);
-			if (!calib_goodmax(max)) goto badcmd;
-			if (min > max) goto badcmd;
+			// ACCEPT(' ');
+			// int min = strgetui(&c);
+			// if (!calib_goodmin(min)) goto badcmd;
+			// ACCEPT(' ');
+			// int max = strgetui(&c);
+			// if (!calib_goodmax(max)) goto badcmd;
+			// if (min > max) goto badcmd;
 			ACCEPT('\0');
-			logstrip_printf(state->cmdlog, "calibrating train %d from speed %d to %d", train, min, max);
+			logstrip_printf(state->cmdlog, "calibrating train %d", train);
+			// logstrip_printf(state->cmdlog, "calibrating train %d from speed %d to %d", train, min, max);
+			int min = 8;
+			int max = 12;
 			calibrate_train(state, train, min, max);
 			break;
 		}

@@ -41,6 +41,12 @@ static int next_calib_speed() {
 	}
 }
 
+static void calibrator_quit(a0state *state) {
+	dumbbus_unregister(state->sensor_bus, &handle_sensor_response);
+	calibrator_init();
+	logstrip_printf(state->cmdlog, "finished calibrating train %d", calib_state.train_no);
+}
+
 static void calibrator_start(engineer *eng, int train_no) {
 	engineer_train_set_dir(eng, train_no, TRAIN_FORWARD);
 	engineer_set_speed(eng, train_no, 0);
@@ -48,11 +54,6 @@ static void calibrator_start(engineer *eng, int train_no) {
 	engineer_set_speed(eng, train_no, calib_state.min_speed);
 	calib_state.cur_speed = calib_state.min_speed;
 	calib_state.state = CALIBRATING;
-}
-
-static void calibrator_quit(a0state *state) {
-	dumbbus_unregister(state->sensor_bus, &handle_sensor_response);
-	calibrator_init();
 }
 
 static void handle_sensor_response(void* s) {
@@ -71,10 +72,18 @@ static void handle_sensor_response(void* s) {
 			break;
 		case ORIENTING:
 			if (strcmp(sensor->name, CALIB_SENSOR_END) == 0) { // correct
-				calibrator_start(eng, train_no);
+				engineer_train_set_dir(eng, train_no, TRAIN_FORWARD);
+				engineer_set_speed(eng, train_no, 0);
+				calibrator_quit(state);
+				state->cur_train = train_no;
+				// calibrator_start(eng, train_no);
 			} else if (strcmp(sensor->name, CALIB_SENSOR_WRONG_DIR) == 0) {
+				engineer_train_set_dir(eng, train_no, TRAIN_BACKWARD);
 				engineer_reverse(eng, train_no);
-				calib_state.state = GO2END;
+				engineer_set_speed(eng, train_no, 0);
+				calibrator_quit(state);
+				state->cur_train = train_no;
+				// calib_state.state = GO2END;
 			} else {
 				engineer_set_speed(eng, train_no, 0);
 				calibrator_quit(state);
