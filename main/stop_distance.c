@@ -11,7 +11,7 @@ void populate_stop_distance(train_descriptor *train, int train_no) {
 			break;
 		case 38:
 			train->stopm = fixed_div(fixed_new(110993), fixed_new(100));
-			train->stopb = fixed_div(fixed_new(-36299), fixed_new(1000));
+			train->stopb = fixed_div(fixed_new(-60299), fixed_new(1000));
 			train->dist2nose = fixed_new(25);
 			train->dist2tail = fixed_new(80);
 
@@ -26,8 +26,8 @@ void populate_stop_distance(train_descriptor *train, int train_no) {
 			};
 
 			for (int i = 8; i <= 14; i++) {
-				train->v_avg_d[i] = eightto14[i * 2];
-				train->v_avg_d[i] = eightto14[i * 2 + 1];
+				train->v_avg_d[i] = eightto14[(i - 8) * 2];
+				train->v_avg_t[i] = eightto14[(i - 8) * 2 + 1];
 			}
 
 			int twentytwoto27[] = {
@@ -40,8 +40,8 @@ void populate_stop_distance(train_descriptor *train, int train_no) {
 			};
 
 			for (int i = 22; i <= 27; i++) {
-				train->v_avg_d[i] = twentytwoto27[i * 2];
-				train->v_avg_d[i] = twentytwoto27[i * 2 + 1];
+				train->v_avg_d[i] = twentytwoto27[(i - 22) * 2];
+				train->v_avg_t[i] = twentytwoto27[(i - 22) * 2 + 1];
 			}
 
 			break;

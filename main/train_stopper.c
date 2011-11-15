@@ -60,6 +60,11 @@ static void ontick(void* s) {
 
 	engineer_set_speed(eng, train_no, 0);
 	dumbbus_unregister(((a0state*) s)->simbus, ontick);
+
+	logstrip_printf(((a0state*) s)->cmdlog,
+		"stopping train %d",
+		train_no
+	);
 }
 
 // over must be in mm
@@ -97,11 +102,9 @@ void train_stopper_setup(a0state *state, int train_no, char *type, int id, int o
 
 	dumbbus_register(state->simbus, ontick);
 	logstrip_printf(state->cmdlog,
-		"working on stopping train %d at %s+%Fmm (%s+%Fmm)",
+		"working on stopping train %d at %s+%dmm",
 		train_no,
 		dest->name,
-		over,
-		dest_loc->edge->src->name,
-		dest_loc->offset
+		over
 	);
 }

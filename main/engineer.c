@@ -132,6 +132,7 @@ static void engineer_on_set_speed(engineer *this, int train_no, int speed) {
 	train->last_speed = train->speed;
 	train->speed = speed;
 	location_init_undef(&train->loc); // lose position
+	train->last_sensor = NULL;
 	int speed_idx = engineer_get_speedidx(this, train_no);
 	int v_avg_d = train->v_avg_d[speed_idx];
 	int v_avg_t = train->v_avg_t[speed_idx];
@@ -272,7 +273,7 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 
 	if (last_sensor == NULL) return; // first sensor for this train
 
-	if (train->timestamp_last_spdcmd > timestamp_last_sensor - MS2TICK(5000)) return; // let train settle
+	if (train->timestamp_last_spdcmd > timestamp_last_sensor - MS2TICK(3000)) return; // let train settle
 
 	int dt = TICK2MS(timestamp - timestamp_last_sensor);
 	if (dt <= 0) return; // too soon?
@@ -281,8 +282,8 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 	if (dx <= 0) return; // too fast?
 
 	int speed_idx = engineer_get_speedidx(this, train->no);
-	train->v_avg_d[speed_idx] += dx;
-	train->v_avg_t[speed_idx] += dt;
+	// train->v_avg_d[speed_idx] += dx;
+	// train->v_avg_t[speed_idx] += dt;
 
 	int v1000 = (1000 * train->v_avg_d[speed_idx]) / train->v_avg_t[speed_idx];
 	fixed new_v = fixed_div(fixed_new(v1000), fixed_new(1000));
@@ -342,7 +343,6 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 
 	train->loc = new_loc;
 	train->v = new_v;
-	train->timestamp_last_nudged = now;
 }
 
 static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *sensor, int timestamp) {
