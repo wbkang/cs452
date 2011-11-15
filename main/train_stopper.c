@@ -46,15 +46,15 @@ static void ontick(void* s) {
 	// @TODO: this should be a function of average error in position. something like nudge_dt * v / 2
 	const fixed margin = fixed_new(15);
 
-	logstrip_printf(log,
-		"s@: %F, sdx: %F, mrgn: %F, v: %F, @: %s+%F",
-		stop_at,
-		stop_dist,
-		margin,
-		engineer_get_velocity(eng, train_no),
-		tloc.edge->src->name,
-		tloc.offset
-	);
+	// logstrip_printf(log,
+	// 	"s@: %F, sdx: %F, mrgn: %F, v: %F, @: %s+%F",
+	// 	stop_at,
+	// 	stop_dist,
+	// 	margin,
+	// 	engineer_get_velocity(eng, train_no),
+	// 	tloc.edge->src->name,
+	// 	tloc.offset
+	// );
 
 	if (fixed_cmp(stop_at, margin) > 0) return; // wait
 
