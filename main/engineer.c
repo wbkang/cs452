@@ -62,7 +62,7 @@ engineer *engineer_new(char track_name) {
 	}
 
 	this->con = console_new(WhoIs(NAME_IOSERVER_COM2));
-	this->log = logdisplay_new(this->con, 11, 56, 8, ROUNDROBIN);
+	this->log = logdisplay_new(this->con, 11, 56, 17, ROUNDROBIN);
 	this->tid_time = WhoIs(NAME_TIMESERVER);
 
 	return this;
@@ -360,16 +360,17 @@ static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *s
 			}
 		}
 	}
+	int count = 0;
+	train_descriptor *rv = NULL;
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
-		if (train->speed > 0) {
-			location *trainloc = &train->loc;
-			if (location_isundef(trainloc)) {
-				logdisplay_printf(this->log, "attributing sensor %s to train %d", sensor->name, train_no);
-				logdisplay_flushline(this->log);
-				return train;
-			}
+		if (train->speed > 0 && location_isundef(&train->loc)) {
+			rv = train;
+			count++;
 		}
+	}
+	if (count == 1) {
+		return rv;
 	}
 	// TRAIN_FOREACH(train_no) {
 	// 	train_descriptor *train = &this->train[train_no];
