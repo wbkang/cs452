@@ -48,6 +48,10 @@ void* umalloc(uint size) {
 	ASSERT((uint) td->registers.r[REG_SP] > (uint) new_heap,
 			"No more memory. heap: %x, newheap: %x, sp: %x, size: %d",
 			(uint) rv, (uint) new_heap, (uint) td->registers.r[REG_SP], size);
+	// if (!((uint) td->registers.r[REG_SP] > (uint) new_heap)) {
+	// 	print_stack_trace(td->registers.r[REG_FP], TRUE);
+	// 	for (;;);
+	// }
 	td->heap = new_heap;
 	return rv;
 }
