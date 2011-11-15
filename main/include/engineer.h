@@ -7,7 +7,6 @@
 #include <location.h>
 #include <console.h> // @TODO: replace for a ui task
 #include <ui/logdisplay.h> // @TODO: replace for a ui task
-#include <ui/logstrip.h> // @TODO: replace with a ui task
 
 typedef struct _tag_train_engineer {
 	int tid_traincmdbuf;

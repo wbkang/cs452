@@ -41,6 +41,7 @@
  * Memory constants.
  */
 // size of user memory in bytes (64 KB) (MUST BE A POWER OF TWO)
+// @TODO: as part of debugging we tried to double this value and the program hung, investigate
 #define STACK_SIZE 65536
 
 #define REDBOOT_ENTRYPOINT 0x174a4

@@ -74,7 +74,6 @@ void engineer_set_tref(engineer *this, int train_no, int speed_idx, int tref) {
 	this->train[train_no].tref[speed_idx] = tref;
 }
 
-// @TODO: remove speed_idx. return the tref for the current speed
 int engineer_get_tref(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
@@ -106,8 +105,6 @@ void engineer_get_stopinfo(engineer *this, int train_no, fixed *m, fixed *b) {
 	*b = train->stopb;
 }
 
-// this function simulates the distance that the train would travel if it were to stop immediately
-// @TODO: gather the stopping distance in terms of velocity to make this code more robust
 fixed engineer_sim_stopdist(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
@@ -202,9 +199,9 @@ int engineer_get_speedidx(engineer *this, int train_no) {
 	return train_speed2speed_idx(&this->train[train_no]);
 }
 
+// @TODO: implement a way to pause trains/track independently
 void engineer_train_pause(engineer *this, int train_no, int ticks) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	// @TODO: implement a way to pause trains independently
 	(void) train_no;
 	if (ticks > 0) {
 		traincmdbuffer_put(this->tid_traincmdbuf, PAUSE, ticks, NULL);
@@ -263,10 +260,7 @@ void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
 	this->train[train_no].dir = dir;
 }
 
-// @TODO: train->v is the average velocity between the last and current sensor
-//			perhaps here it should be set to the estimated/stored average velocity
-//			between the current and the next sensor? or at least the total average
-//			velocity for the entire track.
+// @TODO: remember the average velocity per speed_idx per edge
 static void engineer_train_onsensor(engineer *this, train_descriptor *train, track_node *sensor, int timestamp) {
 	engineer_ontick(this); // update all states
 	track_node *last_sensor = train->last_sensor;
@@ -288,11 +282,11 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 
 	int v1000 = (1000 * train->v_avg_d[speed_idx]) / train->v_avg_t[speed_idx];
 	fixed new_v = fixed_div(fixed_new(v1000), fixed_new(1000));
-	fixed pred_v = fixed_div(fixed_new(dx), fixed_new(dt));
+	fixed lstseg_v = fixed_div(fixed_new(dx), fixed_new(dt));
 
 	int now = Time(this->tid_time);
 	fixed dt_sensorlag = fixed_new(TICK2MS(now - timestamp));
-	fixed dx_sensorlag = fixed_mul(new_v, dt_sensorlag);
+	fixed dx_sensorlag = fixed_mul(lstseg_v, dt_sensorlag);
 	location new_loc;
 	location_init(&new_loc, sensor->edge, dx_sensorlag);
 
@@ -321,7 +315,7 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 			// 	new_v,
 			// 	dist,
 			// 	errfreedist,
-			// 	pred_v
+			// 	lstseg_v
 			// );
 			logdisplay_printf(this->log,
 				"%-5s + %Fmm (%F)",
@@ -400,7 +394,6 @@ void engineer_onsensor(engineer *this, char data[]) {
 // @TODO: add acceleration
 // @TODO: add jerk
 // @TODO: use track info
-// @TODO: this is very sensitive to small dt and small v, fix this somehow?
 static void engineer_train_move(engineer *this, train_descriptor *train, int t_i, int t_f) {
 	location *loc = &train->loc;
 	if (location_isundef(loc)) return; // lost
