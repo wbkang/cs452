@@ -79,10 +79,11 @@ fixed location_dist_dir(location *from, location *to) {
 
 // @TODO: problem here if slightly over-increment past an exit/enter
 // @TODO: uses current switch state. return multiple 'virtual' locations instead?
+// @TODO: add support for negative dx
 void location_inc(location *this, fixed dx) {
 	ASSERT(location_isvalid(this), "bad location");
 	ASSERT(!location_isundef(this), "undefined locations");
-	ASSERT(fixed_sgn(dx) >= 0, "negative dx"); // @TODO: add support for decrementing
+	ASSERT(fixed_sgn(dx) >= 0, "negative dx");
 	this->offset = fixed_add(this->offset, dx);
 	do {
 		fixed edge_len = fixed_new(this->edge->dist);
