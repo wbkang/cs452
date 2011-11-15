@@ -60,6 +60,7 @@ static void ui_init(a0state *state) {
 		hist_mod[i] = 0;
 		hist_id[i] = 0;
 	}
+	console_hidecursor(state->con);
 	cmdline_clear(state->cmdline);
 }
 
