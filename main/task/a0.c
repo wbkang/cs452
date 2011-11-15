@@ -604,13 +604,13 @@ void a0() {
 
 	ui_init(&state);
 
-	MEMCHECK();
-
 	sensornotifier_new(MyTid());
 	comnotifier_new(MyTid(), 10, COM2, state.tid_com2);
 
 	state.tid_refresh = timenotifier_new(MyTid(), 10, MS2TICK(100));
 	state.tid_simstep = timenotifier_new(MyTid(), 10, MS2TICK(15));
+
+	MEMCHECK();
 
 	for (;;) {
 		int tid;

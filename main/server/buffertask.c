@@ -100,7 +100,7 @@ int buffertask_new(char *name, int priority, int item_size) {
 	int size = sizeof(buffertask_args) + sizeof(char) * namesize;
 	char mem[size];
 	buffertask_args *args = (void*) mem;
-	args->size = (STACK_SIZE - 1000) / item_size; // guess free memory
+	args->size = (STACK_SIZE - 4000) / item_size; // guess free memory
 	args->item_size = item_size;
 	memcpy(args->name, name, namesize);
 	int n = Send(tid, args, size, NULL, 0);

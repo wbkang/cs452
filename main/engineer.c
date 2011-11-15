@@ -331,9 +331,36 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 // @TODO: improve this by using train location & trajectory
 // @TODO: if a train's location is unknown but it is the only one in motion, attribute the sensor to it (calibration)
 static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *sensor, int timestamp) {
+	// location sensloc;
+	// location_init(&sensloc, sensor->edge, fixed_new(0));
+	// TRAIN_FOREACH(train_no) {
+	// 	train_descriptor *train = &this->train[train_no];
+	// 	if (train->speed > 0) {
+	// 		location *trainloc = &train->loc;
+	// 		if (!location_isundef(trainloc)) {
+	// 			fixed dist = location_dist_min(trainloc, &sensloc);
+	// 			if (fixed_sgn(dist) >= 0) {
+	// 				if (fixed_cmp(dist, fixed_new(200)) <= 0) {
+	// 					return train;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
+	// TRAIN_FOREACH(train_no) {
+	// 	train_descriptor *train = &this->train[train_no];
+	// 	if (train->speed > 0) {
+	// 		location *trainloc = &train->loc;
+	// 		if (location_isundef(trainloc)) {
+	// 			return train;
+	// 		}
+	// 	}
+	// }
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
-		if (train->speed > 0) return train;
+		if (train->speed > 0) {
+			return train;
+		}
 	}
 	// logdisplay_printf(this->log, "spurious sensor %s", sensor->name);
 	// logdisplay_flushline(this->log);
