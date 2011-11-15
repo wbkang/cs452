@@ -369,8 +369,9 @@ static void printloc(void* s) {
 	int train_no = state->cur_train;
 	if (train_no < 0) return;
 
-	fixed v = engineer_get_velocity(eng, train_no);
-	if (fixed_sgn(v) < 0) {
+	location loc;
+	engineer_get_loc(eng, train_no, &loc);
+	if (location_isundef(&loc)) {
 		logstrip_printf(state->trainloc, "waiting for velocity to settle...");
 		return;
 	}
@@ -389,8 +390,6 @@ static void printloc(void* s) {
 			break;
 	}
 
-	location loc;
-	engineer_get_loc(eng, train_no, &loc);
 	logstrip_printf(state->trainloc,
 		"%-5s + %Fcm heading %s",
 		location_isundef(&loc) ? "?" : loc.edge->src->name,
