@@ -14,6 +14,7 @@ typedef struct _tag_train_engineer {
 	lookup *track_nodes;
 	console *con; // @TODO: replace with a ui task tid
 	logdisplay *log; // @TODO: replace with a ui task tid
+	logdisplay *log2; // @TODO: replace with a ui task tid
 	int tid_time;
 } engineer;
 
