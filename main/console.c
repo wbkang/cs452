@@ -9,6 +9,10 @@ console *console_new(int tid) {
 	return this;
 }
 
+void console_hidecursor(console *this) {
+	console_printf(this, CONSOLE_HIDECURSOR);
+}
+
 void console_effect(console *this, int effect){
 	console_printf(this,"\033[%dm", effect);
 }

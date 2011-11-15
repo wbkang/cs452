@@ -143,7 +143,7 @@ static void init_sensor_pic(track t) {
 		sensor_pic_def_op('C', 2, NORTHEAST, 1, 15, 23);
 		sensor_pic_def_op('B', 13, NORTHWEST, 14, 15, 16);
 		sensor_pic_def_op('B', 3, NORTHEAST, 4, 14, 24);
-		sensor_pic_def_op('D', 15, NORTHWEST, 16, 14, 17);//1
+		sensor_pic_def_op('D', 15, NORTHWEST, 16, 14, 15);//1
 		sensor_pic_def_op('B', 7, EAST, 8, 13, 51);
 		sensor_pic_def_op('A', 10, EAST, 9, 13, 49);
 		sensor_pic_def_op('C', 10, EAST, 9, 13, 36);
