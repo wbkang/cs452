@@ -62,7 +62,8 @@ engineer *engineer_new(char track_name) {
 	}
 
 	this->con = console_new(WhoIs(NAME_IOSERVER_COM2));
-	this->log = logdisplay_new(this->con, 11, 56, 17, ROUNDROBIN);
+	this->log = logdisplay_new(this->con, 11, 56, 8, ROUNDROBIN);
+	this->log2 = logdisplay_new(this->con, 11 + 9, 56, 8, ROUNDROBIN);
 	this->tid_time = WhoIs(NAME_TIMESERVER);
 
 	return this;
@@ -138,7 +139,8 @@ static void engineer_on_set_speed(engineer *this, int train_no, int speed) {
 		int v1000 = (1000 * v_avg_d) / v_avg_t;
 		train->v = fixed_div(fixed_new(v1000), fixed_new(1000));
 	} else {
-		train->v = fixed_new(-1); // invalidate velocity
+		// @TODO: this should fail more gracefully
+		train->v = fixed_new(-1);
 	}
 	train->timestamp_last_spdcmd = Time(this->tid_time);
 }
@@ -268,6 +270,8 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 	int timestamp_last_sensor = train->timestamp_last_sensor;
 	train->timestamp_last_sensor = timestamp;
 
+	if (last_sensor == NULL) return; // first sensor for this train
+
 	if (train->timestamp_last_spdcmd > timestamp_last_sensor - MS2TICK(5000)) return; // let train settle
 
 	int dt = TICK2MS(timestamp - timestamp_last_sensor);
@@ -317,6 +321,15 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 			// 	errfreedist,
 			// 	lstseg_v
 			// );
+			// logdisplay_printf(this->log,
+			// 	"%-5s + %Fmm (%F) {{%d}} %d, %d",
+			// 	new_loc.edge->src->name,
+			// 	new_loc.offset,
+			// 	dist,
+			// 	speed_idx,
+			// 	train->v_avg_d[speed_idx],
+			// 	train->v_avg_t[speed_idx]
+			// );
 			logdisplay_printf(this->log,
 				"%-5s + %Fmm (%F)",
 				new_loc.edge->src->name,
@@ -332,8 +345,6 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 	train->timestamp_last_nudged = now;
 }
 
-// @TODO: improve this by using train location & trajectory
-// @TODO: if a train's location is unknown but it is the only one in motion, attribute the sensor to it (calibration)
 static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *sensor, int timestamp) {
 	location sensloc;
 	location_init(&sensloc, sensor->edge, fixed_new(0));
@@ -345,9 +356,9 @@ static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *s
 			if (!location_isundef(trainloc)) { // not lost
 				fixed dist = location_dist_min(trainloc, &sensloc);
 				if (fixed_sgn(dist) >= 0) {
-					if (fixed_cmp(dist, fixed_new(200)) <= 0) {
-						logdisplay_printf(this->log, "attributing sensor %s to train %d", sensor->name, train_no);
-						logdisplay_flushline(this->log);
+					if (fixed_cmp(dist, fixed_new(300)) <= 0) {
+						logdisplay_printf(this->log2, "attributing sensor %s to train %d", sensor->name, train_no);
+						logdisplay_flushline(this->log2);
 						return train;
 					}
 				}
@@ -363,17 +374,13 @@ static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *s
 			count++;
 		}
 	}
-	if (count == 1) {
+	if (rv && count == 1) {
+		logdisplay_printf(this->log2, "attributing sensor %s to train %d", sensor->name, rv->no);
+		logdisplay_flushline(this->log2);
 		return rv;
 	}
-	// TRAIN_FOREACH(train_no) {
-	// 	train_descriptor *train = &this->train[train_no];
-	// 	if (train->speed > 0) {
-	// 		return train;
-	// 	}
-	// }
-	logdisplay_printf(this->log, "spurious sensor %s", sensor->name);
-	logdisplay_flushline(this->log);
+	logdisplay_printf(this->log2, "spurious sensor %s", sensor->name);
+	logdisplay_flushline(this->log2);
 	return NULL;
 }
 
