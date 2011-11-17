@@ -25,9 +25,8 @@ static inline void tx(buffertask_state *state, int tid) {
 	Reply(tid, item, state->item_size);
 }
 
-static inline void handle_put(buffertask_state *state, int tid, void* packet) {
+static inline void handle_put(buffertask_state *state, int tid, void* item) {
 	ASSERT(!buffer_full(state->items), "buffer full");
-	void* item = ((msg_data *) packet)->data;
 	buffer_put(state->items, item);
 	Reply(tid, NULL, 0);
 	if (!queue_empty(state->get_blocked)) {
@@ -64,9 +63,7 @@ void buffertask() {
 	state.items = buffer_new((STACK_SIZE - 1000) / args->item_size, args->item_size);
 	state.get_blocked = queue_new(NUM_BLOCKED);
 
-	const int size_req = sizeof(msg_req);
-	const int size_data = sizeof(msg_data) + state.item_size;
-	const int size_packet = MAX(size_req, size_data);
+	const int size_packet = MAX(sizeof(msg_req), state.item_size);
 	void* packet = malloc(size_packet);
 
 	for (;;) {
@@ -77,11 +74,8 @@ void buffertask() {
 			case REQ:
 				handle_get(&state, tid);
 				break;
-			case DATA:
-				handle_put(&state, tid, packet);
-				break;
 			default:
-				ASSERT(0, "bad msg type: %d, tid: %d", header->type, tid);
+				handle_put(&state, tid, packet);
 				break;
 		}
 	}
@@ -106,12 +100,7 @@ int buffertask_new(char *name, int priority, int item_size) {
 }
 
 int buffertask_put(int tid, void* item, int item_size) {
-	int size = sizeof(msg_req) + item_size;
-	char mem[size];
-	msg_data *msg = (void*) mem;
-	msg->type = DATA;
-	memcpy(msg->data, item, item_size);
-	return Send(tid, msg, size, NULL, 0);
+	return Send(tid, item, item_size, NULL, 0);
 }
 
 int buffertask_get(int tid, void* item, int item_size) {

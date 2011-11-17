@@ -530,31 +530,34 @@ void a0() {
 
 	ui_init(&state);
 
-	int tid_sensorbuffer = buffertask_new(NAME_SENSORBUFFER, PRIORITY_SENSORBUFFER, sizeof(msg_sensor));
+	int tid_sensorbuffer = buffertask_new(NULL, PRIORITY_SENSORBUFFER, sizeof(msg_sensor));
 	sensornotifier_new(tid_sensorbuffer);
 	courier_new(MAX_PRIORITY, tid_sensorbuffer, MyTid());
 
-	comnotifier_new(MyTid(), 10, COM2, state.tid_com2);
+	int tid_com2buffer = buffertask_new(NULL, PRIORITY_COM2BUFFER, sizeof(msg_comin));
+	comnotifier_new(tid_com2buffer, 10, COM2, state.tid_com2);
+	courier_new(MAX_PRIORITY, tid_com2buffer, MyTid());
 
 	state.tid_refresh = timenotifier_new(MyTid(), 10, MS2TICK(100));
 	state.tid_simstep = timenotifier_new(MyTid(), 10, MS2TICK(15));
 
+	void *msg = malloc(LEN_MSG);
+
 	for (;;) {
 		int tid;
-		char msg[LEN_MSG];
 		int rcvlen = Receive(&tid, msg, LEN_MSG);
 		ASSERT(rcvlen >= sizeof(msg_header), "bad data");
 		Reply(tid, NULL, 0);
 		msg_header *header = (msg_header*) msg;
 		switch (header->type) {
+			case SENSOR:
+				handle_sensor(&state, msg);
+				break;
 			case COM_IN:
 				handle_comin(&state, msg);
 				break;
 			case TIME:
 				handle_time(&state, msg, tid);
-				break;
-			case DATA:
-				handle_sensor(&state, ((msg_data *) msg)->data);
 				break;
 			default:
 				break;
