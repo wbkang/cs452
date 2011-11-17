@@ -15,7 +15,6 @@ struct {
 // @TODO: logging should be handled better
 static void ontick(void* s) {
 	engineer *eng = ((a0state*) s)->eng;
-	logstrip *log = ((a0state*) s)->stopinfo;
 
 	int train_no = ts_state.train_no;
 	location *dest = &ts_state.dest;

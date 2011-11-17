@@ -31,7 +31,7 @@ typedef struct console console;
 struct console {
 	int tid_console;
 	int buf_location;
-	char buf[CONSOLE_BUF_SIZE+1];
+	char buf[CONSOLE_BUF_SIZE + 1];
 };
 
 #define console_printf(c, ...) { \

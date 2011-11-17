@@ -8,6 +8,6 @@ buffer *buffer_new(uint size, uint item_size) {
 	this->item_size = item_size;
 	this->head = this->min;
 	this->tail = this->min;
-	this->max = add_bytes(this->min, (size - 1) * item_size);
+	this->max = buffer_inc(this->min, (size - 1) * item_size);
 	return this;
 }

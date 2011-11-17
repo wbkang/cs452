@@ -26,7 +26,6 @@ struct track_node {
 	track_node *reverse; /* same location, but opposite direction */
 	track_edge edge[2];
 	int switch_dir;
-	void* data;
 };
 
 #define POS2DIR(pos) (train_switchpos_curved(pos) ? DIR_CURVED : DIR_STRAIGHT)
