@@ -530,16 +530,21 @@ void a0() {
 
 	ui_init(&state);
 
-	int tid_sensorbuffer = buffertask_new(NULL, PRIORITY_SENSORBUFFER, sizeof(msg_sensor));
+	int tid_sensorbuffer = buffertask_new(NULL, 9, sizeof(msg_sensor));
 	sensornotifier_new(tid_sensorbuffer);
-	courier_new(MAX_PRIORITY, tid_sensorbuffer, MyTid());
+	courier_new(9, tid_sensorbuffer, MyTid());
 
-	int tid_com2buffer = buffertask_new(NULL, PRIORITY_COM2BUFFER, sizeof(msg_comin));
-	comnotifier_new(tid_com2buffer, 10, COM2, state.tid_com2);
-	courier_new(MAX_PRIORITY, tid_com2buffer, MyTid());
+	int tid_com2buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
+	comnotifier_new(tid_com2buffer, 9, COM2, state.tid_com2);
+	courier_new(9, tid_com2buffer, MyTid());
 
-	state.tid_refresh = timenotifier_new(MyTid(), 10, MS2TICK(100));
-	state.tid_simstep = timenotifier_new(MyTid(), 10, MS2TICK(15));
+	int tid_refreshbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
+	timenotifier_new(tid_refreshbuffer, 9, MS2TICK(100));
+	state.tid_refresh = courier_new(9, tid_refreshbuffer, MyTid());
+
+	int tid_simstepbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
+	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(15));
+	state.tid_simstep = courier_new(9, tid_simstepbuffer, MyTid());
 
 	void *msg = malloc(LEN_MSG);
 
