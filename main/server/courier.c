@@ -18,11 +18,10 @@ static void courier() {
 	req->type = REQ;
 
 	const int size_packet = STACK_SIZE - 1000;
-	msg_data *packet = malloc(size_packet);
-	packet->type = DATA;
+	void *packet = malloc(size_packet);
 
 	for (;;) {
-		int n = Send(args.tid_from, req, size_req, &packet->data, size_packet);
+		int n = Send(args.tid_from, req, size_req, packet, size_packet);
 		ASSERT(n >= 0, "bad send %d", n);
 		Send(args.tid_to, packet, size_packet, NULL, 0);
 	}

@@ -25,13 +25,9 @@ void sensornotifier() {
 		modules[m] = 0;
 	}
 
-	// init packet & header
-	int size_packet = sizeof(msg_data) + sizeof(msg_sensor);
-	msg_data *packet = malloc(size_packet);
-	packet->type = DATA;
-
 	// init message
-	msg_sensor *msg = (msg_sensor *) &packet->data;
+	const int size_msg = sizeof(msg_sensor);
+	msg_sensor *msg = malloc(size_msg);
 	msg->type = SENSOR;
 	msg->module[1] = '\0';
 
@@ -62,8 +58,7 @@ void sensornotifier() {
 				msg->module[0] = 'A' + m;
 				msg->id = 16 - s;
 				msg->state = (module & mask) ? ON : OFF;
-				Send(args.tid_target, packet, size_packet, NULL, 0);
-				// buffertask_put(args.tid, &msg, sizeof(msg));
+				Send(args.tid_target, msg, size_msg, NULL, 0);
 				sensors &= ~mask;
 			}
 		}

@@ -32,8 +32,3 @@ typedef struct {
 typedef struct {
 	msgtype type;
 } msg_req;
-
-typedef struct {
-	msgtype type;
-	char data[];
-} msg_data;
