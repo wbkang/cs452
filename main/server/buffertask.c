@@ -43,7 +43,7 @@ static inline void handle_get(buffertask_state *state, int tid) {
 	}
 }
 
-void buffertask() {
+static void buffertask() {
 	// init args
 	int tid;
 	int size = sizeof(buffertask_args) + sizeof(char) * SIZE_NAME;
