@@ -8,7 +8,7 @@
 extern int _KERNEL_MEM_START;
 extern int _KERNEL_MEM_END;
 
-volatile static int HERPDERP;
+static int HERPDERP;
 
 int *getherp() {
 	return &HERPDERP;

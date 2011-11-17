@@ -103,13 +103,8 @@ static void handle_sensor_response(void* s) {
 					logstrip_printf(state->cmdlog, "spurious sensor %s, ignoring this run", sensor->name);
 					break;
 				}
-				int tref = state->timestamp_cur_sensor - state->timestamp_last_sensor;
-				int speed = calib_state.cur_speed;
-				int speed_idx = engineer_get_speedidx(eng, train_no);
-				engineer_set_tref(eng, train_no, speed_idx, tref);
-				logstrip_printf(state->cmdlog, "tref set for train %d, speed %d, to %d. speed_idx: %d. ", train_no, speed, tref, speed_idx);
 				// set up the next calibration
-				speed = next_calib_speed();
+				int speed = next_calib_speed();
 				if (speed < 0) {
 					engineer_set_speed(eng, train_no, 0);
 					engineer_set_dref(eng, train_no, track_distance(last_sensor, sensor));

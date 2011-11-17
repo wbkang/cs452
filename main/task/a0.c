@@ -24,28 +24,6 @@
 #define CONSOLE_DUMP_LINE (CONSOLE_CMD_LINE + 4)
 #define CONSOLE_DUMP_COL 1
 
-#define CONSOLE_EXTIME_LINE 8
-#define CONSOLE_EXTIME_COL 56
-#define CONSOLE_EXTIME_SIZE 10
-
-#define CONSOLE_LANDMARK_LINE (CONSOLE_EXTIME_LINE + CONSOLE_EXTIME_SIZE + 3)
-#define CONSOLE_LANDMARK_COL CONSOLE_EXTIME_COL
-
-#define NUM_TRIALS 10
-#define MAX_TRIAL (NUM_TRIALS - 1)
-
-typedef struct {
-	int trial;
-	int dt[NUM_TRIALS];
-} track_node_data;
-
-// static void reset_track_node_data(track_node_data *data) {
-// 	data->trial = -1;
-// 	for (int i = 0; i < NUM_TRIALS; i++) {
-// 		data->dt[i] = -1;
-// 	}
-// }
-
 /*
  * UI
  */
@@ -219,41 +197,6 @@ static track ask_track(a0state *state) {
 	return '\0';
 }
 
-/*
-static void calib_sensor(void *s) {
-	a0state *state = s;
-	track_node *cur_sensor = state->cur_sensor;
-	int tick = state->timestamp_cur_sensor;
-	if (strcmp(cur_sensor->name, "E4") == 0) return;
-
-	int dist = track_distance(state->last_sensor, cur_sensor);
-
-	// get a reference to the sensor track node data
-	track_node_data *data;
-	if (cur_sensor->data) {
-		data = (track_node_data*) cur_sensor->data;
-	} else {
-		cur_sensor->data = malloc(sizeof(track_node_data));
-		data = (track_node_data*) cur_sensor->data;
-		reset_track_node_data(data);
-	}
-
-	if (data->trial < 0 || data->trial > MAX_TRIAL) goto exit;
-
-	data->dt[data->trial] = tick - state->timestamp_last_sensor;
-
-	if (data->trial < MAX_TRIAL) goto exit;
-
-	logdisplay_printf(state->log, "%s\t%s\t%d", state->last_sensor->name, cur_sensor->name, dist);
-	for (int trial = 0; trial <= MAX_TRIAL; trial++) {
-		logdisplay_printf(state->log, "\t%d", data->dt[trial]);
-	}
-	logdisplay_flushline(state->log);
-
-	exit: data->trial++;
-}
-*/
-
 #define STOP_INIT 0
 #define STOP_UP2SPEED1 1
 #define STOP_UP2SPEED2 2
@@ -322,24 +265,8 @@ static void calib_stopdist(void* s) {
 static void handle_sensor(a0state *state, char rawmsg[]) {
 	engineer *eng = state->eng;
 	msg_sensor *m = (msg_sensor*) rawmsg;
-	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
-
-	// logdisplay_printf(state->log,
-	// 	"[%7d] Sensor %s is %s",
-	// 	TICK2MS(m->timestamp),
-	// 	sensor->name,
-	// 	m->state == ON ? "on" : "off"
-	// );
-	// logdisplay_flushline(state->log);
-
 	if (m->state == OFF) return;
-
-	// if (strcmp(sensor->name, "E8") == 0) {
-	// 	// Putc(COM1, 0, state->tid_com1);
-	// 	// Putc(COM1, 38, state->tid_com1);
-	// 	engineer_set_speed(eng, 38, 0);
-	// }
-	//return;
+	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
 
 	/*if (strcmp(sensor->name, "D5") == 0) {
 		engineer_set_switch(eng, 153, 'C', FALSE);
@@ -355,9 +282,6 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 
 	state->last_sensor = state->cur_sensor;
 	state->cur_sensor = sensor;
-	state->timestamp_last_sensor = state->timestamp_cur_sensor;
-	state->timestamp_cur_sensor = m->timestamp;
-
 	ui_sensor(state, m->module[0], m->id);
 	dumbbus_dispatch(state->sensor_bus, state);
 	engineer_onsensor(eng, rawmsg);
@@ -574,7 +498,6 @@ void a0() {
 	// ui
 	state.con = console_new(state.tid_com2);
 	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
-	state.stopinfo = logstrip_new(state.con, 2, 55);
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
 	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 10, SCROLLING);
@@ -599,9 +522,7 @@ void a0() {
 	init_track_template(track, state.con);
 	state.eng = engineer_new(track == TRACK_A ? 'a' : 'b');
 	state.cur_train = -1;
-	state.timestamp_last_sensor = 0;
 	state.last_sensor = NULL;
-	state.trial = 0;
 
 	calibrator_init();
 
@@ -612,8 +533,6 @@ void a0() {
 
 	state.tid_refresh = timenotifier_new(MyTid(), 10, MS2TICK(100));
 	state.tid_simstep = timenotifier_new(MyTid(), 10, MS2TICK(15));
-
-	MEMCHECK();
 
 	for (;;) {
 		int tid;

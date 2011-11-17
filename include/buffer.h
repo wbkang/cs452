@@ -13,14 +13,12 @@ typedef struct _tag_buffer {
 
 buffer *buffer_new(uint size, uint elem_bytes);
 
-static inline void** add_bytes(void** p, int bytes) {
-	uint addr = (uint) p;
-	uint rv = addr + bytes;
-	return (void**) rv;
+static inline void** buffer_inc(void** p, int bytes) {
+	return (void**) ((int) p + bytes);
 }
 
 static inline void** buffer_increment(buffer *this, void** p) {
-	return p == this->max ? this->min : add_bytes(p, this->item_size);
+	return p == this->max ? this->min : buffer_inc(p, this->item_size);
 }
 
 static inline int buffer_empty(buffer *this) {
