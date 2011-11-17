@@ -489,6 +489,7 @@ static void handle_time(a0state *state, char msg[], int tid) {
 	}
 }
 
+// @TODO: implement pubsub and use it to further decouple a0
 void a0() {
 	a0state state;
 

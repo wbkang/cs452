@@ -1,11 +1,11 @@
 #include <syscall.h>
-#include <server/notifier.h>
+#include <server/eventnotifier.h>
 
 typedef struct _tag_notifier_msg {
 	int eventid;
 } notifier_args;
 
-void notifier() {
+void eventnotifier() {
 	// init
 	int tid;
 	notifier_args args;
@@ -24,9 +24,9 @@ void notifier() {
  * API
  */
 
-int notifier_new(int priority, int eventid) {
+int eventnotifier_new(int priority, int eventid) {
 	// create the notifier
-	int tid = Create(priority, notifier);
+	int tid = Create(priority, eventnotifier);
 	if (tid < 0) return tid;
 	// pass in args
 	notifier_args args;
