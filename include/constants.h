@@ -45,5 +45,3 @@
 #define STACK_SIZE 65536
 
 #define REDBOOT_ENTRYPOINT 0x174a4
-
-

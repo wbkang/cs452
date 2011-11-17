@@ -29,7 +29,7 @@ LDFLAGS = -init main -Map main.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/g
 OBJS= main.o test.o dumbbus.o train_calibrator.o train_stopper.o stop_distance.o\
 server/sensornotifier.o server/comnotifier.o server/traincmdbuffer.o \
 server/traincmdrunner.o server/timenotifier.o server/buffertask.o \
-server/timeserver.o server/ioserver.o server/notifier.o \
+server/timeserver.o server/ioserver.o server/eventnotifier.o \
 track_data.o track_node.o  betaimporter.o console.o \
 task/calib_test.o task/task1.o task/k3clients.o task/a0.o task/perfmon.o \
 ui/logstrip.o ui/cmdline.o ui/logdisplay.o ui/a0_track_template.o \
