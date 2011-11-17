@@ -69,29 +69,17 @@ engineer *engineer_new(char track_name) {
 	return this;
 }
 
-void engineer_set_tref(engineer *this, int train_no, int speed_idx, int tref) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	ASSERT(0 <= speed_idx && speed_idx < TRAIN_NUM_SPEED_IDX, "bad speed_idx");
-	this->train[train_no].tref[speed_idx] = tref;
+void engineer_destroy(engineer *this) {
+	TRAIN_FOREACH(train_no) {
+		if (engineer_get_speed(this, train_no) > 0) {
+			engineer_set_speed(this, train_no, 0);
+		}
+	}
+	train_stop(this->tid_traincmdbuf);
+	Flush(WhoIs(NAME_IOSERVER_COM1));
 }
 
-int engineer_get_tref(engineer *this, int train_no) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_descriptor *train = &this->train[train_no];
-	int speed_idx = train_speed2speed_idx(train);
-	ASSERT(0 <= speed_idx && speed_idx < TRAIN_NUM_SPEED_IDX, "bad speed_idx");
-	return train->tref[speed_idx];
-}
-
-int engineer_get_dref(engineer *this, int train_no) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	return this->train[train_no].dref;
-}
-void engineer_set_dref(engineer *this, int train_no, int dref) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	this->train[train_no].dref = dref;
-}
-
+// @TODO: pull this out into a train object
 void engineer_set_stopinfo(engineer *this, int train_no, fixed m, fixed b) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
@@ -99,6 +87,7 @@ void engineer_set_stopinfo(engineer *this, int train_no, fixed m, fixed b) {
 	train->stopb = b;
 }
 
+// @TODO: pull this out into a train object
 void engineer_get_stopinfo(engineer *this, int train_no, fixed *m, fixed *b) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
@@ -106,6 +95,7 @@ void engineer_get_stopinfo(engineer *this, int train_no, fixed *m, fixed *b) {
 	*b = train->stopb;
 }
 
+// @TODO: pull this out into a train + track
 fixed engineer_sim_stopdist(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
@@ -242,16 +232,6 @@ void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid) {
 	if (offsolenoid) { // might be the last switch in a series
 		train_solenoidoff(this->tid_traincmdbuf);
 	}
-}
-
-void engineer_destroy(engineer *this) {
-	TRAIN_FOREACH(train_no) {
-		if (engineer_get_speed(this, train_no) > 0) {
-			engineer_set_speed(this, train_no, 0);
-		}
-	}
-	train_stop(this->tid_traincmdbuf);
-	Flush(WhoIs(NAME_IOSERVER_COM1));
 }
 
 train_direction engineer_train_get_dir(engineer *this, int train_no) {
