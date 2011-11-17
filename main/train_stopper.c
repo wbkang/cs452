@@ -25,13 +25,8 @@ static void ontick(void* s) {
 
 	if (location_isundef(train_loc)) return; // unknown train position
 
-	// fixed v = engineer_get_velocity(eng, train_no);
-	// if (fixed_sgn(v) < 0) return; // unknown trajectory
-
 	fixed stop_dist = engineer_sim_stopdist(eng, train_no);
 	if (fixed_sgn(stop_dist) <= 0) return; // unknown stop distance
-
-	// stop_dist = fixed_sub(stop_dist, fixed_mul(v, fixed_new(60))); // average sensor query delay
 
 	location stat;
 	stat = tloc;
@@ -44,16 +39,6 @@ static void ontick(void* s) {
 
 	// @TODO: this should be a function of average error in position. something like nudge_dt * v / 2
 	const fixed margin = fixed_new(15);
-
-	// logstrip_printf(log,
-	// 	"s@: %F, sdx: %F, mrgn: %F, v: %F, @: %s+%F",
-	// 	stop_at,
-	// 	stop_dist,
-	// 	margin,
-	// 	engineer_get_velocity(eng, train_no),
-	// 	tloc.edge->src->name,
-	// 	tloc.offset
-	// );
 
 	if (fixed_cmp(stop_at, margin) > 0) return; // wait
 

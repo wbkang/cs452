@@ -17,6 +17,8 @@
 #include <ui/logdisplay.h>
 #include <train_calibrator.h>
 #include <train_stopper.h>
+#include <server/buffertask.h>
+#include <server/courier.h>
 
 #define LEN_MSG (64 * 4)
 #define LEN_CMD 32
@@ -528,7 +530,10 @@ void a0() {
 
 	ui_init(&state);
 
-	sensornotifier_new(MyTid());
+	int tid_sensorbuffer = buffertask_new(NAME_SENSORBUFFER, PRIORITY_SENSORBUFFER, sizeof(msg_sensor));
+	sensornotifier_new(tid_sensorbuffer);
+	courier_new(MAX_PRIORITY, tid_sensorbuffer, MyTid());
+
 	comnotifier_new(MyTid(), 10, COM2, state.tid_com2);
 
 	state.tid_refresh = timenotifier_new(MyTid(), 10, MS2TICK(100));
@@ -542,14 +547,14 @@ void a0() {
 		Reply(tid, NULL, 0);
 		msg_header *header = (msg_header*) msg;
 		switch (header->type) {
-			case SENSOR:
-				handle_sensor(&state, msg);
-				break;
 			case COM_IN:
 				handle_comin(&state, msg);
 				break;
 			case TIME:
 				handle_time(&state, msg, tid);
+				break;
+			case DATA:
+				handle_sensor(&state, ((msg_data *) msg)->data);
 				break;
 			default:
 				break;
