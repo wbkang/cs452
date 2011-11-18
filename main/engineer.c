@@ -4,8 +4,7 @@
 #include <server/traincmdrunner.h>
 #include <fixed.h>
 #include <track_data.h>
-#include <stop_distance.h>
-#include <betaimporter.h>
+#include <train_data.h>
 #include <uconst.h>
 
 engineer *engineer_new(char track_name) {
@@ -39,8 +38,7 @@ engineer *engineer_new(char track_name) {
 			train->v_avg_d[speed] = 0;
 			train->v_avg_t[speed] = 0;
 		}
-		train->dref = -1;
-		populate_stop_distance(train, train_no);
+		train_data_populate(train, train_no);
 	}
 
 	// initialize track nodes
@@ -48,12 +46,9 @@ engineer *engineer_new(char track_name) {
 	switch (track_name) {
 		case 'a':
 			this->track_nodes = init_tracka(tn);
-			// @TODO: instead of using track b betas, get track a betas
-			populate_beta(this->track_nodes);
 			break;
 		case 'b':
 			this->track_nodes = init_trackb(tn);
-			populate_beta(this->track_nodes);
 			break;
 		default:
 			ERROR("bad track name");

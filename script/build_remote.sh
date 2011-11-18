@@ -17,7 +17,7 @@ else
 fi
 
 REMOTEUSER=$1
-REMOTEHOST=linux.student.cs.uwaterloo.ca
+REMOTEHOST=linux024.student.cs.uwaterloo.ca
 PRIVATEKEY=$2
 
 if [ ! -z "$PRIVATEKEY" ]; then
@@ -27,7 +27,7 @@ fi
 
 echo "Copying..."
 
-FILES=$($HG status -A | grep -v "^I" | awk '{ print $2 }' | grep -v '\.o' | sed 's/\\/\//g')
+FILES=$($HG status -A | egrep -v "^(I|R)" | awk '{ print $2 }' | grep -v '\.o' | sed 's/\\/\//g')
 
 tar cf - $FILES | bzip2 | ssh $PKOPT $REMOTEUSER@$REMOTEHOST \
 "

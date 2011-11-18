@@ -86,6 +86,8 @@ static inline int overflow(int x, int y) {
 }
 
 ///////////// DEBUG
+#define MEM_PROTECTION 0 // MEM_CACHE must be on
+#define MEM_CACHE 1
 #define ASSERT_ENABLED 1
 #define TRACE_ENABLED 1
 #define TEST_ENABLED 1
@@ -100,7 +102,7 @@ void errormsg(char *msg);
 void die();
 
 #define READ_REGISTER(var) __asm volatile("mov %[" TOSTRING(var) "], " TOSTRING(var) "\n\t" : [var] "=r" (var))
-
+#define READ_CPSR(var) __asm("mrs %[mode], cpsr" "\n\t"	"and %[mode], %[mode], #0x1f" "\n\t" : [mode] "=r" (var))
 void Exit();
 int main();
 void dump_registers(int r0, int r1, int r2, int r3);
