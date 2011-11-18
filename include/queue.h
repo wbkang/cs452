@@ -35,3 +35,8 @@ static inline void* queue_get(queue *this) {
 	this->head = queue_increment(this, this->head);
 	return rv;
 }
+
+static inline void* queue_peek(queue *this) {
+	ASSERT(!queue_empty(this), "empty");
+	return *this->head;
+}

@@ -8,6 +8,7 @@ int traincmdbuffer_new() {
 
 int traincmdbuffer_put(int tid, traincmdname name, int arg1, int arg2) {
 	traincmd cmd;
+	cmd.type = TRAINCMD;
 	cmd.name = name;
 	cmd.arg1 = arg1;
 	cmd.arg2 = arg2;

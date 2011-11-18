@@ -77,15 +77,21 @@ fixed location_dist_dir(location *from, location *to) {
 // @TODO: add support for negative dx
 int location_inc(location *this, fixed dx) {
 	ASSERT(location_isvalid(this), "bad location");
-	if (location_isundef(this)) return -1;
-	ASSERT(fixed_sgn(dx) >= 0, "negative dx");
+	if (location_isundef(this)) return -1; // incrementing undefined location
+	ASSERT(fixed_sgn(dx) >= 0, "negative dx not supported");
 	this->offset = fixed_add(this->offset, dx);
-	do {
+	while (this->edge) {
 		fixed edge_len = fixed_new(this->edge->dist);
 		if (fixed_cmp(this->offset, edge_len) < 0) return 0;
-		this->offset = fixed_sub(this->offset, edge_len);
-		this->edge = track_next_edge(this->edge->dest);
-	} while (this->edge);
+		track_edge *next_edge = track_next_edge(this->edge->dest);
+		if (next_edge) {
+			this->edge = next_edge;
+			this->offset = fixed_sub(this->offset, edge_len);
+		} else {
+			this->offset = edge_len;
+			return -2; // dead end
+		}
+	}
 	*this = LOCATION_UNDEF;
-	return -2;
+	return -3;
 }

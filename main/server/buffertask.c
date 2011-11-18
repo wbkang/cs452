@@ -36,7 +36,7 @@ static inline void handle_put(buffertask_state *state, int tid, void* item) {
 
 static inline void handle_get(buffertask_state *state, int tid) {
 	if (buffer_empty(state->items)) {
-		ASSERT(!queue_full(state->get_blocked), "buffer full");
+		ASSERT(!queue_full(state->get_blocked), "get_blocked buffer full, task %d is getting, task %d already blocked", tid, queue_peek(state->get_blocked));
 		queue_put(state->get_blocked, (void*) tid);
 	} else {
 		tx(state, tid);
@@ -47,8 +47,7 @@ static void buffertask() {
 	// init args
 	int tid;
 	int size = sizeof(buffertask_args) + sizeof(char) * SIZE_NAME;
-	char mem[size];
-	buffertask_args *args = (void*) mem;
+	buffertask_args *args = malloc(size);
 	Receive(&tid, args, size);
 	Reply(tid, NULL, 0);
 
