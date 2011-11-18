@@ -5,7 +5,6 @@
 #include <fixed.h>
 #include <track_data.h>
 #include <stop_distance.h>
-#include <betaimporter.h>
 #include <uconst.h>
 
 engineer *engineer_new(char track_name) {
@@ -49,12 +48,9 @@ engineer *engineer_new(char track_name) {
 	switch (track_name) {
 		case 'a':
 			this->track_nodes = init_tracka(tn);
-			// @TODO: instead of using track b betas, get track a betas
-			populate_beta(this->track_nodes);
 			break;
 		case 'b':
 			this->track_nodes = init_trackb(tn);
-			populate_beta(this->track_nodes);
 			break;
 		default:
 			ERROR("bad track name");

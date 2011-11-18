@@ -16,7 +16,6 @@ struct track_edge {
 	track_edge *reverse;
 	track_node *src, *dest;
 	int dist; // mm
-	fixed beta; // initialized -1
 };
 
 struct track_node {
@@ -42,12 +41,11 @@ static inline int train_goodswitchpos(int pos) {
 	return train_switchpos_straight(pos) || train_switchpos_curved(pos);
 }
 
-fixed guess_beta(track_edge *edge);
+
 track_edge *find_forward(track_node *orig);
 track_edge *track_next_edge(track_node *node);
 track_node *track_next_node(track_node *node);
 int track_distance(track_node *from, track_node *to);
-int calc_distance_after(track_node *node, int tick_diff, int tref);
 
 typedef struct blind_path_result blind_path_result;
 struct blind_path_result {
@@ -56,5 +54,4 @@ struct blind_path_result {
 };
 
 int find_path_blind(track_node *orig, track_node *dest, blind_path_result *rv, int maxsensordepth);
-fixed beta_sum(track_node *from, track_node *to);
 #define PREV_EDGE(edge) (edge->reverse->dest->reverse)
