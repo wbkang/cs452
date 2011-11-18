@@ -35,11 +35,9 @@ engineer *engineer_new(char track_name) {
 		train->timestamp_last_spdcmd = 0;
 		train->timestamp_last_nudged = 0;
 		TRAIN_FOREACH_SPEEDIDX(speed) {
-			train->tref[speed] = -1;
 			train->v_avg_d[speed] = 0;
 			train->v_avg_t[speed] = 0;
 		}
-		train->dref = -1;
 		populate_stop_distance(train, train_no);
 	}
 
