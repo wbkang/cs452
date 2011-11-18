@@ -110,7 +110,7 @@ fixed engineer_sim_stopdist(engineer *this, int train_no) {
 }
 
 // @TODO: improve "speed & last_speed" to include last N timestamped speed changes and use these to improve "engineer_train_move"
-static void engineer_on_set_speed(engineer *this, int train_no, int speed) {
+void engineer_on_set_speed(engineer *this, int train_no, int speed) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
 	train->last_speed = train->speed;
@@ -251,7 +251,7 @@ void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
 }
 
 // @TODO: remember the average velocity per speed_idx per edge
-static void engineer_train_onsensor(engineer *this, train_descriptor *train, track_node *sensor, int timestamp) {
+void engineer_train_onsensor(engineer *this, train_descriptor *train, track_node *sensor, int timestamp) {
 	engineer_ontick(this); // update all states
 	track_node *last_sensor = train->last_sensor;
 	train->last_sensor = sensor;
@@ -285,12 +285,12 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 		fixed dist = location_dist_min(&train->loc, &new_loc);
 		if (fixed_sgn(dist) > 0) {
 
-			// tmp, estimate numerical error
-			fixed errfreeoff = fixed_mul(train->v, fixed_new(dt));
-			location errfreeloc = location_new(last_sensor->edge, errfreeoff);
-			location_inc(&errfreeloc, dx_sensorlag);
-			fixed errfreedist = location_dist_min(&errfreeloc, &new_loc);
-			//tmp
+			// // tmp, estimate numerical error
+			// fixed errfreeoff = fixed_mul(train->v, fixed_new(dt));
+			// location errfreeloc = location_new(last_sensor->edge, errfreeoff);
+			// location_inc(&errfreeloc, dx_sensorlag);
+			// fixed errfreedist = location_dist_min(&errfreeloc, &new_loc);
+			// //tmp
 
 			// logdisplay_printf(this->log,
 			// 	"[%7d] %s+%Fmm [%s+%Fmm] ~ %s+%Fmm (%Fmm/ms ~ %Fmm/ms) %Fmm [%Fmm] {%F}",
@@ -329,7 +329,7 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 	engineer_set_velocity(this, train->no, new_v);
 }
 
-static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *sensor, int timestamp) {
+train_descriptor *engineer_attribute_sensor(engineer *this, track_node *sensor, int timestamp) {
 	location sensloc = location_new(sensor->edge, fixed_new(0));
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
@@ -384,7 +384,7 @@ void engineer_onsensor(engineer *this, char data[]) {
 // @TODO: add acceleration
 // @TODO: add jerk
 // @TODO: use track info
-static void engineer_train_move(engineer *this, train_descriptor *train, int t_i, int t_f) {
+void engineer_train_move(engineer *this, train_descriptor *train, int t_i, int t_f) {
 	location *loc = &train->loc;
 	if (location_isundef(loc)) return; // lost
 	if (fixed_sgn(train->v) <= 0) return; // bad trajectory

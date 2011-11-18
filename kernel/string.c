@@ -144,7 +144,6 @@ uint strgetw(char src[], char dst[], int lim) {
 //    return dst;
 //}
 
-
 void *memcpy(void *dst, void const *src, uint len) {
 	if (len > 0) {
 //		ASSERT((len & 3) == 0, "length unaligned: %d (%x)", len, len);
@@ -174,7 +173,7 @@ void *memcpy(void *dst, void const *src, uint len) {
 	}
     return dst;
 }
-//
+
 //// bulletproof memcpy
 //void *memcpy8(void *dst, void const *src, uint len) {
 //    char *ldst = (char*) dst;

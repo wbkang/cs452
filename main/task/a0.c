@@ -215,54 +215,54 @@ static void init_csdstate() {
 	csdstate.speed = 4;
 }
 
-static void calib_stopdist(void* s) {
-	a0state *state = s;
-	engineer *eng = state->eng;
-	int train_no = state->cur_train;
-	if (train_no < 0) return;
-	track_node *cur_sensor = state->cur_sensor;
-	track_node *e8 = engineer_get_tracknode(eng, "E", 8);
-	switch (csdstate.state) {
-		case STOP_INIT:
-			engineer_set_switch(eng, 11, 'c', TRUE);
-			engineer_set_speed(eng, train_no, csdstate.speed);
-			csdstate.state = STOP_UP2SPEED1;
-			break;
-		case STOP_UP2SPEED1:
-			if (cur_sensor == e8) {
-				csdstate.state = STOP_STOPPING;
-			}
-			break;
-		case STOP_UP2SPEED2:
-			if (cur_sensor == e8) {
-				csdstate.state = STOP_STOPPING;
-			}
-			break;
-		case STOP_STOPPING:
-			if (cur_sensor == e8) {
-				engineer_set_speed(eng, train_no, 0);
-				engineer_set_switch(eng, 11, 's', TRUE);
-				engineer_train_pause(eng, train_no, MS2TICK(5000));
-				if (csdstate.speed == 14) {
-					csdstate.speed = 4;
-				} else {
-					csdstate.speed += 1;
-				}
-				engineer_reverse(eng, train_no);
-				engineer_set_speed(eng, train_no, 14);
-				csdstate.state = STOP_REVERSING;
-			}
-			break;
-		case STOP_REVERSING:
-			if (strcmp(cur_sensor->name, "E7") == 0) {
-				engineer_set_switch(eng, 11, 'c', TRUE);
-				engineer_reverse(eng, train_no);
-				engineer_set_speed(eng, train_no, csdstate.speed);
-				csdstate.state = STOP_UP2SPEED1;
-			}
-			break;
-	}
-}
+// static void calib_stopdist(void* s) {
+// 	a0state *state = s;
+// 	engineer *eng = state->eng;
+// 	int train_no = state->cur_train;
+// 	if (train_no < 0) return;
+// 	track_node *cur_sensor = state->cur_sensor;
+// 	track_node *e8 = engineer_get_tracknode(eng, "E", 8);
+// 	switch (csdstate.state) {
+// 		case STOP_INIT:
+// 			engineer_set_switch(eng, 11, 'c', TRUE);
+// 			engineer_set_speed(eng, train_no, csdstate.speed);
+// 			csdstate.state = STOP_UP2SPEED1;
+// 			break;
+// 		case STOP_UP2SPEED1:
+// 			if (cur_sensor == e8) {
+// 				csdstate.state = STOP_STOPPING;
+// 			}
+// 			break;
+// 		case STOP_UP2SPEED2:
+// 			if (cur_sensor == e8) {
+// 				csdstate.state = STOP_STOPPING;
+// 			}
+// 			break;
+// 		case STOP_STOPPING:
+// 			if (cur_sensor == e8) {
+// 				engineer_set_speed(eng, train_no, 0);
+// 				engineer_set_switch(eng, 11, 's', TRUE);
+// 				engineer_train_pause(eng, train_no, MS2TICK(5000));
+// 				if (csdstate.speed == 14) {
+// 					csdstate.speed = 4;
+// 				} else {
+// 					csdstate.speed += 1;
+// 				}
+// 				engineer_reverse(eng, train_no);
+// 				engineer_set_speed(eng, train_no, 14);
+// 				csdstate.state = STOP_REVERSING;
+// 			}
+// 			break;
+// 		case STOP_REVERSING:
+// 			if (strcmp(cur_sensor->name, "E7") == 0) {
+// 				engineer_set_switch(eng, 11, 'c', TRUE);
+// 				engineer_reverse(eng, train_no);
+// 				engineer_set_speed(eng, train_no, csdstate.speed);
+// 				csdstate.state = STOP_UP2SPEED1;
+// 			}
+// 			break;
+// 	}
+// }
 
 struct {
 	int state;
@@ -358,7 +358,7 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 	state->last_sensor = state->cur_sensor;
 	state->cur_sensor = sensor;
 
-	jerk(state, sensor, m->timestamp);
+	// jerk(state, sensor, m->timestamp); (THIS CODE HANGS THE CODE)
 	ui_sensor(state, m->module[0], m->id);
 	dumbbus_dispatch(state->sensor_bus, state);
 	engineer_onsensor(eng, rawmsg);

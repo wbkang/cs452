@@ -26,6 +26,7 @@ void engineer_set_stopinfo(engineer *this, int train_no, fixed m, fixed b);
 void engineer_get_stopinfo(engineer *this, int train_no, fixed *m, fixed *b);
 fixed engineer_sim_stopdist(engineer *this, int train_no);
 void engineer_set_speed(engineer *this, int train_no, int speed);
+void engineer_on_set_speed(engineer *this, int train_no, int speed);
 int engineer_get_speed(engineer *this, int train_no);
 void engineer_set_velocity(engineer *this, int train_no, fixed v);
 fixed engineer_get_velocity(engineer *this, int train_no);
@@ -37,5 +38,14 @@ void engineer_train_pause(engineer *this, int train_no, int ticks);
 void engineer_set_track(engineer *this, int s[], int ns, int c[], int nc);
 track_node *engineer_get_tracknode(engineer *this, char *type, int id);
 void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid);
+void engineer_train_onsensor(engineer *this, train_descriptor *train, track_node *sensor, int timestamp);
 void engineer_onsensor(engineer *this, char data[]);
 void engineer_ontick(engineer *this);
+train_descriptor *engineer_attribute_sensor(engineer *this, track_node *sensor, int timestamp);
+void engineer_train_move(engineer *this, train_descriptor *train, int t_i, int t_f);
+
+
+
+
+
+
