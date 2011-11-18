@@ -4,8 +4,6 @@
 #include <kerneltest.h>
 #include <constants.h>
 
-#define FAST 1
-
 void kerneltest_run(); // from kerneltest.c
 
 int main(int argc, char *argv[]) {
@@ -18,15 +16,6 @@ int main(int argc, char *argv[]) {
 	// init COM2
 	uart_fifo(COM2, OFF);
 
-#if FAST && (!(__i386))
-	__asm (
-		"mrc p15, 0, r0, c1, c0, 0\n\t"
-		"ldr r1, =0x40001004\n\t"
-		"orr r0, r0, r1\n\t"
-		"mcr p15, 0, r0, c1, c0, 0\n\t"
-		: : : "r0", "r1"
-	);
-#endif
 
 	test_run();
 	kerneltest_run();

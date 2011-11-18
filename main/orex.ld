@@ -10,20 +10,6 @@ SECTIONS
 
 	. = 0x00218000;
 
-	data .  : /* Initialized data. */
-	{
-		_DataStart = . ;
-		*(.data*)
-		_DataEnd = . ;
-	} >ram
-
-	.bss .  : /* Uninitialized data. */
-	{
-		_BssStart = . ;
-		*(.bss)
-		_BssEnd = . ;
-	} >ram
-
 	text .  : /* The actual instructions. */
 	{
 		_TextStart = .;
@@ -53,7 +39,23 @@ SECTIONS
 		_USER_MEM_START = .;
 	} > ram
 	
-	_USER_MEM_END = 0x1f00000; 
+	. = 0x1f00000;
+	_USER_MEM_END = .; 
+	
+	data .  : /* Initialized data. */
+	{
+		_DataStart = . ;
+		*(.data*)
+		_DataEnd = . ;
+	} >ram
+
+	.bss .  : /* Uninitialized data. */
+	{
+		_BssStart = . ;
+		*(.bss)
+		_BssEnd = . ;
+	} >ram
+	
 	_KERNEL_MEM_END = 0x2000000;
 }
 

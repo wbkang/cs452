@@ -17,6 +17,7 @@ static uint old_swi_vector;
 static uint old_hwi_vector;
 static uint old_dtabort_vector;
 static uint old_pfabort_vector;
+static uint old_und_vector;
 
 static inline int kernel_mytid();
 static inline int kernel_myparenttid();
@@ -24,37 +25,27 @@ static inline int kernel_send(int tid);
 static inline void kernel_receive();
 static inline int kernel_reply(int tid);
 static inline int kernel_awaitevent(int irq);
+static void handle_abort() __attribute__ ((interrupt ("ABORT")));
 static inline void handle_swi(register_set *reg);
 static inline void handle_hwi(int isr, int isr2);
 static inline void kernel_irq(int vic, int irq);
 static inline void kernel_idleserver() { for (;;); }
-
-static void flush_dcache() {
-	#if !(__i386)
-		for (int seg = 0; seg < 8; seg++) {
-			for (int index = 0; index < 64; index++) {
-				__asm volatile (
-					"mcr p15, 0, %[input], c7, c14, 2\n\t" :: [input] "r" (seg * index)
-				);
-			}
-		}
-		__asm volatile ("mcr p15, 0, r0, c7, c5, 0\n\t" ::: "r0");
-	#endif
-}
 
 static void install_interrupt_handlers() {
 	old_swi_vector = READ_INTERRUPT_HANDLER(SWI_VECTOR);
 	old_hwi_vector = READ_INTERRUPT_HANDLER(HWI_VECTOR);
 	old_pfabort_vector = READ_INTERRUPT_HANDLER(PFABT_VECTOR);
 	old_dtabort_vector = READ_INTERRUPT_HANDLER(DTABT_VECTOR);
+	old_und_vector = READ_INTERRUPT_HANDLER(UND_VECTOR);
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
 	INSTALL_INTERRUPT_HANDLER(HWI_VECTOR, asm_handle_swi);
-	INSTALL_INTERRUPT_HANDLER(PFABT_VECTOR, asm_handle_abort);
-	INSTALL_INTERRUPT_HANDLER(DTABT_VECTOR, asm_handle_abort);
+	INSTALL_INTERRUPT_HANDLER(PFABT_VECTOR, handle_abort);
+	INSTALL_INTERRUPT_HANDLER(DTABT_VECTOR, handle_abort);
+	INSTALL_INTERRUPT_HANDLER(UND_VECTOR, handle_abort);
 	VMEM(VIC1 + PROTECTION_OFFSET) = 0;
 	VMEM(VIC1 + INTSELECT_OFFSET) = 0;
 	VMEM(VIC1 + INTENCLR_OFFSET) = ~0;
-	flush_dcache();
+	mem_dcache_flush();
 }
 
 static void uninstall_interrupt_handlers() {
@@ -62,6 +53,7 @@ static void uninstall_interrupt_handlers() {
 	INSTALL_INTERRUPT_HANDLER(HWI_VECTOR, old_hwi_vector);
 	INSTALL_INTERRUPT_HANDLER(PFABT_VECTOR, old_pfabort_vector);
 	INSTALL_INTERRUPT_HANDLER(DTABT_VECTOR, old_dtabort_vector);
+	INSTALL_INTERRUPT_HANDLER(UND_VECTOR, old_und_vector);
 	VMEM(VIC1 + INTENCLR_OFFSET) = ~0;
 	VMEM(VIC2 + INTENCLR_OFFSET) = ~0;
 	VMEM(TIMER1_BASE + CRTL_OFFSET) &= ~ENABLE_MASK;
@@ -70,10 +62,57 @@ static void uninstall_interrupt_handlers() {
 	uptime_teardown();
 	VMEM(UART_BASE(COM1) + UART_CTLR_OFFSET) &= ~(TIEN_MASK | RIEN_MASK | MSIEN_MASK);
 	VMEM(UART_BASE(COM2) + UART_CTLR_OFFSET) &= ~(TIEN_MASK | RIEN_MASK | MSIEN_MASK);
-	flush_dcache();
+	mem_dcache_flush();
+}
+
+static void handle_abort() {
+	int fp; READ_REGISTER(fp);
+	print_stack_trace(fp, 1);
+	int cpsr; READ_CPSR(cpsr);
+	cpsr &= 0x1f;
+
+	int lr; READ_REGISTER(lr);
+	lr -= 4;
+	bwprintf(1, "possible undefined instruction %x at %x\n", VMEM(lr), lr);
+
+	int faulttype;
+	__asm volatile ("mrc p15, 0, %[ft], c5, c0, 0\n\t" : [ft] "=r" (faulttype));
+	faulttype &= 0xf;
+
+	int faultdomain;
+	__asm volatile ("mrc p15, 0, %[fd], c5, c0, 0\n\t" : [fd] "=r" (faultdomain));
+	faultdomain >>= 4;
+	faultdomain &= 0xf;
+
+	int datafaultaddr;
+	__asm volatile ("mrc p15, 0, %[dfa], c6, c0, 0\n\t" : [dfa] "=r" (datafaultaddr));
+
+	char *faultname = "unknown";
+
+	if ((faulttype >> 2) == 0) {
+		faultname = "alignment";
+	} else if (faulttype == 5) {
+		faultname = "translation";
+	} else if (faulttype == 9) {
+		faultname = "domain";
+	} else if (faulttype == 13) {
+		faultname = "permission";
+	} else if (faulttype == 8) {
+		faultname = "external abort on noncacheable";
+	}
+
+	bwprintf(1, "possible faulttype: %s (%d), faultdomain: %d, datafaultaddr: %x\n",
+			faultname, faulttype, faultdomain, datafaultaddr);
+	bwprintf(1, "cpsr:%d (%x)", cpsr, cpsr);
+
+	while(1);
 }
 
 void kernel_init() {
+	mem_mmu_on();
+	if (MEM_PROTECTION) {
+		mem_protect();
+	}
 	install_interrupt_handlers();
 	int task_list_size = mem_init();
 	td_init(task_list_size);
@@ -81,6 +120,7 @@ void kernel_init() {
 	exitkernel = FALSE;
 	nameserver_tid = kernel_createtask(PRIORITY_NAMESERVER, nameserver);
 	idleserver_tid = kernel_createtask(PRIORITY_IDLESERVER, kernel_idleserver);
+	mem_dcache_flush();
 }
 
 static inline void handle_swi(register_set *reg) {
@@ -167,6 +207,7 @@ int kernel_run() {
 		task_descriptor *td = scheduler_get();
 		if (td->id == idleserver_tid) time_idle_start = uptime();
 		register_set *reg = &td->registers;
+		if (MEM_PROTECTION) mem_tlb_flush();
 		int cpsr = asm_switch_to_usermode(reg);
 		if ((cpsr & 0x1f) == 0x12) {
 			reg->r[REG_PC] -= 4;
@@ -182,6 +223,9 @@ int kernel_run() {
 	int percent10 = ((long long) idletime * 10 * 100 + 5) / (long long) up;
 	bwprintf(1, "uptime: %d, idle: %d (%d.%d%%)", up, idletime, percent10 / 10, percent10 % 10);
 	uninstall_interrupt_handlers();
+	if (MEM_PROTECTION) {
+		mem_unprotect();
+	}
 	return errno;
 }
 
