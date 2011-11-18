@@ -19,15 +19,12 @@ typedef struct _tag_train_engineer {
 } engineer;
 
 engineer *engineer_new(char track_name);
+void engineer_destroy(engineer *this);
 train_direction engineer_train_get_dir(engineer *this, int train_no);
 void engineer_train_set_dir(engineer *this, int train_no, train_direction dir);
-void engineer_set_tref(engineer *this, int train_no, int speed_idx, int tref);
-int engineer_get_tref(engineer *this, int train_no);
 void engineer_set_stopinfo(engineer *this, int train_no, fixed m, fixed b);
 void engineer_get_stopinfo(engineer *this, int train_no, fixed *m, fixed *b);
 fixed engineer_sim_stopdist(engineer *this, int train_no);
-void engineer_set_dref(engineer *this, int train_no, int dref);
-int engineer_get_dref(engineer *this, int train_no);
 void engineer_set_speed(engineer *this, int train_no, int speed);
 int engineer_get_speed(engineer *this, int train_no);
 fixed engineer_get_velocity(engineer *this, int train_no);
@@ -38,6 +35,5 @@ void engineer_train_pause(engineer *this, int train_no, int ticks);
 void engineer_set_track(engineer *this, int s[], int ns, int c[], int nc);
 track_node *engineer_get_tracknode(engineer *this, char *type, int id);
 void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid);
-void engineer_destroy(engineer *this);
 void engineer_onsensor(engineer *this, char data[]);
 void engineer_ontick(engineer *this);

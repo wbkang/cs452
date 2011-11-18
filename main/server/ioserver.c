@@ -7,7 +7,7 @@
 #include <string.h>
 #include <uconst.h>
 #include <server/ioserver.h>
-#include <server/notifier.h>
+#include <server/eventnotifier.h>
 
 /*
  * max number of chars per timeserver tick
@@ -79,7 +79,7 @@ void ioserver() {
 	state.output = buffer_new(OUTPUT_BUFFER_SIZE, sizeof(char));
 	state.flush_blocked = queue_new(FLUSH_BLOCKED_QUEUE_SIZE);
 	int general_event = args.channel == COM1 ? EVENT_UART1 : EVENT_UART2;
-	state.tid_notifier_general = notifier_new(PRIORITY_IONOTIFIER, general_event);
+	state.tid_notifier_general = eventnotifier_new(PRIORITY_IONOTIFIER, general_event);
 	int uartbase = UART_BASE(args.channel);
 	int cts = VMEM(uartbase + UART_FLAG_OFFSET) & CTS_MASK;
 	state.cts = cts || args.channel == COM2;

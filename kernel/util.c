@@ -8,7 +8,7 @@
 extern int _KERNEL_MEM_START;
 extern int _KERNEL_MEM_END;
 
-volatile static int HERPDERP;
+static int HERPDERP;
 
 int *getherp() {
 	return &HERPDERP;
@@ -46,9 +46,7 @@ static inline char* find_function_name(uint pc) {
 }
 
 void print_stack_trace(uint fp, int clearscreen) {
-	if (!fp) {
-		return;
-	}
+	if (!fp) return;
 
 	__init_funclist();
 	int pc = 0, lr = 0, depth = 20;
@@ -68,7 +66,7 @@ void print_stack_trace(uint fp, int clearscreen) {
 
 		lr = VMEM(fp - 4);
 		fp = VMEM(fp - 12);
-		if (fp < (int)&_KERNEL_MEM_START || (int)&_KERNEL_MEM_END <= fp) {
+		if (fp < (int) &_KERNEL_MEM_START || (int) &_KERNEL_MEM_END <= fp) {
 //			bwprintf(1, "next fp out of range:%x\n", fp);
 			break;
 		} else if (depth-- < 0) {

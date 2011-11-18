@@ -5,7 +5,7 @@
 #include <ts7200.h>
 #include <uconst.h>
 #include <server/timeserver.h>
-#include <server/notifier.h>
+#include <server/eventnotifier.h>
 
 #define TIMESERVER_CAPACITY 512
 
@@ -58,7 +58,7 @@ void timeserver() {
 	timeserver_req req;
 	int tid;
 	// init notifier
-	int tid_notifier = notifier_new(PRIORITY_TIMENOTIFIER, EVENT_TIMER1);
+	int tid_notifier = eventnotifier_new(PRIORITY_TIMENOTIFIER, EVENT_TIMER1);
 	Receive(&tid, NULL, 0);
 	ASSERT(tid == tid_notifier, "got a message during initialization from %d", tid);
 	Reply(tid_notifier, NULL, 0);

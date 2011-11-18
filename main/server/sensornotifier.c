@@ -3,6 +3,7 @@
 #include <util.h>
 #include <uconst.h>
 #include <server/sensornotifier.h>
+#include <server/buffertask.h>
 
 typedef struct {
 	int tid_target;
@@ -24,25 +25,26 @@ void sensornotifier() {
 		modules[m] = 0;
 	}
 
-	msg_sensor msg;
-	msg.type = SENSOR;
-	msg.module[1] = '\0';
+	// init message
+	const int size_msg = sizeof(msg_sensor);
+	msg_sensor *msg = malloc(size_msg);
+	msg->type = SENSOR;
+	msg->module[1] = '\0';
 
 	int timestamp_last;
 	int timestamp = Time(tid_time) - MS2TICK(61); // average return time
 
 	for (;;) {
 		train_querysenmods(TRAIN_NUM_MODULES, tid_traincmdbuf); // @TODO: make this block
-		// Putc(COM1, TRAIN_QUERYMODS | TRAIN_NUM_MODULES, tid_com1); // @TODO, this goes around everything...
 		timestamp_last = timestamp;
 		timestamp = Time(tid_time);
 		// attribute the timestamp halfway between now and last query
-		msg.timestamp = (timestamp_last + timestamp) >> 1;
-		// char buf[256];
-		// sprintf(buf, "\x1B[s" "\x1B[3;65H" "sensor: %d        " "\x1B[u",
-		// 	TICK2MS(timestamp - timestamp_last) >> 1
-		// );
-		// Putstr(COM2, buf, tid_com2);
+		msg->timestamp = (timestamp_last + timestamp) >> 1;
+		char buf[256];
+		sprintf(buf, "\x1B[s" "\x1B[2;56H" "sensor report: %dms        " "\x1B[u",
+			TICK2MS(timestamp - timestamp_last)
+		);
+		Putstr(COM2, buf, tid_com2);
 		for (int m = 0; m < TRAIN_NUM_MODULES; m++) {
 			int upper = Getc(COM1, tid_com1);
 			int lower = Getc(COM1, tid_com1);
@@ -52,14 +54,11 @@ void sensornotifier() {
 			int sensors = module ^ old_module;
 			while (sensors) {
 				int s = log2(sensors);
-				ASSERT(s < 16, "bad s, module: %b, old_module: %b, sensors: %b", module, old_module, sensors);
 				uint mask = 1 << s;
-				msg.module[0] = 'A' + m;
-				msg.id = 16 - s;
-				msg.state = (module & mask) ? ON : OFF;
-				if (msg.state == ON) {
-					Send(args.tid_target, &msg, sizeof(msg), NULL, 0);
-				}
+				msg->module[0] = 'A' + m;
+				msg->id = 16 - s;
+				msg->state = (module & mask) ? ON : OFF;
+				Send(args.tid_target, msg, size_msg, NULL, 0);
 				sensors &= ~mask;
 			}
 		}

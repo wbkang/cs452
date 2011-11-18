@@ -1,22 +1,17 @@
+#include <server/buffertask.h>
 #include <queue.h>
 #include <syscall.h>
 #include <util.h>
 #include <buffer.h>
-#include <server/buffertask.h>
+#include <uconst.h>
 
 #define NUM_BLOCKED 1
 #define SIZE_NAME 4
 
 typedef struct _tag_buffertask_args {
-	int size;
 	int item_size;
 	char name[];
 } buffertask_args;
-
-typedef struct _tag_buffertask_req {
-	enum { PUT, GET } no;
-	char item[];
-} buffertask_req;
 
 typedef struct _tag_buffertask_state {
 	int item_size;
@@ -48,7 +43,7 @@ static inline void handle_get(buffertask_state *state, int tid) {
 	}
 }
 
-void buffertask() {
+static void buffertask() {
 	// init args
 	int tid;
 	int size = sizeof(buffertask_args) + sizeof(char) * SIZE_NAME;
@@ -65,25 +60,22 @@ void buffertask() {
 	// init state
 	buffertask_state state;
 	state.item_size = args->item_size;
-	state.items = buffer_new(args->size, args->item_size);
+	state.items = buffer_new((STACK_SIZE - 1000) / args->item_size, args->item_size);
 	state.get_blocked = queue_new(NUM_BLOCKED);
 
-	// init req
-	int req_size = sizeof(buffertask_req) + state.item_size;
-	buffertask_req *req = malloc(req_size);
+	const int size_packet = MAX(sizeof(msg_req), state.item_size);
+	void* packet = malloc(size_packet);
 
-	// serve
 	for (;;) {
-		Receive(&tid, req, req_size);
-		switch (req->no) {
-			case PUT:
-				handle_put(&state, tid, req->item);
-				break;
-			case GET:
+		int size = Receive(&tid, packet, size_packet);
+		ASSERT(size > 0, "bad packet");
+		msg_header *header = (msg_header*) packet;
+		switch (header->type) {
+			case REQ:
 				handle_get(&state, tid);
 				break;
 			default:
-				ASSERT(0, "bad req no: %d, tid: %d", req->no, tid);
+				handle_put(&state, tid, packet);
 				break;
 		}
 	}
@@ -100,7 +92,6 @@ int buffertask_new(char *name, int priority, int item_size) {
 	int size = sizeof(buffertask_args) + sizeof(char) * namesize;
 	char mem[size];
 	buffertask_args *args = (void*) mem;
-	args->size = (STACK_SIZE - 4000) / item_size; // guess free memory
 	args->item_size = item_size;
 	memcpy(args->name, name, namesize);
 	int n = Send(tid, args, size, NULL, 0);
@@ -109,16 +100,11 @@ int buffertask_new(char *name, int priority, int item_size) {
 }
 
 int buffertask_put(int tid, void* item, int item_size) {
-	int size = sizeof(buffertask_req) + item_size;
-	char mem[size];
-	buffertask_req *req = (void*) mem;
-	req->no = PUT;
-	memcpy(req->item, item, item_size);
-	return Send(tid, req, size, NULL, 0);
+	return Send(tid, item, item_size, NULL, 0);
 }
 
 int buffertask_get(int tid, void* item, int item_size) {
-	buffertask_req req;
-	req.no = GET;
-	return Send(tid, &req, sizeof(req), item, item_size);
+	msg_req msg;
+	msg.type = REQ;
+	return Send(tid, &msg, sizeof(msg), item, item_size);
 }
