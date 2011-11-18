@@ -17,12 +17,11 @@ typedef struct {
 	int tid_com2;
 	console *con;
 	// ui
-	logstrip *cmdlog;
-	cmdline *cmdline;
-	logstrip *sensorlog;
 	logdisplay *log;
-	logstrip *stopinfo;
+	logstrip *cmdlog;
+	logstrip *sensorlog;
 	logstrip *trainloc;
+	cmdline *cmdline;
 	dumbbus *sensor_bus;
 	dumbbus *bus10hz;
 	dumbbus *simbus;
@@ -31,11 +30,8 @@ typedef struct {
 	engineer *eng;
 	// these are not scalable to multiple trains
 	int cur_train;
-	uint timestamp_cur_sensor;
 	track_node *cur_sensor;
-	uint timestamp_last_sensor;
 	track_node *last_sensor;
-	uint trial;
 	// timers
 	int tid_refresh;
 	int tid_simstep;

@@ -9,6 +9,7 @@ typedef struct {
 	traincmdname name;
 	int arg1;
 	int arg2;
+	int timestamp;
 } traincmd;
 
 int traincmdbuffer_new();

@@ -4,7 +4,7 @@
 
 int raw_isrxempty(int channel);
 int raw_getc(int channel);
-int raw_istxready(int c);
+int raw_istxready(int channel);
 void raw_putc(int channel, char c);
 void raw_init();
 

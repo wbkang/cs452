@@ -1,10 +1,10 @@
 #pragma once
+
 #include <util.h>
 
 //////////// MACHINE STUFF
-#define COM1    0
-#define COM2    1
-#define COM_COUNT 2
+#define COM1 0
+#define COM2 1
 #define SWI_VECTOR 0x8
 #define PFABT_VECTOR 0xc
 #define DTABT_VECTOR 0x10
