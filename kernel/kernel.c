@@ -66,6 +66,7 @@ static void uninstall_interrupt_handlers() {
 }
 
 static void handle_abort() {
+	int sp = 0x2000000; WRITE_REGISTER(sp);
 	int fp; READ_REGISTER(fp);
 	print_stack_trace(fp, 1);
 	int cpsr; READ_CPSR(cpsr);
