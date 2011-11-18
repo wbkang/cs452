@@ -1,16 +1,11 @@
 #include <location.h>
 #include <util.h>
 
-void location_init(location *this, track_edge *edge, fixed offset) {
-	ASSERTNOTNULL(this);
-	this->edge = edge;
-	this->offset = fixed_new(0);
-	location_inc(this, offset);
-}
-
-void location_init_undef(location *this) {
-	ASSERTNOTNULL(this);
-	this->edge = NULL;
+location location_new(track_edge *edge, fixed offset) {
+	ASSERT(edge || fixed_sgn(offset) == 0, "bad location");
+	location rv = {edge, fixed_new(0)};
+	location_inc(&rv, offset);
+	return rv;
 }
 
 int location_isundef(location *this) {
@@ -80,16 +75,17 @@ fixed location_dist_dir(location *from, location *to) {
 // @TODO: problem here if slightly over-increment past an exit/enter
 // @TODO: uses current switch state. return multiple 'virtual' locations instead?
 // @TODO: add support for negative dx
-void location_inc(location *this, fixed dx) {
+int location_inc(location *this, fixed dx) {
 	ASSERT(location_isvalid(this), "bad location");
-	ASSERT(!location_isundef(this), "undefined locations");
+	if (location_isundef(this)) return -1;
 	ASSERT(fixed_sgn(dx) >= 0, "negative dx");
 	this->offset = fixed_add(this->offset, dx);
 	do {
 		fixed edge_len = fixed_new(this->edge->dist);
-		if (fixed_cmp(this->offset, edge_len) < 0) return;
+		if (fixed_cmp(this->offset, edge_len) < 0) return 0;
 		this->offset = fixed_sub(this->offset, edge_len);
 		this->edge = track_next_edge(this->edge->dest);
 	} while (this->edge);
-	location_init_undef(this);
+	*this = LOCATION_UNDEF;
+	return -2;
 }

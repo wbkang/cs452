@@ -72,10 +72,9 @@ void train_stopper_setup(a0state *state, int train_no, char *type, int id, int o
 	}
 
 	ts_state.train_no = train_no;
-	location *dest_loc = &ts_state.dest;
-	location_init(dest_loc, track_next_edge(dest), fixed_new(over));
+	ts_state.dest = location_new(track_next_edge(dest), fixed_new(over));
 
-	if (location_isundef(dest_loc)) {
+	if (location_isundef(&ts_state.dest)) {
 		logstrip_printf(state->cmdlog,
 			"Sorry. Location %s+%dmm is invalid.",
 			dest->name,
