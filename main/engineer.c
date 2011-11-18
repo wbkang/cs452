@@ -4,7 +4,7 @@
 #include <server/traincmdrunner.h>
 #include <fixed.h>
 #include <track_data.h>
-#include <stop_distance.h>
+#include <train_data.h>
 #include <uconst.h>
 
 engineer *engineer_new(char track_name) {
@@ -38,7 +38,7 @@ engineer *engineer_new(char track_name) {
 			train->v_avg_d[speed] = 0;
 			train->v_avg_t[speed] = 0;
 		}
-		populate_stop_distance(train, train_no);
+		train_data_populate(train, train_no);
 	}
 
 	// initialize track nodes

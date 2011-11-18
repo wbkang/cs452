@@ -1,7 +1,7 @@
 #include <train.h>
 
 // @TODO: repurpose to populate train descriptor with any static info
-void populate_stop_distance(train_descriptor *train, int train_no) {
+void train_data_populate(train_descriptor *train, int train_no) {
 	switch (train_no) {
 		case 37:
 			train->stopm = fixed_div(fixed_new(30838), fixed_new(10));
