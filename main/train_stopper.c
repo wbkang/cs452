@@ -28,8 +28,7 @@ static void ontick(void* s) {
 	fixed stop_dist = engineer_sim_stopdist(eng, train_no);
 	if (fixed_sgn(stop_dist) <= 0) return; // unknown stop distance
 
-	location stat;
-	stat = tloc;
+	location stat = tloc;
 	location_inc(&stat, stop_dist);
 
 	fixed stop_from = location_dist_dir(train_loc, dest);
