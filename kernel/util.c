@@ -55,8 +55,8 @@ void print_stack_trace(uint fp, int clearscreen) {
 		bwprintf(1, CONSOLE_CLEAR "\x1B[1;1H");
 	}
 
-	bwprintf(1, CONSOLE_EFFECT(EFFECT_RESET) CONSOLE_EFFECT(EFFECT_BRIGHT) "------stack trace----\n");
-	bwprintf(1, CONSOLE_EFFECT(EFFECT_FG_BLUE) "asmline\t\torigin\t\tfunction\n" CONSOLE_EFFECT(EFFECT_RESET));
+	bwprintf(1, CONSOLE_EFFECT(EFFECT_RESET));
+	bwprintf(1, CONSOLE_EFFECT(EFFECT_BRIGHT) CONSOLE_EFFECT(EFFECT_FG_BLUE) "asmline\t\torigin\t\tfunction\n" CONSOLE_EFFECT(EFFECT_RESET));
 	do {
 		pc = VMEM(fp) - 16;
 		int asm_line_num = (lr == 0) ? 0 : ((lr - pc) >> 2);
@@ -67,10 +67,8 @@ void print_stack_trace(uint fp, int clearscreen) {
 		lr = VMEM(fp - 4);
 		fp = VMEM(fp - 12);
 		if (fp < (int) &_KERNEL_MEM_START || (int) &_KERNEL_MEM_END <= fp) {
-//			bwprintf(1, "next fp out of range:%x\n", fp);
 			break;
 		} else if (depth-- < 0) {
-//			bwprintf(1, "stack trace too deep\n", fp);
 			break;
 		}
 	} while (pc != REDBOOT_ENTRYPOINT && pc != (int) main);
