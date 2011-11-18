@@ -5,6 +5,7 @@
 //////////// MACHINE STUFF
 #define COM1 0
 #define COM2 1
+#define UND_VECTOR 0x4
 #define SWI_VECTOR 0x8
 #define PFABT_VECTOR 0xc
 #define DTABT_VECTOR 0x10

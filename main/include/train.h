@@ -45,7 +45,6 @@ typedef enum {
 
 typedef struct {
 	int no;
-	int dref;
 	fixed stopm; // 0 if unknown
 	fixed stopb; // 0 if unknown
 	int speed;

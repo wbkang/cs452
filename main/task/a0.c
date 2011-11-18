@@ -272,59 +272,69 @@ struct {
 	track_node *start;
 	track_node *last_sensor;
 	int last_timestamp;
+	int v_i_x;
+	int v_i_t;
 } j;
+
+#define JERK_STABILIZE_NUM_SENSORS 10
 
 static void init_jerk() {
 	j.state = 0;
-	j.count = 0;
-	j.dx = 0;
-	j.dt = 0;
-	j.start = NULL;
-	j.last_sensor = NULL;
-	j.last_timestamp = 0;
 }
 
 static void jerk(a0state *state, track_node *sensor, int timestamp) {
 	engineer *eng = state->eng;
 	track_node *last_sensor = j.last_sensor;
+	int dx = track_distance(last_sensor, sensor);
+	int dt = TICK2MS(timestamp - j.last_timestamp);
+	j.last_sensor = sensor;
+	j.last_timestamp = timestamp;
+
 	switch (j.state) {
 		case 0: // get to v_i
+			logstrip_printf(state->cmdlog, "getting to v_i");
 			engineer_set_speed(eng, 38, 8);
 			j.state = 1;
 			j.count = 0;
 			break;
 		case 1: // stabilize v_i
+			logstrip_printf(state->cmdlog, "stabilizing v_i");
 			j.count++;
-			if (j.count == 8) {
+			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
 				j.state = 2;
 			}
 			break;
 		case 2: // get to v_f
-			logstrip_printf(state->cmdlog, "accelerating...");
+			logstrip_printf(state->cmdlog, "getting to v_f");
 			engineer_set_speed(eng, 38, 14);
 			j.state = 3;
 			j.count = 0;
 			j.dx = 0;
 			j.dt = 0;
+			j.v_i_x = dx;
+			j.v_i_t = dt;
 			j.start = sensor;
 			break;
 		case 3: // stabilize v_f
-			j.dx += track_distance(last_sensor, sensor);
-			j.dt += TICK2MS(timestamp - j.last_timestamp);
+			logstrip_printf(state->cmdlog, "stabilizing v_f");
+			j.dx += dx;
+			j.dt += dt;
 			j.count++;
-			if (j.count == 8) {
-				logstrip_printf(
-					state->cmdlog,
-					"dx/dt = %d/%d from %s to %s",
+			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
+				// "dx/dt = %d/%d from %s to %s, v_i = %d/%d, v_f = %d/%d"
+				logdisplay_printf(
+					state->log,
+					"%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d",
+					j.start->name, sensor->name,
 					j.dx, j.dt,
-					j.start->name, sensor->name
+					j.v_i_x, j.v_i_t,
+					dx, dt
 				);
+				logdisplay_flushline(state->log);
 				j.state = 0;
 			}
 			break;
 	}
-	j.last_sensor = sensor;
-	j.last_timestamp = timestamp;
 }
 
 static void handle_sensor(a0state *state, char rawmsg[]) {
@@ -568,7 +578,7 @@ void a0() {
 	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
-	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 10, SCROLLING);
+	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, SCROLLING);
 
 	state.trainloc = logstrip_new(state.con, 9, 58);
 

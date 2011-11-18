@@ -11,15 +11,15 @@
 #define RECEIVER_PRIORITY SENDER_PRIORITY
 
 static void setup_timer() {
-	VMEM(TIMER2_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
-	VMEM(TIMER2_BASE + LDR_OFFSET) = ~0;
-	VMEM(TIMER2_BASE + CRTL_OFFSET) &= ~MODE_MASK; // free-running mode
-	VMEM(TIMER2_BASE + CRTL_OFFSET) |= CLKSEL_MASK; // 508Khz clock
-	VMEM(TIMER2_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
+	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~ENABLE_MASK; // stop timer
+	VMEM(TIMER3_BASE + LDR_OFFSET) = ~0;
+	VMEM(TIMER3_BASE + CRTL_OFFSET) &= ~MODE_MASK; // free-running mode
+	VMEM(TIMER3_BASE + CRTL_OFFSET) |= CLKSEL_MASK; // 508Khz clock
+	VMEM(TIMER3_BASE + CRTL_OFFSET) |= ENABLE_MASK; // start
 }
 
 static uint timer() {
-	return ~VMEM(TIMER2_BASE + VAL_OFFSET) & 0xffff;
+	return ~VMEM(TIMER3_BASE + VAL_OFFSET) & 0xffffffff;
 }
 
 static void receiver();
