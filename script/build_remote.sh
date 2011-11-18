@@ -27,7 +27,7 @@ fi
 
 echo "Copying..."
 
-FILES=$($HG status -A | grep -v "^I" | awk '{ print $2 }' | grep -v '\.o' | sed 's/\\/\//g')
+FILES=$($HG status -A | egrep -v "^(I|R)" | awk '{ print $2 }' | grep -v '\.o' | sed 's/\\/\//g')
 
 tar cf - $FILES | bzip2 | ssh $PKOPT $REMOTEUSER@$REMOTEHOST \
 "
