@@ -101,6 +101,7 @@ void bwprintf(int channel, char *fmt, ...);
 void errormsg(char *msg);
 void die();
 
+#define WRITE_REGISTER(var) __asm volatile("mov " TOSTRING(var) "%[" TOSTRING(var) "]" "\n\t" : [var] "=r" (var))
 #define READ_REGISTER(var) __asm volatile("mov %[" TOSTRING(var) "], " TOSTRING(var) "\n\t" : [var] "=r" (var))
 #define READ_CPSR(var) __asm("mrs %[mode], cpsr" "\n\t"	"and %[mode], %[mode], #0x1f" "\n\t" : [mode] "=r" (var))
 void Exit();
