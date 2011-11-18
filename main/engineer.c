@@ -29,8 +29,8 @@ engineer *engineer_new(char track_name) {
 		train->dir = TRAIN_UNKNOWN;
 		train->dist2nose = fixed_new(0);
 		train->dist2tail = fixed_new(0);
-		location_init_undef(&train->loc);
-		train->v = fixed_new(0);
+		train->loc = LOCATION_UNDEF;
+		engineer_set_velocity(this, train_no, fixed_new(0));
 		train->last_sensor = NULL;
 		train->timestamp_last_sensor = 0;
 		train->timestamp_last_spdcmd = 0;
@@ -121,18 +121,20 @@ static void engineer_on_set_speed(engineer *this, int train_no, int speed) {
 	train_descriptor *train = &this->train[train_no];
 	train->last_speed = train->speed;
 	train->speed = speed;
-	location_init_undef(&train->loc); // lose position
+	train->loc = LOCATION_UNDEF; // lose position
 	train->last_sensor = NULL;
 	int speed_idx = engineer_get_speedidx(this, train_no);
 	int v_avg_d = train->v_avg_d[speed_idx];
 	int v_avg_t = train->v_avg_t[speed_idx];
+	fixed v_new;
 	if (v_avg_d > 0 && v_avg_t > 0) {
 		int v1000 = (1000 * v_avg_d) / v_avg_t;
-		train->v = fixed_div(fixed_new(v1000), fixed_new(1000));
+		v_new = fixed_div(fixed_new(v1000), fixed_new(1000));
 	} else {
 		// @TODO: this should fail more gracefully
-		train->v = fixed_new(-1);
+		v_new = fixed_new(-1);
 	}
+	engineer_set_velocity(this, train_no, v_new);
 	train->timestamp_last_spdcmd = Time(this->tid_time);
 }
 
@@ -157,9 +159,20 @@ int engineer_get_speed(engineer *this, int train_no) {
 	return this->train[train_no].speed;
 }
 
+void engineer_set_velocity(engineer *this, int train_no, fixed v) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	this->train[train_no].v = v;
+}
+
 fixed engineer_get_velocity(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	return this->train[train_no].v;
+}
+
+void engineer_set_loc(engineer *this, int train_no, location *loc) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	ASSERTNOTNULL(loc);
+	this->train[train_no].loc = *loc;
 }
 
 void engineer_get_loc(engineer *this, int train_no, location *loc) {
@@ -272,8 +285,7 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 	int now = Time(this->tid_time);
 	fixed dt_sensorlag = fixed_new(TICK2MS(now - timestamp));
 	fixed dx_sensorlag = fixed_mul(lstseg_v, dt_sensorlag);
-	location new_loc;
-	location_init(&new_loc, sensor->edge, dx_sensorlag);
+	location new_loc = location_new(sensor->edge, dx_sensorlag);
 
 	if (!location_isundef(&train->loc) && fixed_sgn(train->v) > 0) {
 		fixed dist = location_dist_min(&train->loc, &new_loc);
@@ -281,8 +293,7 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 
 			// tmp, estimate numerical error
 			fixed errfreeoff = fixed_mul(train->v, fixed_new(dt));
-			location errfreeloc;
-			location_init(&errfreeloc, last_sensor->edge, errfreeoff);
+			location errfreeloc = location_new(last_sensor->edge, errfreeoff);
 			location_inc(&errfreeloc, dx_sensorlag);
 			fixed errfreedist = location_dist_min(&errfreeloc, &new_loc);
 			//tmp
@@ -320,14 +331,12 @@ static void engineer_train_onsensor(engineer *this, train_descriptor *train, tra
 			logdisplay_flushline(this->log);
 		}
 	}
-
-	train->loc = new_loc;
-	train->v = new_v;
+	engineer_set_loc(this, train->no, &new_loc);
+	engineer_set_velocity(this, train->no, new_v);
 }
 
 static train_descriptor *engineer_attribute_sensor(engineer *this, track_node *sensor, int timestamp) {
-	location sensloc;
-	location_init(&sensloc, sensor->edge, fixed_new(0));
+	location sensloc = location_new(sensor->edge, fixed_new(0));
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
 		fixed v = engineer_get_velocity(this, train_no);
