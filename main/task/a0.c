@@ -264,6 +264,69 @@ static void calib_stopdist(void* s) {
 	}
 }
 
+struct {
+	int state;
+	int count;
+	int dx;
+	int dt;
+	track_node *start;
+	track_node *last_sensor;
+	int last_timestamp;
+} j;
+
+static void init_jerk() {
+	j.state = 0;
+	j.count = 0;
+	j.dx = 0;
+	j.dt = 0;
+	j.start = NULL;
+	j.last_sensor = NULL;
+	j.last_timestamp = 0;
+}
+
+static void jerk(a0state *state, track_node *sensor, int timestamp) {
+	engineer *eng = state->eng;
+	track_node *last_sensor = j.last_sensor;
+	switch (j.state) {
+		case 0: // get to v_i
+			engineer_set_speed(eng, 38, 8);
+			j.state = 1;
+			j.count = 0;
+			break;
+		case 1: // stabilize v_i
+			j.count++;
+			if (j.count == 8) {
+				j.state = 2;
+			}
+			break;
+		case 2: // get to v_f
+			logstrip_printf(state->cmdlog, "accelerating...");
+			engineer_set_speed(eng, 38, 14);
+			j.state = 3;
+			j.count = 0;
+			j.dx = 0;
+			j.dt = 0;
+			j.start = sensor;
+			break;
+		case 3: // stabilize v_f
+			j.dx += track_distance(last_sensor, sensor);
+			j.dt += TICK2MS(timestamp - j.last_timestamp);
+			j.count++;
+			if (j.count == 8) {
+				logstrip_printf(
+					state->cmdlog,
+					"dx/dt = %d/%d from %s to %s",
+					j.dx, j.dt,
+					j.start->name, sensor->name
+				);
+				j.state = 0;
+			}
+			break;
+	}
+	j.last_sensor = sensor;
+	j.last_timestamp = timestamp;
+}
+
 static void handle_sensor(a0state *state, char rawmsg[]) {
 	engineer *eng = state->eng;
 	msg_sensor *m = (msg_sensor*) rawmsg;
@@ -284,6 +347,8 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 
 	state->last_sensor = state->cur_sensor;
 	state->cur_sensor = sensor;
+
+	jerk(state, sensor, m->timestamp);
 	ui_sensor(state, m->module[0], m->id);
 	dumbbus_dispatch(state->sensor_bus, state);
 	engineer_onsensor(eng, rawmsg);
@@ -509,7 +574,8 @@ void a0() {
 
 	// sensor bus
 	state.sensor_bus = dumbbus_new();
-	// dumbbus_register(&sensor_bus, &calib_sensor);
+	init_jerk();
+	// dumbbus_register(state.sensor_bus, &jerk);
 	init_csdstate();
 	// dumbbus_register(state.sensor_bus, &calib_stopdist);
 
