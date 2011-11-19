@@ -41,7 +41,6 @@ static void ui_init(a0state *state) {
 		hist_mod[i] = 0;
 		hist_id[i] = 0;
 	}
-	console_hidecursor(state->con);
 	cmdline_clear(state->cmdline);
 }
 
@@ -159,7 +158,7 @@ static void ui_quit(a0state *state) {
 	logstrip_printf(state->cmdlog, "quitting...");
 	console_move(state->con, CONSOLE_CMD_LINE + 1, 1);
 	console_flush(state->con);
-	Flush(state->tid_com2);
+	console_flushcom(state->con);
 }
 
 /*
@@ -185,19 +184,23 @@ static void handle_train_switch_all(a0state *state, char pos) {
 
 static track ask_track(a0state *state) {
 	for (;;) {
-		Putstr(COM2, "Track a or b?\n", state->tid_com2);
-		char c = Getc(COM2, state->tid_com2);
+		console_clear(state->con);
+		console_printf(state->con, "Track a or b?\n");
+		console_flush(state->con);
+		char c = Getc(COM2, state->con->tid_console);
 		switch (c) {
 			case 'a':
 				return TRACK_A;
 			case 'b':
 				return TRACK_B;
 			default:
-				Putstr(COM2, "fail\n", state->tid_com2);
+				console_printf(state->con, "fail\n");
+				console_flush(state->con);
 				break;
 		}
 	}
-	return '\0';
+	ASSERT(0, "unreachable"); // unreachable
+	return 0;
 }
 
 #define STOP_INIT 0
@@ -567,14 +570,10 @@ static void handle_time(a0state *state, char msg[], int tid) {
 
 void a0() {
 	a0state state;
-
 	state.tid_time = WhoIs(NAME_TIMESERVER);
-	state.tid_com1 = WhoIs(NAME_IOSERVER_COM1);
-	state.tid_com2 = WhoIs(NAME_IOSERVER_COM2);
-	ASSERT(state.tid_com2 >= 0, "invalid com2 server: %d", state.tid_com2);
 
 	// ui
-	state.con = console_new(state.tid_com2);
+	state.con = console_new(COM2);
 	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
@@ -612,7 +611,7 @@ void a0() {
 	sensornotifier_new(tid_publisher);
 
 	int tid_com2buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
-	comnotifier_new(tid_com2buffer, 9, COM2, state.tid_com2);
+	comnotifier_new(tid_com2buffer, 9, COM2, state.con->tid_console);
 	courier_new(9, tid_com2buffer, MyTid());
 
 	int tid_refreshbuffer = buffertask_new(NULL, 9, sizeof(msg_time));

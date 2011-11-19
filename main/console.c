@@ -1,9 +1,12 @@
 #include <console.h>
 #include <syscall.h>
+#include <nameserver.h>
 
-console *console_new(int tid) {
+console *console_new(int channel) {
 	console *this = malloc(sizeof(console));
-	this->tid_console = tid;
+	ASSERT(channel == COM2, "channel %d is not supported", channel);
+	this->tid_console = WhoIs(NAME_IOSERVER_COM2);
+	ASSERT(this->tid_console >= 0, "com2 ioserver not found, retval: %d", this->tid_console);
 	this->buf_location = 0;
 	console_cursor_save(this);
 	return this;
@@ -56,9 +59,15 @@ void console_scroll(console *this, uint start, uint end) {
 void console_flush(console *this) {
 	console_cursor_unsave(this);
 	this->buf[this->buf_location] = '\0';
+	Putstr(COM2, CONSOLE_HIDECURSOR, this->tid_console);
 	Putstr(COM2, this->buf, this->tid_console);
+	Putstr(COM2, CONSOLE_SHOWCURSOR, this->tid_console);
 	this->buf_location = 0;
 	console_cursor_save(this);
+}
+
+void console_flushcom(console *this) {
+	Flush(this->tid_console);
 }
 
 //void console_fillrect(console *buf, char this, int x, int y, int width, int height) {
