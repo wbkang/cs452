@@ -114,6 +114,7 @@ void print_stack_trace(uint fp, int clearscreen);
 	if (!(X)) { \
 		VMEM(VIC1 + INTENCLR_OFFSET) = ~0; \
 		VMEM(VIC2 + INTENCLR_OFFSET) = ~0; \
+		bwprintf(0, "%c", 0x61); \
 		int fp, lr, pc; READ_REGISTER(fp); READ_REGISTER(lr); READ_REGISTER(pc); \
 		bwprintf(1, "\x1B[2J" "\x1B[1;1H"); \
 		bwprintf(1, "assertion failed in file " __FILE__ " line:" TOSTRING(__LINE__) " lr: %x pc: %x" CRLF, lr, pc); \
