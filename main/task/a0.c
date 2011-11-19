@@ -15,6 +15,7 @@
 #include <ui/logstrip.h>
 #include <ui/cmdline.h>
 #include <ui/logdisplay.h>
+#include <ui/timedisplay.h>
 #include <train_calibrator.h>
 #include <train_stopper.h>
 #include <server/buffertask.h>
@@ -47,11 +48,7 @@ static void ui_init(a0state *state) {
 static void ui_time(void* s) {
 	a0state *state = s;
 	int ticks = state->timestamp;
-	console_move(state->con, 1, 9);
-	console_erase_eol(state->con);
-	int ms = TICK2MS(ticks);
-	console_printf(state->con, "%d.%ds", ms / 1000, (ms / 100) % 10);
-	console_flush(state->con);
+	timedisplay_update(state->timedisplay, state->timestamp);
 }
 
 static void ui_updateswitchstatus(console *c, char no, char pos) {
@@ -578,7 +575,7 @@ void a0() {
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
 	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, 40, SCROLLING);
-
+	state.timedisplay = timedisplay_new(state.con, 1, 9);
 	state.trainloc = logstrip_new(state.con, 9, 58);
 
 	// sensor bus

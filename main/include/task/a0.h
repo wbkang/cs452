@@ -8,6 +8,7 @@
 #include <ui/logstrip.h>
 #include <ui/cmdline.h>
 #include <ui/logdisplay.h>
+#include <ui/timedisplay.h>
 #include <engineer.h>
 
 typedef struct {
@@ -23,6 +24,7 @@ typedef struct {
 	dumbbus *sensor_bus;
 	dumbbus *bus10hz;
 	dumbbus *simbus;
+	timedisplay *timedisplay;
 	int timestamp;
 	// train data
 	engineer *eng;
