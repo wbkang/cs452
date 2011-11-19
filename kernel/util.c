@@ -33,18 +33,6 @@ uint random() {
     return (m_z << 16) + m_w;  /* 32-bit result */
 }
 
-static inline char* find_function_name(uint pc) {
-	funcinfo* fl = __getfunclist();
-	int i = 0;
-
-	while (fl[i].fn != 0) {
-		if (fl[i].fn == pc) return fl[i].name;
-		i++;
-	}
-
-	return "[unknown function]";
-}
-
 void print_stack_trace(uint fp, int clearscreen) {
 	if (!fp) return;
 
