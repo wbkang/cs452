@@ -39,8 +39,9 @@ struct console {
 	ASSERT((c)->buf_location <= CONSOLE_BUF_SIZE, "console buf overflow: %d", (c)->buf_location); \
 }
 
-console *console_new(int tid);
+console *console_new(int channel);
 void console_flush(console *this);
+void console_flushcom(console *this);
 void console_hidecursor(console *this);
 void console_effect(console *this, int effect);
 void console_effect_reset(console *this);
