@@ -623,9 +623,10 @@ void a0() {
 	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(15));
 	state.tid_simstep = courier_new(9, tid_simstepbuffer, MyTid());
 
+	void *msg = malloc(LEN_MSG);
+
 	for (;;) {
 		int tid;
-		void *msg = malloc(LEN_MSG);
 		int rcvlen = Receive(&tid, msg, LEN_MSG);
 		ASSERT(rcvlen >= sizeof(msg_header), "bad data");
 		Reply(tid, NULL, 0);

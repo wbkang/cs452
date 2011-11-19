@@ -12,7 +12,7 @@ void mem_reset(); // from memory.c
 
 static void test_stack() {
 	TEST_START();
-	int size = 111;
+	int size = 128;
 	stack *s = stack_new(size);
 	void *got, *expected;
 	for (int i = 0; i < size; i++) {
@@ -28,7 +28,7 @@ static void test_stack() {
 
 static void test_buffer() {
 	TEST_START();
-	int size = 1024;
+	int size = 128;
 	struct {
 		int a, b;
 	} temp[size], rv;
@@ -50,7 +50,7 @@ static void test_buffer() {
 
 static void test_queue() {
 	TEST_START();
-	int size = 111;
+	int size = 128;
 	queue *q = queue_new(size);
 	void *got, *expected;
 	for (int i = 0; i < size; i++) {
@@ -67,7 +67,7 @@ static void test_queue() {
 
 static void test_priorityq() {
 	TEST_START();
-	int size = 111;
+	int size = 128;
 	int num_priorities = 32;
 	priorityq *pq = priorityq_new(size, num_priorities);
 	void *got, *expected;
@@ -88,7 +88,7 @@ static void test_priorityq() {
 
 static void test_heap() {
 	TEST_START();
-	int size = 111;
+	int size = 128;
 	heap *h = heap_new(size);
 	void *got, *expected;
 	for (int i = size - 1; i != -1; i--) {
@@ -104,8 +104,8 @@ static void test_heap() {
 
 static void test_memcpy() {
 	TEST_START();
-	int size = 1024;
-	int numtests = 100;
+	int size = 512;
+	int numtests = 128;
 	struct _tag_memcpy_test_data {
 		int data[size];
 	} src, dst;
@@ -128,7 +128,7 @@ static int test_lookup_hashfn(void* key) {
 
 static void test_lookup() {
 	TEST_START();
-	int size = 1024;
+	int size = 128;
 	int init = -1;
 	lookup *map = lookup_new(size, test_lookup_hashfn, (void*) init);
 	int hist[size];
