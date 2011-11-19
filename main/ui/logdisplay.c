@@ -4,26 +4,19 @@
 #include <string.h>
 #include <console.h>
 
-//typedef struct {
-//	int line, col;
-//	int totallines;
-//	int curline;
-//	int rotation;
-//	struct console *con;
-//	char buf[][MAX_LOG_COL];
-//} logdisplay;
-
-logdisplay *logdisplay_new(console *con, int line, int col, int totallines, int rotation) {
-	logdisplay *this = malloc(sizeof(logdisplay) + MAX_LOG_COL * totallines);
+logdisplay *logdisplay_new(console *con, int line, int col, int totallines, int totalcols, int rotation) {
+	logdisplay *this = malloc(sizeof(logdisplay) + sizeof(char*) * totallines);
 	this->con = con;
 	this->line = line;
 	this->col = col;
 	this->totallines = totallines;
+	this->totalcols = totalcols;
 	this->curcol = 0;
 	this->curline = 0;
 	this->topline = 0;
 
 	for (int i = 0; i < totallines; i++) {
+		this->buf[i] = malloc(totalcols + 1);
 		this->buf[i][0] = '\0';
 	}
 
@@ -32,8 +25,16 @@ logdisplay *logdisplay_new(console *con, int line, int col, int totallines, int 
 }
 
 void logdisplay_puts(logdisplay *this, char *str) {
-	ASSERT(strlen(str) + this->curcol < MAX_LOG_COL, "logdisplay overflow trying to put '%s'", str);
-	this->curcol += sprintf(this->buf[this->curline] + this->curcol, "%s", str);
+	int curline = this->curline;
+	int curcol = this->curcol;
+	int totalcols = this->totalcols;
+	int len =  strlen(str);
+	int copycount = MIN(totalcols - curcol, len);
+
+	strncpy(this->buf[curline] + curcol, str, copycount);
+
+	this->curcol += copycount;
+	this->buf[curline][this->curcol] = '\0';
 }
 
 void logdisplay_flushline(logdisplay *this) {

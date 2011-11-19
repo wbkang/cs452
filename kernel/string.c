@@ -55,8 +55,17 @@ uint strlen(char const *str) {
 	return i - str;
 }
 
-void strcpy(char *dest, const char *src) {
+char* strcpy(char *dest, const char *src) {
+	char *origdest = dest;
 	while ((*dest++ = *src++));
+	return origdest;
+}
+
+char* strncpy(char *dest, const char *src, uint count) {
+	char *origdest = dest;
+	while (count-- && (*dest++ = *src++));
+	while (count--) *dest++ = '\0';
+	return origdest;
 }
 
 int memcmp(const void *p1, const void *p2, uint count) {

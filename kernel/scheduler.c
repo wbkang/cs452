@@ -48,7 +48,7 @@ inline void scheduler_runmenext() {
 }
 
 inline void scheduler_bindevent(int irq) {
-	ASSERT(!eventblocked[irq], "irq %d bound to %d", irq, eventblocked[irq]->id);
+	ASSERT(!eventblocked[irq], "irq %d bound to task %d. currently running:%d", irq, eventblocked[irq]->id, running->id);
 	running->state = TD_STATE_WAITING4EVENT;
 	eventblocked[irq] = running;
 }
