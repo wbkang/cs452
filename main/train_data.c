@@ -1,6 +1,5 @@
 #include <train.h>
 
-// @TODO: repurpose to populate train descriptor with any static info
 void train_data_populate(train_descriptor *train, int train_no) {
 	switch (train_no) {
 		case 37:
