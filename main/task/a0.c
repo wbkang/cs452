@@ -19,6 +19,7 @@
 #include <train_stopper.h>
 #include <server/buffertask.h>
 #include <server/courier.h>
+#include <server/publisher.h>
 
 #define LEN_MSG (64 * 4)
 #define LEN_CMD 32
@@ -607,9 +608,9 @@ void a0() {
 
 	ui_init(&state);
 
-	int tid_sensorbuffer = buffertask_new(NULL, 9, sizeof(msg_sensor));
-	sensornotifier_new(tid_sensorbuffer);
-	courier_new(9, tid_sensorbuffer, MyTid());
+	int tid_publisher = publisher_new(NULL, 9, sizeof(msg_sensor));
+	publisher_sub(tid_publisher, MyTid());
+	sensornotifier_new(tid_publisher);
 
 	int tid_com2buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
 	comnotifier_new(tid_com2buffer, 9, COM2, state.tid_com2);

@@ -112,7 +112,6 @@ void print_stack_trace(uint fp, int clearscreen);
 #if ASSERT_ENABLED
 #define ASSERT(X, ...) { \
 	if (!(X)) { \
-		__asm("swi 12\n\t"); \
 		VMEM(VIC1 + INTENCLR_OFFSET) = ~0; \
 		VMEM(VIC2 + INTENCLR_OFFSET) = ~0; \
 		int fp, lr, pc; READ_REGISTER(fp); READ_REGISTER(lr); READ_REGISTER(pc); \

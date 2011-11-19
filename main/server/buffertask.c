@@ -43,6 +43,7 @@ static inline void handle_get(buffertask_state *state, int tid) {
 	}
 }
 
+// @TODO (optional): add an optimization for variable sized items. currently it copies the entire thing.
 static void buffertask() {
 	// init args
 	int tid;
@@ -62,7 +63,7 @@ static void buffertask() {
 	state.items = buffer_new((STACK_SIZE - 1000) / args->item_size, args->item_size);
 	state.get_blocked = queue_new(NUM_BLOCKED);
 
-	const int size_packet = MAX(sizeof(msg_req), state.item_size);
+	const int size_packet = MAX(sizeof(msg_header), state.item_size);
 	void* packet = malloc(size_packet);
 
 	for (;;) {
@@ -84,7 +85,7 @@ static void buffertask() {
  * API
  */
 
-int buffertask_new(char *name, int priority, int item_size) {
+int buffertask_new(char name[], int priority, int item_size) {
 	int tid = Create(priority, buffertask);
 	if (tid < 0) return tid;
 	int namesize = strlen(name) + 1;
@@ -103,7 +104,7 @@ int buffertask_put(int tid, void* item, int item_size) {
 }
 
 int buffertask_get(int tid, void* item, int item_size) {
-	msg_req msg;
+	msg_header msg;
 	msg.type = REQ;
 	return Send(tid, &msg, sizeof(msg), item, item_size);
 }
