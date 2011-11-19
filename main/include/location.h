@@ -9,9 +9,8 @@ struct location {
 	fixed offset;
 };
 
-#define LOCATION_UNDEF (location_new(NULL, fixed_new(0)))
-
 location location_new(track_edge *edge, fixed offset);
+location location_undef();
 int location_isundef(location *this);
 int location_isvalid(location *this);
 fixed location_dist_min(location *from, location *to);

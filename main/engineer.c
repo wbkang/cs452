@@ -28,7 +28,7 @@ engineer *engineer_new(char track_name) {
 		train->dir = TRAIN_UNKNOWN;
 		train->dist2nose = fixed_new(0);
 		train->dist2tail = fixed_new(0);
-		train->loc = LOCATION_UNDEF;
+		train->loc = location_undef();
 		engineer_set_velocity(this, train_no, fixed_new(0));
 		train->last_sensor = NULL;
 		train->timestamp_last_sensor = 0;
@@ -115,7 +115,7 @@ void engineer_on_set_speed(engineer *this, int train_no, int speed) {
 	train_descriptor *train = &this->train[train_no];
 	train->last_speed = train->speed;
 	train->speed = speed;
-	train->loc = LOCATION_UNDEF; // lose position
+	train->loc = location_undef(); // lose position
 	train->last_sensor = NULL;
 	int speed_idx = engineer_get_speedidx(this, train_no);
 	int v_avg_d = train->v_avg_d[speed_idx];

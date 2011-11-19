@@ -4,7 +4,10 @@
 #define MS2TICK(x) ((x) / MSPERTICK)
 #define TICK2MS(x) ((x) * MSPERTICK)
 
-typedef enum {SENSOR, COM_IN, TIME, REQ, DATA, TRAINCMD} msgtype;
+typedef enum {
+	SENSOR, COM_IN, TIME, REQ,
+	TRAINCMD, SUB
+} msgtype;
 
 typedef struct {
 	msgtype type;
@@ -29,10 +32,6 @@ typedef struct {
 	int timestamp;
 } msg_time;
 
-typedef struct {
-	msgtype type;
-} msg_req;
-
 typedef enum {
 	SPEED, REVERSE, SWITCH, SOLENOID, QUERY1, QUERY, GO, STOP, PAUSE
 } traincmdname;
@@ -44,3 +43,8 @@ typedef struct {
 	int arg2;
 	int timestamp;
 } traincmd;
+
+typedef struct {
+	msgtype type;
+	int tid;
+} msg_sub;

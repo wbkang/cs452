@@ -13,8 +13,8 @@ static void courier() {
 	Receive(&tid, &args, sizeof(args));
 	Reply(tid, NULL, 0);
 
-	const int size_req = sizeof(msg_req);
-	msg_req *req = malloc(size_req);
+	const int size_req = sizeof(msg_header);
+	msg_header *req = malloc(size_req);
 	req->type = REQ;
 
 	const int size_packet = STACK_SIZE - 1000;

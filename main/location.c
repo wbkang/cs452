@@ -8,6 +8,10 @@ location location_new(track_edge *edge, fixed offset) {
 	return rv;
 }
 
+location location_undef() {
+	return location_new(NULL, fixed_new(0));
+}
+
 int location_isundef(location *this) {
 	ASSERTNOTNULL(this);
 	return this->edge == NULL;
@@ -15,7 +19,7 @@ int location_isundef(location *this) {
 
 int location_isvalid(location *this) {
 	if (this == NULL) return FALSE;
-	if (this->edge == NULL) return TRUE; // undefined
+	if (this->edge == NULL) return fixed_sgn(this->offset) == 0; // undefined
 	if (fixed_sgn(this->offset) < 0) return FALSE; // negative offset
 	fixed edge_len = fixed_new(this->edge->dist);
 	if (fixed_cmp(this->offset, edge_len) >= 0) return FALSE; // "overflow" offset
@@ -92,6 +96,6 @@ int location_inc(location *this, fixed dx) {
 			return -2; // dead end
 		}
 	}
-	*this = LOCATION_UNDEF;
+	*this = location_undef();
 	return -3;
 }
