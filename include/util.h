@@ -86,7 +86,7 @@ static inline int overflow(int x, int y) {
 }
 
 ///////////// DEBUG
-#define MEM_PROTECTION 0 // MEM_CACHE must be on
+#define MEM_PROTECTION 1 // MEM_CACHE must be on
 #define MEM_CACHE 1
 #define ASSERT_ENABLED 1
 #define TRACE_ENABLED 1

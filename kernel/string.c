@@ -55,8 +55,19 @@ uint strlen(char const *str) {
 	return i - str;
 }
 
-void strcpy(char *dest, const char *src) {
+char* strcpy(char *dest, const char *src) {
+	char *origdest = dest;
 	while ((*dest++ = *src++));
+	return origdest;
+}
+
+char* strncpy(char *dest, const char *src, uint count) {
+	char *origdest = dest;
+	int signedcnt = (int)count;
+	ASSERT(signedcnt >= 0, "count too big: %x", count);
+	while (signedcnt-- > 0 && (*dest++ = *src++));
+	while (signedcnt-- > 0) *dest++ = '\0';
+	return origdest;
 }
 
 int memcmp(const void *p1, const void *p2, uint count) {
