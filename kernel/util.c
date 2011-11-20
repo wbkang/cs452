@@ -8,10 +8,10 @@
 extern int _KERNEL_MEM_START;
 extern int _KERNEL_MEM_END;
 
-static int HERPDERP;
-
-int *getherp() {
-	return &HERPDERP;
+// @TODO: global variable used for debugging, remove eventually (not now)
+static int globalint;
+int *get_globalint() {
+	return &globalint;
 }
 
 void die() {
