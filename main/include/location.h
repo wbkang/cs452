@@ -15,4 +15,4 @@ int location_isundef(location *this);
 int location_isvalid(location *this);
 fixed location_dist_min(location *from, location *to);
 fixed location_dist_dir(location *from, location *to);
-int location_inc(location *this, fixed dx);
+int location_add(location *this, fixed dx);
