@@ -36,8 +36,8 @@ engineer *engineer_new(char track_name) {
 	}
 
 	this->con = console_new(COM2);
-	this->log = logdisplay_new(this->con, 11, 56, 8, 40, ROUNDROBIN);
-	this->log2 = logdisplay_new(this->con, 11 + 9, 56, 8, 40, ROUNDROBIN);
+	this->log = logdisplay_new(this->con, 11, 56, 8, 80, ROUNDROBIN);
+	this->log2 = logdisplay_new(this->con, 11 + 9, 56, 8, 80, ROUNDROBIN);
 	this->tid_time = WhoIs(NAME_TIMESERVER);
 
 	return this;
@@ -155,18 +155,14 @@ void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
 void engineer_train_on_loc(engineer *this, train_descriptor *train, location *loc_new, int t_loc) {
 	int now = Time(this->tid_time);
 
-	if (train_get_tspeed(train) + MS2TICK(3000) > now) return; // wait until the velocity settles
+	if (train_get_tspeed(train) + MS2TICK(5000) > now) return; // wait until the velocity settles
 
 	train_update_simulation(train, now);
-
-	fixed v = train_get_velocity(train);
-	ASSERT(fixed_sgn(v) >= 0, "bad velocity %F", v);
 
 	location loc;
 	train_get_loc(train, &loc);
 
-	fixed dt_lag = fixed_new(TICK2MS(now - t_loc));
-	fixed dx_lag = fixed_mul(v, dt_lag);
+	fixed dx_lag = train_simulate_dx(train, t_loc, now);
 	location_add(loc_new, dx_lag);
 	train_set_loc(train, loc_new);
 
@@ -174,7 +170,9 @@ void engineer_train_on_loc(engineer *this, train_descriptor *train, location *lo
 		fixed dist = location_dist_min(&loc, loc_new);
 		ASSERT(fixed_sgn(dist) >= 0, "bad distance %F", dist);
 		logdisplay_printf(this->log,
-			"%-5s + %Fmm (%F)",
+			"pred: %-5s + %Fmm, attrib: %-5s + %Fmm (%F)",
+			loc.edge->src->name,
+			loc.offset,
 			loc_new->edge->src->name,
 			loc_new->offset,
 			dist
@@ -218,7 +216,7 @@ void engineer_onloc(engineer *this, location *loc, int t_loc) {
 	train_descriptor *train = engineer_attribute_loc(this, loc, t_loc);
 	if (train) {
 		logdisplay_printf(this->log2,
-			"attributing location %s + %Fmm to train %d",
+			"attrib. loc. %s + %Fmm to train %d",
 			loc->edge->src->name,
 			loc->offset,
 			train->no
