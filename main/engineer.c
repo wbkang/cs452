@@ -156,7 +156,7 @@ void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
 	train_set_dir(train, dir);
 }
 
-void engineer_train_onsensor(engineer *this, train_descriptor *train, track_node *sensor, int t_loc) {
+void engineer_train_on_loc(engineer *this, train_descriptor *train, location *loc_new, int t_loc) {
 	int now = Time(this->tid_time);
 
 	if (train_get_tspeed(train) + MS2TICK(3000) > now) return; // wait until the velocity settles
@@ -171,16 +171,16 @@ void engineer_train_onsensor(engineer *this, train_descriptor *train, track_node
 
 	fixed dt_lag = fixed_new(TICK2MS(now - t_loc));
 	fixed dx_lag = fixed_mul(v, dt_lag);
-	location loc_new = location_new(sensor->edge, dx_lag);
-	train_set_loc(train, &loc_new);
+	location_inc(loc_new, dx_lag);
+	train_set_loc(train, loc_new);
 
 	if (!location_isundef(&loc)) {
-		fixed dist = location_dist_min(&loc, &loc_new);
+		fixed dist = location_dist_min(&loc, loc_new);
 		ASSERT(fixed_sgn(dist) >= 0, "bad distance %F", dist);
 		logdisplay_printf(this->log,
 			"%-5s + %Fmm (%F)",
-			loc_new.edge->src->name,
-			loc_new.offset,
+			loc_new->edge->src->name,
+			loc_new->offset,
 			dist
 		);
 		logdisplay_flushline(this->log);
@@ -212,7 +212,7 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 				location loc_past;
 				engineer_get_loc_hist(this, train, t_loc, &loc_past);
 				fixed dist = location_dist_min(&loc_past, loc);
-				if (fixed_sgn(dist) >= 0 && fixed_cmp(dist, fixed_new(300)) <= 0) { // threshold
+				if (fixed_sgn(dist) >= 0 && fixed_cmp(dist, fixed_new(300)) <= 0) {
 					return &this->train[train_no];
 				}
 			}
@@ -244,7 +244,7 @@ void engineer_onsensor(engineer *this, char data[]) {
 	if (train) {
 		logdisplay_printf(this->log2, "attributing sensor %s to train %d", sensor->name, train->no);
 		logdisplay_flushline(this->log2);
-		engineer_train_onsensor(this, train, sensor, msg->timestamp);
+		engineer_train_on_loc(this, train, &loc_sensor, msg->timestamp);
 	} else {
 		logdisplay_printf(this->log2, "spurious sensor %s", sensor->name);
 		logdisplay_flushline(this->log2);

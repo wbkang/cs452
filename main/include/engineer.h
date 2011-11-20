@@ -32,7 +32,7 @@ track_node *engineer_get_tracknode(engineer *this, char *type, int id);
 void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid);
 train_direction engineer_train_get_dir(engineer *this, int train_no);
 void engineer_train_set_dir(engineer *this, int train_no, train_direction dir);
-void engineer_train_onsensor(engineer *this, train_descriptor *train, track_node *sensor, int timestamp);
+void engineer_train_on_loc(engineer *this, train_descriptor *train, location *loc_new, int t_loc);
 void engineer_get_loc_hist(engineer *this, train_descriptor *train, int t_past, location *rv_loc);
 train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_loc);
 void engineer_onsensor(engineer *this, char data[]);
