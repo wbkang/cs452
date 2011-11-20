@@ -243,60 +243,60 @@ static void init_jerk() {
 	j.state = 0;
 }
 
-static void jerk(a0state *state, track_node *sensor, int timestamp) {
-	engineer *eng = state->eng;
-	track_node *last_sensor = j.last_sensor;
-	int dx = track_distance(last_sensor, sensor);
-	int dt = TICK2MS(timestamp - j.last_timestamp);
-	j.last_sensor = sensor;
-	j.last_timestamp = timestamp;
+// static void jerk(a0state *state, track_node *sensor, int timestamp) {
+// 	engineer *eng = state->eng;
+// 	track_node *last_sensor = j.last_sensor;
+// 	int dx = track_distance(last_sensor, sensor);
+// 	int dt = TICK2MS(timestamp - j.last_timestamp);
+// 	j.last_sensor = sensor;
+// 	j.last_timestamp = timestamp;
 
-	switch (j.state) {
-		case 0: // get to v_i
-			logstrip_printf(state->cmdlog, "getting to v_i");
-			engineer_set_speed(eng, 38, 8);
-			j.state = 1;
-			j.count = 0;
-			break;
-		case 1: // stabilize v_i
-			logstrip_printf(state->cmdlog, "stabilizing v_i");
-			j.count++;
-			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
-				j.state = 2;
-			}
-			break;
-		case 2: // get to v_f
-			logstrip_printf(state->cmdlog, "getting to v_f");
-			engineer_set_speed(eng, 38, 14);
-			j.state = 3;
-			j.count = 0;
-			j.dx = 0;
-			j.dt = 0;
-			j.v_i_x = dx;
-			j.v_i_t = dt;
-			j.start = sensor;
-			break;
-		case 3: // stabilize v_f
-			logstrip_printf(state->cmdlog, "stabilizing v_f");
-			j.dx += dx;
-			j.dt += dt;
-			j.count++;
-			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
-				// "dx/dt = %d/%d from %s to %s, v_i = %d/%d, v_f = %d/%d"
-				logdisplay_printf(
-					state->log,
-					"%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d",
-					j.start->name, sensor->name,
-					j.dx, j.dt,
-					j.v_i_x, j.v_i_t,
-					dx, dt
-				);
-				logdisplay_flushline(state->log);
-				j.state = 0;
-			}
-			break;
-	}
-}
+// 	switch (j.state) {
+// 		case 0: // get to v_i
+// 			logstrip_printf(state->cmdlog, "getting to v_i");
+// 			engineer_set_speed(eng, 38, 8);
+// 			j.state = 1;
+// 			j.count = 0;
+// 			break;
+// 		case 1: // stabilize v_i
+// 			logstrip_printf(state->cmdlog, "stabilizing v_i");
+// 			j.count++;
+// 			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
+// 				j.state = 2;
+// 			}
+// 			break;
+// 		case 2: // get to v_f
+// 			logstrip_printf(state->cmdlog, "getting to v_f");
+// 			engineer_set_speed(eng, 38, 14);
+// 			j.state = 3;
+// 			j.count = 0;
+// 			j.dx = 0;
+// 			j.dt = 0;
+// 			j.v_i_x = dx;
+// 			j.v_i_t = dt;
+// 			j.start = sensor;
+// 			break;
+// 		case 3: // stabilize v_f
+// 			logstrip_printf(state->cmdlog, "stabilizing v_f");
+// 			j.dx += dx;
+// 			j.dt += dt;
+// 			j.count++;
+// 			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
+// 				// "dx/dt = %d/%d from %s to %s, v_i = %d/%d, v_f = %d/%d"
+// 				logdisplay_printf(
+// 					state->log,
+// 					"%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d",
+// 					j.start->name, sensor->name,
+// 					j.dx, j.dt,
+// 					j.v_i_x, j.v_i_t,
+// 					dx, dt
+// 				);
+// 				logdisplay_flushline(state->log);
+// 				j.state = 0;
+// 			}
+// 			break;
+// 	}
+// }
 
 static void handle_sensor(a0state *state, char rawmsg[]) {
 	engineer *eng = state->eng;

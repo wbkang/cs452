@@ -12,6 +12,8 @@
 #define TIMESERVER_ERROR_BADDATA -2
 
 void timeserver();
+
+int timeserver_create();
 inline int timeserver_time(int timeserver);
 inline int timeserver_delayuntil(int ticks, int timeserver);
 inline int timeserver_delay(int ticks, int timeserver);
