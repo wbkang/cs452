@@ -5,8 +5,7 @@
 #define TICK2MS(x) ((x) * MSPERTICK)
 
 typedef enum {
-	SENSOR, COM_IN, TIME, REQ,
-	TRAINCMD, SUB
+	SENSOR, COM_IN, TIME, REQ, TRAINCMD, TRAINCMDRECEIPT, SUB
 } msgtype;
 
 typedef struct {
@@ -41,8 +40,13 @@ typedef struct {
 	traincmdname name;
 	int arg1;
 	int arg2;
-	int timestamp;
 } traincmd;
+
+typedef struct {
+	msgtype type;
+	int timestamp;
+	traincmd cmd;
+} traincmd_receipt;
 
 typedef struct {
 	msgtype type;

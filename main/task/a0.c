@@ -524,6 +524,50 @@ static void handle_time(a0state *state, char msg[], int tid) {
 	}
 }
 
+static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
+	traincmd_receipt *rcpt = (traincmd_receipt*) msg;
+	traincmd *cmd = &rcpt->cmd;
+	int t = rcpt->timestamp;
+		switch (cmd->name) {
+			case SPEED: {
+				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: speed(%d, %d)", t, cmd->arg1, cmd->arg2);
+				break;
+			}
+			case REVERSE: {
+				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: reverse(%d)", t, cmd->arg1);
+				break;
+			}
+			case SWITCH: {
+				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: switch(%d, %d)", t, cmd->arg1, cmd->arg2);
+				break;
+			}
+			case SOLENOID:
+				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: offsolenoid()", t);
+				break;
+			case QUERY1: {
+				// logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: querymod1(%d)", t, cmd->arg1);
+				break;
+			}
+			case QUERY: {
+				// logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: querymods(%d)", t, cmd->arg1);
+				break;
+			}
+			case GO:
+				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: go()", t);
+				break;
+			case STOP:
+				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: stop()", t);
+				break;
+			case PAUSE: {
+				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: pause(%d)", t, cmd->arg1);
+				break;
+			}
+			default:
+				ERROR("bad train cmd: %d", cmd->name);
+				break;
+		}
+}
+
 void a0() {
 	a0state state;
 
@@ -596,6 +640,9 @@ void a0() {
 				break;
 			case TIME:
 				handle_time(&state, msg, tid);
+				break;
+			case TRAINCMDRECEIPT:
+				handle_traincmdmsgreceipt(&state, msg);
 				break;
 			default:
 				break;

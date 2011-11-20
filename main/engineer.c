@@ -1,17 +1,17 @@
 #include <engineer.h>
 #include <syscall.h>
 #include <server/traincmdbuffer.h>
-#include <server/traincmdrunner.h>
 #include <fixed.h>
 #include <track_data.h>
 #include <uconst.h>
+#include <server/publisher.h>
 
 engineer *engineer_new(char track_name) {
 	engineer *this = malloc(sizeof(engineer));
 
 	// initialize helper tasks
 	this->tid_traincmdbuf = traincmdbuffer_new();
-	traincmdrunner_new();
+	publisher_sub(WhoIs(NAME_TRAINCMDPUB), MyTid());
 
 	// start
 	train_go(this->tid_traincmdbuf);
