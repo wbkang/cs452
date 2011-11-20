@@ -387,10 +387,11 @@ int sensor_mapper(void* key) {
 ''' % options.h)
 for fun in tracks:
   fh.write('''
-lookup* %s(track_node *track) {
+lookup *%s(track_node *track) {
   lookup *sensormap = lookup_new(22 * 9, sensor_mapper, 0);
   memset(track, 0, sizeof(track_node) * TRACK_MAX);
 ''' % fun)
+  edge_num = 0
   for nd in tracks[fun].nodes:
     idx = nd.index
     fh.write("\ttrack[%d].name = \"%s\";\n" % (idx, nd.name))
@@ -409,14 +410,12 @@ lookup* %s(track_node *track) {
           if nd.__dict__[dir].reverse.__dict__[dir2] == nd.reverse:
             fh.write(("  track[%d].edge[DIR_%s].reverse =" + \
                       " &track[%d].edge[DIR_%s];\n") % \
-              (idx, dir.upper(), nd.__dict__[dir].reverse.index, \
-               dir2.upper()))
-        fh.write("\ttrack[%d].edge[DIR_%s].src = &track[%d];\n" % \
-          (idx, dir.upper(), idx))
-        fh.write("\ttrack[%d].edge[DIR_%s].dest = &track[%d];\n" % \
-          (idx, dir.upper(), idx2))
-        fh.write("\ttrack[%d].edge[DIR_%s].dist = %s;\n" % \
-          (idx, dir.upper(), dist))
+              (idx, dir.upper(), nd.__dict__[dir].reverse.index, dir2.upper()))
+        fh.write("\ttrack[%d].edge[DIR_%s].src = &track[%d];\n" % (idx, dir.upper(), idx))
+        fh.write("\ttrack[%d].edge[DIR_%s].dest = &track[%d];\n" % (idx, dir.upper(), idx2))
+        fh.write("\ttrack[%d].edge[DIR_%s].dist = %s;\n" % (idx, dir.upper(), dist))
+        fh.write("\ttrack[%d].edge[DIR_%s].num = %d;\n" % (idx, dir.upper(), edge_num))
+        edge_num += 1
     fh.write("\tlookup_put(sensormap, (void*) track[%d].name, track + %d);\n" % (idx, idx))
   fh.write("\treturn sensormap;\n}\n")
 fh.close()
