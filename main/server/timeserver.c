@@ -100,6 +100,11 @@ static inline int timeserver_send(timeserver_req *req, int server) {
 /*
  * API
  */
+
+int timeserver_create() {
+	return Create(PRIORITY_TIMESERVER, timeserver);
+}
+
 int Time(int timeserver) {
 	timeserver_req req;
 	req.no = TIMESERVER_TIME;

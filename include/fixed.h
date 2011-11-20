@@ -118,3 +118,8 @@ static inline fixed fixed_abs(fixed f) {
 static inline fixed fixed_min(fixed a, fixed b) {
 	return a.v < b.v ? a : b;
 }
+
+static inline fixed fixed_neg(fixed f) {
+	f.v = -f.v;
+	return f;
+}

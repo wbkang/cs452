@@ -170,7 +170,7 @@ static void init_sensor_pic(track_template *tt) {
 
 static sensor_pic_info *get_sensor_pic_info(track_template *tt, char mod, int id) {
 	sensor_pic_info *spinfo = &tt->sensor_pic_info_table[mod - 'A'][id];
-	ASSERT(spinfo < 0x3f000000, "omfg. tt:%x, mod:%d(%c), id:%d", tt, mod, mod, id);
+	ASSERT((uint) spinfo < 0x3f000000, "omfg. tt:%x, mod:%d(%c), id:%d", tt, mod, mod, id);
 	return spinfo;
 }
 

@@ -63,7 +63,7 @@ fixed engineer_sim_stopdist(engineer *this, int train_no) {
 void engineer_on_set_speed(engineer *this, int train_no, int speed, int t) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
-	train_simulate(train, t);
+	train_update_simulation(train, t);
 	train_on_set_speed(train, speed, t);
 }
 
@@ -161,7 +161,7 @@ void engineer_train_on_loc(engineer *this, train_descriptor *train, location *lo
 
 	if (train_get_tspeed(train) + MS2TICK(3000) > now) return; // wait until the velocity settles
 
-	train_simulate(train, now);
+	train_update_simulation(train, now);
 
 	fixed v = train_get_velocity(train);
 	ASSERT(fixed_sgn(v) >= 0, "bad velocity %F", v);
@@ -187,20 +187,6 @@ void engineer_train_on_loc(engineer *this, train_descriptor *train, location *lo
 	}
 }
 
-// @TODO: use actual history as opposed to guessing it with current loc/velocity
-// @TODO: limiting the scope of this function makes it MUCH easier to code. right now the purpose is to only see where the train was at time t_past. this time is guaranteed to be near a sensor hit so there are no issues with track switch state.
-void engineer_get_loc_hist(engineer *this, train_descriptor *train, int t_past, location *rv_loc) {
-	int t = Time(this->tid_time);
-	ASSERT(t_past < t, "not in the past");
-	train_get_loc(train, rv_loc);
-	fixed v = train_get_velocity(train);
-	if (fixed_sgn(v) > 0) {
-		fixed dt = fixed_new(TICK2MS(t_past - t));
-		fixed dx = fixed_mul(v, dt);
-		location_inc(rv_loc, dx);
-	}
-}
-
 train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_loc) {
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
@@ -209,7 +195,7 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 			train_get_loc(train, &loc_train);
 			if (!location_isundef(&loc_train)) { // known location
 				location loc_past;
-				engineer_get_loc_hist(this, train, t_loc, &loc_past);
+				train_get_loc_hist(train, t_loc, &loc_past);
 				fixed dist = location_dist_min(&loc_past, loc);
 				if (fixed_sgn(dist) >= 0 && fixed_cmp(dist, fixed_new(300)) <= 0) {
 					return &this->train[train_no];
@@ -232,12 +218,12 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 	return rv;
 }
 
-void engineer_onloc(engineer *this, location *loc, int t) {
-	train_descriptor *train = engineer_attribute_loc(this, loc, t);
+void engineer_onloc(engineer *this, location *loc, int t_loc) {
+	train_descriptor *train = engineer_attribute_loc(this, loc, t_loc);
 	if (train) {
 		logdisplay_printf(this->log2, "attributing sensor %s to train %d", loc->edge->src->name, train->no);
 		logdisplay_flushline(this->log2);
-		engineer_train_on_loc(this, train, loc, t);
+		engineer_train_on_loc(this, train, loc, t_loc);
 	} else {
 		logdisplay_printf(this->log2, "spurious sensor %s", loc->edge->src->name);
 		logdisplay_flushline(this->log2);
@@ -257,6 +243,6 @@ void engineer_onsensor(engineer *this, char data[]) {
 void engineer_ontick(engineer *this) {
 	int t = Time(this->tid_time);
 	TRAIN_FOREACH(train_no) {
-		train_simulate(&this->train[train_no], t);
+		train_update_simulation(&this->train[train_no], t);
 	}
 }
