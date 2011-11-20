@@ -170,6 +170,7 @@ void train_simulate(train_descriptor *this, int t_f) {
 			fixed dt = fixed_new(TICK2MS(t_f - t_i));
 			fixed dx = fixed_mul(v, dt);
 			location_inc(&loc, dx);
+			train_set_loc(this, &loc);
 		}
 	}
 	train_set_tsim(this, t_f);

@@ -233,6 +233,7 @@ void track_template_updateswitch(track_template *tt, char no, char pos) {
 	console_effect(c, EFFECT_FG_YELLOW);
 	console_printf(c, "%c", (pos_name == 'S') ? swinfo->straight : swinfo->curved);
 	console_effect_reset(c);
+	console_flush(c);
 }
 
 void track_template_updatesensor(track_template *tt, char module, int id, int train) {
