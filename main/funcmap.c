@@ -2,7 +2,10 @@
 #include <funcmap.h>
 
 static funcinfo __funclist[1];
-void __init_funclist() {
 
+void __init_funclist() {
 }
-funcinfo* __getfunclist() { return __funclist; }
+
+funcinfo *__getfunclist() {
+	return __funclist;
+}

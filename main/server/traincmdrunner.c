@@ -21,7 +21,7 @@ void traincmdrunner() {
 				Putc(COM1, train, tid_com1);
 				Flush(tid_com1);
 				char buf[256];
-				sprintf(buf, "\x1B[s" "\x1B[3;56H" "%dms delay running %d (%d, %d)        " "\x1B[u", (uptime() - *getherp()) / 983, cmd.name, cmd.arg1, cmd.arg2);
+				sprintf(buf, "\x1B[s" "\x1B[3;56H" "%dms delay running %d (%d, %d)        " "\x1B[u", (uptime() - *get_globalint()) / 983, cmd.name, cmd.arg1, cmd.arg2);
 				Putstr(COM2, buf, tid_com2);
 				break;
 			}

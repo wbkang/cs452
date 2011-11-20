@@ -14,7 +14,7 @@ location location_undef() {
 
 int location_isundef(location *this) {
 	ASSERTNOTNULL(this);
-	return this->edge == NULL;
+	return this->edge == NULL && fixed_sgn(this->offset) == 0;
 }
 
 int location_isvalid(location *this) {
@@ -82,19 +82,33 @@ fixed location_dist_dir(location *from, location *to) {
 int location_inc(location *this, fixed dx) {
 	ASSERT(location_isvalid(this), "bad location");
 	if (location_isundef(this)) return -1; // incrementing undefined location
-	ASSERT(fixed_sgn(dx) >= 0, "negative dx not supported");
+	int sgn = fixed_sgn(dx);
+	if (sgn == 0) return 0;
 	this->offset = fixed_add(this->offset, dx);
-	while (this->edge) {
-		fixed edge_len = fixed_new(this->edge->dist);
-		if (fixed_cmp(this->offset, edge_len) < 0) return 0;
-		track_edge *next_edge = track_next_edge(this->edge->dest);
-		if (next_edge) {
-			this->edge = next_edge;
-			this->offset = fixed_sub(this->offset, edge_len);
-		} else {
-			this->offset = edge_len;
-			return -2; // dead end
+	if (sgn > 0) {
+		for (;;) {
+			fixed len_edge = fixed_new(this->edge->dist);
+			if (fixed_cmp(this->offset, len_edge) < 0) return 0;
+			track_edge *next_edge = track_next_edge(this->edge->dest);
+			if (next_edge) {
+				this->edge = next_edge;
+				this->offset = fixed_sub(this->offset, len_edge);
+			} else {
+				this->offset = len_edge;
+				return -2; // dead end
+			}
 		}
+	} else {
+		while (fixed_sgn(this->offset) < 0) {
+			track_node *n = this->edge->src;
+			n = n->reverse;
+			n = track_next_node(n);
+			if (!n) return -4;
+			n = n->reverse;
+			this->edge = n->edge;
+			this->offset = fixed_add(this->offset, fixed_new(n->edge->dist));
+		}
+		return 0;
 	}
 	*this = location_undef();
 	return -3;

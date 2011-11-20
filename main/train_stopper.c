@@ -57,13 +57,6 @@ void train_stopper_setup(a0state *state, int train_no, char *type, int id, int o
 	ASSERTNOTNULL(type);
 	ASSERT(over >= 0, "dist negative: %d", over);
 
-	fixed stopm, stopb;
-	engineer_get_stopinfo(eng, train_no, &stopm, &stopb);
-	if (fixed_is0(stopm)) {
-		logstrip_printf(state->cmdlog, "Sorry. Stop distance unknown for train %d.", train_no);
-		return;
-	}
-
 	track_node *dest = engineer_get_tracknode(eng, type, id);
 	if (!dest) {
 		logstrip_printf(state->cmdlog, "Sorry. Landmark %s%d does not exist.", type, id);
