@@ -32,10 +32,8 @@ server/traincmdrunner.o server/timenotifier.o server/buffertask.o \
 server/timeserver.o server/ioserver.o server/eventnotifier.o \
 track_data.o track_node.o console.o \
 task/calib_test.o task/task1.o task/k3clients.o task/a0.o task/perfmon.o \
-ui/logstrip.o ui/cmdline.o ui/logdisplay.o ui/a0_track_template.o \
-engineer.o location.o server/courier.o server/publisher.o train.o \
 ui/logstrip.o ui/cmdline.o ui/logdisplay.o ui/a0_track_template.o ui/timedisplay.o \
-engineer.o location.o server/courier.o server/publisher.o
+engineer.o location.o server/courier.o server/publisher.o train.o
 ################
 
 
