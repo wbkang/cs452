@@ -109,11 +109,13 @@ int train_get_speed(train_descriptor *this) {
 	return this->speed;
 }
 
+// @TODO: the only external thing that changes a train state is the set_speed command. we should keep a history of these commands if we want to be able to rewind the simulation.
 void train_on_set_speed(train_descriptor *this, int speed, int t) {
+	train_update_simulation(this, t);
 	this->last_speed = this->speed;
 	this->speed = speed;
 	this->t_speed = t;
-	this->loc = location_undef(); // lose position
+	this->loc = location_undef(); // @TODO: lose position, remove this when get an acceleration model
 }
 
 void train_get_loc(train_descriptor *this, location *loc) {

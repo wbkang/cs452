@@ -1,6 +1,7 @@
 #pragma once
 
 #include <track_node.h>
+#include <fixed.h>
 
 typedef struct location location;
 

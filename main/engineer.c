@@ -21,7 +21,7 @@ engineer *engineer_new(char track_name) {
 		train_init(&this->train[train_no], train_no);
 	}
 
-	// initialize track nodes
+	// initialize track object
 	track_node *tn = malloc(sizeof(track_node) * TRACK_MAX);
 	switch (track_name) {
 		case 'a':
@@ -59,15 +59,13 @@ fixed engineer_sim_stopdist(engineer *this, int train_no) {
 	return train_get_stopdist(&this->train[train_no]);
 }
 
-// @TODO: the only external thing that changes a train state is the set_speed command. we should keep a history of these commands if we want to be able to rewind the simulation.
 void engineer_on_set_speed(engineer *this, int train_no, int speed, int t) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_descriptor *train = &this->train[train_no];
-	train_update_simulation(train, t);
-	train_on_set_speed(train, speed, t);
+	train_on_set_speed(&this->train[train_no], speed, t);
 }
 
 void engineer_set_speed(engineer *this, int train_no, int speed) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	*get_globalint() = uptime();
 	train_speed(train_no, speed, this->tid_traincmdbuf);
 	// @TODO: there is a delay between putting the bytes in UART and when the train is aware of them. we need to include this delay right here. we could use a blocking putc and a command runner that pings the engineer back saying the command was put into the UART. we delay the following line until then.
@@ -76,10 +74,10 @@ void engineer_set_speed(engineer *this, int train_no, int speed) {
 
 void engineer_get_loc(engineer *this, int train_no, location *loc) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_descriptor *train = &this->train[train_no];
-	train_get_loc(train, loc);
+	train_get_loc(&this->train[train_no], loc);
 }
 
+// @TODO: this is a tricky thing because it's technically a small path involving 3 commands and 2 delays. this needs to be rethought in the context of a path finder.
 void engineer_reverse(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_descriptor *train = &this->train[train_no];
@@ -146,14 +144,12 @@ void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid) {
 
 train_direction engineer_train_get_dir(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_descriptor *train = &this->train[train_no];
-	return train_get_dir(train);
+	return train_get_dir(&this->train[train_no]);
 }
 
 void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_descriptor *train = &this->train[train_no];
-	train_set_dir(train, dir);
+	train_set_dir(&this->train[train_no], dir);
 }
 
 void engineer_train_on_loc(engineer *this, train_descriptor *train, location *loc_new, int t_loc) {
@@ -241,7 +237,7 @@ void engineer_onsensor(engineer *this, char data[]) {
 	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
 	location loc_sensor = location_new(sensor->edge);
 	if (msg->state == OFF) {
-		fixed len_pickup = fixed_new(50); // @TODO: don't hardcode this?
+		fixed len_pickup = fixed_new(50); // @TODO: don't hardcode, even though so easy
 		location_add(&loc_sensor, len_pickup);
 	}
 	engineer_onloc(this, &loc_sensor, msg->timestamp);
