@@ -35,7 +35,7 @@ engineer *engineer_new(char track_name) {
 			break;
 	}
 
-	this->con = console_new(WhoIs(NAME_IOSERVER_COM2));
+	this->con = console_new(COM2);
 	this->log = logdisplay_new(this->con, 11, 56, 8, 40, ROUNDROBIN);
 	this->log2 = logdisplay_new(this->con, 11 + 9, 56, 8, 40, ROUNDROBIN);
 	this->tid_time = WhoIs(NAME_TIMESERVER);

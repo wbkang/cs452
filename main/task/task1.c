@@ -7,43 +7,25 @@
 #include <task/a0.h>
 #include <server/timeserver.h>
 #include <server/ioserver.h>
+#include <funcmap.h>
 
 void task1() {
 	Create(PRIORITY_TIMESERVER, timeserver);
 	ioserver_create(COM1, OFF, 2400, 2, 8, OFF);
 	int tid_com2 = ioserver_create(COM2, OFF, 115200, 1, 8, OFF);
 
-	struct {
-		uint priority;
-		func_t prog;
-		char name[256];
-	} programs[] = {
-		{ 7, a0, "A0" },
-		{ 1, perfmon, "Send-Receive-Reply Performance Test (receiver first, 64b)" },
-		{ 10, k3main, "Kernel 3 ???" },
-		{ 1, calib_test, "Calibration test executable" },
-	};
+	__init_funclist();
 
-	int program_count = sizeof(programs) / sizeof(programs[0]);
-	char menubuf[(sizeof(programs[0].name) + 4) * program_count];
-	char *b = menubuf;
-
-	for (int i = 0; i < program_count; i++) {
-		b += sprintf(b, "%d.\t%s\n", i, programs[i].name);
-	}
-
-	int idx;
-	char c;
-
+	func_t prog;
 	do {
-		Putstr(COM2, menubuf, tid_com2);
-		c = Getc(COM2, tid_com2);
-		idx = c - '0';
-	} while (!(0 <= idx && idx <= program_count));
+		Putstr(COM2, "Program name? (q to quit): ", tid_com2);
+		char buf[1024], *p = buf;
+		while ((*p++=Getc(COM2, tid_com2)) != '\r') Putc(COM2, *(p-1), tid_com2);
+		*(p - 1) = '\0';
+		if (strcmp("q", buf) == 0) ExitKernel(0);
+		Putc(COM2, '\r', tid_com2);
+		prog = find_func_addr(buf);
+	} while(prog == NULL);
 
-	Putstr(COM2, "You have selected: ", tid_com2);
-	Putc(COM2, c, tid_com2);
-	Putc(COM2, '\n', tid_com2);
-	Flush(tid_com2);
-	Create(programs[idx].priority, programs[idx].prog);
+	Create(MIN_PRIORITY, prog);
 }
