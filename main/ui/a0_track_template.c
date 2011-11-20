@@ -170,7 +170,7 @@ static void init_sensor_pic(track_template *tt) {
 
 static sensor_pic_info *get_sensor_pic_info(track_template *tt, char mod, int id) {
 	sensor_pic_info *spinfo = &tt->sensor_pic_info_table[mod - 'A'][id];
-	ASSERT(spinfo < 0x3f000000, "omfg. tt:%x, mod:%d(%c), id:%d", tt, mod, mod, id);
+	ASSERT((uint) spinfo < 0x3f000000, "omfg. tt:%x, mod:%d(%c), id:%d", tt, mod, mod, id);
 	return spinfo;
 }
 
@@ -218,7 +218,7 @@ void track_template_updateswitch(track_template *tt, char no, char pos) {
 	int idx = train_switchno2i(no); // 0 based
 	int statusrow = 2 + idx / 6;
 	int statuscol = 14 + 5 * (idx % 6);
-	char pos_name = train_switchpos_straight(pos) ? 'S' : 'C';
+	char pos_name = track_switchpos_straight(pos) ? 'S' : 'C';
 
 	console_move(c, statusrow, statuscol);
 	console_effect(c, EFFECT_BRIGHT);
@@ -237,7 +237,7 @@ void track_template_updateswitch(track_template *tt, char no, char pos) {
 }
 
 void track_template_updatesensor(track_template *tt, char module, int id, int train) {
-	(void)train; // for future use
+	(void) train; // for future use
 	console *con = tt->con;
 
 	tt->mod_hist[tt->mod_hist_idx].mod = module;

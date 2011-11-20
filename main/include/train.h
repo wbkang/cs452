@@ -23,6 +23,7 @@
 
 #define TRAIN_MIN_SPEED 0
 #define TRAIN_MAX_SPEED 14
+#define TRAIN_GOOD_SPEED(x) (TRAIN_MIN_SPEED <= (x) && (x) <= TRAIN_MAX_SPEED)
 #define TRAIN_NUM_SPEED_IDX (TRAIN_MAX_SPEED * 2)
 #define TRAIN_FOREACH_SPEED(x) for (int (x) = TRAIN_MIN_SPEED; (x) <= TRAIN_MAX_SPEED; (x)++)
 #define TRAIN_FOREACH_SPEEDIDX(x) for (int (x) = TRAIN_MIN_SPEED; (x) < TRAIN_NUM_SPEED_IDX; (x)++)
@@ -44,45 +45,22 @@ typedef enum {
 } train_direction;
 
 typedef struct {
+	// static data
 	int no;
 	fixed stopm; // 0 if unknown
 	fixed stopb; // 0 if unknown
-	int speed;
-	int t_speed;
-	int last_speed;
-	train_direction dir;
 	fixed len_pickup;
 	fixed dist2nose;
 	fixed dist2tail;
+	fixed v_avg[TRAIN_NUM_SPEED_IDX];
+	// dynamic data
+	train_direction dir;
+	int speed;
+	int t_speed;
+	int last_speed;
 	location loc;
-	uint v_d[TRAIN_NUM_SPEED_IDX];
-	uint v_t[TRAIN_NUM_SPEED_IDX];
 	int t_sim;
 } train_descriptor;
-
-static inline int train_speed2speed_idx(train_descriptor *td) {
-	int lastspeed = td->last_speed;
-	int curspeed = td->speed;
-	int rv;
-
-	if (curspeed <= lastspeed || curspeed == TRAIN_MAX_SPEED) {
-		// descending or equal case
-		rv = curspeed;
-	} else {
-		// ascending case
-		rv = curspeed + TRAIN_MAX_SPEED;
-	}
-	ASSERT(rv < TRAIN_NUM_SPEED_IDX, "rv = %d, last: %d, cur: %d", rv, td->last_speed, td->speed);
-	return rv;
-}
-
-static inline int train_speed_idx2speed(int speed_idx) {
-	if (speed_idx <= TRAIN_MAX_SPEED) {
-		return speed_idx;
-	} else {
-		return speed_idx - TRAIN_MAX_SPEED;
-	}
-}
 
 static inline int train_switchi2no(int i) {
 	ASSERT(0 <= i && i < TRAIN_NUM_SWITCHADDR, "bad i");
@@ -126,7 +104,7 @@ static inline void train_reverse(char train, int tid) {
 }
 
 static inline void train_switch(char no, char pos, int tid) {
-	ASSERT(train_goodswitchpos(pos), "bad position: %d", pos);
+	ASSERT(track_switchpos_isgood(pos), "bad position: %d", pos);
 	traincmdbuffer_put(tid, SWITCH, no, pos);
 	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_SOLENOID, NULL);
 }
@@ -157,12 +135,13 @@ static inline void train_stop(int tid) {
  * Train object
  */
 
-void train_data_populate(train_descriptor *train);
+void train_init_static(train_descriptor *train);
 void train_init(train_descriptor *this, int no);
 fixed train_get_velocity(train_descriptor *this);
 fixed train_get_stopdist(train_descriptor *this);
 int train_get_speed(train_descriptor *this);
-void train_on_set_speed(train_descriptor *this, int speed, int t);
+int train_get_speedidx(train_descriptor *this);
+void train_set_speed(train_descriptor *this, int speed, int t);
 void train_get_loc(train_descriptor *this, location *loc);
 void train_set_loc(train_descriptor *this, location *loc);
 train_direction train_get_dir(train_descriptor *this);
@@ -172,4 +151,6 @@ int train_get_tspeed(train_descriptor *this);
 void train_set_tspeed(train_descriptor *this, int t_speed);
 int train_get_tsim(train_descriptor *this);
 void train_set_tsim(train_descriptor *this, int t_sim);
-void train_simulate(train_descriptor *this, int t_f);
+fixed train_simulate_dx(train_descriptor *this, int t_i, int t_f);
+void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc);
+void train_update_simulation(train_descriptor *this, int t_f);

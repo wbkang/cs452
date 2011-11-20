@@ -1,88 +1,91 @@
 #include <train.h>
 
 // @TODO: remember the average velocity per edge as opposed to per track
-void train_data_populate(train_descriptor *train) {
+// @TODO: fill in all velocities for at least two trains
+void train_init_static(train_descriptor *train) {
 	switch (train->no) {
 		case 37:
 			train->stopm = fixed_div(fixed_new(30838), fixed_new(10));
 			train->stopb = fixed_div(fixed_new(-70501), fixed_new(100));
-			train->len_pickup = fixed_new(5);
+			train->len_pickup = fixed_new(50);
 			train->dist2nose = fixed_new(22);
 			train->dist2tail = fixed_new(120);
+			TRAIN_FOREACH_SPEEDIDX(i) {
+				train->v_avg[i] = fixed_new(0);
+			}
 			break;
 		case 38:
 			train->stopm = fixed_div(fixed_new(110993), fixed_new(100));
 			train->stopb = fixed_div(fixed_new(-60299), fixed_new(1000));
-			train->len_pickup = fixed_new(5);
+			train->len_pickup = fixed_new(50);
 			train->dist2nose = fixed_new(25);
 			train->dist2tail = fixed_new(80);
 
-			train->v_d[0] = 0;
-			train->v_t[0] = 1;
-
-			int eightto14[] = {
+			int data[] = {
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
 					19232, 50292,
 					21698, 50722,
 					23865, 50783,
 					25991, 50414,
 					27665, 50045,
 					30188, 51152,
-					30690, 50476
+					30690, 50476,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
+					18311, 50783,
+					20510, 50599,
+					22569, 50047,
+					24923, 50416,
+					27130, 50477,
+					29246, 50722
 			};
 
-			for (int i = 8; i <= 14; i++) {
-				train->v_d[i] = eightto14[(i - 8) * 2];
-				train->v_t[i] = eightto14[(i - 8) * 2 + 1];
+			TRAIN_FOREACH_SPEEDIDX(i) {
+				int dx = data[i * 2];
+				int dt = data[i * 2 + 1];
+				int v10000 = (10000 * dx) / dt;
+				train->v_avg[i] = fixed_div(fixed_new(v10000), fixed_new(10000));
 			}
 
-			int twentytwoto27[] = {
-					18311,	50783,
-					20510,	50599,
-					22569,	50047,
-					24923,	50416,
-					27130,	50477,
-					29246,	50722
-			};
-
-			for (int i = 22; i <= 27; i++) {
-				train->v_d[i] = twentytwoto27[(i - 22) * 2];
-				train->v_t[i] = twentytwoto27[(i - 22) * 2 + 1];
+			break;
+		default:
+			train->stopm = fixed_new(0);
+			train->stopb = fixed_new(0);
+			train->len_pickup = fixed_new(0);
+			train->dist2nose = fixed_new(0);
+			train->dist2tail = fixed_new(0);
+			TRAIN_FOREACH_SPEEDIDX(i) {
+				train->v_avg[i] = fixed_new(0);
 			}
-
 			break;
 	}
 }
 
 void train_init(train_descriptor *this, int no) {
 	this->no = no;
-	this->stopm = fixed_new(0);
-	this->stopb = fixed_new(0);
-	this->speed = 0;
-	this->last_speed = 0;
 	this->dir = TRAIN_UNKNOWN;
-	this->len_pickup = fixed_new(0);
-	this->dist2nose = fixed_new(0);
-	this->dist2tail = fixed_new(0);
+	this->speed = 0;
+	train_set_tspeed(this, 0);
+	this->last_speed = 0;
 	this->loc = location_undef();
-	this->t_speed = 0;
 	this->t_sim = 0;
-	TRAIN_FOREACH_SPEEDIDX(speed) {
-		this->v_d[speed] = 0;
-		this->v_t[speed] = 0;
-	}
-	train_data_populate(this);
+	train_init_static(this);
 }
 
 fixed train_get_velocity(train_descriptor *this) {
-	int speed_idx = train_speed2speed_idx(this);
-	int v_d = this->v_d[speed_idx];
-	int v_t = this->v_t[speed_idx];
-	if (v_t > 0) {
-		int v10000 = (10000 * v_d) / v_t;
-		return fixed_div(fixed_new(v10000), fixed_new(10000));
-	} else {
-		return fixed_new(0);
-	}
+	int speed_idx = train_get_speedidx(this);
+	return this->v_avg[speed_idx];
 }
 
 fixed train_get_stopdist(train_descriptor *this) {
@@ -96,7 +99,7 @@ fixed train_get_stopdist(train_descriptor *this) {
 		case TRAIN_BACKWARD:
 			return fixed_add(dist, this->dist2tail);
 		default:
-			return dist;
+			return dist; // @TODO: put an assert(0) here, dont run uninitialized trains
 	}
 }
 
@@ -104,11 +107,23 @@ int train_get_speed(train_descriptor *this) {
 	return this->speed;
 }
 
-void train_on_set_speed(train_descriptor *this, int speed, int t) {
+int train_get_speedidx(train_descriptor *this) {
+	int speed = train_get_speed(this);
+	if (speed <= this->last_speed || speed == TRAIN_MAX_SPEED) {
+		return speed;
+	} else {
+		return speed + TRAIN_MAX_SPEED;
+	}
+}
+
+// @TODO: the only external thing that changes a train state is the set_speed/reverse commands. we should keep a history of these commands if we want to be able to rewind the simulation.
+void train_set_speed(train_descriptor *this, int speed, int t) {
+	ASSERT(TRAIN_GOOD_SPEED(speed), "bad speed %d", speed);
+	train_update_simulation(this, t);
 	this->last_speed = this->speed;
 	this->speed = speed;
-	this->t_speed = t;
-	this->loc = location_undef(); // lose position
+	train_set_tspeed(this, t);
+	this->loc = location_undef(); // lose position @TODO: remove this when get an acceleration model
 }
 
 void train_get_loc(train_descriptor *this, location *loc) {
@@ -157,21 +172,41 @@ void train_set_tsim(train_descriptor *this, int t_sim) {
 	this->t_sim = t_sim;
 }
 
+// simulate the distance the train would travel from t_i to t_f
+// assuming t_i <= t_f and that t_i is relatively close to the current time
+fixed train_simulate_dx(train_descriptor *this, int t_i, int t_f) {
+	fixed v = train_get_velocity(this); // @TODO: don't assume current velocity
+	if (fixed_sgn(v) > 0) {
+		fixed dt = fixed_new(TICK2MS(t_f - t_i));
+		return fixed_mul(v, dt);
+	} else {
+		return fixed_new(0);
+	}
+}
+
+// limiting the scope of this function makes it MUCH easier to code. right now the purpose is to see where the train was at time t_i. this time is guaranteed to be near a sensor hit so there are no issues with track switch state.
+// the assumption is that the switches along the path of the train did not change configuration during t_i and t_sim
+// @TODO: make less assumptions about the state of the track, perhaps store the locations generated by every train_update_simulation and linearly interpolate between the closes two locations to the given t_i
+void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc) {
+	int t_f = train_get_tsim(this);
+	ASSERT(t_i <= t_f, "asking for non-historic data");
+	fixed dx = train_simulate_dx(this, t_i, t_f);
+	dx = fixed_neg(dx);
+	train_get_loc(this, rv_loc);
+	location_add(rv_loc, dx);
+}
+
 // @TODO: add acceleration
 // @TODO: add jerk
 // @TODO: modify velocity even if location is unknown
-void train_simulate(train_descriptor *this, int t_f) {
+void train_update_simulation(train_descriptor *this, int t_f) {
 	location loc;
 	train_get_loc(this, &loc);
 	if (!location_isundef(&loc)) {
-		fixed v = train_get_velocity(this);
-		if (fixed_sgn(v) > 0) {
-			int t_i = train_get_tsim(this);
-			fixed dt = fixed_new(TICK2MS(t_f - t_i));
-			fixed dx = fixed_mul(v, dt);
-			location_inc(&loc, dx);
-			train_set_loc(this, &loc);
-		}
+		int t_i = train_get_tsim(this);
+		fixed dx = train_simulate_dx(this, t_i, t_f);
+		location_add(&loc, dx);
+		train_set_loc(this, &loc);
 	}
 	train_set_tsim(this, t_f);
 }

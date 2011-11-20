@@ -26,6 +26,7 @@
 
 #define CONSOLE_DUMP_LINE (CONSOLE_CMD_LINE + 4)
 #define CONSOLE_DUMP_COL 1
+
 /*
  * UI
  */
@@ -129,7 +130,7 @@ static void handle_train_switch_all(a0state *state, char pos) {
 		17, 18, 153, 154, 155, 156
 	};
 	int count = sizeof(all) / sizeof(int);
-	if (train_switchpos_straight(pos)) {
+	if (track_switchpos_straight(pos)) {
 		engineer_set_track(eng, all, count, NULL, 0);
 		ui_set_track(state, all, count, NULL, 0);
 	} else {
@@ -160,21 +161,21 @@ static track ask_track(a0state *state) {
 	return 0;
 }
 
-#define STOP_INIT 0
-#define STOP_UP2SPEED1 1
-#define STOP_UP2SPEED2 2
-#define STOP_STOPPING 3
-#define STOP_REVERSING 4
+// #define STOP_INIT 0
+// #define STOP_UP2SPEED1 1
+// #define STOP_UP2SPEED2 2
+// #define STOP_STOPPING 3
+// #define STOP_REVERSING 4
 
-struct {
-	int state;
-	int speed;
-} csdstate;
+// struct {
+// 	int state;
+// 	int speed;
+// } csdstate;
 
-static void init_csdstate() {
-	csdstate.state = STOP_INIT;
-	csdstate.speed = 4;
-}
+// static void init_csdstate() {
+// 	csdstate.state = STOP_INIT;
+// 	csdstate.speed = 4;
+// }
 
 // static void calib_stopdist(void* s) {
 // 	a0state *state = s;
@@ -225,82 +226,85 @@ static void init_csdstate() {
 // 	}
 // }
 
-struct {
-	int state;
-	int count;
-	int dx;
-	int dt;
-	track_node *start;
-	track_node *last_sensor;
-	int last_timestamp;
-	int v_i_x;
-	int v_i_t;
-} j;
+// struct {
+// 	int state;
+// 	int count;
+// 	int dx;
+// 	int dt;
+// 	track_node *start;
+// 	track_node *last_sensor;
+// 	int last_timestamp;
+// 	int v_i_x;
+// 	int v_i_t;
+// } j;
 
-#define JERK_STABILIZE_NUM_SENSORS 10
+// #define JERK_STABILIZE_NUM_SENSORS 10
 
-static void init_jerk() {
-	j.state = 0;
-}
+// static void init_jerk() {
+// 	j.state = 0;
+// }
 
-static void jerk(a0state *state, track_node *sensor, int timestamp) {
-	engineer *eng = state->eng;
-	track_node *last_sensor = j.last_sensor;
-	int dx = track_distance(last_sensor, sensor);
-	int dt = TICK2MS(timestamp - j.last_timestamp);
-	j.last_sensor = sensor;
-	j.last_timestamp = timestamp;
+// static void jerk(a0state *state, track_node *sensor, int timestamp) {
+// 	engineer *eng = state->eng;
+// 	track_node *last_sensor = j.last_sensor;
+// 	int dx = track_distance(last_sensor, sensor);
+// 	int dt = TICK2MS(timestamp - j.last_timestamp);
+// 	j.last_sensor = sensor;
+// 	j.last_timestamp = timestamp;
 
-	switch (j.state) {
-		case 0: // get to v_i
-			logstrip_printf(state->cmdlog, "getting to v_i");
-			engineer_set_speed(eng, 38, 8);
-			j.state = 1;
-			j.count = 0;
-			break;
-		case 1: // stabilize v_i
-			logstrip_printf(state->cmdlog, "stabilizing v_i");
-			j.count++;
-			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
-				j.state = 2;
-			}
-			break;
-		case 2: // get to v_f
-			logstrip_printf(state->cmdlog, "getting to v_f");
-			engineer_set_speed(eng, 38, 14);
-			j.state = 3;
-			j.count = 0;
-			j.dx = 0;
-			j.dt = 0;
-			j.v_i_x = dx;
-			j.v_i_t = dt;
-			j.start = sensor;
-			break;
-		case 3: // stabilize v_f
-			logstrip_printf(state->cmdlog, "stabilizing v_f");
-			j.dx += dx;
-			j.dt += dt;
-			j.count++;
-			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
-				// "dx/dt = %d/%d from %s to %s, v_i = %d/%d, v_f = %d/%d"
-				logdisplay_printf(
-					state->log,
-					"%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d",
-					j.start->name, sensor->name,
-					j.dx, j.dt,
-					j.v_i_x, j.v_i_t,
-					dx, dt
-				);
-				logdisplay_flushline(state->log);
-				j.state = 0;
-			}
-			break;
-	}
-}
+// 	switch (j.state) {
+// 		case 0: // get to v_i
+// 			logstrip_printf(state->cmdlog, "getting to v_i");
+// 			engineer_set_speed(eng, 38, 8);
+// 			j.state = 1;
+// 			j.count = 0;
+// 			break;
+// 		case 1: // stabilize v_i
+// 			logstrip_printf(state->cmdlog, "stabilizing v_i");
+// 			j.count++;
+// 			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
+// 				j.state = 2;
+// 			}
+// 			break;
+// 		case 2: // get to v_f
+// 			logstrip_printf(state->cmdlog, "getting to v_f");
+// 			engineer_set_speed(eng, 38, 14);
+// 			j.state = 3;
+// 			j.count = 0;
+// 			j.dx = 0;
+// 			j.dt = 0;
+// 			j.v_i_x = dx;
+// 			j.v_i_t = dt;
+// 			j.start = sensor;
+// 			break;
+// 		case 3: // stabilize v_f
+// 			logstrip_printf(state->cmdlog, "stabilizing v_f");
+// 			j.dx += dx;
+// 			j.dt += dt;
+// 			j.count++;
+// 			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
+// 				// "dx/dt = %d/%d from %s to %s, v_i = %d/%d, v_f = %d/%d"
+// 				logdisplay_printf(
+// 					state->log,
+// 					"%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d",
+// 					j.start->name, sensor->name,
+// 					j.dx, j.dt,
+// 					j.v_i_x, j.v_i_t,
+// 					dx, dt
+// 				);
+// 				logdisplay_flushline(state->log);
+// 				j.state = 0;
+// 			}
+// 			break;
+// 	}
+// }
 
 static void handle_sensor(a0state *state, char rawmsg[]) {
 	engineer *eng = state->eng;
 	msg_sensor *m = (msg_sensor*) rawmsg;
+
+	engineer_onsensor(eng, rawmsg);
+
 	if (m->state == OFF) return;
 	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
 
@@ -322,7 +326,6 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 	// jerk(state, sensor, m->timestamp); (THIS CODE HANGS THE CODE)
 	ui_sensor(state, m->module[0], m->id);
 	dumbbus_dispatch(state->sensor_bus, state);
-	engineer_onsensor(eng, rawmsg);
 }
 
 static void printloc(void* s) {
@@ -408,11 +411,7 @@ static void handle_command(void* s, char *cmd, int size) {
 			// if (!calib_goodmax(max)) goto badcmd;
 			// if (min > max) goto badcmd;
 			ACCEPT('\0');
-			logstrip_printf(state->cmdlog, "calibrating train %d", train);
-			// logstrip_printf(state->cmdlog, "calibrating train %d from speed %d to %d", train, min, max);
-			int min = 8;
-			int max = 12;
-			calibrate_train(state, train, min, max);
+			calibrate_train(state, train, 8, 12);
 			break;
 		}
 		case 'd': {
@@ -471,7 +470,7 @@ static void handle_command(void* s, char *cmd, int size) {
 				}
 				ACCEPT(' ');
 				char pos = *c++;
-				if (!train_goodswitchpos(pos)) goto badcmd;
+				if (!track_switchpos_isgood(pos)) goto badcmd;
 				ACCEPT('\0');
 				if (id == '*') {
 					handle_train_switch_all(state, pos);
@@ -543,9 +542,9 @@ void a0() {
 
 	// sensor bus
 	state.sensor_bus = dumbbus_new();
-	init_jerk();
+	// init_jerk();
 	// dumbbus_register(state.sensor_bus, &jerk);
-	init_csdstate();
+	// init_csdstate();
 	// dumbbus_register(state.sensor_bus, &calib_stopdist);
 
 	// time bus

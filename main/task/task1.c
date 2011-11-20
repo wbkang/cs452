@@ -10,9 +10,9 @@
 #include <funcmap.h>
 
 void task1() {
-	Create(PRIORITY_TIMESERVER, timeserver);
+	timeserver_create();
 	ioserver_create(COM1, OFF, 2400, 2, 8, OFF);
-	int tid_com2 = ioserver_create(COM2, OFF, 115200, 1, 8, OFF);
+	ioserver_create(COM2, OFF, 115200, 1, 8, OFF);
 
 	__init_funclist();
 
