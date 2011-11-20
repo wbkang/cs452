@@ -13,8 +13,6 @@
 typedef struct {
 	// server ids
 	int tid_time;
-	int tid_com1;
-	int tid_com2;
 	console *con;
 	// ui
 	logdisplay *log;
