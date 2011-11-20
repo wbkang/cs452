@@ -564,9 +564,9 @@ void a0() {
 
 	ui_init(&state);
 
-	int tid_publisher = publisher_new(NULL, 9, sizeof(msg_sensor));
-	publisher_sub(tid_publisher, MyTid());
-	sensornotifier_new(tid_publisher);
+	int tid_sensor_publisher = publisher_new(NULL, 9, sizeof(msg_sensor));
+	publisher_sub(tid_sensor_publisher, MyTid());
+	sensornotifier_new(tid_sensor_publisher);
 
 	int tid_com2buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
 	comnotifier_new(tid_com2buffer, 9, COM2, state.con->tid_console);

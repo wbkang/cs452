@@ -41,8 +41,8 @@
  * Memory constants.
  */
 // size of user memory in bytes (64 KB) (MUST BE A POWER OF TWO)
-// @TODO: as part of debugging we tried to double this value and the program hung, investigate
-#define STACK_SIZE 65536
+#define STACK_SIZE (65536 << 1)
+#define MAX_MSG_SIZE 65535
 #define SECTION_SIZE 1048576 // MMU section size
 
 #define REDBOOT_ENTRYPOINT 0x174a4
