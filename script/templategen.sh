@@ -13,6 +13,7 @@ cat > $TEMPLATE <<EOF
 #pragma once
 /* this file is auto-generated from templategen.sh. */
 #include<console.h>
+#include<train.h>
 
 #define CONSOLE_LOG_COL 1
 #define CONSOLE_LOG_LINE 29
@@ -28,7 +29,7 @@ typedef struct {
 		UNKNOWN, NORTH, SOUTH, EAST, WEST, NORTHEAST, SOUTHEAST, NORTHWEST, SOUTHWEST
 	} dir;
 	int row, col;
-	char *dir_str;
+	char const *dir_str;
 } sensor_pic_info;
 
 typedef struct {
@@ -36,9 +37,22 @@ typedef struct {
 	char straight, curved;
 } switch_pic_info;
 
-void init_track_template(track t, console *this);
-sensor_pic_info *get_sensor_pic_info(char mod, int id);
-switch_pic_info *get_switch_pic_info(int iswitch);
+typedef struct track_template track_template;
+
+struct track_template {
+	console *con;
+	track track_config;
+	switch_pic_info const *switch_pic_info_table;
+	sensor_pic_info sensor_pic_info_table[TRAIN_NUM_MODULES][TRAIN_NUM_SENSORS];
+	int mod_hist_idx;
+	struct {
+		char mod; int id;
+	} mod_hist[];
+};
+
+track_template *track_template_new(console *this, track t);
+void track_template_updateswitch(track_template *tt, char no, char pos);
+void track_template_updatesensor(track_template *tt, char module, int id, int train);
 EOF
 
 function generate() {

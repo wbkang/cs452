@@ -44,7 +44,7 @@ static inline void handle_get(buffertask_state *state, int tid) {
 }
 
 // @TODO (optional): add an optimization for variable sized items. currently it copies the entire thing.
-static void buffertask() {
+void buffertask() {
 	// init args
 	int tid;
 	int size = sizeof(buffertask_args) + sizeof(char) * SIZE_NAME;

@@ -29,7 +29,7 @@ static void handle_abort() __attribute__ ((interrupt ("ABORT")));
 static inline void handle_swi(register_set *reg);
 static inline void handle_hwi(int isr, int isr2);
 static inline void kernel_irq(int vic, int irq);
-static inline void kernel_idleserver() { for (;;); }
+void kernel_idleserver() { for (;;); }
 
 static void install_interrupt_handlers() {
 	old_swi_vector = READ_INTERRUPT_HANDLER(SWI_VECTOR);
@@ -70,7 +70,8 @@ static void handle_abort() {
 	WRITE_REGISTER(sp);
 	int fp;
 	READ_REGISTER(fp);
-	print_stack_trace(fp, 1);
+	scheduler_running()->registers.r[REG_FP] = fp;
+	td_print_crash_dump();
 	int cpsr;
 	READ_CPSR(cpsr);
 	cpsr &= 0x1f;
@@ -373,7 +374,10 @@ static inline int kernel_awaitevent(int eventid) {
  */
 
 int Send(int tid, void* msg, int msglen, void* reply, int replylen) {
-	if (UNLIKELY((msglen | replylen) & 0xffff0000)) return -3;
+	if (UNLIKELY((msglen | replylen) & 0xffff0000)) {
+		ASSERT(0, "msglen: %d, replylen: %d TOOBIG", msglen, replylen);
+		return -3; // unreachable
+	}
 	return asm_Send(tid, msg, reply, (replylen << 16) | msglen);
 }
 
