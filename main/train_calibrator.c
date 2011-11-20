@@ -129,7 +129,6 @@ static void calibrator_setup_track(a0state *state) {
 	int ns = sizeof(s) / sizeof(int);
 	int nc = sizeof(c) / sizeof(int);
 	engineer_set_track(eng, s, ns, c, nc);
-	ui_set_track(state, s, ns, c, nc);
 }
 
 void calibrate_train(a0state *state, int train_no, int min, int max) {
