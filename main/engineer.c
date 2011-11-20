@@ -190,16 +190,15 @@ void engineer_train_on_loc(engineer *this, train_descriptor *train, location *lo
 // @TODO: use actual history as opposed to guessing it with current loc/velocity
 // @TODO: limiting the scope of this function makes it MUCH easier to code. right now the purpose is to only see where the train was at time t_past. this time is guaranteed to be near a sensor hit so there are no issues with track switch state.
 void engineer_get_loc_hist(engineer *this, train_descriptor *train, int t_past, location *rv_loc) {
-	train_get_loc(train, rv_loc); // estimate with current position (assume t_past is close to now)
-	// int t = Time(this->tid_time);
-	// ASSERT(t_past < t, "not in the past");
-	// train_get_loc(train, rv_loc);
-	// fixed v = train_get_velocity(train);
-	// if (fixed_sgn(v) > 0) {
-	// 	fixed dt = fixed_new(TICK2MS(t_past - t));
-	// 	fixed dx = fixed_mul(v, dt);
-	// 	location_inc(rv_loc, dx);
-	// }
+	int t = Time(this->tid_time);
+	ASSERT(t_past < t, "not in the past");
+	train_get_loc(train, rv_loc);
+	fixed v = train_get_velocity(train);
+	if (fixed_sgn(v) > 0) {
+		fixed dt = fixed_new(TICK2MS(t_past - t));
+		fixed dx = fixed_mul(v, dt);
+		location_inc(rv_loc, dx);
+	}
 }
 
 train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_loc) {
@@ -233,6 +232,18 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 	return rv;
 }
 
+void engineer_onloc(engineer *this, location *loc, int t) {
+	train_descriptor *train = engineer_attribute_loc(this, loc, t);
+	if (train) {
+		logdisplay_printf(this->log2, "attributing sensor %s to train %d", loc->edge->src->name, train->no);
+		logdisplay_flushline(this->log2);
+		engineer_train_on_loc(this, train, loc, t);
+	} else {
+		logdisplay_printf(this->log2, "spurious sensor %s", loc->edge->src->name);
+		logdisplay_flushline(this->log2);
+	}
+}
+
 // @TODO: also use sensor OFF as it is just as accurate
 void engineer_onsensor(engineer *this, char data[]) {
 	engineer_ontick(this);
@@ -240,15 +251,7 @@ void engineer_onsensor(engineer *this, char data[]) {
 	if (msg->state == OFF) return;
 	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
 	location loc_sensor = location_new(sensor->edge, fixed_new(0));
-	train_descriptor *train = engineer_attribute_loc(this, &loc_sensor, msg->timestamp);
-	if (train) {
-		logdisplay_printf(this->log2, "attributing sensor %s to train %d", sensor->name, train->no);
-		logdisplay_flushline(this->log2);
-		engineer_train_on_loc(this, train, &loc_sensor, msg->timestamp);
-	} else {
-		logdisplay_printf(this->log2, "spurious sensor %s", sensor->name);
-		logdisplay_flushline(this->log2);
-	}
+	engineer_onloc(this, &loc_sensor, msg->timestamp);
 }
 
 void engineer_ontick(engineer *this) {
