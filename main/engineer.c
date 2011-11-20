@@ -69,8 +69,6 @@ void engineer_set_speed(engineer *this, int train_no, int speed) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	*get_globalint() = uptime();
 	train_speed(train_no, speed, this->tid_traincmdbuf);
-	// @TODO: there is a delay between putting the bytes in UART and when the train is aware of them. we need to include this delay right here. we could use a blocking putc and a command runner that pings the engineer back saying the command was put into the UART. we delay the following line until then.
-	engineer_on_set_speed(this, train_no, speed, Time(this->tid_time));
 }
 
 void engineer_get_loc(engineer *this, int train_no, location *loc) {
