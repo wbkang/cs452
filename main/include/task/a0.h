@@ -9,6 +9,7 @@
 #include <ui/cmdline.h>
 #include <ui/logdisplay.h>
 #include <ui/timedisplay.h>
+#include <ui/a0_track_template.h>
 #include <engineer.h>
 
 typedef struct {
@@ -25,6 +26,7 @@ typedef struct {
 	dumbbus *bus10hz;
 	dumbbus *simbus;
 	timedisplay *timedisplay;
+	track_template *template;
 	int timestamp;
 	// train data
 	engineer *eng;

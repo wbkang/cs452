@@ -24,10 +24,8 @@
 
 #define LEN_MSG (64 * 4)
 
-
 #define CONSOLE_DUMP_LINE (CONSOLE_CMD_LINE + 4)
 #define CONSOLE_DUMP_COL 1
-
 /*
  * UI
  */
@@ -47,29 +45,11 @@ static void ui_init(a0state *state) {
 
 static void ui_time(void* s) {
 	a0state *state = s;
-	int ticks = state->timestamp;
 	timedisplay_update(state->timedisplay, state->timestamp);
 }
 
-static void ui_updateswitchstatus(console *c, char no, char pos) {
-	int idx = train_switchno2i(no); // 0 based
-	int statusrow = 2 + idx / 6;
-	int statuscol = 14 + 5 * (idx % 6);
-	char pos_name = train_switchpos_straight(pos) ? 'S' : 'C';
-
-	console_move(c, statusrow, statuscol);
-	console_effect(c, EFFECT_BRIGHT);
-	console_effect(c, EFFECT_FG_YELLOW);
-	console_printf(c, "%c", pos_name);
-	console_effect_reset(c);
-
-	switch_pic_info *swinfo = get_switch_pic_info(idx);
-
-	console_move(c, swinfo->row, swinfo->col);
-	console_effect(c, EFFECT_BRIGHT);
-	console_effect(c, EFFECT_FG_YELLOW);
-	console_printf(c, "%c", (pos_name == 'S') ? swinfo->straight : swinfo->curved);
-	console_effect_reset(c);
+static void ui_updateswitchstatus(a0state *state, char no, char pos) {
+	track_template_updateswitch(state->template, no, pos);
 }
 
 static void ui_sensor(a0state *state, char module, int id) {
@@ -93,29 +73,9 @@ static void ui_sensor(a0state *state, char module, int id) {
 		max_hist_idx = i;
 	}
 	logstrip_printf(state->sensorlog, buf);
-
-	for (int i = max_hist_idx; i >= 0; i--) {
-		sensor_pic_info *spinfo = get_sensor_pic_info(hist_mod[i], hist_id[i]);
-
-		if (spinfo->dir != UNKNOWN) {
-			console_move(state->con, spinfo->row, spinfo->col);
-
-			switch (i) {
-				case 0:
-					console_effect(state->con, EFFECT_BRIGHT);
-				case 1:
-					console_effect(state->con, EFFECT_FG_CYAN);
-					break;
-				default:
-					console_effect(state->con, EFFECT_FG_BLUE);
-					break;
-				}
-
-			console_printf(state->con, "%s", spinfo->dir_str);
-			console_effect_reset(state->con);
-		}
-	}
 	console_flush(state->con);
+
+	track_template_updatesensor(state->template, module, id, 0);
 }
 
 
@@ -129,7 +89,7 @@ static void ui_reverse(a0state *state, int train) {
 
 static void ui_switch(a0state *state, char no, char pos) {
 	logstrip_printf(state->cmdlog, "switched switch %d to %c", no, pos);
-	ui_updateswitchstatus(state->con, no, pos);
+	ui_updateswitchstatus(state, no, pos);
 	console_flush(state->con);
 }
 
@@ -140,10 +100,10 @@ static void ui_switchall(a0state *state, char pos) {
 
 void ui_set_track(a0state *state, int s[], int ns, int c[], int nc) {
 	for (int i = 0; i < ns; i++) {
-		ui_updateswitchstatus(state->con, s[i], 's');
+		ui_updateswitchstatus(state, s[i], 's');
 	}
 	for (int i = 0; i < nc; i++) {
-		ui_updateswitchstatus(state->con, c[i], 'c');
+		ui_updateswitchstatus(state, c[i], 'c');
 	}
 }
 
@@ -567,10 +527,13 @@ static void handle_time(a0state *state, char msg[], int tid) {
 
 void a0() {
 	a0state state;
+
 	state.tid_time = WhoIs(NAME_TIMESERVER);
 
 	// ui
 	state.con = console_new(COM2);
+	track track = ask_track(&state);
+	state.template = track_template_new(state.con, track);
 	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
@@ -593,8 +556,6 @@ void a0() {
 	state.simbus = dumbbus_new();
 	dumbbus_register(state.simbus, &tick_engineer);
 
-	track track = ask_track(&state);
-	init_track_template(track, state.con);
 	state.eng = engineer_new(track == TRACK_A ? 'a' : 'b');
 	state.cur_train = -1;
 	state.last_sensor = NULL;
