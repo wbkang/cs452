@@ -21,32 +21,28 @@ void train_init_static(train_descriptor *train) {
 			train->dist2nose = fixed_new(25);
 			train->dist2tail = fixed_new(80);
 
-			for (int i = 0; i < 8; i++) {
-				train->v_avg[i] = fixed_new(0);
-			}
-
-			int eightto14[] = {
+			int data[] = {
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
 					19232, 50292,
 					21698, 50722,
 					23865, 50783,
 					25991, 50414,
 					27665, 50045,
 					30188, 51152,
-					30690, 50476
-			};
-
-			for (int i = 8; i <= 14; i++) {
-				int dx = eightto14[(i - 8) * 2];
-				int dt = eightto14[(i - 8) * 2 + 1];
-				int v10000 = (10000 * dx) / dt;
-				train->v_avg[i] = fixed_div(fixed_new(v10000), fixed_new(10000));
-			}
-
-			for (int i = 15; i < 22; i++) {
-				train->v_avg[i] = fixed_new(0);
-			}
-
-			int twentytwoto27[] = {
+					30690, 50476,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
+					0, 1,
 					18311,	50783,
 					20510,	50599,
 					22569,	50047,
@@ -55,15 +51,11 @@ void train_init_static(train_descriptor *train) {
 					29246,	50722
 			};
 
-			for (int i = 22; i <= 27; i++) {
-				int dx = twentytwoto27[(i - 22) * 2];
-				int dt = twentytwoto27[(i - 22) * 2 + 1];
+			TRAIN_FOREACH_SPEEDIDX(i) {
+				int dx = data[i * 2];
+				int dt = data[i * 2 + 1];
 				int v10000 = (10000 * dx) / dt;
 				train->v_avg[i] = fixed_div(fixed_new(v10000), fixed_new(10000));
-			}
-
-			for (int i = 28; i < TRAIN_NUM_SPEED_IDX; i++) {
-				train->v_avg[i] = fixed_new(0);
 			}
 
 			break;
