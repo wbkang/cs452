@@ -17,15 +17,15 @@ void task1() {
 	__init_funclist();
 
 	func_t prog;
-	do {
-		Putstr(COM2, "Program name? (q to quit): ", tid_com2);
-		char buf[1024], *p = buf;
-		while ((*p++=Getc(COM2, tid_com2)) != '\r') Putc(COM2, *(p-1), tid_com2);
-		*(p - 1) = '\0';
-		if (strcmp("q", buf) == 0) ExitKernel(0);
-		Putc(COM2, '\r', tid_com2);
-		prog = find_func_addr(buf);
-	} while(prog == NULL);
-
+//	do {
+//		Putstr(COM2, "Program name? (q to quit): ", tid_com2);
+//		char buf[1024], *p = buf;
+//		while ((*p++=Getc(COM2, tid_com2)) != '\r') Putc(COM2, *(p-1), tid_com2);
+//		*(p - 1) = '\0';
+//		if (strcmp("q", buf) == 0) ExitKernel(0);
+//		Putc(COM2, '\r', tid_com2);
+//		prog = find_func_addr(buf);
+//	} while(prog == NULL);
+	prog = a0;
 	Create(MIN_PRIORITY, prog);
 }

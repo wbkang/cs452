@@ -7,7 +7,7 @@ typedef struct _tag_courier_args {
 	int tid_to;
 } courier_args;
 
-static void courier() {
+void courier() {
 	courier_args args;
 	int tid;
 	Receive(&tid, &args, sizeof(args));
