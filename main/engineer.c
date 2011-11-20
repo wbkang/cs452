@@ -61,7 +61,7 @@ fixed engineer_sim_stopdist(engineer *this, int train_no) {
 
 void engineer_on_set_speed(engineer *this, int train_no, int speed, int t) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_on_set_speed(&this->train[train_no], speed, t);
+	train_set_speed(&this->train[train_no], speed, t);
 }
 
 void engineer_set_speed(engineer *this, int train_no, int speed) {

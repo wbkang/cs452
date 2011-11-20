@@ -23,6 +23,7 @@
 
 #define TRAIN_MIN_SPEED 0
 #define TRAIN_MAX_SPEED 14
+#define TRAIN_GOOD_SPEED(x) (TRAIN_MIN_SPEED <= (x) && (x) <= TRAIN_MAX_SPEED)
 #define TRAIN_NUM_SPEED_IDX (TRAIN_MAX_SPEED * 2)
 #define TRAIN_FOREACH_SPEED(x) for (int (x) = TRAIN_MIN_SPEED; (x) <= TRAIN_MAX_SPEED; (x)++)
 #define TRAIN_FOREACH_SPEEDIDX(x) for (int (x) = TRAIN_MIN_SPEED; (x) < TRAIN_NUM_SPEED_IDX; (x)++)
@@ -140,7 +141,7 @@ fixed train_get_velocity(train_descriptor *this);
 fixed train_get_stopdist(train_descriptor *this);
 int train_get_speed(train_descriptor *this);
 int train_get_speedidx(train_descriptor *this);
-void train_on_set_speed(train_descriptor *this, int speed, int t);
+void train_set_speed(train_descriptor *this, int speed, int t);
 void train_get_loc(train_descriptor *this, location *loc);
 void train_set_loc(train_descriptor *this, location *loc);
 train_direction train_get_dir(train_descriptor *this);
@@ -151,6 +152,5 @@ void train_set_tspeed(train_descriptor *this, int t_speed);
 int train_get_tsim(train_descriptor *this);
 void train_set_tsim(train_descriptor *this, int t_sim);
 fixed train_simulate_dx(train_descriptor *this, int t_i, int t_f);
-// @TODO: limiting the scope of this function makes it MUCH easier to code. right now the purpose is to only see where the train was at time t_past. this time is guaranteed to be near a sensor hit so there are no issues with track switch state.
 void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc);
 void train_update_simulation(train_descriptor *this, int t_f);
