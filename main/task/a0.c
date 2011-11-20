@@ -129,7 +129,7 @@ static void handle_train_switch_all(a0state *state, char pos) {
 		17, 18, 153, 154, 155, 156
 	};
 	int count = sizeof(all) / sizeof(int);
-	if (train_switchpos_straight(pos)) {
+	if (track_switchpos_straight(pos)) {
 		engineer_set_track(eng, all, count, NULL, 0);
 		ui_set_track(state, all, count, NULL, 0);
 	} else {
@@ -471,7 +471,7 @@ static void handle_command(void* s, char *cmd, int size) {
 				}
 				ACCEPT(' ');
 				char pos = *c++;
-				if (!train_goodswitchpos(pos)) goto badcmd;
+				if (!track_switchpos_isgood(pos)) goto badcmd;
 				ACCEPT('\0');
 				if (id == '*') {
 					handle_train_switch_all(state, pos);

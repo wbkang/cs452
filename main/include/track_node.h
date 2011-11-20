@@ -1,5 +1,4 @@
 #pragma once
-#include <fixed.h>
 
 typedef enum {
 	NODE_NONE, NODE_SENSOR, NODE_BRANCH, NODE_MERGE, NODE_ENTER, NODE_EXIT
@@ -15,43 +14,33 @@ typedef struct track_edge track_edge;
 struct track_edge {
 	track_edge *reverse;
 	track_node *src, *dest;
-	int dist; // mm
+	int dist; // in mm
 };
 
 struct track_node {
 	const char *name;
 	node_type type;
-	int num; /* sensor or switch number */
-	track_node *reverse; /* same location, but opposite direction */
+	int num; // sensor or switch number @TODO: not needed?
+	track_node *reverse; // same location, but opposite direction
 	track_edge edge[2];
 	int switch_dir;
 };
 
-#define POS2DIR(pos) (train_switchpos_curved(pos) ? DIR_CURVED : DIR_STRAIGHT)
+#define POS2DIR(pos) (track_switchpos_curved(pos) ? DIR_CURVED : DIR_STRAIGHT)
+#define PREV_EDGE(edge) (edge->reverse->dest->reverse)
 
-static inline int train_switchpos_straight(int pos) {
+static inline int track_switchpos_straight(int pos) {
 	return pos == 's' || pos == 'S';
 }
 
-static inline int train_switchpos_curved(int pos) {
+static inline int track_switchpos_curved(int pos) {
 	return pos == 'c' || pos == 'C';
 }
 
-static inline int train_goodswitchpos(int pos) {
-	return train_switchpos_straight(pos) || train_switchpos_curved(pos);
+static inline int track_switchpos_isgood(int pos) {
+	return track_switchpos_straight(pos) || track_switchpos_curved(pos);
 }
 
-
-track_edge *find_forward(track_node *orig);
 track_edge *track_next_edge(track_node *node);
 track_node *track_next_node(track_node *node);
 int track_distance(track_node *from, track_node *to);
-
-typedef struct blind_path_result blind_path_result;
-struct blind_path_result {
-	int depth;
-	track_edge *edges[10];
-};
-
-int find_path_blind(track_node *orig, track_node *dest, blind_path_result *rv, int maxsensordepth);
-#define PREV_EDGE(edge) (edge->reverse->dest->reverse)

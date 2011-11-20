@@ -218,7 +218,7 @@ void track_template_updateswitch(track_template *tt, char no, char pos) {
 	int idx = train_switchno2i(no); // 0 based
 	int statusrow = 2 + idx / 6;
 	int statuscol = 14 + 5 * (idx % 6);
-	char pos_name = train_switchpos_straight(pos) ? 'S' : 'C';
+	char pos_name = track_switchpos_straight(pos) ? 'S' : 'C';
 
 	console_move(c, statusrow, statuscol);
 	console_effect(c, EFFECT_BRIGHT);

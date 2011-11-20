@@ -34,7 +34,7 @@ void traincmdrunner() {
 			case SWITCH: {
 				char swaddr = cmd.arg1;
 				char swpos = cmd.arg2;
-				int S = train_switchpos_straight(swpos);
+				int S = track_switchpos_straight(swpos);
 				Putc(COM1, S ? TRAIN_SWITCH_STRAIGHT : TRAIN_SWITCH_CURVED, tid_com1);
 				Putc(COM1, swaddr, tid_com1);
 				break;
