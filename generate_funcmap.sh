@@ -2,7 +2,7 @@
 
 FUNCTION_COUNT=`find . -name '*.S' -o -name '*.s' | xargs grep .global | awk '{print $3}' | grep -v '^$' | grep -v '^__' | sort | uniq | wc -l`
 
- FUNCTIONS=`find . -name '*.S' -o -name '*.s' | xargs grep .global | awk '{print $3}' | grep -v '^$' | grep -v '^__' | sort | uniq`
+FUNCTIONS=`find . -name '*.S' -o -name '*.s' | xargs grep .global | awk '{print $3}' | egrep -v '(^$|^__|PLT|GOT|,)' | sort | uniq`
 
  OUTFILE=./main/funcmap.c
 

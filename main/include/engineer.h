@@ -36,5 +36,4 @@ void engineer_train_onsensor(engineer *this, train_descriptor *train, track_node
 void engineer_get_loc_hist(engineer *this, train_descriptor *train, int t_past, location *rv_loc);
 train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_loc);
 void engineer_onsensor(engineer *this, char data[]);
-void engineer_sim_update(engineer *this, train_descriptor *train, int t_f);
 void engineer_ontick(engineer *this);
