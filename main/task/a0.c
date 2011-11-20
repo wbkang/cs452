@@ -301,6 +301,9 @@ static void init_jerk() {
 static void handle_sensor(a0state *state, char rawmsg[]) {
 	engineer *eng = state->eng;
 	msg_sensor *m = (msg_sensor*) rawmsg;
+
+	engineer_onsensor(eng, rawmsg);
+
 	if (m->state == OFF) return;
 	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
 
@@ -322,7 +325,6 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 	// jerk(state, sensor, m->timestamp); (THIS CODE HANGS THE CODE)
 	ui_sensor(state, m->module[0], m->id);
 	dumbbus_dispatch(state->sensor_bus, state);
-	engineer_onsensor(eng, rawmsg);
 }
 
 static void printloc(void* s) {
