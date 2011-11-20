@@ -26,6 +26,7 @@
 
 #define CONSOLE_DUMP_LINE (CONSOLE_CMD_LINE + 4)
 #define CONSOLE_DUMP_COL 1
+
 /*
  * UI
  */
@@ -160,21 +161,21 @@ static track ask_track(a0state *state) {
 	return 0;
 }
 
-#define STOP_INIT 0
-#define STOP_UP2SPEED1 1
-#define STOP_UP2SPEED2 2
-#define STOP_STOPPING 3
-#define STOP_REVERSING 4
+// #define STOP_INIT 0
+// #define STOP_UP2SPEED1 1
+// #define STOP_UP2SPEED2 2
+// #define STOP_STOPPING 3
+// #define STOP_REVERSING 4
 
-struct {
-	int state;
-	int speed;
-} csdstate;
+// struct {
+// 	int state;
+// 	int speed;
+// } csdstate;
 
-static void init_csdstate() {
-	csdstate.state = STOP_INIT;
-	csdstate.speed = 4;
-}
+// static void init_csdstate() {
+// 	csdstate.state = STOP_INIT;
+// 	csdstate.speed = 4;
+// }
 
 // static void calib_stopdist(void* s) {
 // 	a0state *state = s;
@@ -225,23 +226,23 @@ static void init_csdstate() {
 // 	}
 // }
 
-struct {
-	int state;
-	int count;
-	int dx;
-	int dt;
-	track_node *start;
-	track_node *last_sensor;
-	int last_timestamp;
-	int v_i_x;
-	int v_i_t;
-} j;
+// struct {
+// 	int state;
+// 	int count;
+// 	int dx;
+// 	int dt;
+// 	track_node *start;
+// 	track_node *last_sensor;
+// 	int last_timestamp;
+// 	int v_i_x;
+// 	int v_i_t;
+// } j;
 
-#define JERK_STABILIZE_NUM_SENSORS 10
+// #define JERK_STABILIZE_NUM_SENSORS 10
 
-static void init_jerk() {
-	j.state = 0;
-}
+// static void init_jerk() {
+// 	j.state = 0;
+// }
 
 // static void jerk(a0state *state, track_node *sensor, int timestamp) {
 // 	engineer *eng = state->eng;
@@ -410,11 +411,7 @@ static void handle_command(void* s, char *cmd, int size) {
 			// if (!calib_goodmax(max)) goto badcmd;
 			// if (min > max) goto badcmd;
 			ACCEPT('\0');
-			logstrip_printf(state->cmdlog, "calibrating train %d", train);
-			// logstrip_printf(state->cmdlog, "calibrating train %d from speed %d to %d", train, min, max);
-			int min = 8;
-			int max = 12;
-			calibrate_train(state, train, min, max);
+			calibrate_train(state, train, 8, 12);
 			break;
 		}
 		case 'd': {
@@ -545,9 +542,9 @@ void a0() {
 
 	// sensor bus
 	state.sensor_bus = dumbbus_new();
-	init_jerk();
+	// init_jerk();
 	// dumbbus_register(state.sensor_bus, &jerk);
-	init_csdstate();
+	// init_csdstate();
 	// dumbbus_register(state.sensor_bus, &calib_stopdist);
 
 	// time bus

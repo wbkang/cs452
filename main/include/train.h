@@ -51,8 +51,7 @@ typedef struct {
 	fixed len_pickup;
 	fixed dist2nose;
 	fixed dist2tail;
-	uint v_d[TRAIN_NUM_SPEED_IDX];
-	uint v_t[TRAIN_NUM_SPEED_IDX];
+	fixed v_avg[TRAIN_NUM_SPEED_IDX];
 	// dynamic data
 	train_direction dir;
 	int speed;
@@ -61,30 +60,6 @@ typedef struct {
 	location loc;
 	int t_sim;
 } train_descriptor;
-
-static inline int train_speed2speed_idx(train_descriptor *td) {
-	int lastspeed = td->last_speed;
-	int curspeed = td->speed;
-	int rv;
-
-	if (curspeed <= lastspeed || curspeed == TRAIN_MAX_SPEED) {
-		// descending or equal case
-		rv = curspeed;
-	} else {
-		// ascending case
-		rv = curspeed + TRAIN_MAX_SPEED;
-	}
-	ASSERT(rv < TRAIN_NUM_SPEED_IDX, "rv = %d, last: %d, cur: %d", rv, td->last_speed, td->speed);
-	return rv;
-}
-
-static inline int train_speed_idx2speed(int speed_idx) {
-	if (speed_idx <= TRAIN_MAX_SPEED) {
-		return speed_idx;
-	} else {
-		return speed_idx - TRAIN_MAX_SPEED;
-	}
-}
 
 static inline int train_switchi2no(int i) {
 	ASSERT(0 <= i && i < TRAIN_NUM_SWITCHADDR, "bad i");
@@ -164,6 +139,7 @@ void train_init(train_descriptor *this, int no);
 fixed train_get_velocity(train_descriptor *this);
 fixed train_get_stopdist(train_descriptor *this);
 int train_get_speed(train_descriptor *this);
+int train_get_speedidx(train_descriptor *this);
 void train_on_set_speed(train_descriptor *this, int speed, int t);
 void train_get_loc(train_descriptor *this, location *loc);
 void train_set_loc(train_descriptor *this, location *loc);

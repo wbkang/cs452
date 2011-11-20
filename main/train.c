@@ -1,6 +1,7 @@
 #include <train.h>
 
 // @TODO: remember the average velocity per edge as opposed to per track
+// @TODO: fill in all velocities for at least two trains
 void train_init_static(train_descriptor *train) {
 	switch (train->no) {
 		case 37:
@@ -10,8 +11,7 @@ void train_init_static(train_descriptor *train) {
 			train->dist2nose = fixed_new(22);
 			train->dist2tail = fixed_new(120);
 			TRAIN_FOREACH_SPEEDIDX(i) {
-				train->v_d[i] = 0;
-				train->v_t[i] = 0;
+				train->v_avg[i] = fixed_new(0);
 			}
 			break;
 		case 38:
@@ -21,8 +21,9 @@ void train_init_static(train_descriptor *train) {
 			train->dist2nose = fixed_new(25);
 			train->dist2tail = fixed_new(80);
 
-			train->v_d[0] = 0;
-			train->v_t[0] = 1;
+			for (int i = 0; i < 8; i++) {
+				train->v_avg[i] = fixed_new(0);
+			}
 
 			int eightto14[] = {
 					19232, 50292,
@@ -35,8 +36,14 @@ void train_init_static(train_descriptor *train) {
 			};
 
 			for (int i = 8; i <= 14; i++) {
-				train->v_d[i] = eightto14[(i - 8) * 2];
-				train->v_t[i] = eightto14[(i - 8) * 2 + 1];
+				int dx = eightto14[(i - 8) * 2];
+				int dt = eightto14[(i - 8) * 2 + 1];
+				int v10000 = (10000 * dx) / dt;
+				train->v_avg[i] = fixed_div(fixed_new(v10000), fixed_new(10000));
+			}
+
+			for (int i = 15; i < 22; i++) {
+				train->v_avg[i] = fixed_new(0);
 			}
 
 			int twentytwoto27[] = {
@@ -49,8 +56,14 @@ void train_init_static(train_descriptor *train) {
 			};
 
 			for (int i = 22; i <= 27; i++) {
-				train->v_d[i] = twentytwoto27[(i - 22) * 2];
-				train->v_t[i] = twentytwoto27[(i - 22) * 2 + 1];
+				int dx = twentytwoto27[(i - 22) * 2];
+				int dt = twentytwoto27[(i - 22) * 2 + 1];
+				int v10000 = (10000 * dx) / dt;
+				train->v_avg[i] = fixed_div(fixed_new(v10000), fixed_new(10000));
+			}
+
+			for (int i = 28; i < TRAIN_NUM_SPEED_IDX; i++) {
+				train->v_avg[i] = fixed_new(0);
 			}
 
 			break;
@@ -61,8 +74,7 @@ void train_init_static(train_descriptor *train) {
 			train->dist2nose = fixed_new(0);
 			train->dist2tail = fixed_new(0);
 			TRAIN_FOREACH_SPEEDIDX(i) {
-				train->v_d[i] = 0;
-				train->v_t[i] = 0;
+				train->v_avg[i] = fixed_new(0);
 			}
 	}
 }
@@ -79,15 +91,8 @@ void train_init(train_descriptor *this, int no) {
 }
 
 fixed train_get_velocity(train_descriptor *this) {
-	int speed_idx = train_speed2speed_idx(this);
-	int v_d = this->v_d[speed_idx];
-	int v_t = this->v_t[speed_idx];
-	if (v_t > 0) {
-		int v10000 = (10000 * v_d) / v_t;
-		return fixed_div(fixed_new(v10000), fixed_new(10000));
-	} else {
-		return fixed_new(0);
-	}
+	int speed_idx = train_get_speedidx(this);
+	return this->v_avg[speed_idx];
 }
 
 fixed train_get_stopdist(train_descriptor *this) {
@@ -107,6 +112,20 @@ fixed train_get_stopdist(train_descriptor *this) {
 
 int train_get_speed(train_descriptor *this) {
 	return this->speed;
+}
+
+int train_get_speedidx(train_descriptor *this) {
+	int speed_last = this->last_speed;
+	int speed = this->speed;
+	int rv;
+
+	if (speed <= speed_last || speed == TRAIN_MAX_SPEED) {
+		rv = speed;
+	} else {
+		rv = speed + TRAIN_MAX_SPEED;
+	}
+	ASSERT(rv < TRAIN_NUM_SPEED_IDX, "rv = %d, last: %d, cur: %d", rv, speed_last, speed);
+	return rv;
 }
 
 // @TODO: the only external thing that changes a train state is the set_speed command. we should keep a history of these commands if we want to be able to rewind the simulation.

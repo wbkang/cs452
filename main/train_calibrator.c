@@ -162,6 +162,8 @@ void calibrate_train(a0state *state, int train_no, int min, int max) {
 	calib_state.max_speed = max;
 	calib_state.testrun = TRUE;
 
+	logstrip_printf(state->cmdlog, "calibrating train %d", train_no);
+
 	// register for sensor notifications
 	dumbbus_register(state->sensor_bus, &handle_sensor_response);
 }
