@@ -171,7 +171,7 @@ void engineer_train_on_loc(engineer *this, train_descriptor *train, location *lo
 
 	fixed dt_lag = fixed_new(TICK2MS(now - t_loc));
 	fixed dx_lag = fixed_mul(v, dt_lag);
-	location_inc(loc_new, dx_lag);
+	location_add(loc_new, dx_lag);
 	train_set_loc(train, loc_new);
 
 	if (!location_isundef(&loc)) {
@@ -221,7 +221,12 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 void engineer_onloc(engineer *this, location *loc, int t_loc) {
 	train_descriptor *train = engineer_attribute_loc(this, loc, t_loc);
 	if (train) {
-		logdisplay_printf(this->log2, "attributing sensor %s to train %d", loc->edge->src->name, train->no);
+		logdisplay_printf(this->log2,
+			"attributing location %s + %Fmm to train %d",
+			loc->edge->src->name,
+			loc->offset,
+			train->no
+		);
 		logdisplay_flushline(this->log2);
 		engineer_train_on_loc(this, train, loc, t_loc);
 	} else {
@@ -234,9 +239,12 @@ void engineer_onloc(engineer *this, location *loc, int t_loc) {
 void engineer_onsensor(engineer *this, char data[]) {
 	engineer_ontick(this);
 	msg_sensor *msg = (msg_sensor*) data;
-	if (msg->state == OFF) return;
 	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
 	location loc_sensor = location_new(sensor->edge, fixed_new(0));
+	if (msg->state == OFF) {
+		fixed len_pickup = fixed_new(50); // @TODO: don't hardcode this?
+		location_add(&loc_sensor, len_pickup);
+	}
 	engineer_onloc(this, &loc_sensor, msg->timestamp);
 }
 

@@ -6,7 +6,7 @@ void train_init_static(train_descriptor *train) {
 		case 37:
 			train->stopm = fixed_div(fixed_new(30838), fixed_new(10));
 			train->stopb = fixed_div(fixed_new(-70501), fixed_new(100));
-			train->len_pickup = fixed_new(5);
+			train->len_pickup = fixed_new(50);
 			train->dist2nose = fixed_new(22);
 			train->dist2tail = fixed_new(120);
 			TRAIN_FOREACH_SPEEDIDX(i) {
@@ -17,7 +17,7 @@ void train_init_static(train_descriptor *train) {
 		case 38:
 			train->stopm = fixed_div(fixed_new(110993), fixed_new(100));
 			train->stopb = fixed_div(fixed_new(-60299), fixed_new(1000));
-			train->len_pickup = fixed_new(5);
+			train->len_pickup = fixed_new(50);
 			train->dist2nose = fixed_new(25);
 			train->dist2tail = fixed_new(80);
 
@@ -180,7 +180,7 @@ void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc) {
 	fixed dx = train_simulate_dx(this, t_i, t_f);
 	dx = fixed_neg(dx);
 	train_get_loc(this, rv_loc);
-	location_inc(rv_loc, dx);
+	location_add(rv_loc, dx);
 }
 
 // @TODO: add acceleration
@@ -192,7 +192,7 @@ void train_update_simulation(train_descriptor *this, int t_f) {
 	if (!location_isundef(&loc)) {
 		int t_i = train_get_tsim(this);
 		fixed dx = train_simulate_dx(this, t_i, t_f);
-		location_inc(&loc, dx);
+		location_add(&loc, dx);
 		train_set_loc(this, &loc);
 	}
 	train_set_tsim(this, t_f);
