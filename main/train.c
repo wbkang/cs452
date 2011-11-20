@@ -43,12 +43,12 @@ void train_init_static(train_descriptor *train) {
 					0, 1,
 					0, 1,
 					0, 1,
-					18311,	50783,
-					20510,	50599,
-					22569,	50047,
-					24923,	50416,
-					27130,	50477,
-					29246,	50722
+					18311, 50783,
+					20510, 50599,
+					22569, 50047,
+					24923, 50416,
+					27130, 50477,
+					29246, 50722
 			};
 
 			TRAIN_FOREACH_SPEEDIDX(i) {
@@ -68,6 +68,7 @@ void train_init_static(train_descriptor *train) {
 			TRAIN_FOREACH_SPEEDIDX(i) {
 				train->v_avg[i] = fixed_new(0);
 			}
+			break;
 	}
 }
 
@@ -75,7 +76,7 @@ void train_init(train_descriptor *this, int no) {
 	this->no = no;
 	this->dir = TRAIN_UNKNOWN;
 	this->speed = 0;
-	this->t_speed = 0;
+	train_set_tspeed(this, 0);
 	this->last_speed = 0;
 	this->loc = location_undef();
 	this->t_sim = 0;
@@ -98,7 +99,7 @@ fixed train_get_stopdist(train_descriptor *this) {
 		case TRAIN_BACKWARD:
 			return fixed_add(dist, this->dist2tail);
 		default:
-			return dist;
+			return dist; // @TODO: put an assert(0) here, dont run uninitialized trains
 	}
 }
 
@@ -107,10 +108,11 @@ int train_get_speed(train_descriptor *this) {
 }
 
 int train_get_speedidx(train_descriptor *this) {
-	if (this->speed <= this->last_speed || this->speed == TRAIN_MAX_SPEED) {
-		return this->speed;
+	int speed = train_get_speed(this);
+	if (speed <= this->last_speed || speed == TRAIN_MAX_SPEED) {
+		return speed;
 	} else {
-		return this->speed + TRAIN_MAX_SPEED;
+		return speed + TRAIN_MAX_SPEED;
 	}
 }
 
@@ -120,8 +122,8 @@ void train_set_speed(train_descriptor *this, int speed, int t) {
 	train_update_simulation(this, t);
 	this->last_speed = this->speed;
 	this->speed = speed;
-	this->t_speed = t;
-	this->loc = location_undef(); // @TODO: lose position, remove this when get an acceleration model
+	train_set_tspeed(this, t);
+	this->loc = location_undef(); // lose position @TODO: remove this when get an acceleration model
 }
 
 void train_get_loc(train_descriptor *this, location *loc) {
