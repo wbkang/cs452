@@ -107,21 +107,16 @@ int train_get_speed(train_descriptor *this) {
 }
 
 int train_get_speedidx(train_descriptor *this) {
-	int speed_last = this->last_speed;
-	int speed = this->speed;
-	int rv;
-
-	if (speed <= speed_last || speed == TRAIN_MAX_SPEED) {
-		rv = speed;
+	if (this->speed <= this->last_speed || this->speed == TRAIN_MAX_SPEED) {
+		return this->speed;
 	} else {
-		rv = speed + TRAIN_MAX_SPEED;
+		return this->speed + TRAIN_MAX_SPEED;
 	}
-	ASSERT(rv < TRAIN_NUM_SPEED_IDX, "rv = %d, last: %d, cur: %d", rv, speed_last, speed);
-	return rv;
 }
 
-// @TODO: the only external thing that changes a train state is the set_speed command. we should keep a history of these commands if we want to be able to rewind the simulation.
-void train_on_set_speed(train_descriptor *this, int speed, int t) {
+// @TODO: the only external thing that changes a train state is the set_speed/reverse commands. we should keep a history of these commands if we want to be able to rewind the simulation.
+void train_set_speed(train_descriptor *this, int speed, int t) {
+	ASSERT(TRAIN_GOOD_SPEED(speed), "bad speed %d", speed);
 	train_update_simulation(this, t);
 	this->last_speed = this->speed;
 	this->speed = speed;
