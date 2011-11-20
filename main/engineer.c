@@ -235,12 +235,11 @@ void engineer_onloc(engineer *this, location *loc, int t_loc) {
 	}
 }
 
-// @TODO: also use sensor OFF as it is just as accurate
 void engineer_onsensor(engineer *this, char data[]) {
 	engineer_ontick(this);
 	msg_sensor *msg = (msg_sensor*) data;
 	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
-	location loc_sensor = location_new(sensor->edge, fixed_new(0));
+	location loc_sensor = location_new(sensor->edge);
 	if (msg->state == OFF) {
 		fixed len_pickup = fixed_new(50); // @TODO: don't hardcode this?
 		location_add(&loc_sensor, len_pickup);

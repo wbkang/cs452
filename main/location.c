@@ -1,15 +1,13 @@
 #include <location.h>
 #include <util.h>
 
-location location_new(track_edge *edge, fixed offset) {
-	ASSERT(edge || fixed_sgn(offset) == 0, "bad location");
+location location_new(track_edge *edge) {
 	location rv = {edge, fixed_new(0)};
-	location_add(&rv, offset);
 	return rv;
 }
 
 location location_undef() {
-	return location_new(NULL, fixed_new(0));
+	return location_new(NULL);
 }
 
 int location_isundef(location *this) {

@@ -236,7 +236,7 @@ void track_template_updateswitch(track_template *tt, char no, char pos) {
 }
 
 void track_template_updatesensor(track_template *tt, char module, int id, int train) {
-	(void)train; // for future use
+	(void) train; // for future use
 	console *con = tt->con;
 
 	tt->mod_hist[tt->mod_hist_idx].mod = module;
