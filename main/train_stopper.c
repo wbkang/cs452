@@ -29,7 +29,7 @@ static void ontick(void* s) {
 	if (fixed_sgn(stop_dist) <= 0) return; // unknown stop distance
 
 	location stat = tloc;
-	location_inc(&stat, stop_dist);
+	location_add(&stat, stop_dist);
 
 	fixed stop_from = location_dist_dir(train_loc, dest);
 	if (fixed_sgn(stop_from) < 0) return; // bad path
@@ -64,7 +64,8 @@ void train_stopper_setup(a0state *state, int train_no, char *type, int id, int o
 	}
 
 	ts_state.train_no = train_no;
-	ts_state.dest = location_new(track_next_edge(dest), fixed_new(over));
+	ts_state.dest = location_new(track_next_edge(dest));
+	location_add(&ts_state.dest, fixed_new(over));
 
 	if (location_isundef(&ts_state.dest)) {
 		logstrip_printf(state->cmdlog,

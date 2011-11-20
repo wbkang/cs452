@@ -1,15 +1,13 @@
 #include <location.h>
 #include <util.h>
 
-location location_new(track_edge *edge, fixed offset) {
-	ASSERT(edge || fixed_sgn(offset) == 0, "bad location");
+location location_new(track_edge *edge) {
 	location rv = {edge, fixed_new(0)};
-	location_inc(&rv, offset);
 	return rv;
 }
 
 location location_undef() {
-	return location_new(NULL, fixed_new(0));
+	return location_new(NULL);
 }
 
 int location_isundef(location *this) {
@@ -79,7 +77,7 @@ fixed location_dist_dir(location *from, location *to) {
 // @TODO: problem here if slightly over-increment past an exit/enter
 // @TODO: uses current switch state. return multiple 'virtual' locations instead?
 // @TODO: add support for negative dx
-int location_inc(location *this, fixed dx) {
+int location_add(location *this, fixed dx) {
 	ASSERT(location_isvalid(this), "bad location");
 	if (location_isundef(this)) return -1; // incrementing undefined location
 	int sgn = fixed_sgn(dx);
