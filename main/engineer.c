@@ -15,7 +15,6 @@ engineer *engineer_new(char track_name) {
 
 	// initialize helper tasks
 	this->tid_traincmdbuf = traincmdbuffer_new();
-	publisher_sub(WhoIs(NAME_TRAINCMDPUB), MyTid());
 
 	// start
 	train_go(this->tid_traincmdbuf);
@@ -73,10 +72,7 @@ void engineer_on_set_speed(engineer *this, int train_no, int speed, int t) {
 
 void engineer_set_speed(engineer *this, int train_no, int speed) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	*get_globalint() = uptime();
 	train_speed(train_no, speed, this->tid_traincmdbuf);
-	// @TODO: there is a delay between putting the bytes in UART and when the train is aware of them. we need to include this delay right here. we could use a blocking putc and a command runner that pings the engineer back saying the command was put into the UART. we delay the following line until then.
-	engineer_on_set_speed(this, train_no, speed, Time(this->tid_time));
 }
 
 void engineer_get_loc(engineer *this, int train_no, location *loc) {
@@ -141,14 +137,19 @@ track_node *engineer_get_tracknodearr(engineer *this) {
 	return this->track_nodes_arr;
 }
 
+void engineer_on_set_switch(engineer *this, int id, int pos) {
+	track_node *br = engineer_get_tracknode(this, "BR", id);
+	int dir = POS2DIR(pos);
+	br->switch_dir = dir;
+}
+
 void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid) {
 	track_node *br = engineer_get_tracknode(this, "BR", id);
 	int dir = POS2DIR(pos);
 	if (br->switch_dir != dir) { // assume only engineer switches branches
-		br->switch_dir = dir;
 		train_switch(id, pos, this->tid_traincmdbuf);
 	}
-	if (offsolenoid) { // might be the last switch in a series
+	if (offsolenoid) {
 		train_solenoidoff(this->tid_traincmdbuf);
 	}
 }
@@ -246,6 +247,7 @@ void engineer_onsensor(engineer *this, char data[]) {
 	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
 	location loc_sensor = location_new(sensor->edge);
 	if (msg->state == OFF) {
+		return; // @TODO: removing this reduces simulation accuracy, why?
 		fixed len_pickup = fixed_new(50); // @TODO: don't hardcode, even though so easy
 		location_add(&loc_sensor, len_pickup);
 	}

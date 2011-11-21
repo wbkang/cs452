@@ -7,7 +7,6 @@
 
 void traincmdrunner() {
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
-	int tid_com2 = WhoIs(NAME_IOSERVER_COM2);
 	int tid_time = WhoIs(NAME_TIMESERVER);
 	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
 	int tid_traincmdpub = publisher_new(NAME_TRAINCMDPUB, PRIORITY_TRAINCMDPUB, sizeof(traincmd_receipt));
@@ -69,11 +68,6 @@ void traincmdrunner() {
 				break;
 		}
 		Flush(tid_com1);
-		if (cmd->name == SPEED) {
-			char buf[256];
-			sprintf(buf, "\x1B[s" "\x1B[3;56H" "%dms delay running %d (%d, %d)        " "\x1B[u", (uptime() - *get_globalint()) / 983, cmd->name, cmd->arg1, cmd->arg2);
-			Putstr(COM2, buf, tid_com2);
-		}
 		rcpt.timestamp = Time(tid_time);
 		publisher_pub(tid_traincmdpub, &rcpt, sizeof(rcpt));
 	}
