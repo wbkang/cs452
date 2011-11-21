@@ -114,7 +114,7 @@ void print_stack_trace(uint fp, int clearscreen);
 		VMEM(VIC2 + INTENCLR_OFFSET) = ~0; \
 		bwprintf(0, "%c", 0x61); \
 		int fp, lr, pc; READ_REGISTER(fp); READ_REGISTER(lr); READ_REGISTER(pc); \
-		bwprintf(1, "\x1B[2J" "\x1B[1;1H"); \
+		/*bwprintf(1, "\x1B[2J" "\x1B[1;1H");*/ \
 		bwprintf(1, "assertion failed in file " __FILE__ " line:" TOSTRING(__LINE__) " lr: %x pc: %x" CRLF, lr, pc); \
 		bwprintf(1, "[%s] ", __func__); \
 		bwprintf(1, __VA_ARGS__); \
@@ -148,9 +148,15 @@ void bwprintf(int channel, char *fmt, ...);
 #endif
 
 #define PRINT(...) { \
+	int __vic1 = VMEM(VIC1 + INTENCLR_OFFSET); \
+	int __vic2 = VMEM(VIC2 + INTENCLR_OFFSET); \
+	VMEM(VIC1 + INTENCLR_OFFSET) = ~0; \
+	VMEM(VIC2 + INTENCLR_OFFSET) = ~0; \
 	bwprintf(1, "[%s] ", __func__); \
 	bwprintf(1, __VA_ARGS__); \
 	bwprintf(1, "\n"); \
+	VMEM(VIC1 + INTENCLR_OFFSET) = __vic1; \
+	VMEM(VIC2 + INTENCLR_OFFSET) = __vic2; \
 }
 
 #define CHECK_COM(_c) ASSERT((_c) == COM1 ||  (_c) == COM2, "Invalid channel " #_c)

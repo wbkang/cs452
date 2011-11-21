@@ -25,7 +25,7 @@ void td_print_crash_dump() {
 		task_descriptor *td = task_descriptors.td + i;
 		if (td->state != TD_STATE_FREE && td->state != TD_STATE_RETIRED) {
 			PRINT("Task %d (priority %d, state: %s)", td->id, td->priority, task_state_name[td->state]);
-			print_stack_trace(td->registers.r[REG_FP], i == 0);
+			print_stack_trace(td->registers.r[REG_FP], 0 /*i == 0*/);
 		}
 	}
 }

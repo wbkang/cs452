@@ -44,8 +44,8 @@ engineer *engineer_new(char track_name) {
 	this->tid_time = WhoIs(NAME_TIMESERVER);
 	this->reservation = track_reservation_new();
 
-
-	gps_test(this->track_nodes_arr);
+	gps *g = gps_new(this->track_nodes_arr);
+	gps_test(g);
 	return this;
 }
 
