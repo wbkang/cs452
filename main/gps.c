@@ -138,55 +138,85 @@ static void dijkstra(gps *this, track_node *src, track_node *tgt, track_edge **r
 	track_node *previous[TRACK_MAX];
 	track_node *nodeary = this->track_node;
 	heap *unoptimized = heap_new(TRACK_MAX);
+	int srcidx = src - nodeary;
+	int tgtidx = tgt - nodeary;
 
 	for (int i = 0; i < TRACK_MAX; i++) {
+		track_node *node = &nodeary[i];
 		previous[i] = NULL;
-		if (i != src->num) {
+		if (node != src) {
 			dist[i] = infinity;
-			heap_insert_min(unoptimized, nodeary + i, dist[i]);
+			heap_insert_min(unoptimized, node, dist[i]);
 		}
 	}
 
-	dist[src->num] = 0;
-	heap_insert_min(unoptimized, nodeary + src->num, dist[src->num]);
+	dist[srcidx] = 0;
+	heap_insert_min(unoptimized, src, dist[srcidx]);
 
 	while(!heap_empty(unoptimized)) {
 		track_node *u = heap_extract_min(unoptimized);
+		int uidx = u - nodeary;
 
-		if (u->num == tgt->num) {
+		if (u == tgt) {
 			break;
 		}
-		if (dist[u->num] == infinity) {
+
+		if (dist[uidx] == infinity) {
 			break;
 		}
 
 		int neighbour_cnt = num_neighbour(u);
 
 		for (int i = 0; i < neighbour_cnt; i++) {
+//			alt := dist[u] + dist_between(u, v) ;
+//			16              if alt < dist[v]:              // Relax (u,v,a)
+//			17                  dist[v] := alt ;
+//			18                  previous[v] := u ;
+//			19                  decrease-key v in Q;       // Reorder v in the Queue
+//			20              end if ;
+//
 			track_edge *edge = &u->edge[i];
 			track_node *v = edge->dest;
-			int alt = dist[u->num] + edge->dist;
-			previous[v->num] = u;
-			heap_decrease_key(unoptimized, alt, v);
+			int vidx = v - nodeary;
+
+			int alt = (dist[vidx] == infinity) ? edge->dist : dist[vidx] + edge->dist;
+
+			if (alt < dist[vidx]) {
+				dist[vidx] = alt;
+				previous[vidx] = u;
+				heap_decrease_key(unoptimized, alt, v);
+			}
 		}
 	}
 
-	if (dist[tgt->num] != infinity) {
+	if (dist[tgtidx] != infinity) {
 		track_node *u = tgt;
+		int uidx = u - nodeary;
 		int pos = 0;
-		do {
+
+		while (u) {
 			ASSERT(pos < MAX_PATH,  "path size too big!? %d", pos);
-			track_node *next = previous[u->num];
+			track_node *next = previous[uidx];
 			if (next != NULL) {
-				if (u->type == NODE_BRANCH && next == u->edge[DIR_CURVED].dest) {
-					rv_edge[pos++] = &u->edge[DIR_CURVED];
+				track_node *ureversed = u->reverse;
+				if (ureversed->type == NODE_BRANCH && ureversed->edge[DIR_CURVED].dest->reverse == next) {
+					rv_edge[pos++] = ureversed->edge[DIR_CURVED].reverse;
 				} else {
-					rv_edge[pos++] = &u->edge[DIR_STRAIGHT];
+					rv_edge[pos++] = ureversed->edge[DIR_STRAIGHT].reverse;
 				}
 			}
 
 			u = next;
-		} while (u);
+			uidx = u - nodeary;
+		}
+
+		for (int i = 0; i < pos / 2; i++) { // reverse the path
+			track_edge *e = rv_edge[i];
+			rv_edge[i] = rv_edge[pos - i - 1];
+			rv_edge[pos - i - 1] = e;
+		}
+
+
 		*rv_edgecnt = pos;
 	}
 	else {
@@ -210,7 +240,7 @@ static fixed gps_distace(location *start, location *end, track_edge **path, int 
 			ASSERT(curedge->dist > 0, "curedge->dist %d. curedge:%d",curedge->dist,curedge->num );
 			curedge = path[cnt++];
 			total = fixed_add(total, fixed_new(curedge->dist));
-			PRINT("investigating %s->%s %d %F", PREV_NODE(curedge)->name, curedge->dest->name, curedge->dist, total);
+//			PRINT("investigating %s->%s %d %F", PREV_NODE(curedge)->name, curedge->dest->name, curedge->dist, total);
 		}
 	}
 
@@ -277,5 +307,26 @@ void gps_test(gps *this) {
 		fixed result = gps_distace(&start, &end, path, 3);
 		ASSERT(fixed_cmp(result,fixed_new(726)) == 0, "726 == %F", result);
 	}
-	ExitKernel(0);
+	{
+		track_node *c14 = &this->track_node[45];
+		track_node *a15 = &this->track_node[14];
+		track_edge *rv[100];
+		int cnt;
+		dijkstra(this, c14, a15, rv, &cnt);
+		ASSERT(cnt == 4, "cnt != 4. %d", cnt);
+	}
+	{
+		track_node *c14 = &this->track_node[45];
+		track_node *c10 = &this->track_node[41];
+		track_edge *rv[100];
+		int cnt;
+		dijkstra(this, c14, c10, rv, &cnt);
+
+//			PRINT("LEN: %d", cnt);
+//			for ( int i = 0 ; i < cnt; i++) {
+//				PRINT("PATH: %s->%s", PREV_NODE(rv[i])->name, rv[i]->dest->name);
+//			}
+		ASSERT(cnt == 6, "cnt != 6! %d", cnt);
+	}
+//	ExitKernel(0);
 }
