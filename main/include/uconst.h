@@ -56,7 +56,7 @@ typedef struct {
 } msg_sub;
 
 typedef enum {
-	SETSPEED, SETREVERSE, SETSWITCH, WAITFORMS, WAITFORLOC
+	VCMD_SETSPEED, VCMD_SETREVERSE, VCMD_SETSWITCH, VCMD_WAITFORMS, VCMD_WAITFORLOC
 } trainvcmdname;
 
 typedef struct {
