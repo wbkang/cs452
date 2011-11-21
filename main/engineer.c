@@ -237,6 +237,7 @@ void engineer_onsensor(engineer *this, char data[]) {
 	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
 	location loc_sensor = location_new(sensor->edge);
 	if (msg->state == OFF) {
+		return; // @TODO: removing this reduces simulation accuracy, why?
 		fixed len_pickup = fixed_new(50); // @TODO: don't hardcode, even though so easy
 		location_add(&loc_sensor, len_pickup);
 	}
