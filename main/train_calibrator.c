@@ -2,6 +2,7 @@
 #include <dumbbus.h>
 #include <string.h>
 #include <train_calibrator.h>
+#include <gps.h>
 
 #define CALIB_SENSOR_START "E8"
 #define CALIB_SENSOR_END "C14"
