@@ -177,6 +177,12 @@ void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
 	train_set_dir(&this->train[train_no], dir);
 }
 
+void engineer_train_lose_loc(engineer *this, int train_no) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	location undef = location_undef();
+	train_set_loc(&this->train[train_no], &undef);
+}
+
 void engineer_train_on_loc(engineer *this, train_descriptor *train, location *loc_new, int t_loc) {
 	int now = Time(this->tid_time);
 
