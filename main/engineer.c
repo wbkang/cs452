@@ -5,11 +5,7 @@
 #include <track_data.h>
 #include <uconst.h>
 #include <server/publisher.h>
-
-// temporary stuff.
-typedef struct gps gps;
-void gps_test(gps *this);
-gps *gps_new(track_node *nodes);
+#include <gps.h>
 
 engineer *engineer_new(char track_name) {
 	engineer *this = malloc(sizeof(engineer));
@@ -45,9 +41,7 @@ engineer *engineer_new(char track_name) {
 	this->tid_time = WhoIs(NAME_TIMESERVER);
 	this->reservation = track_reservation_new();
 
-	// this is a test
-	gps *g = gps_new(this->track_nodes_arr);
-	gps_test(g);
+	this->gps = gps_new(this->track_nodes_arr);
 	return this;
 }
 
