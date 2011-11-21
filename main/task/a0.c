@@ -262,6 +262,62 @@ static track ask_track(a0state *state) {
 // 	}
 // }
 
+struct {
+	track_node *last_sensor;
+	int t_last_sensor;
+	int dx;
+	int dt;
+} app_v_avg_state;
+
+static void init_v_avg() {
+}
+
+static void get_v_avg(void* s) {
+	a0state *state = s;
+	engineer *eng = state->eng;
+	int train_no = state->cur_train;
+	if (train_no < 0) return;
+
+	location loc;
+	engineer_get_loc(eng, train_no, &loc);
+	if (location_isundef(&loc)) {
+		app_v_avg_state.last_sensor = NULL;
+		app_v_avg_state.dx = 0;
+		app_v_avg_state.dt = 0;
+		return;
+	}
+
+	track_node *last_sensor = app_v_avg_state.last_sensor;
+	app_v_avg_state.last_sensor = state->cur_sensor;
+	int t_last_sensor = app_v_avg_state.t_last_sensor;
+	track_node *sensor = state->cur_sensor;
+	int t_sensor = Time(state->tid_time);
+	app_v_avg_state.t_last_sensor = t_sensor;
+
+	if (last_sensor == NULL) return;
+
+	int dt = t_sensor - t_last_sensor;
+	if (dt <= 0) return;
+
+	int dx = track_distance(last_sensor, sensor);
+	if (dx <= 0) return;
+
+	app_v_avg_state.dx += dx;
+	app_v_avg_state.dt += dt;
+
+	logdisplay_printf(
+		state->log,
+		"[%-7d] %s to %s is %d / %d (%F) [%d / %d (%F)]",
+		t_sensor,
+		last_sensor->name, sensor->name,
+		app_v_avg_state.dx, app_v_avg_state.dt,
+		fixed_div(fixed_new(10000 * app_v_avg_state.dx / app_v_avg_state.dt), fixed_new(10000)),
+		dx, dt,
+		fixed_div(fixed_new(10000 * dx / dt), fixed_new(10000))
+	);
+	logdisplay_flushline(state->log);
+}
+
 static void handle_sensor(a0state *state, char rawmsg[]) {
 	engineer *eng = state->eng;
 	msg_sensor *m = (msg_sensor*) rawmsg;
@@ -528,7 +584,7 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 				break;
 			}
 			case SOLENOID: {
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: offsolenoid()", t);
+				// logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: offsolenoid()", t);
 				break;
 			}
 			case QUERY1: {
@@ -540,15 +596,15 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 				break;
 			}
 			case GO: {
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: go()", t);
+				// logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: go()", t);
 				break;
 			}
 			case STOP: {
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: stop()", t);
+				// logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: stop()", t);
 				break;
 			}
 			case PAUSE: {
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: pause(%d)", t, cmd->arg1);
+				// logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: pause(%d)", t, cmd->arg1);
 				break;
 			}
 			default:
@@ -569,7 +625,7 @@ void a0() {
 	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
-	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, 40, ROUNDROBIN);
+	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, 80, ROUNDROBIN);
 	state.timedisplay = timedisplay_new(state.con, 1, 9);
 	state.trainloc = logstrip_new(state.con, 9, 58);
 
@@ -579,6 +635,8 @@ void a0() {
 	// dumbbus_register(state.sensor_bus, &jerk);
 	// init_csdstate();
 	// dumbbus_register(state.sensor_bus, &calib_stopdist);
+	init_v_avg();
+	dumbbus_register(state.sensor_bus, &get_v_avg);
 
 	// time bus
 	state.bus10hz = dumbbus_new();
