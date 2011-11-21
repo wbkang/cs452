@@ -8,6 +8,7 @@
 #include <track_reservation.h>
 #include <console.h> // @TODO: replace for a ui task
 #include <ui/logdisplay.h> // @TODO: replace for a ui task
+#include <gps.h>
 
 typedef struct _tag_train_engineer {
 	int tid_traincmdbuf;
@@ -19,6 +20,7 @@ typedef struct _tag_train_engineer {
 	logdisplay *log; // @TODO: replace with a ui task tid
 	logdisplay *log2; // @TODO: replace with a ui task tid
 	int tid_time;
+	gps *gps;
 } engineer;
 
 engineer *engineer_new(char track_name);
