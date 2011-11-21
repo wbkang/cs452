@@ -89,7 +89,11 @@ fixed train_get_velocity(train_descriptor *this) {
 }
 
 fixed train_get_stopdist(train_descriptor *this) {
-	fixed v = train_get_velocity(this);
+	return train_get_stopdist4speedidx(this, train_get_speedidx(this));
+}
+
+fixed train_get_stopdist4speedidx(train_descriptor *this, int speed_idx) {
+	fixed v = this->v_avg[speed_idx];
 	ASSERT(fixed_sgn(v) >= 0, "bad velocity for train %d", this->no);
 	if (fixed_sgn(v) == 0) return fixed_new(0);
 	fixed dist = fixed_add(fixed_mul(this->stopm, v), this->stopb);
@@ -108,12 +112,7 @@ int train_get_speed(train_descriptor *this) {
 }
 
 int train_get_speedidx(train_descriptor *this) {
-	int speed = train_get_speed(this);
-	if (speed <= this->last_speed || speed == TRAIN_MAX_SPEED) {
-		return speed;
-	} else {
-		return speed + TRAIN_MAX_SPEED;
-	}
+	return train_speed2speedidx(this->last_speed, this->speed);
 }
 
 // @TODO: the only external thing that changes a train state is the set_speed/reverse commands. we should keep a history of these commands if we want to be able to rewind the simulation.

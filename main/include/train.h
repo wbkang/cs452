@@ -39,6 +39,7 @@
 #define TRAIN_NUM_MODULES 5
 #define TRAIN_NUM_SENSORS 16
 #define TRAIN_NUM_SWITCHADDR 22
+#define TRAIN_MAX_VCMD 40
 
 typedef enum {
 	TRAIN_UNKNOWN, TRAIN_FORWARD, TRAIN_BACKWARD
@@ -60,6 +61,7 @@ typedef struct {
 	int last_speed;
 	location loc;
 	int t_sim;
+	location destination;
 } train_descriptor;
 
 static inline int train_switchi2no(int i) {
@@ -72,6 +74,14 @@ static inline int train_switchno2i(int n) {
 	ASSERT((1 <= n && n <= 18) || (0x99 <= n && n <= 0x9C), "bad switchno");
 	if (n <= 18) return n - 1;
 	return n - (0x99 - 18);
+}
+
+static inline int train_speed2speedidx(int lastspeed, int curspeed) {
+	if (curspeed <= lastspeed || curspeed == TRAIN_MAX_SPEED) {
+		return curspeed;
+	} else {
+		return curspeed + TRAIN_MAX_SPEED;
+	}
 }
 
 static inline int train_goodtrain(int train) {
@@ -139,6 +149,7 @@ void train_init_static(train_descriptor *train);
 void train_init(train_descriptor *this, int no);
 fixed train_get_velocity(train_descriptor *this);
 fixed train_get_stopdist(train_descriptor *this);
+fixed train_get_stopdist4speedidx(train_descriptor *this, int speed_idx);
 int train_get_speed(train_descriptor *this);
 int train_get_speedidx(train_descriptor *this);
 void train_set_speed(train_descriptor *this, int speed, int t);

@@ -1,11 +1,13 @@
 #pragma once
 
+#include <location.h>
+
 #define MSPERTICK 1
 #define MS2TICK(x) ((x) / MSPERTICK)
 #define TICK2MS(x) ((x) * MSPERTICK)
 
 typedef enum {
-	SENSOR, COM_IN, TIME, REQ, TRAINCMD, TRAINCMDRECEIPT, SUB
+	SENSOR, COM_IN, TIME, REQ, TRAINCMD, TRAINCMDRECEIPT, SUB, TRAINVCMD
 } msgtype;
 
 typedef struct {
@@ -52,3 +54,21 @@ typedef struct {
 	msgtype type;
 	int tid;
 } msg_sub;
+
+typedef enum {
+	SETSPEED, SETREVERSE, SETSWITCH, WAITFORMS, WAITFORLOC
+} trainvcmdname;
+
+typedef struct {
+	msgtype type;
+	trainvcmdname name;
+	union {
+		int speed;
+		struct {
+			char nodename[8];
+			char pos;
+		} switchinfo;
+		int timeout;
+		location waitloc;
+	} data;
+} trainvcmd;

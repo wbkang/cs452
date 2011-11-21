@@ -44,6 +44,20 @@ static inline void heap_bubbleup_min(heap *this, uint i) {
 	}
 }
 
+void heap_decrease_key(heap *this, int newkey, void* data) {
+	int pos = -1;
+	for (int i = 0; i < this->size; i++) {
+		if (this->arr[i].data == data) {
+			pos = i;
+		}
+	}
+	ASSERT(pos != -1, "heap: %x, data %x not found. newkey: %d", this, data, newkey);
+	heap_item *item = &this->arr[pos];
+
+	ASSERT(item->key >= newkey, "newkey %d is not smaller than the original key %d", newkey, item->key);
+	item->key = newkey;
+	heap_bubbleup_min(this, pos);
+}
 // inline void heap_bubbleup_max(heap *this, uint i) {
 // 	while (i > 0) {
 // 		uint p = heap_parent(i);

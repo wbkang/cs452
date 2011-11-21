@@ -13,6 +13,7 @@ typedef struct _tag_train_engineer {
 	int tid_traincmdbuf;
 	train_descriptor train[TRAIN_MAX_TRAIN_ADDR + 1];
 	lookup *track_nodes;
+	track_node *track_nodes_arr;
 	track_reservation *reservation;
 	console *con; // @TODO: replace with a ui task tid
 	logdisplay *log; // @TODO: replace with a ui task tid
@@ -30,6 +31,7 @@ void engineer_reverse(engineer *this, int train_no);
 void engineer_train_pause(engineer *this, int train_no, int ticks);
 void engineer_set_track(engineer *this, int s[], int ns, int c[], int nc);
 track_node *engineer_get_tracknode(engineer *this, char *type, int id);
+track_node *engineer_get_tracknodearr(engineer *this);
 void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid);
 train_direction engineer_train_get_dir(engineer *this, int train_no);
 void engineer_train_set_dir(engineer *this, int train_no, train_direction dir);

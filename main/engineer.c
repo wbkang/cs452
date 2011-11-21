@@ -6,6 +6,10 @@
 #include <uconst.h>
 #include <server/publisher.h>
 
+typedef struct gps gps;
+void gps_test(gps *this);
+
+
 engineer *engineer_new(char track_name) {
 	engineer *this = malloc(sizeof(engineer));
 
@@ -22,13 +26,13 @@ engineer *engineer_new(char track_name) {
 	}
 
 	// initialize track object
-	track_node *tn = malloc(sizeof(track_node) * TRACK_MAX);
+	this->track_nodes_arr = malloc(sizeof(track_node) * TRACK_MAX);
 	switch (track_name) {
 		case 'a':
-			this->track_nodes = init_tracka(tn);
+			this->track_nodes = init_tracka(this->track_nodes_arr);
 			break;
 		case 'b':
-			this->track_nodes = init_trackb(tn);
+			this->track_nodes = init_trackb(this->track_nodes_arr);
 			break;
 		default:
 			ASSERT(0, "bad track name");
@@ -41,6 +45,8 @@ engineer *engineer_new(char track_name) {
 	this->tid_time = WhoIs(NAME_TIMESERVER);
 	this->reservation = track_reservation_new();
 
+
+	gps_test(this->track_nodes_arr);
 	return this;
 }
 
@@ -129,6 +135,10 @@ track_node *engineer_get_tracknode(engineer *this, char *type, int id) {
 	}
 	ASSERT(rv, "rv is null, type: %s, id: %d", type, id);
 	return rv;
+}
+
+track_node *engineer_get_tracknodearr(engineer *this) {
+	return this->track_nodes_arr;
 }
 
 void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid) {
