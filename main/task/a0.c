@@ -7,7 +7,7 @@
 #include <lookup.h>
 #include <fixed.h>
 #include <dumbbus.h>
-#include <server/sensornotifier.h>
+#include <server/sensorserver.h>
 #include <server/comnotifier.h>
 #include <server/timenotifier.h>
 #include <task/a0.h>
@@ -269,6 +269,13 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 	engineer_onsensor(eng, rawmsg);
 	ui_sensor(state, m->module[0], m->id, m->state);
 
+	logdisplay_printf(
+		state->log,
+		"[%-7d] %s%d %s",
+		m->timestamp, m->module, m->id, m->state == ON ? "on" : "off"
+	);
+	logdisplay_flushline(state->log);
+
 	if (m->state == OFF) return;
 	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
 
@@ -502,7 +509,6 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 	int t = rcpt->timestamp;
 		switch (cmd->name) {
 			case SPEED: {
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: speed(%d, %d)", t, cmd->arg1, cmd->arg2);
 				int train_no = cmd->arg1;
 				int speed = cmd->arg2;
 				ui_speed(state, train_no, speed);
@@ -510,15 +516,14 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 				break;
 			}
 			case REVERSE: {
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: reverse(%d)", t, cmd->arg1);
 				int train_no = cmd->arg1;
 				ui_reverse(state, train_no);
 				break;
 			}
 			case SWITCH: {
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: switch(%d, %d)", t, cmd->arg1, cmd->arg2);
 				char no = cmd->arg1;
 				char pos = cmd->arg2;
+				engineer_on_set_switch(eng, no, pos);
 				ui_switch(state, no, pos);
 				break;
 			}
@@ -564,7 +569,7 @@ void a0() {
 	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
-	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, 40, SCROLLING);
+	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, 40, ROUNDROBIN);
 	state.timedisplay = timedisplay_new(state.con, 1, 9);
 	state.trainloc = logstrip_new(state.con, 9, 58);
 
@@ -591,9 +596,10 @@ void a0() {
 
 	ui_init(&state);
 
-	int tid_sensor_publisher = publisher_new(NULL, 9, sizeof(msg_sensor));
-	publisher_sub(tid_sensor_publisher, MyTid());
-	sensornotifier_new(tid_sensor_publisher);
+	sensorserver_new();
+	publisher_sub(WhoIs(NAME_SENSORPUB), MyTid());
+
+	publisher_sub(WhoIs(NAME_TRAINCMDPUB), MyTid());
 
 	int tid_com2buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
 	comnotifier_new(tid_com2buffer, 9, COM2, state.con->tid_console);
