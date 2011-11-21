@@ -67,6 +67,16 @@ fixed engineer_sim_stopdist(engineer *this, int train_no) {
 	return train_get_stopdist(&this->train[train_no]);
 }
 
+int engineer_get_speedidx(engineer *this, int train_no) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	return train_get_speedidx(&this->train[train_no]);
+}
+
+fixed engineer_get_velocity(engineer *this, int train_no) {
+	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	return train_get_velocity(&this->train[train_no]);
+}
+
 void engineer_on_set_speed(engineer *this, int train_no, int speed, int t) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_set_speed(&this->train[train_no], speed, t);
@@ -139,7 +149,8 @@ track_node *engineer_get_tracknodearr(engineer *this) {
 	return this->track_nodes_arr;
 }
 
-void engineer_on_set_switch(engineer *this, int id, int pos) {
+void engineer_on_set_switch(engineer *this, int id, int pos, int t) {
+	(void) t; // @TODO: perhaps save a timeline of switch states
 	track_node *br = engineer_get_tracknode(this, "BR", id);
 	int dir = POS2DIR(pos);
 	br->switch_dir = dir;
@@ -168,8 +179,6 @@ void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
 
 void engineer_train_on_loc(engineer *this, train_descriptor *train, location *loc_new, int t_loc) {
 	int now = Time(this->tid_time);
-
-	if (train_get_tspeed(train) + MS2TICK(5000) > now) return; // wait until the velocity settles
 
 	train_update_simulation(train, now);
 
@@ -205,7 +214,7 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 				location loc_past;
 				train_get_loc_hist(train, t_loc, &loc_past);
 				fixed dist = location_dist_min(&loc_past, loc);
-				if (fixed_sgn(dist) >= 0 && fixed_cmp(dist, fixed_new(300)) <= 0) {
+				if (fixed_sgn(dist) >= 0 && fixed_cmp(dist, fixed_new(400)) <= 0) {
 					return &this->train[train_no];
 				}
 			}

@@ -4,7 +4,8 @@
 #define cmdline_putc(this, c) {\
 	console_move((this)->con, (this)->line, (this)->col + (this)->cmdidx); \
 	console_printf((this)->con, "%c", c); \
-	console_flush((this)->con); }
+	console_flush((this)->con); \
+}
 
 static void cmdline_movecursor(cmdline *this) {
 	console_cursor_unsave(this->con);

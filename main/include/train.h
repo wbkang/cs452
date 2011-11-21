@@ -54,8 +54,13 @@ typedef struct {
 	fixed dist2nose;
 	fixed dist2tail;
 	fixed v_avg[TRAIN_NUM_SPEED_IDX];
+	fixed ai_avg10000;
+	fixed ad_avg10000;
 	// dynamic data
 	train_direction dir;
+	fixed v10000;
+	fixed v_i10000;
+	fixed v_f10000;
 	int speed;
 	int t_speed;
 	int last_speed;
