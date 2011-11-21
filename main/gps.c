@@ -1,27 +1,24 @@
 #include <gps.h>
 #include <syscall.h>
-#include <track_node.h>
 #include <track_data.h>
 #include <util.h>
-#include <heap.h>
 #include <string.h>
 
 #define MAX_PATH 160
-
 #define SWITCH_DIST 50
-
 #define CRUISE_SPEED 12
 
 static void dijkstra(gps *this, track_node *src, track_node *tgt, track_edge **rv_edge, int *rv_edgecnt);
 static fixed gps_distace(location *start, location *end, track_edge **path, int pathlen);
 
 gps *gps_new(track_node *nodes) {
-	gps *p = malloc(sizeof(gps));
+	gps *this = malloc(sizeof(gps));
 	ASSERT(sizeof(gps) > 0, "size of gps is zero");
-	ASSERT(p != NULL, "p is null");
+	ASSERT(this, "out of memory");
 	ASSERT(nodes, "size of gps is zero");
-	p->track_node = nodes;
-	return p;
+	this->track_node = nodes;
+	this->heap_dijkstra = heap_new(TRACK_MAX);
+	return this;
 }
 
 static inline void trainvcmd_addspeed(trainvcmd *rv_vcmd[], int *idx, int speed) {
@@ -58,6 +55,7 @@ void gps_findpath(gps *this,
 	track_node *src = trainloc.edge->dest;
 	track_edge *path[MAX_PATH];
 	int pathlen;
+	// @TODO: dest->edge->reverse->dest->reverse = dest->edge->src?
 	dijkstra(this, src, dest->edge->reverse->dest->reverse, path, &pathlen);
 	int cmdlen = 0;
 
@@ -132,12 +130,14 @@ static inline uint num_neighbour(track_node *n) {
 }
 
 // code taken from http://en.wikipedia.org/wiki/Dijkstra's_algorithm#Algorithm
+// @TODO: keep this algorithm independent of gps, pass in whats needed as args
 static void dijkstra(gps *this, track_node *src, track_node *tgt, track_edge **rv_edge, int *rv_edgecnt) {
 	int const infinity = INT_MAX;
 	int dist[TRACK_MAX];
 	track_node *previous[TRACK_MAX];
 	track_node *nodeary = this->track_node;
-	heap *unoptimized = heap_new(TRACK_MAX);
+	heap_clear(this->heap_dijkstra);
+	heap *unoptimized = this->heap_dijkstra;
 	int srcidx = src - nodeary;
 	int tgtidx = tgt - nodeary;
 
@@ -184,7 +184,7 @@ static void dijkstra(gps *this, track_node *src, track_node *tgt, track_edge **r
 			if (alt < dist[vidx]) {
 				dist[vidx] = alt;
 				previous[vidx] = u;
-				heap_decrease_key(unoptimized, alt, v);
+				heap_decrease_key_min(unoptimized, v, alt);
 			}
 		}
 	}
