@@ -11,7 +11,6 @@ engineer *engineer_new(char track_name) {
 
 	// initialize helper tasks
 	this->tid_traincmdbuf = traincmdbuffer_new();
-	publisher_sub(WhoIs(NAME_TRAINCMDPUB), MyTid());
 
 	// start
 	train_go(this->tid_traincmdbuf);
@@ -67,7 +66,6 @@ void engineer_on_set_speed(engineer *this, int train_no, int speed, int t) {
 
 void engineer_set_speed(engineer *this, int train_no, int speed) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	*get_globalint() = uptime();
 	train_speed(train_no, speed, this->tid_traincmdbuf);
 }
 
@@ -129,14 +127,19 @@ track_node *engineer_get_tracknode(engineer *this, char *type, int id) {
 	return rv;
 }
 
+void engineer_on_set_switch(engineer *this, int id, int pos) {
+	track_node *br = engineer_get_tracknode(this, "BR", id);
+	int dir = POS2DIR(pos);
+	br->switch_dir = dir;
+}
+
 void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid) {
 	track_node *br = engineer_get_tracknode(this, "BR", id);
 	int dir = POS2DIR(pos);
 	if (br->switch_dir != dir) { // assume only engineer switches branches
-		br->switch_dir = dir;
 		train_switch(id, pos, this->tid_traincmdbuf);
 	}
-	if (offsolenoid) { // might be the last switch in a series
+	if (offsolenoid) {
 		train_solenoidoff(this->tid_traincmdbuf);
 	}
 }

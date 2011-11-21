@@ -27,7 +27,7 @@ LDFLAGS = -init main -Map main.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/g
 
 #################
 OBJS= main.o test.o dumbbus.o train_calibrator.o train_stopper.o \
-server/sensornotifier.o server/comnotifier.o server/traincmdbuffer.o \
+server/sensorserver.o server/comnotifier.o server/traincmdbuffer.o \
 server/traincmdrunner.o server/timenotifier.o server/buffertask.o \
 server/timeserver.o server/ioserver.o server/eventnotifier.o \
 track_data.o track_node.o console.o \

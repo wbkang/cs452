@@ -30,6 +30,7 @@ void engineer_reverse(engineer *this, int train_no);
 void engineer_train_pause(engineer *this, int train_no, int ticks);
 void engineer_set_track(engineer *this, int s[], int ns, int c[], int nc);
 track_node *engineer_get_tracknode(engineer *this, char *type, int id);
+void engineer_on_set_switch(engineer *this, int id, int pos);
 void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid);
 train_direction engineer_train_get_dir(engineer *this, int train_no);
 void engineer_train_set_dir(engineer *this, int train_no, train_direction dir);
