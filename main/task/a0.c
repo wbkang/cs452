@@ -491,6 +491,15 @@ static void handle_command(void* s, char *cmd, int size) {
 			engineer_reverse(eng, train);
 			break;
 		}
+		case 'l': { // reverse train (rv #+)
+			ACCEPT('t');
+			ACCEPT(' ');
+			int train = strgetui(&c);
+			if (!train_goodtrain(train)) goto badcmd;
+			ACCEPT('\0');
+			engineer_train_lose_loc(eng, train);
+			break;
+		}
 		case 's': {
 			if (*c == 't') { // set switch position (st #+ [a-zA-Z]+[0-9]+ #+)
 				ACCEPT('t');
