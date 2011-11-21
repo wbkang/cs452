@@ -13,6 +13,8 @@ void train_init_static(train_descriptor *train) {
 			TRAIN_FOREACH_SPEEDIDX(i) {
 				train->v_avg[i] = fixed_new(0);
 			}
+			train->ai_avg10000 = fixed_new(0);
+			train->ad_avg10000 = fixed_new(0);
 			break;
 		case 38:
 			train->stopm = fixed_div(fixed_new(110993), fixed_new(100));
@@ -59,6 +61,9 @@ void train_init_static(train_descriptor *train) {
 				train->v_avg[i] = fixed_div(fixed_new(v10000), fixed_new(10000));
 			}
 
+			// train->ai_avg10000 = fixed_div(fixed_new(49669), fixed_new(10000));
+			train->ai_avg10000 = fixed_div(fixed_new(20667), fixed_new(10000));
+			train->ad_avg10000 = fixed_div(fixed_new(-20667), fixed_new(10000));
 			break;
 		default:
 			train->stopm = fixed_new(0);
@@ -69,6 +74,8 @@ void train_init_static(train_descriptor *train) {
 			TRAIN_FOREACH_SPEEDIDX(i) {
 				train->v_avg[i] = fixed_new(0);
 			}
+			train->ai_avg10000 = fixed_new(0);
+			train->ad_avg10000 = fixed_new(0);
 			break;
 	}
 }
@@ -76,6 +83,9 @@ void train_init_static(train_descriptor *train) {
 void train_init(train_descriptor *this, int no) {
 	this->no = no;
 	this->dir = TRAIN_UNKNOWN;
+	this->v10000 = fixed_new(0);
+	this->v_i10000 = fixed_new(0);
+	this->v_f10000 = fixed_new(0);
 	this->speed = 0;
 	train_set_tspeed(this, 0);
 	this->last_speed = 0;
@@ -85,8 +95,7 @@ void train_init(train_descriptor *this, int no) {
 }
 
 fixed train_get_velocity(train_descriptor *this) {
-	int speed_idx = train_get_speedidx(this);
-	return this->v_avg[speed_idx];
+	return fixed_div(this->v10000, fixed_new(10000));
 }
 
 fixed train_get_stopdist(train_descriptor *this) {
@@ -123,7 +132,8 @@ void train_set_speed(train_descriptor *this, int speed, int t) {
 	this->last_speed = this->speed;
 	this->speed = speed;
 	train_set_tspeed(this, t);
-	this->loc = location_undef(); // lose position @TODO: remove this when get an acceleration model
+	this->v_i10000 = this->v10000;
+	this->v_f10000 = fixed_mul(this->v_avg[train_get_speedidx(this)], fixed_new(10000));
 }
 
 void train_get_loc(train_descriptor *this, location *loc) {
@@ -196,17 +206,41 @@ void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc) {
 	location_add(rv_loc, dx);
 }
 
+// simulation step is 2^TRAIN_SIM_DT_EXP milliseconds
+#define TRAIN_SIM_DT_EXP 2
+#define TRAIN_SIM_DT (1 << TRAIN_SIM_DT_EXP)
+
+static void train_step_sim(train_descriptor *this, int dt) {
+	const fixed margin = fixed_new(1);
+	fixed diff = fixed_abs(fixed_sub(this->v10000, this->v_f10000));
+	fixed fdt = fixed_new(dt);
+	if (fixed_cmp(diff, margin) > 0) {
+		int cmp = fixed_cmp(this->v10000, this->v_f10000);
+		if (cmp < 0) {
+			this->v10000 = fixed_add(this->v10000, fixed_mul(this->ai_avg10000, fdt));
+		} else if (cmp > 0) {
+			this->v10000 = fixed_add(this->v10000, fixed_mul(this->ad_avg10000, fdt));
+		} else {
+			// velocity is unchanged
+		}
+	}
+	if (!location_isundef(&this->loc) && fixed_cmp(fixed_abs(this->v10000), margin) > 0) {
+		fixed dx10000 = fixed_mul(this->v10000, fdt);
+		fixed dx = fixed_div(dx10000, fixed_new(10000));
+		location_add(&this->loc, dx);
+	}
+	this->t_sim += dt;
+}
+
 // @TODO: add acceleration
 // @TODO: add jerk
 // @TODO: modify velocity even if location is unknown
 void train_update_simulation(train_descriptor *this, int t_f) {
-	location loc;
-	train_get_loc(this, &loc);
-	if (!location_isundef(&loc)) {
-		int t_i = train_get_tsim(this);
-		fixed dx = train_simulate_dx(this, t_i, t_f);
-		location_add(&loc, dx);
-		train_set_loc(this, &loc);
+	int t_i = train_get_tsim(this);
+	// train_step_sim(this, fixed_new(t_f - t_i));
+	int time = TICK2MS(t_f - t_i);
+	for (int i = (time >> TRAIN_SIM_DT_EXP); i > 0; --i) {
+		train_step_sim(this, TRAIN_SIM_DT);
 	}
-	train_set_tsim(this, t_f);
+	train_step_sim(this, time & (TRAIN_SIM_DT - 1));
 }
