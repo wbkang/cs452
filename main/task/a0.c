@@ -7,7 +7,7 @@
 #include <lookup.h>
 #include <fixed.h>
 #include <dumbbus.h>
-#include <server/sensornotifier.h>
+#include <server/sensorserver.h>
 #include <server/comnotifier.h>
 #include <server/timenotifier.h>
 #include <task/a0.h>
@@ -49,11 +49,8 @@ static void ui_time(void* s) {
 	timedisplay_update(state->timedisplay, state->timestamp);
 }
 
-static void ui_updateswitchstatus(a0state *state, char no, char pos) {
-	track_template_updateswitch(state->template, no, pos);
-}
-
-static void ui_sensor(a0state *state, char module, int id) {
+static void ui_sensor(a0state *state, char module, int id, int senstate) {
+	if (senstate == OFF) return;
 	for (int i = LEN_SENSOR_HIST - 1; i > 0; i--) {
 		hist_mod[i] = hist_mod[i - 1];
 		hist_id[i] = hist_id[i - 1];
@@ -90,26 +87,8 @@ static void ui_reverse(a0state *state, int train) {
 
 static void ui_switch(a0state *state, char no, char pos) {
 	logstrip_printf(state->cmdlog, "switched switch %d to %c", no, pos);
-	ui_updateswitchstatus(state, no, pos);
+	track_template_updateswitch(state->template, no, pos);
 	console_flush(state->con);
-}
-
-static void ui_switchall(a0state *state, char pos) {
-	logstrip_printf(state->cmdlog, "switched all switches to '%c'", pos);
-	console_flush(state->con);
-}
-
-void ui_set_track(a0state *state, int s[], int ns, int c[], int nc) {
-	for (int i = 0; i < ns; i++) {
-		ui_updateswitchstatus(state, s[i], 's');
-	}
-	for (int i = 0; i < nc; i++) {
-		ui_updateswitchstatus(state, c[i], 'c');
-	}
-}
-
-static void ui_setup_demo_track(a0state *state) {
-	logstrip_printf(state->cmdlog, "adjusted all switches for demo");
 }
 
 static void ui_quit(a0state *state) {
@@ -123,26 +102,10 @@ static void ui_quit(a0state *state) {
  * Server
  */
 
-static void handle_train_switch_all(a0state *state, char pos) {
-	engineer *eng = state->eng;
-	int all[] = {
-		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-		17, 18, 153, 154, 155, 156
-	};
-	int count = sizeof(all) / sizeof(int);
-	if (track_switchpos_straight(pos)) {
-		engineer_set_track(eng, all, count, NULL, 0);
-		ui_set_track(state, all, count, NULL, 0);
-	} else {
-		engineer_set_track(eng, NULL, 0, all, count);
-		ui_set_track(state, NULL, 0, all, count);
-	}
-	ui_switchall(state, pos);
-}
-
 static track ask_track(a0state *state) {
 	for (;;) {
 		console_clear(state->con);
+		console_move(state->con, 1, 1);
 		console_printf(state->con, "Track a or b?\n");
 		console_flush(state->con);
 		char c = Getc(COM2, state->con->tid_console);
@@ -299,11 +262,75 @@ static track ask_track(a0state *state) {
 // 	}
 // }
 
+struct {
+	track_node *last_sensor;
+	int t_last_sensor;
+	int dx;
+	int dt;
+} app_v_avg_state;
+
+static void init_v_avg() {
+}
+
+static void get_v_avg(void* s) {
+	a0state *state = s;
+	engineer *eng = state->eng;
+	int train_no = state->cur_train;
+	if (train_no < 0) return;
+
+	location loc;
+	engineer_get_loc(eng, train_no, &loc);
+	if (location_isundef(&loc)) {
+		app_v_avg_state.last_sensor = NULL;
+		app_v_avg_state.dx = 0;
+		app_v_avg_state.dt = 0;
+		return;
+	}
+
+	track_node *last_sensor = app_v_avg_state.last_sensor;
+	app_v_avg_state.last_sensor = state->cur_sensor;
+	int t_last_sensor = app_v_avg_state.t_last_sensor;
+	track_node *sensor = state->cur_sensor;
+	int t_sensor = Time(state->tid_time);
+	app_v_avg_state.t_last_sensor = t_sensor;
+
+	if (last_sensor == NULL) return;
+
+	int dt = t_sensor - t_last_sensor;
+	if (dt <= 0) return;
+
+	int dx = track_distance(last_sensor, sensor);
+	if (dx <= 0) return;
+
+	app_v_avg_state.dx += dx;
+	app_v_avg_state.dt += dt;
+
+	logdisplay_printf(
+		state->log,
+		"[%-7d] %s to %s is %d / %d (%F) [%d / %d (%F)]",
+		t_sensor,
+		last_sensor->name, sensor->name,
+		app_v_avg_state.dx, app_v_avg_state.dt,
+		fixed_div(fixed_new(10000 * app_v_avg_state.dx / app_v_avg_state.dt), fixed_new(10000)),
+		dx, dt,
+		fixed_div(fixed_new(10000 * dx / dt), fixed_new(10000))
+	);
+	logdisplay_flushline(state->log);
+}
+
 static void handle_sensor(a0state *state, char rawmsg[]) {
 	engineer *eng = state->eng;
 	msg_sensor *m = (msg_sensor*) rawmsg;
 
 	engineer_onsensor(eng, rawmsg);
+	ui_sensor(state, m->module[0], m->id, m->state);
+
+	logdisplay_printf(
+		state->log,
+		"[%-7d] %s%d %s",
+		m->timestamp, m->module, m->id, m->state == ON ? "on" : "off"
+	);
+	logdisplay_flushline(state->log);
 
 	if (m->state == OFF) return;
 	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
@@ -324,7 +351,6 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 	state->cur_sensor = sensor;
 
 	// jerk(state, sensor, m->timestamp); (THIS CODE HANGS THE CODE)
-	ui_sensor(state, m->module[0], m->id);
 	dumbbus_dispatch(state->sensor_bus, state);
 }
 
@@ -371,9 +397,20 @@ static void handle_setup_demotrack(a0state *state) {
 	int ns = sizeof(s) / sizeof(int);
 	int nc = sizeof(c) / sizeof(int);
 	engineer_set_track(eng, s, ns, c, nc);
-	// update ui
-	ui_set_track(state, s, ns, c, nc);
-	ui_setup_demo_track(state);
+}
+
+static void handle_train_switch_all(a0state *state, char pos) {
+	engineer *eng = state->eng;
+	int all[] = {
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+		17, 18, 153, 154, 155, 156
+	};
+	int count = sizeof(all) / sizeof(int);
+	if (track_switchpos_straight(pos)) {
+		engineer_set_track(eng, all, count, NULL, 0);
+	} else {
+		engineer_set_track(eng, NULL, 0, all, count);
+	}
 }
 
 static void tick_engineer(void* s) {
@@ -428,7 +465,6 @@ static void handle_command(void* s, char *cmd, int size) {
 			int speed = strgetui(&c);
 			if (!train_goodspeed(speed)) goto badcmd;
 			ACCEPT('\0');
-			ui_speed(state, train, speed);
 			engineer_set_speed(eng, train, speed);
 			break;
 		}
@@ -438,7 +474,6 @@ static void handle_command(void* s, char *cmd, int size) {
 			int train = strgetui(&c);
 			if (!train_goodtrain(train)) goto badcmd;
 			ACCEPT('\0');
-			ui_reverse(state, train);
 			engineer_reverse(eng, train);
 			break;
 		}
@@ -475,7 +510,6 @@ static void handle_command(void* s, char *cmd, int size) {
 				if (id == '*') {
 					handle_train_switch_all(state, pos);
 				} else {
-					ui_switch(state, id, pos);
 					engineer_set_switch(eng, id, pos, TRUE);
 				}
 			} else {
@@ -525,25 +559,34 @@ static void handle_time(a0state *state, char msg[], int tid) {
 }
 
 static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
+	engineer *eng = state->eng;
 	traincmd_receipt *rcpt = (traincmd_receipt*) msg;
 	traincmd *cmd = &rcpt->cmd;
 	int t = rcpt->timestamp;
 		switch (cmd->name) {
 			case SPEED: {
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: speed(%d, %d)", t, cmd->arg1, cmd->arg2);
+				int train_no = cmd->arg1;
+				int speed = cmd->arg2;
+				ui_speed(state, train_no, speed);
+				engineer_on_set_speed(eng, train_no, speed, t);
 				break;
 			}
 			case REVERSE: {
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: reverse(%d)", t, cmd->arg1);
+				int train_no = cmd->arg1;
+				ui_reverse(state, train_no);
 				break;
 			}
 			case SWITCH: {
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: switch(%d, %d)", t, cmd->arg1, cmd->arg2);
+				char no = cmd->arg1;
+				char pos = cmd->arg2;
+				engineer_on_set_switch(eng, no, pos);
+				ui_switch(state, no, pos);
 				break;
 			}
-			case SOLENOID:
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: offsolenoid()", t);
+			case SOLENOID: {
+				// logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: offsolenoid()", t);
 				break;
+			}
 			case QUERY1: {
 				// logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: querymod1(%d)", t, cmd->arg1);
 				break;
@@ -552,14 +595,16 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 				// logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: querymods(%d)", t, cmd->arg1);
 				break;
 			}
-			case GO:
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: go()", t);
+			case GO: {
+				// logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: go()", t);
 				break;
-			case STOP:
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: stop()", t);
+			}
+			case STOP: {
+				// logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: stop()", t);
 				break;
+			}
 			case PAUSE: {
-				logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: pause(%d)", t, cmd->arg1);
+				// logstrip_printf(state->cmdlog, "[%-7d] cmdrcpt: pause(%d)", t, cmd->arg1);
 				break;
 			}
 			default:
@@ -580,7 +625,7 @@ void a0() {
 	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
-	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, 40, SCROLLING);
+	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 20, 80, ROUNDROBIN);
 	state.timedisplay = timedisplay_new(state.con, 1, 9);
 	state.trainloc = logstrip_new(state.con, 9, 58);
 
@@ -590,6 +635,8 @@ void a0() {
 	// dumbbus_register(state.sensor_bus, &jerk);
 	// init_csdstate();
 	// dumbbus_register(state.sensor_bus, &calib_stopdist);
+	init_v_avg();
+	dumbbus_register(state.sensor_bus, &get_v_avg);
 
 	// time bus
 	state.bus10hz = dumbbus_new();
@@ -607,9 +654,10 @@ void a0() {
 
 	ui_init(&state);
 
-	int tid_sensor_publisher = publisher_new(NULL, 9, sizeof(msg_sensor));
-	publisher_sub(tid_sensor_publisher, MyTid());
-	sensornotifier_new(tid_sensor_publisher);
+	sensorserver_new();
+	publisher_sub(WhoIs(NAME_SENSORPUB), MyTid());
+
+	publisher_sub(WhoIs(NAME_TRAINCMDPUB), MyTid());
 
 	int tid_com2buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
 	comnotifier_new(tid_com2buffer, 9, COM2, state.con->tid_console);
