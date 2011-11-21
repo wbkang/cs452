@@ -13,7 +13,7 @@
 #define CRUISE_SPEED 12
 
 static void dijkstra(gps *this, track_node *src, track_node *tgt, track_edge **rv_edge, int *rv_edgecnt);
-static fixed gps_distace(location *start, location *end, track_edge **path);
+static fixed gps_distace(location *start, location *end, track_edge **path, int pathlen);
 
 gps *gps_new(track_node *nodes) {
 	gps *p = malloc(sizeof(gps));
@@ -63,7 +63,7 @@ void gps_findpath(gps *this,
 
 
 	if (pathlen > 0) {
-		fixed dist = gps_distace(&trainloc, dest, path);
+		fixed dist = gps_distace(&trainloc, dest, path, pathlen);
 		int speedidx = train_get_speedidx(train);
 		dist = fixed_sub(dist, fixed_sub(fixed_new(trainloc.edge->dist), trainloc.offset));
 
@@ -194,58 +194,88 @@ static void dijkstra(gps *this, track_node *src, track_node *tgt, track_edge **r
 	}
 }
 
-static fixed gps_distace(location *start, location *end, track_edge **path) {
-	return fixed_new(0);
+static fixed gps_distace(location *start, location *end, track_edge **path, int pathlen) {
 	ASSERT((int)path % 4 == 0, "path unaligned");
 	ASSERT((int)start % 4 == 0, "start unaligned");
 	ASSERT((int)end % 4 == 0, "end unaligned");
 	fixed total = fixed_new(0);
+	ASSERT(start->edge->dist > 0, "start->edge->dist %d", start->edge->dist);
 	total = fixed_add(total, fixed_sub(fixed_new(start->edge->dist), start->offset));
 	total = fixed_add(total, end->offset);
-	ASSERT(0, "nextnode: %s, %F", start->edge->dest->name, start->edge->dist);
 	int cnt = 0;
-	track_edge *curedge = path[cnt++];
-	while(curedge->dest != end->edge->dest) {
-		total = fixed_add(total, fixed_new(curedge->dist));
-		curedge = path[cnt++];
+
+	if (pathlen > 0) {
+		track_edge *curedge = path[cnt];
+		while(curedge->dest != PREV_NODE(end->edge)) {
+			ASSERT(curedge->dist > 0, "curedge->dist %d. curedge:%d",curedge->dist,curedge->num );
+			curedge = path[cnt++];
+			total = fixed_add(total, fixed_new(curedge->dist));
+			PRINT("investigating %s->%s %d %F", PREV_NODE(curedge)->name, curedge->dest->name, curedge->dist, total);
+		}
 	}
 
 	return total;
 }
 
 void gps_test(gps *this) {
-//	track_node *c14 = &this->track_node[45];
-//	track_node *a15 = &this->track_node[14];
-//
-//	ASSERT((int)c14 % 4 == 0, "c14 unaligned");
-//	ASSERT((int)a15 % 4 == 0, "a15 unaligned");
-//	location start = location_new(&c14->edge[0]);
-//	location end = location_new(&a15->edge[0]);
-//
-//
-//	track_edge *path[10] = {
-//			&c14->edge[DIR_STRAIGHT],
-//			&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT],
-//			&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT].dest->edge[DIR_CURVED],
-//			&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT].dest->edge[DIR_CURVED].dest->edge[DIR_STRAIGHT],
-//	};
-//
-//	// c14 BR11 	66
-//	// BR11 BR12 	190
-//	// BR12 BR4		188
-//	// BR4 A15		262
-//	ASSERT((int)path[0] % 4 == 0, "path unaligned");
-//	//path[0]->dest;/
-////	gps_distace(&start, &end, path);
+	{
+		track_node *c14 = &this->track_node[45];
+		track_node *mr11 = &this->track_node[101];
+		location start = location_new(&c14->edge[0]);
+		location end = location_new(&mr11->edge[0]);
 
-	track_node *c14 = &this->track_node[0];
-//	ASSERT(0, "c14->edge:%x", &c14->edge[0]);
-	ASSERT(0, "c14->edge[0].num:%d", c14->edge[0].num);
-	track_node *mr11 = &this->track_node[101];
-	location start = location_new(&c14->edge[0]);
-	location end = location_new(&mr11->edge[0]);
+		track_edge *path[] = {0};
+		fixed result = gps_distace(&start, &end, path, 0);
+		ASSERT(fixed_cmp(fixed_new(66), result) == 0, "66 == %F", result);
+	}
+	{
+		track_node *c14 = &this->track_node[45];
+		track_node *a15 = &this->track_node[14];
 
-	track_edge **path = {&c14->edge[DIR_STRAIGHT]};
-	gps_distace(&start, &end, path);
+		ASSERT((int)c14 % 4 == 0, "c14 unaligned");
+		ASSERT((int)a15 % 4 == 0, "a15 unaligned");
+		location start = location_new(&c14->edge[0]);
+		location end = location_new(&a15->edge[0]);
+
+
+		track_edge *path[] = {
+				&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT],
+				&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT].dest->edge[DIR_CURVED],
+				&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT].dest->edge[DIR_CURVED].dest->edge[DIR_STRAIGHT],
+		};
+
+		// c14 BR11 	66
+		// BR11 BR12 	190
+		// BR12 BR4		188
+		// BR4 A15		262
+
+		fixed result = gps_distace(&start, &end, path, 3);
+		ASSERT(fixed_cmp(result,fixed_new(706)) == 0, "706 == %F", result);
+	}
+	{
+		track_node *c14 = &this->track_node[45];
+		track_node *a15 = &this->track_node[14];
+
+		ASSERT((int)c14 % 4 == 0, "c14 unaligned");
+		ASSERT((int)a15 % 4 == 0, "a15 unaligned");
+		location start = location_new(&c14->edge[0]);
+		location_add(&start, fixed_new(20));
+		location end = location_new(&a15->edge[0]);
+		location_add(&end, fixed_new(40));
+
+		track_edge *path[] = {
+				&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT],
+				&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT].dest->edge[DIR_CURVED],
+				&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT].dest->edge[DIR_CURVED].dest->edge[DIR_STRAIGHT],
+		};
+
+		// c14 BR11 	66
+		// BR11 BR12 	190
+		// BR12 BR4		188
+		// BR4 A15		262
+
+		fixed result = gps_distace(&start, &end, path, 3);
+		ASSERT(fixed_cmp(result,fixed_new(726)) == 0, "726 == %F", result);
+	}
 	ExitKernel(0);
 }

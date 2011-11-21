@@ -28,7 +28,7 @@ struct track_node {
 };
 
 #define POS2DIR(pos) (track_switchpos_curved(pos) ? DIR_CURVED : DIR_STRAIGHT)
-#define PREV_EDGE(edge) (edge->reverse->dest->reverse)
+#define PREV_NODE(edge) (edge->reverse->dest->reverse)
 
 static inline int track_switchpos_straight(int pos) {
 	return pos == 's' || pos == 'S';
