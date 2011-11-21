@@ -7,7 +7,7 @@ XCC	= $(CCDIR)/gcc
 AS	= $(CCDIR)/as
 AR	= $(CCDIR)/ar
 LD  = $(CCDIR)/ld
-CFLAGS  = -fno-builtin -c -fPIC -Wall -I./include -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99 -O3 -fno-omit-frame-pointer
+CFLAGS  = -fno-builtin -c -fPIC -Wall -I./include -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99 -fno-omit-frame-pointer
 
 # -g: include hooks for gdb
 # -c: only compile
@@ -33,7 +33,8 @@ server/timeserver.o server/ioserver.o server/eventnotifier.o \
 track_data.o track_node.o console.o \
 task/calib_test.o task/task1.o task/k3clients.o task/a0.o task/perfmon.o \
 ui/logstrip.o ui/cmdline.o ui/logdisplay.o ui/a0_track_template.o ui/timedisplay.o \
-engineer.o location.o server/courier.o server/publisher.o train.o track_reservation.o
+engineer.o location.o server/courier.o server/publisher.o train.o track_reservation.o \
+gps.o
 ################
 
 
