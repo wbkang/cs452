@@ -278,64 +278,100 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 		for (int i = 0; i < this->vcmdslen; i++) {
 			char vcmdname[100];
 			vcmd2str(vcmdname, &this->vcmds[i]);
+//			PRINT("trip plan %d: %s", i, vcmdname);
 			logdisplay_printf(log, "trip plan %d: %s", i, vcmdname);
 			logdisplay_flushline(log);
 		}
+//		ExitKernel(0);
 		this->vcmdidx = 0;
 	}
 
-	if (this->vcmdidx < this->vcmdslen) {
+	while (this->vcmdidx < this->vcmdslen) {
 		trainvcmd *curvcmd = &this->vcmds[this->vcmdidx];
 		char vcmdname[100];
 		vcmd2str(vcmdname, curvcmd);
 
-		if (curvcmd != lastvcmd) {
-			logdisplay_printf(log, "examining %s", vcmdname);
-			logdisplay_flushline(log);
-		}
+//		if (curvcmd != lastvcmd) {
+//			logdisplay_printf(log, "examining %s", vcmdname);
+//			logdisplay_flushline(log);
+//		}
+
+		location waitloc = curvcmd->location;
+		location curloc;
+		train_get_loc(this, &curloc);
+		char buf[100];
+		vcmd2str(buf, curvcmd);
+		ASSERT(location_isvalid(&curloc), "train %d location invalid while running %s", this->no, buf);
+
+		fixed dist = location_dist_dir(&curloc, &waitloc);
 
 		switch(curvcmd->name) {
 	//		case VCMD_SETREVERSE:
 	//			traincmdbuffer_put(tid_traincmdbuf, REVERSE, this->no, NULL);
 	//			break;
-			case VCMD_SETSPEED: {
-				int speed = curvcmd->data.speed;
-				train_speed(this->no, speed, tid_traincmdbuf);
-				this->vcmdidx++;
-				break;
-			}
-			case VCMD_WAITFORLOC: {
-				location waitloc = curvcmd->data.waitloc;
-				location curloc;
-				train_get_loc(this, &curloc);
-				char buf[100];
-				vcmd2str(buf, curvcmd);
-				ASSERT(location_isvalid(&curloc), "train %d location invalid while running %s", this->no, buf);
-
-				fixed dist = location_dist_min(&curloc, &waitloc);
-
+			case VCMD_SETSPEED:
 				if (fixed_cmp(dist, fixed_new(40)) < 0) {
+					int speed = curvcmd->data.speed;
+					train_speed(this->no, speed, tid_traincmdbuf);
 					this->vcmdidx++;
-					char buf[100];
-					location2str(buf, &curloc);
-					logdisplay_printf(log, "finished waiting .. curloc:%s, dist:%F", buf, dist);
-					logdisplay_flushline(log);
-					// this is a terrible way to do it. run it once more.
-					train_run_vcmd(this, tid_traincmdbuf, nodemap, log);
+					lastvcmd = curvcmd;
+					continue;
+				}
+				break;
+//			case VCMD_WAITFORLOC: {
+//				location waitloc = curvcmd->location;
+//				location curloc;
+//				train_get_loc(this, &curloc);
+//				char buf[100];
+//				vcmd2str(buf, curvcmd);
+//				ASSERT(location_isvalid(&curloc), "train %d location invalid while running %s", this->no, buf);
+//
+//				fixed dist = location_dist_min(&curloc, &waitloc);
+//
+//				if (fixed_cmp(dist, fixed_new(40)) < 0) {
+//					this->vcmdidx++;
+//					char buf[100];
+//					location2str(buf, &curloc);
+//					logdisplay_printf(log, "finished waiting .. curloc:%s, dist:%F", buf, dist);
+//					logdisplay_flushline(log);
+//					// this is a terrible way to do it. run it once more.
+//					train_run_vcmd(this, tid_traincmdbuf, nodemap, log);
+//				}
+//				break;
+//			}
+			case VCMD_SETSWITCH: {
+//				fixed switch_dist = fixed_div(train_get_stopdist(this), fixed_new(2));
+				fixed switch_dist = train_get_stopdist(this);
+				if (fixed_cmp(dist, switch_dist) < 0) {
+					char *branchname = curvcmd->data.switchinfo.nodename;
+					char pos = curvcmd->data.switchinfo.pos;
+					track_node *sw = lookup_get(nodemap, branchname);
+					ASSERT(sw, "switch is null for %s", branchname);
+					char temp[5];
+					branchname += strgetw(branchname, temp, 5);
+					int branchno = strgetui(&branchname);
+					ASSERT(branchno > 0, "wrong branch no %d", branchno);
+					this->vcmdidx++;
+					train_switch(branchno, pos, tid_traincmdbuf);
+					train_solenoidoff(tid_traincmdbuf);
+					lastvcmd = curvcmd;
+					continue;
 				}
 				break;
 			}
-			case VCMD_SETSWITCH: {
-				char *branchname = curvcmd->data.switchinfo.nodename;
-				char pos = curvcmd->data.switchinfo.pos;
-				track_node *sw = lookup_get(nodemap, branchname);
-				ASSERT(sw, "switch is null for %s", branchname);
-				char temp[5];
-				branchname += strgetw(branchname, temp, 5);
-				int branchno = strgetui(&branchname);
-				ASSERT(branchno > 0, "wrong branch no %d", branchno);
-				this->vcmdidx++;
-				train_switch(branchno, pos, tid_traincmdbuf);
+			case VCMD_STOP: {
+				fixed stopdist = train_get_stopdist(this);
+				if (fixed_cmp(dist, stopdist) < 0) {
+					char buf[100], buf2[100];
+					location2str(buf, &curloc);
+					location2str(buf2, &waitloc);
+					logdisplay_printf(log, "cl:%s,dist:%F,stopdist:%F", buf, dist, stopdist);
+					logdisplay_flushline(log);
+					train_speed(this->no, 0, tid_traincmdbuf);
+					this->vcmdidx++;
+					lastvcmd = curvcmd;
+					continue;
+				}
 				break;
 			}
 			default: {
@@ -343,8 +379,7 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 				break; // unreachable
 			}
 		}
-
-		lastvcmd = curvcmd;
+		break;
 	}
 
 	if (this->vcmdslen > 0 && this->vcmdidx == this->vcmdslen) {
