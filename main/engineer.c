@@ -195,10 +195,10 @@ void engineer_train_on_loc(engineer *this, train_descriptor *train, location *lo
 	train_set_loc(train, loc_new);
 
 	if (!location_isundef(&loc)) {
-		fixed dist = location_dist_min(&loc, loc_new);
-		ASSERT(fixed_sgn(dist) >= 0, "bad distance %F", dist);
+		int dist = location_dist_min(&loc, loc_new);
+		ASSERT(dist >= 0, "bad distance %d", dist);
 		logdisplay_printf(this->log,
-			"pred: %-5s + %Fmm, attrib: %-5s + %Fmm (%F)",
+			"pred: %-5s + %Fmm, attrib: %-5s + %Fmm (%dmm)",
 			loc.edge->src->name,
 			loc.offset,
 			loc_new->edge->src->name,
@@ -210,6 +210,7 @@ void engineer_train_on_loc(engineer *this, train_descriptor *train, location *lo
 }
 
 train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_loc) {
+	// @TODO: instead of using the first train whose position is lower than some threshold, first find the closest train, then see if its position is lower than some threshold
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
 		if (fixed_sgn(train_get_velocity(train)) > 0) { // moving
@@ -218,10 +219,19 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 			if (!location_isundef(&loc_train)) { // known location
 				location loc_past;
 				train_get_loc_hist(train, t_loc, &loc_past);
-				fixed dist = location_dist_min(&loc_past, loc);
-				if (fixed_sgn(dist) >= 0 && fixed_cmp(dist, fixed_new(400)) <= 0) {
-					return &this->train[train_no];
-				}
+				// @TODO: replace this with something more efficient, since we have a max range we should stop looking outside of that range.
+				int dist = location_dist_min(&loc_past, loc);
+				logdisplay_printf(this->log2,
+					"testing train %d at loc %s+%F vs loc %s+%F (%dmm)",
+					train_no,
+					loc_past.edge->src->name,
+					loc_past.offset,
+					loc->edge->src->name,
+					loc->offset,
+					dist
+				);
+				logdisplay_flushline(this->log2);
+				if (dist >= 0 && dist <= 400) return train;
 			}
 		}
 	}

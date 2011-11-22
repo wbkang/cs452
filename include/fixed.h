@@ -22,12 +22,7 @@ static inline fixed fixed_new(int n) {
 }
 
 static inline int fixed_int(fixed f) {
-	int n = f.v;
-	if (n < 0) {
-		n = -n;
-	}
-	n >>= FIXED_Q;
-	return n;
+	return f.v >>= FIXED_Q;
 }
 
 static inline int fixed_fra(fixed f) {
@@ -39,10 +34,10 @@ static inline int fixed_fra(fixed f) {
 }
 
 static inline int fixed_print(char *buf, fixed f) {
-	int n = f.v;
     char *b = buf;
-	if (n < 0) {
+	if (f.v < 0) {
 		*b++ = '-';
+		f.v = -f.v;
 	}
 	b += sprintf(b, "%d", fixed_int(f));
 	*b++ = '.';
