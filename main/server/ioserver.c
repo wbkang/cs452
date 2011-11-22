@@ -47,7 +47,7 @@ typedef struct {
 	char str[];
 } ioserver_req;
 
-static inline void uart_init(ioserver_arg* args);
+static inline void uart_init(ioserver_arg *args);
 static inline void handle_general(ioserver_state *state);
 static inline void handle_putc(ioserver_state *state, int tid, char c);
 static inline void handle_getc(ioserver_state *state, int tid);
@@ -241,7 +241,6 @@ static inline void handle_putstr(ioserver_state *state, int tid, char const *str
 	if (UNLIKELY(buffer_full(state->output))) {
 		ERROR("queue full, channel: %d, string: %s (%x)", state->channel, str, str);
 	}
-
 	for (char const *p = str; *p; *p++) {
 		buffer_put(state->output, p);
 	}

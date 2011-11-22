@@ -98,39 +98,28 @@ void engineer_reverse(engineer *this, int train_no) {
 	train_descriptor *train = &this->train[train_no];
 
 	int speed = train_get_speed(train);
-	fixed dstop = train_get_stopdist(train);
-
-	fixed v = train_get_velocity(train);
+	// fixed dstop = train_get_stopdist(train);
+	// fixed v = train_get_velocity(train);
 	engineer_set_speed(this, train_no, 0);
-	if (fixed_sgn(v) > 0) {
-		fixed stoptime = fixed_div(fixed_mul(fixed_new(2), dstop), v);
-		stoptime = fixed_add(stoptime, fixed_new(MS2TICK(500)));
-		traincmdbuffer_put(this->tid_traincmdbuf, PAUSE, fixed_int(stoptime), NULL);
-		traincmdbuffer_put(this->tid_traincmdbuf, REVERSE, train_no, NULL);
-		traincmdbuffer_put(this->tid_traincmdbuf, PAUSE, TRAIN_PAUSE_AFTER_REVERSE, NULL);
-	} else {
-		train_reverse(train_no, this->tid_traincmdbuf); // regular safe pause
-	}
+	// if (fixed_sgn(v) > 0) {
+	// 	fixed stoptime = fixed_div(fixed_mul(fixed_new(2), dstop), v);
+	// 	stoptime = fixed_add(stoptime, fixed_new(MS2TICK(500)));
+	// 	traincmdbuffer_put(this->tid_traincmdbuf, PAUSE, fixed_int(stoptime), NULL);
+	// 	traincmdbuffer_put(this->tid_traincmdbuf, REVERSE, train_no, NULL);
+	// 	traincmdbuffer_put(this->tid_traincmdbuf, PAUSE, TRAIN_PAUSE_AFTER_REVERSE, NULL);
+	// } else {
+	train_reverse(train_no, this->tid_traincmdbuf); // regular safe pause
+	// }
 	engineer_set_speed(this, train_no, speed);
-}
-
-// @TODO: implement a way to pause trains/track independently
-void engineer_train_pause(engineer *this, int train_no, int ticks) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	(void) train_no;
-	if (ticks > 0) {
-		traincmdbuffer_put(this->tid_traincmdbuf, PAUSE, ticks, NULL);
-	}
 }
 
 void engineer_set_track(engineer *this, int s[], int ns, int c[], int nc) {
 	while (ns--) {
-		engineer_set_switch(this, *s++, 's', FALSE);
+		engineer_set_switch(this, *s++, 's');
 	}
 	while (nc--) {
-		engineer_set_switch(this, *c++, 'c', FALSE);
+		engineer_set_switch(this, *c++, 'c');
 	}
-	train_solenoidoff(this->tid_traincmdbuf);
 }
 
 track_node *engineer_get_tracknode(engineer *this, char *type, int id) {
@@ -153,21 +142,13 @@ void engineer_on_set_switch(engineer *this, int id, int pos, int t) {
 	track_node *br = engineer_get_tracknode(this, "BR", id);
 	int dir = POS2DIR(pos);
 	br->switch_dir = dir;
-	logdisplay_printf(this->log2,
-		"engineer_on_set_switch(eng, %d, %d, %d) [%s]",
-		id, pos, t, br->name
-	);
-	logdisplay_flushline(this->log2);
 }
 
-void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid) {
+void engineer_set_switch(engineer *this, int id, int pos) {
 	track_node *br = engineer_get_tracknode(this, "BR", id);
 	int dir = POS2DIR(pos);
 	if (br->switch_dir != dir) { // assume only engineer switches branches
 		train_switch(id, pos, this->tid_traincmdbuf);
-	}
-	if (offsolenoid) {
-		train_solenoidoff(this->tid_traincmdbuf);
 	}
 }
 

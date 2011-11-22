@@ -77,7 +77,7 @@ struct train_descriptor {
 	trainvcmd *vcmds;
 	int vcmdslen;
 	location destination;
-} ;
+};
 
 static inline int train_switchi2no(int i) {
 	ASSERT(0 <= i && i < TRAIN_NUM_SWITCHADDR, "bad i");
@@ -123,20 +123,12 @@ static inline void train_speed(char train, char speed, int tid) {
 
 static inline void train_reverse(char train, int tid) {
 	ASSERT(train_goodtrain(train), "bad train: %d", train);
-	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_REVERSE, NULL);
 	traincmdbuffer_put(tid, REVERSE, train, NULL);
-	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_AFTER_REVERSE, NULL); // @TODO: why?
 }
 
 static inline void train_switch(char no, char pos, int tid) {
 	ASSERT(track_switchpos_isgood(pos), "bad position: %d", pos);
-	// TODO does this pause mess up dead reckoning?
 	traincmdbuffer_put(tid, SWITCH, no, pos);
-	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_SOLENOID, NULL);
-}
-
-static inline void train_solenoidoff(int tid) {
-	traincmdbuffer_put(tid, SOLENOID, NULL, NULL);
 }
 
 static inline void train_querysenmod(char module, int tid) {
