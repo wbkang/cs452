@@ -216,6 +216,7 @@ void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc) {
 #define TRAIN_SIM_DT_EXP 2
 #define TRAIN_SIM_DT (1 << TRAIN_SIM_DT_EXP)
 
+// @TODO: add jerk
 static void train_step_sim(train_descriptor *this, int dt) {
 	const fixed margin = fixed_new(1);
 	fixed diff = fixed_sub(this->v10000, this->v_f10000);
@@ -235,9 +236,6 @@ static void train_step_sim(train_descriptor *this, int dt) {
 	this->t_sim += dt;
 }
 
-// @TODO: add acceleration
-// @TODO: add jerk
-// @TODO: modify velocity even if location is unknown
 void train_update_simulation(train_descriptor *this, int t_f) {
 	int t_i = train_get_tsim(this);
 	// train_step_sim(this, fixed_new(t_f - t_i));
