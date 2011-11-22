@@ -5,6 +5,7 @@
 #include <gps.h>
 #include <util.h>
 
+#define CALIB_SWITCHDELAY MS2TICK(1000)
 #define CALIB_SENSOR_START "E8"
 #define CALIB_SENSOR_END "C14"
 #define CALIB_SENSOR_WRONG_DIR "E7"
@@ -52,7 +53,7 @@ static void calibrator_quit(a0state *state) {
 static void calibrator_start(engineer *eng, int train_no) {
 	engineer_train_set_dir(eng, train_no, TRAIN_FORWARD);
 	engineer_set_speed(eng, train_no, 0);
-	engineer_train_pause(eng, train_no, MS2TICK(2000));
+	Delay(2000, eng->tid_time);
 	engineer_set_speed(eng, train_no, calib_state.min_speed);
 	calib_state.cur_speed = calib_state.min_speed;
 	calib_state.state = CALIBRATING;
@@ -150,6 +151,7 @@ void calibrate_train(a0state *state, int train_no, int speed_min, int speed_max)
 
 	// set track to calibration mode
 	calibrator_setup_track(state);
+	Delay(CALIB_SWITCHDELAY, eng->tid_time);
 
 	// set currently active train
 	calib_state.train_no = train_no;

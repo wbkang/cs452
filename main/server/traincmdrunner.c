@@ -4,12 +4,14 @@
 #include <server/traincmdrunner.h>
 #include <server/traincmdbuffer.h>
 #include <server/publisher.h>
+#include <server/switchcmdrunner.h>
 
 void traincmdrunner() {
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	int tid_time = WhoIs(NAME_TIMESERVER);
 	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
 	int tid_traincmdpub = publisher_new(NAME_TRAINCMDPUB, PRIORITY_TRAINCMDPUB, sizeof(traincmd_receipt));
+	int tid_switchcmdrunner = switchcmdrunner_new(NULL);
 
 	traincmd_receipt rcpt;
 	rcpt.type = TRAINCMDRECEIPT;
@@ -20,28 +22,24 @@ void traincmdrunner() {
 		switch (cmd->name) {
 			case SPEED: {
 				char train = cmd->arg1;
-				char speed = cmd->arg2;
+				char speed = cmd->arg2 | 16; // @TODO: don't hardcode headlights
 				Putc(COM1, speed, tid_com1);
 				Putc(COM1, train, tid_com1);
 				break;
 			}
 			case REVERSE: {
+				// Delay(TRAIN_PAUSE_REVERSE, tid_time);
 				char train = cmd->arg1;
 				Putc(COM1, TRAIN_REVERSE, tid_com1);
 				Putc(COM1, train, tid_com1);
+				// Delay(TRAIN_PAUSE_AFTER_REVERSE, tid_time); // @TODO: why?
 				break;
 			}
 			case SWITCH: {
-				char swaddr = cmd->arg1;
-				char swpos = cmd->arg2;
-				int S = track_switchpos_straight(swpos);
-				Putc(COM1, S ? TRAIN_SWITCH_STRAIGHT : TRAIN_SWITCH_CURVED, tid_com1);
-				Putc(COM1, swaddr, tid_com1);
-				break;
+				int n = Send(tid_switchcmdrunner, cmd, sizeof(traincmd), NULL, 0);
+				ASSERT(n >= 0, "error sending cmd to switchrunner (%d)", n);
+				continue;
 			}
-			case SOLENOID:
-				Putc(COM1, TRAIN_SOLENOID_OFF, tid_com1);
-				break;
 			case QUERY1: {
 				char module = cmd->arg1;
 				Putc(COM1, TRAIN_QUERYMOD | module, tid_com1);
@@ -58,11 +56,6 @@ void traincmdrunner() {
 			case STOP:
 				Putc(COM1, TRAIN_STOP, tid_com1);
 				break;
-			case PAUSE: {
-				int ticks = cmd->arg1;
-				Delay(ticks, tid_time);
-				break;
-			}
 			default:
 				ERROR("bad train cmd: %d", cmd->name);
 				break;

@@ -357,7 +357,6 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 					ASSERT(branchno > 0, "wrong branch no %d", branchno);
 					this->vcmdidx++;
 					train_switch(branchno, pos, tid_traincmdbuf);
-					train_solenoidoff(tid_traincmdbuf);
 					lastvcmd = curvcmd;
 					continue;
 				}

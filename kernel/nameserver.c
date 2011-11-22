@@ -39,6 +39,10 @@ void nameserver() {
 		if (bytes == sizeof(req)) {
 			switch (req.no) {
 				case NAMESERVER_REGISTERAS:
+					if (lookup_goodkey(nametidmap, req.ch)) {
+						void* data = lookup_get(nametidmap, req.ch);
+						ASSERT(!data, "name %s already registered to task %d", req.ch, (int) data);
+					}
 					lookup_put(nametidmap, req.ch, (void*) tid);
 					rv = 0;
 					break;

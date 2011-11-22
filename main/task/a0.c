@@ -153,7 +153,7 @@ static void calib_stopdist(void* s) {
 	track_node *e8 = engineer_get_tracknode(eng, "E", 8);
 	switch (csdstate.state) {
 		case STOP_INIT:
-			engineer_set_switch(eng, 11, 'c', TRUE);
+			engineer_set_switch(eng, 11, 'c');
 			engineer_set_speed(eng, train_no, csdstate.speed);
 			csdstate.state = STOP_UP2SPEED1;
 			break;
@@ -176,8 +176,8 @@ static void calib_stopdist(void* s) {
 				);
 				logdisplay_flushline(state->log);
 				engineer_set_speed(eng, train_no, 0);
-				engineer_set_switch(eng, 11, 's', TRUE);
-				engineer_train_pause(eng, train_no, STOP_PAUSE);
+				engineer_set_switch(eng, 11, 's');
+				Delay(STOP_PAUSE, eng->tid_time);
 				if (csdstate.speed == 14) {
 					csdstate.speed = 8;
 				} else {
@@ -190,7 +190,7 @@ static void calib_stopdist(void* s) {
 			break;
 		case STOP_REVERSING:
 			if (strcmp(cur_sensor->name, "E7") == 0) {
-				engineer_set_switch(eng, 11, 'c', TRUE);
+				engineer_set_switch(eng, 11, 'c');
 				engineer_reverse(eng, train_no);
 				engineer_set_speed(eng, train_no, csdstate.speed);
 				csdstate.state = STOP_UP2SPEED1;
@@ -565,7 +565,7 @@ static void handle_command(void* s, char *cmd, int size) {
 				if (id == '*') {
 					handle_train_switch_all(state, pos);
 				} else {
-					engineer_set_switch(eng, id, pos, TRUE);
+					engineer_set_switch(eng, id, pos);
 				}
 			} else {
 				goto badcmd;
@@ -662,10 +662,6 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 			}
 			case STOP: {
 				// logstrip_printf(state->cmdlog, "[%7d] cmdrcpt: stop()", t);
-				break;
-			}
-			case PAUSE: {
-				// logstrip_printf(state->cmdlog, "[%7d] cmdrcpt: pause(%d)", t, cmd->arg1);
 				break;
 			}
 			default:

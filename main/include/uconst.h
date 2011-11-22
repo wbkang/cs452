@@ -34,7 +34,7 @@ typedef struct {
 } msg_time;
 
 typedef enum {
-	SPEED, REVERSE, SWITCH, SOLENOID, QUERY1, QUERY, GO, STOP, PAUSE
+	SPEED, REVERSE, SWITCH, SOLENOID, QUERY1, QUERY, GO, STOP
 } traincmdname;
 
 typedef struct {

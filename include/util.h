@@ -34,7 +34,7 @@ typedef char *va_list;
 #define NEXTHIGHESTWORD(x) BYTES2WORDS((x) + 3)
 #define LIKELY(x) __builtin_expect((x), 1)
 #define UNLIKELY(x) __builtin_expect((x), 0)
-#define INT_MIN ((int)0x80000000)
+#define INT_MIN ((int) 0x80000000)
 #define INT_MAX 0x7fffffff
 #define MEMCHECK() malloc(0)
 
@@ -130,7 +130,7 @@ void print_stack_trace(uint fp, int clearscreen);
 	} \
 }
 #else
-#define ASSERT(X,...)
+#define ASSERT(X, ...)
 #endif
 
 #define ASSERTNOTNULL(X) ASSERT((X), TOSTRING(X) " is null")
