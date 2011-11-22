@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #define MAX_PATH 160
-#define SWITCH_DIST 50
+#define SWITCH_DIST 100
 #define CRUISE_SPEED 12
 
 static void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_node *tgt, track_edge **rv_edge, int *rv_edgecnt);

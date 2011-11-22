@@ -19,6 +19,7 @@ void train_init_static(train_descriptor *train) {
 			}
 			train->ai_avg10000 = fixed_new(0);
 			train->ad_avg10000 = fixed_new(0);
+			train->calibrated = FALSE;
 			break;
 		case 38:
 			train->stopm = fixed_div(fixed_new(110993), fixed_new(100));
@@ -68,6 +69,7 @@ void train_init_static(train_descriptor *train) {
 			// train->ai_avg10000 = fixed_div(fixed_new(49669), fixed_new(10000));
 			train->ai_avg10000 = fixed_div(fixed_new(20667), fixed_new(10000));
 			train->ad_avg10000 = fixed_div(fixed_new(-20667), fixed_new(10000));
+			train->calibrated = TRUE;
 			break;
 		default:
 			train->stopm = fixed_new(0);
@@ -80,6 +82,7 @@ void train_init_static(train_descriptor *train) {
 			}
 			train->ai_avg10000 = fixed_new(0);
 			train->ad_avg10000 = fixed_new(0);
+			train->calibrated = FALSE;
 			break;
 	}
 }
@@ -96,6 +99,7 @@ void train_init(train_descriptor *this, int no, gps *gps) {
 	this->loc = location_undef();
 	this->t_sim = 0;
 	this->gps = gps;
+	this->vcmds = NULL;
 	this->vcmdidx = 0;
 	this->vcmdslen = 0;
 	this->destination = location_undef();
@@ -262,9 +266,12 @@ static trainvcmd *lastvcmd;
 
 void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log) {
 	// TODO this is a weird criteria. fix this
-	if (location_isvalid(&this->destination) && this->vcmdslen == 0) {
+	if (!location_isundef(&this->destination) && this->vcmdslen == 0) {
 		char buf[100]; location2str(buf, &this->destination);
 //		ASSERT(0, "location %s", buf);
+		if (this->vcmds == NULL) {
+			this->vcmds = malloc(sizeof(trainvcmd) * TRAIN_MAX_VCMD);
+		}
 		gps_findpath(this->gps, this, &this->destination, TRAIN_MAX_VCMD, this->vcmds, &this->vcmdslen);
 		lastvcmd = NULL;
 
@@ -305,7 +312,7 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 				vcmd2str(buf, curvcmd);
 				ASSERT(location_isvalid(&curloc), "train %d location invalid while running %s", this->no, buf);
 
-				fixed dist = location_dist_min(&curloc,& waitloc);
+				fixed dist = location_dist_min(&curloc, &waitloc);
 
 				if (fixed_cmp(dist, fixed_new(40)) < 0) {
 					this->vcmdidx++;
@@ -340,7 +347,7 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 		lastvcmd = curvcmd;
 	}
 
-	if (this->vcmdidx == this->vcmdslen) {
+	if (this->vcmdslen > 0 && this->vcmdidx == this->vcmdslen) {
 		this->vcmdidx = 0;
 		this->vcmdslen = 0;
 		this->destination = location_undef();

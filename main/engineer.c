@@ -269,7 +269,10 @@ void engineer_onsensor(engineer *this, char data[]) {
 void engineer_ontick(engineer *this) {
 	int t = Time(this->tid_time);
 	TRAIN_FOREACH(train_no) {
-		train_update_simulation(&this->train[train_no], t);
-		train_run_vcmd(&this->train[train_no], this->tid_traincmdbuf, this->track_nodes, this->triplog);
+		train_descriptor *train = &this->train[train_no];
+		if (train->calibrated) {
+			train_update_simulation(train, t);
+			train_run_vcmd(train, this->tid_traincmdbuf, this->track_nodes, this->triplog);
+		}
 	}
 }

@@ -60,6 +60,7 @@ struct train_descriptor {
 	fixed v_avg[TRAIN_NUM_SPEED_IDX];
 	fixed ai_avg10000;
 	fixed ad_avg10000;
+	int calibrated;
 	// dynamic data
 	train_direction dir;
 	fixed v10000;
@@ -73,7 +74,7 @@ struct train_descriptor {
 	// vcmd stuff
 	struct gps *gps;
 	int vcmdidx;
-	trainvcmd vcmds[TRAIN_MAX_VCMD];
+	trainvcmd *vcmds;
 	int vcmdslen;
 	location destination;
 } ;
