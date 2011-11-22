@@ -10,7 +10,7 @@
 #define MAX_PATH 160
 #define CRUISE_SPEED 10
 
-static void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_node *tgt, track_edge **rv_edge, int *rv_edgecnt);
+static void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_node *tgt, track_edge **rv_edge, int *rv_edgecnt, int stopdist);
 static fixed gps_distace(location *start, location *end, track_edge **path, int pathlen);
 static char const *vcmdnames[] = { "SETSPEED", "SETREVERSE", "SETSWITCH", "WAITFORMS", "WAITFORLOC", "STOP" };
 
@@ -39,6 +39,13 @@ static inline void trainvcmd_addstop(trainvcmd *rv_vcmd, int *idx, location *sto
 	(*idx)++;
 }
 
+static inline void trainvcmd_addreverse(trainvcmd *rv_vcmd, int *idx, location *revloc) {
+	rv_vcmd[*idx].type = TRAINVCMD;
+	rv_vcmd[*idx].name = VCMD_SETREVERSE;
+	rv_vcmd[*idx].location = *revloc;
+	(*idx)++;
+}
+
 static inline void trainvcmd_addswitch(trainvcmd *rv_vcmd, int *idx, char const *switchname, char pos, location *switchloc) {
 	rv_vcmd[*idx].type = TRAINVCMD;
 	rv_vcmd[*idx].name = VCMD_SETSWITCH;
@@ -50,28 +57,6 @@ static inline void trainvcmd_addswitch(trainvcmd *rv_vcmd, int *idx, char const 
 
 static inline char gps_getnextswitchpos(track_node *sw, track_edge *edgeafterbranch) {
 	return (edgeafterbranch == &sw->edge[DIR_STRAIGHT]) ? 's' : 'c';
-}
-
-static inline void gps_get_closest_switch(track_edge const *nextedge,
-		track_node **rv_closest_switch_node,
-		fixed *rv_closest_switch_dist) {
-	int const max_search_depth = 10;
-
-
-	fixed switchdist = fixed_new(nextedge->dist);
-	track_node *cur_node = nextedge->dest;
-	for (int i = 0; i < max_search_depth; i++) {
-		if (cur_node->type == NODE_BRANCH) {
-			*rv_closest_switch_node = cur_node;
-			*rv_closest_switch_dist = switchdist;
-			return;
-		} else if (cur_node->type == NODE_EXIT) {
-			break;
-		} else {
-			cur_node = cur_node->edge[0].dest;
-		}
-	}
-	*rv_closest_switch_node = NULL;
 }
 
 void gps_findpath(gps *this,
@@ -86,7 +71,8 @@ void gps_findpath(gps *this,
 	track_node *src = trainloc.edge->dest;
 	track_edge *path[MAX_PATH];
 	int pathlen;
-	dijkstra(this->track_node, this->heap_dijkstra, src, dest->edge->src, path, &pathlen);
+	// TODO now using arbitrary reverse distance
+	dijkstra(this->track_node, this->heap_dijkstra, src, dest->edge->src, path, &pathlen, 0);
 
 	int cmdlen = 0;
 
@@ -106,6 +92,17 @@ void gps_findpath(gps *this,
 				location switchloc = location_new(nextedge);
 
 				trainvcmd_addswitch(rv_vcmd, &cmdlen, curnode->name, pos, &switchloc);
+			}
+
+			// reverse plan
+			if (i + 1 < pathlen) {
+				track_node *curnode_rev = curnode->reverse;
+				track_edge *nextnextedge = path[i + 1];
+				if (nextnextedge->src == curnode_rev) {
+					trainvcmd_addstop(rv_vcmd, &cmdlen, curnode);
+					trainvcmd_addreverse(rv_vcmd, &cmdlen, curnode);
+					trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, nextnextedge->src);
+				}
 			}
 		}
 
@@ -130,7 +127,8 @@ static inline uint num_neighbour(track_node *n) {
 
 // code taken from http://en.wikipedia.org/wiki/Dijkstra's_algorithm#Algorithm
 // @TODO: keep this algorithm independent of gps, pass in whats needed as args
-static void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_node *tgt, track_edge **rv_edge, int *rv_edgecnt) {
+static void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_node *tgt, track_edge **rv_edge, int *rv_edgecnt, int stopdist) {
+	int const reverse_dist = stopdist ? stopdist * 2 : 1000; // TODO fix this
 	int const infinity = INT_MAX;
 	int dist[TRACK_MAX];
 	track_node *previous[TRACK_MAX];
@@ -170,6 +168,22 @@ static void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, tr
 			int vidx = v - nodeary;
 
 			int alt = (dist[vidx] == infinity) ? edge->dist : dist[vidx] + edge->dist;
+
+			if (alt < dist[vidx]) {
+				dist[vidx] = alt;
+				previous[vidx] = u;
+				heap_decrease_key_min(unoptimized, v, alt);
+			}
+		}
+		track_node *u_rev = u->reverse;
+		int rev_neighbour_cnt = num_neighbour(u_rev);
+		for (int i = 0; i < neighbour_cnt; i++) {
+			track_edge *edge = &u_rev->edge[i];
+			track_node *v = edge->dest;
+			int vidx = v - nodeary;
+
+			int alt = (dist[vidx] == infinity) ? edge->dist : dist[vidx] + edge->dist;
+			alt += reverse_dist;
 
 			if (alt < dist[vidx]) {
 				dist[vidx] = alt;
