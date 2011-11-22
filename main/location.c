@@ -111,3 +111,11 @@ int location_add(location *this, fixed dx) {
 	*this = location_undef();
 	return -3;
 }
+
+int location_reverse(location *this) {
+	if (location_isundef(this)) return -1; // reversing undefined location
+	fixed offset = fixed_sub(fixed_new(this->edge->dist), this->offset);
+	*this = location_new(this->edge->reverse);
+	location_add(this, offset);
+	return 0;
+}

@@ -62,8 +62,8 @@ void train_init_static(train_descriptor *train) {
 			}
 
 			// train->ai_avg10000 = fixed_div(fixed_new(49669), fixed_new(10000));
-			train->ai_avg10000 = fixed_div(fixed_new(20667), fixed_new(10000));
-			train->ad_avg10000 = fixed_div(fixed_new(-20667), fixed_new(10000));
+			train->ai_avg10000 = fixed_div(fixed_new(20101), fixed_new(10000));
+			train->ad_avg10000 = fixed_div(fixed_new(-20101), fixed_new(10000));
 			break;
 		default:
 			train->stopm = fixed_new(0);
@@ -166,6 +166,11 @@ void train_reverse_dir(train_descriptor *this) {
 	}
 }
 
+void train_on_reverse(train_descriptor *this) {
+	train_reverse_dir(this);
+	location_reverse(&this->loc);
+}
+
 int train_get_tspeed(train_descriptor *this) {
 	return this->t_speed;
 }
@@ -212,16 +217,13 @@ void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc) {
 
 static void train_step_sim(train_descriptor *this, int dt) {
 	const fixed margin = fixed_new(1);
-	fixed diff = fixed_abs(fixed_sub(this->v10000, this->v_f10000));
+	fixed diff = fixed_sub(this->v10000, this->v_f10000);
 	fixed fdt = fixed_new(dt);
-	if (fixed_cmp(diff, margin) > 0) {
-		int cmp = fixed_cmp(this->v10000, this->v_f10000);
-		if (cmp < 0) {
+	if (fixed_cmp(fixed_abs(diff), margin) > 0) {
+		if (fixed_sgn(diff) < 0) {
 			this->v10000 = fixed_add(this->v10000, fixed_mul(this->ai_avg10000, fdt));
-		} else if (cmp > 0) {
-			this->v10000 = fixed_add(this->v10000, fixed_mul(this->ad_avg10000, fdt));
 		} else {
-			// velocity is unchanged
+			this->v10000 = fixed_add(this->v10000, fixed_mul(this->ad_avg10000, fdt));
 		}
 	}
 	if (!location_isundef(&this->loc) && fixed_cmp(fixed_abs(this->v10000), margin) > 0) {
