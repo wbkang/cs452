@@ -35,7 +35,7 @@ void cmdline_handleinput(cmdline *this, char c) {
 	this->cmdbuf[this->cmdidx++] = c;
 	this->cmdbuf[this->cmdidx] = '\0';
 
-	switch(c) {
+	switch (c) {
 		case '\b':
 			this->cmdidx--;
 			if (this->cmdidx >= 1) {

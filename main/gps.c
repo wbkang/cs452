@@ -57,7 +57,6 @@ static inline void gps_get_closest_switch(track_edge const *nextedge,
 		fixed *rv_closest_switch_dist) {
 	int const max_search_depth = 10;
 
-
 	fixed switchdist = fixed_new(nextedge->dist);
 	track_node *cur_node = nextedge->dest;
 	for (int i = 0; i < max_search_depth; i++) {
@@ -226,7 +225,7 @@ static fixed gps_distace(location *start, location *end, track_edge **path, int 
 
 	if (pathlen > 0) {
 		track_edge *curedge = path[cnt];
-		while(curedge->dest != PREV_NODE(end->edge)) {
+		while (curedge->dest != PREV_NODE(end->edge)) {
 			ASSERT(curedge->dist > 0, "curedge->dist %d. curedge:%d",curedge->dist,curedge->num );
 			curedge = path[cnt++];
 			total = fixed_add(total, fixed_new(curedge->dist));
@@ -241,7 +240,7 @@ int vcmd2str(char *buf, trainvcmd *vcmd) {
 	char * const origbuf = buf;
 	char locname[100];
 	buf += sprintf(buf, "[%s ", vcmdnames[vcmd->name]);
-	switch(vcmd->name) {
+	switch (vcmd->name) {
 //		case VCMD_WAITFORLOC:
 //			buf += sprintf(buf, "src:%s offset:%F", vcmd->data.waitloc.edge->src->name, vcmd->data.waitloc.offset);
 //			break;

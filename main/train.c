@@ -306,15 +306,15 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 		vcmd2str(buf, curvcmd);
 		ASSERT(!location_isundef(&curloc), "train %d location undef while running %s", this->no, buf);
 
-		// TODO this fucks up
 		int dist = location_dist_dir(&curloc, &waitloc);
+		if (dist < 0) break;
 
-		switch(curvcmd->name) {
+		switch (curvcmd->name) {
 	//		case VCMD_SETREVERSE:
 	//			traincmdbuffer_put(tid_traincmdbuf, REVERSE, this->no, NULL);
 	//			break;
 			case VCMD_SETSPEED:
-				if (dist >= 0 && dist <= 40) {
+				if (dist <= 40) {
 					int speed = curvcmd->data.speed;
 					train_speed(this->no, speed, tid_traincmdbuf);
 					this->vcmdidx++;
@@ -346,7 +346,7 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 			case VCMD_SETSWITCH: {
 //				fixed switch_dist = fixed_div(train_get_stopdist(this), fixed_new(2));
 				int switch_dist = fixed_int(train_get_stopdist(this));
-				if (dist >= 0 && dist <= switch_dist) {
+				if (dist <= switch_dist) {
 					char *branchname = curvcmd->data.switchinfo.nodename;
 					char pos = curvcmd->data.switchinfo.pos;
 					track_node *sw = lookup_get(nodemap, branchname);
@@ -365,7 +365,7 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 			}
 			case VCMD_STOP: {
 				int stopdist = fixed_int(train_get_stopdist(this));
-				if (dist >= 0 && dist <= stopdist) {
+				if (dist <= stopdist) {
 					char buf[100], buf2[100];
 					location_tostring(&curloc, buf);
 					location_tostring(&waitloc, buf2);

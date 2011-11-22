@@ -13,7 +13,7 @@ struct location {
 location location_new(track_edge *edge);
 location location_undef();
 int location_isundef(location *this);
-int location_isvalid(location *this);
+int location_isinvalid(location *this);
 int location_dist_min(location *A, location *B);
 int location_dist_dir(location *A, location *B);
 int location_add(location *this, fixed dx);

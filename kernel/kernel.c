@@ -110,7 +110,7 @@ static void handle_abort() {
 			faultname, faulttype, faultdomain, datafaultaddr);
 	bwprintf(1, "cpsr:%d (%x)", cpsr, cpsr);
 
-	while(1);
+	for (;;);
 }
 
 void kernel_init() {
