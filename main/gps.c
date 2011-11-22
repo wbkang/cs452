@@ -8,7 +8,7 @@
 #include <location.h>
 
 #define MAX_PATH 160
-#define CRUISE_SPEED 12
+#define CRUISE_SPEED 10
 
 static void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_node *tgt, track_edge **rv_edge, int *rv_edgecnt);
 static fixed gps_distace(location *start, location *end, track_edge **path, int pathlen);
