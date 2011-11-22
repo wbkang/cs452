@@ -6,7 +6,10 @@
 #include <uconst.h>
 #include <track_node.h>
 #include <location.h>
+#include <gps.h>
+#include <lookup.h>
 #include <server/traincmdbuffer.h>
+#include <ui/logdisplay.h>
 
 // train controller commands
 
@@ -45,7 +48,8 @@ typedef enum {
 	TRAIN_UNKNOWN, TRAIN_FORWARD, TRAIN_BACKWARD
 } train_direction;
 
-typedef struct {
+typedef struct train_descriptor train_descriptor;
+struct train_descriptor {
 	// static data
 	int no;
 	fixed stopm; // 0 if unknown
@@ -66,8 +70,13 @@ typedef struct {
 	int last_speed;
 	location loc;
 	int t_sim;
+	// vcmd stuff
+	struct gps *gps;
+	int vcmdidx;
+	trainvcmd vcmds[TRAIN_MAX_VCMD];
+	int vcmdslen;
 	location destination;
-} train_descriptor;
+} ;
 
 static inline int train_switchi2no(int i) {
 	ASSERT(0 <= i && i < TRAIN_NUM_SWITCHADDR, "bad i");
@@ -151,7 +160,7 @@ static inline void train_stop(int tid) {
  */
 
 void train_init_static(train_descriptor *train);
-void train_init(train_descriptor *this, int no);
+void train_init(train_descriptor *this, int no, struct gps *gps);
 fixed train_get_velocity(train_descriptor *this);
 fixed train_get_stopdist(train_descriptor *this);
 fixed train_get_stopdist4speedidx(train_descriptor *this, int speed_idx);
@@ -170,3 +179,5 @@ void train_set_tsim(train_descriptor *this, int t_sim);
 fixed train_simulate_dx(train_descriptor *this, int t_i, int t_f);
 void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc);
 void train_update_simulation(train_descriptor *this, int t_f);
+void train_set_dest(train_descriptor *this, location *dest);
+void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log) ;
