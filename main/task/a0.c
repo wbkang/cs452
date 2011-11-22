@@ -434,7 +434,7 @@ static void handle_set_dest(a0state *state, int trainno, char *type, int id, int
 	location_add(&dest, fixed_new(dist_cm * 10));
 	train_set_dest(train, &dest);
 	char destname[100];
-	location2str(destname, &dest);
+	location_tostring(&dest, destname);
 	logstrip_printf(state->cmdlog, "Set train %d to go to %s", trainno, destname);
 }
 

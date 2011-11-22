@@ -112,15 +112,15 @@ int location_add(location *this, fixed dx) {
 	return -3;
 }
 
-int location2str(char *buf, location *l) {
+int location_tostring(location *this, char *buf) {
 	char * const origbuf = buf;
-	track_edge *edge = l->edge;
-
-	if (location_isundef(l)) {
-		buf += sprintf(buf, "[location:UNDEFINED]");
+	if (location_isundef(this)) {
+		buf += sprintf(buf, "[location: UNDEFINED]");
 	} else {
-		buf += sprintf(buf, "[location:%s->%s,offset:%F]",
-				edge->src->name, edge->dest->name, l->offset);
+		buf += sprintf(buf,
+			"[location: %s->%s, offset: %F]",
+			this->edge->src->name, this->edge->dest->name, this->offset
+		);
 	}
 	return buf - origbuf;
 }
