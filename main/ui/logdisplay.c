@@ -32,7 +32,7 @@ void logdisplay_puts(logdisplay *this, char *str) {
 	int curcol = this->curcol;
 	int totalcols = this->totalcols;
 	int len =  strlen(str);
-	int copycount = MIN(totalcols - curcol, len);
+	int copycount = min(totalcols - curcol, len);
 
 	strncpy(this->buf[curline] + curcol, str, copycount);
 

@@ -2,8 +2,7 @@
 #include <util.h>
 
 location location_new(track_edge *edge) {
-	location rv = {edge, fixed_new(0)};
-	return rv;
+	return (location) {edge, fixed_new(0)};
 }
 
 location location_undef() {
@@ -24,59 +23,45 @@ int location_isvalid(location *this) {
 	return TRUE;
 }
 
-fixed location_dist_min(location *from, location *to) {
-	ASSERT(location_isvalid(from), "bad 'from' location");
-	ASSERT(location_isvalid(to), "bad 'to' location");
-	if (!location_isundef(from) && !location_isundef(to)) {
-		fixed dista = fixed_new(track_distance(from->edge->src, to->edge->src));
-		fixed distb = fixed_new(track_distance(to->edge->src, from->edge->src));
-		fixed doff = fixed_sub(to->offset, from->offset);
-		int gooda = fixed_sgn(dista) >= 0;
-		int goodb = fixed_sgn(distb) >= 0;
-		if (gooda && goodb) {
-			fixed a = fixed_abs(fixed_add(dista, doff));
-			fixed b = fixed_abs(fixed_sub(distb, doff));
-			return fixed_min(a, b);
-		} else if (gooda) {
-			return fixed_abs(fixed_add(dista, doff));
-		} else if (goodb) {
-			return fixed_abs(fixed_sub(distb, doff));
-		}
-	}
-	fixed rv = {-1};
-	return rv;
+int location_dist_min(location *A, location *B) {
+	ASSERT(location_isvalid(A), "bad 'from' location");
+	ASSERT(location_isvalid(B), "bad 'to' location");
+	if (location_isundef(A) || location_isundef(B)) return -1;
+	int distAB = track_distance(A->edge->src, B->edge->src);
+	int distBA = track_distance(B->edge->src, A->edge->src);
+	int badAB = distAB < 0;
+	int badBA = distBA < 0;
+	if (badAB && badBA) return -2;
+	int doff = fixed_int(fixed_sub(B->offset, A->offset));
+	if (badAB) return abs(distBA - doff);
+	if (badBA) return abs(distAB + doff);
+	return min(abs(distAB + doff), abs(distBA - doff));
 }
 
-fixed location_dist_dir(location *from, location *to) {
-	ASSERT(location_isvalid(from), "bad 'from' location");
-	ASSERT(location_isvalid(to), "bad 'to' location");
-	if (!location_isundef(from) && !location_isundef(to)) {
-		fixed doff = fixed_sub(to->offset, from->offset);
-		// loop around
-		if (from->edge == to->edge && fixed_cmp(from->offset, to->offset) > 0) {
-			track_node *from_next_node = track_next_node(from->edge->src);
-			ASSERTNOTNULL(from_next_node);
-			fixed dist = fixed_new(track_distance(from_next_node, from->edge->src));
-			ASSERT(from_next_node != from->edge->src, "same node");
-			if (fixed_sgn(dist) > 0) {
-				track_edge *next_edge = from->edge;
-				ASSERTNOTNULL(next_edge);
-				return fixed_sub(fixed_add(dist, fixed_new(next_edge->dist)), doff);
-			}
-		} else {
-			fixed dist = fixed_new(track_distance(from->edge->src, to->edge->src));
-			if (fixed_sgn(dist) >= 0) {
-				return fixed_add(dist, doff);
-			}
-		}
+int location_dist_dir(location *A, location *B) {
+	ASSERT(location_isvalid(A), "bad 'from' location");
+	ASSERT(location_isvalid(B), "bad 'to' location");
+	if (location_isundef(A) || location_isundef(B)) -1;
+	int doff = fixed_int(fixed_sub(B->offset, A->offset));
+	if (A->edge == B->edge && fixed_cmp(A->offset, B->offset) > 0) {
+		// A & B share edge but A->offset > B->offset, loop around
+		track_node *from_next_node = track_next_node(A->edge->src);
+		ASSERTNOTNULL(from_next_node);
+		ASSERT(from_next_node != A->edge->src, "same node");
+		int dist = track_distance(from_next_node, A->edge->src);
+		if (dist < 0) return -2;
+		track_edge *next_edge = A->edge;
+		ASSERTNOTNULL(next_edge);
+		return dist + next_edge->dist - doff;
+	} else {
+		int dist = track_distance(A->edge->src, B->edge->src);
+		if (dist < 0) return -3;
+		return dist + doff;
 	}
-	fixed rv = {-1};
-	return rv;
 }
 
-// @TODO: problem here if slightly over-increment past an exit/enter
+// @TODO: potential problem here if slightly over-increment past an exit/enter
 // @TODO: uses current switch state. return multiple 'virtual' locations instead?
-// @TODO: add support for negative dx
 int location_add(location *this, fixed dx) {
 	ASSERT(location_isvalid(this), "bad location");
 	if (location_isundef(this)) return -1; // incrementing undefined location
