@@ -294,10 +294,11 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 		char vcmdname[100];
 		vcmd2str(vcmdname, curvcmd);
 
-//		if (curvcmd != lastvcmd) {
-//			logdisplay_printf(log, "examining %s", vcmdname);
-//			logdisplay_flushline(log);
-//		}
+		if (curvcmd != lastvcmd) {
+			logdisplay_printf(log, "examining %s", vcmdname);
+			logdisplay_flushline(log);
+		}
+		lastvcmd = curvcmd;
 
 		location waitloc = curvcmd->location;
 		location curloc;
@@ -310,39 +311,18 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 		fixed dist = location_dist_dir(&curloc, &waitloc);
 
 		switch(curvcmd->name) {
-	//		case VCMD_SETREVERSE:
-	//			traincmdbuffer_put(tid_traincmdbuf, REVERSE, this->no, NULL);
-	//			break;
+			case VCMD_SETREVERSE:
+				train_reverse(this->no, tid_traincmdbuf); // TODO this is bad and slow...
+				this->vcmdidx++;
+				break;
 			case VCMD_SETSPEED:
 				if (fixed_cmp(dist, fixed_new(40)) < 0) {
 					int speed = curvcmd->data.speed;
 					train_speed(this->no, speed, tid_traincmdbuf);
 					this->vcmdidx++;
-					lastvcmd = curvcmd;
 					continue;
 				}
 				break;
-//			case VCMD_WAITFORLOC: {
-//				location waitloc = curvcmd->location;
-//				location curloc;
-//				train_get_loc(this, &curloc);
-//				char buf[100];
-//				vcmd2str(buf, curvcmd);
-//				ASSERT(location_isvalid(&curloc), "train %d location invalid while running %s", this->no, buf);
-//
-//				fixed dist = location_dist_min(&curloc, &waitloc);
-//
-//				if (fixed_cmp(dist, fixed_new(40)) < 0) {
-//					this->vcmdidx++;
-//					char buf[100];
-//					location2str(buf, &curloc);
-//					logdisplay_printf(log, "finished waiting .. curloc:%s, dist:%F", buf, dist);
-//					logdisplay_flushline(log);
-//					// this is a terrible way to do it. run it once more.
-//					train_run_vcmd(this, tid_traincmdbuf, nodemap, log);
-//				}
-//				break;
-//			}
 			case VCMD_SETSWITCH: {
 //				fixed switch_dist = fixed_div(train_get_stopdist(this), fixed_new(2));
 				fixed switch_dist = train_get_stopdist(this);
@@ -358,7 +338,6 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 					this->vcmdidx++;
 					train_switch(branchno, pos, tid_traincmdbuf);
 					train_solenoidoff(tid_traincmdbuf);
-					lastvcmd = curvcmd;
 					continue;
 				}
 				break;
@@ -377,7 +356,6 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 					logdisplay_flushline(log);
 					train_speed(this->no, 0, tid_traincmdbuf);
 					this->vcmdidx++;
-					lastvcmd = curvcmd;
 					continue;
 				}
 				break;
