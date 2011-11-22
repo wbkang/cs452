@@ -163,6 +163,7 @@ void train_set_loc(train_descriptor *this, location *loc);
 train_direction train_get_dir(train_descriptor *this);
 void train_set_dir(train_descriptor *this, train_direction dir);
 void train_reverse_dir(train_descriptor *this);
+void train_on_reverse(train_descriptor *this);
 int train_get_tspeed(train_descriptor *this);
 void train_set_tspeed(train_descriptor *this, int t_speed);
 int train_get_tsim(train_descriptor *this);
