@@ -63,7 +63,7 @@ void buffertask() {
 	state.items = buffer_new((STACK_SIZE - 1000) / args->item_size, args->item_size);
 	state.get_blocked = queue_new(NUM_BLOCKED);
 
-	const int size_packet = MAX(sizeof(msg_header), state.item_size);
+	const int size_packet = max(sizeof(msg_header), state.item_size);
 	void* packet = malloc(size_packet);
 
 	for (;;) {

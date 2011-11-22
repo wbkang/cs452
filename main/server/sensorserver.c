@@ -78,7 +78,7 @@ void sensorserver() {
 	this.msg.type = SENSOR;
 	this.msg.module[1] = '\0';
 
-	int size_msg = MAX(sizeof(msg_comin), sizeof(traincmd));
+	int size_msg = max(sizeof(msg_comin), sizeof(traincmd));
 	void* msg = malloc(size_msg);
 
 	// initial query

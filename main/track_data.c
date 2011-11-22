@@ -58,7 +58,7 @@ int sensor_mapper(void* key) {
   int n = strgetui(&c);
   // just for branches
   if (n >= 153 && n <= 156) {
-    n -= (153 - 18);
+    n -= (153 - 19);
   }
   ASSERT(1 <= n && n <= 22, "bad n: %d, idx: %d, name: %s", n, idx, key);
   idx = (22 * idx) + (n - 1);

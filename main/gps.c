@@ -240,7 +240,7 @@ static fixed gps_distace(location *start, location *end, track_edge **path, int 
 
 	if (pathlen > 0) {
 		track_edge *curedge = path[cnt];
-		while(curedge->dest != PREV_NODE(end->edge)) {
+		while (curedge->dest != PREV_NODE(end->edge)) {
 			ASSERT(curedge->dist > 0, "curedge->dist %d. curedge:%d",curedge->dist,curedge->num );
 			curedge = path[cnt++];
 			total = fixed_add(total, fixed_new(curedge->dist));
@@ -255,20 +255,20 @@ int vcmd2str(char *buf, trainvcmd *vcmd) {
 	char * const origbuf = buf;
 	char locname[100];
 	buf += sprintf(buf, "[%s ", vcmdnames[vcmd->name]);
-	switch(vcmd->name) {
+	switch (vcmd->name) {
 //		case VCMD_WAITFORLOC:
 //			buf += sprintf(buf, "src:%s offset:%F", vcmd->data.waitloc.edge->src->name, vcmd->data.waitloc.offset);
 //			break;
 		case VCMD_STOP:
-			location2str(locname, &vcmd->location);
+			location_tostring(&vcmd->location, locname);
 			buf += sprintf(buf, "stop at %s", locname);
 			break;
 		case VCMD_SETSPEED:
-			location2str(locname, &vcmd->location);
+			location_tostring(&vcmd->location, locname);
 			buf += sprintf(buf, "speed:%d at %s", vcmd->data.speed, locname);
 			break;
 		case VCMD_SETSWITCH:
-			location2str(locname, &vcmd->location);
+			location_tostring(&vcmd->location, locname);
 			buf += sprintf(buf, "switch %s to %c at %s", vcmd->data.switchinfo.nodename, vcmd->data.switchinfo.pos, locname);
 			break;
 		case VCMD_SETREVERSE:

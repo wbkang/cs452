@@ -17,17 +17,11 @@ typedef struct {
 static inline fixed fixed_new(int n) {
 	ASSERT(n >= FIXED_MIN_N, "n too small. n: %d", n);
 	ASSERT(n <= FIXED_MAX_N, "n too big n: %d", n);
-	fixed rv = {n << FIXED_Q};
-	return rv;
+	return (fixed) {n << FIXED_Q};
 }
 
 static inline int fixed_int(fixed f) {
-	int n = f.v;
-	if (n < 0) {
-		n = -n;
-	}
-	n >>= FIXED_Q;
-	return n;
+	return f.v >>= FIXED_Q;
 }
 
 static inline int fixed_fra(fixed f) {
@@ -39,10 +33,10 @@ static inline int fixed_fra(fixed f) {
 }
 
 static inline int fixed_print(char *buf, fixed f) {
-	int n = f.v;
     char *b = buf;
-	if (n < 0) {
+	if (f.v < 0) {
 		*b++ = '-';
+		f.v = -f.v;
 	}
 	b += sprintf(b, "%d", fixed_int(f));
 	*b++ = '.';
@@ -61,16 +55,14 @@ static inline fixed fixed_add(fixed fa, fixed fb) {
 	int a = fa.v;
 	int b = fb.v;
 	ASSERT(!overflow(a, b), "overflow. a: %F, b: %F", fa, fb);
-	fixed rv = {a + b};
-	return rv;
+	return (fixed) {a + b};
 }
 
 static inline fixed fixed_sub(fixed fa, fixed fb) {
 	int a = fa.v;
 	int b = fb.v;
 	ASSERT(!overflow(a, -b), "underflow a: %F, b: %F", fa, fb);
-	fixed rv = {a - b};
-	return rv;
+	return (fixed) {a - b};
 }
 
 static inline fixed fixed_mul(fixed fa, fixed fb) {
@@ -80,8 +72,7 @@ static inline fixed fixed_mul(fixed fa, fixed fb) {
 	tmp += FIXED_K; // round
 	tmp >>= FIXED_Q;
 	ASSERT(INT_MIN <= tmp && tmp <= INT_MAX, "overflow. a: %F, b: %F", fa, fb);
-	fixed rv = {tmp};
-	return rv;
+	return (fixed) {tmp};
 }
 
 static inline fixed fixed_div(fixed fa, fixed fb) {
@@ -92,8 +83,7 @@ static inline fixed fixed_div(fixed fa, fixed fb) {
 	tmp += b >> 1; // round
 	tmp /= b;
 	ASSERT(INT_MIN <= tmp && tmp <= INT_MAX, "overflow. a: %F, b: %F", fa, fb);
-	fixed rv = {tmp};
-	return rv;
+	return (fixed) {tmp};
 }
 
 static inline int fixed_sgn(fixed f) {
@@ -122,4 +112,8 @@ static inline fixed fixed_min(fixed a, fixed b) {
 static inline fixed fixed_neg(fixed f) {
 	f.v = -f.v;
 	return f;
+}
+
+static inline fixed fixed_eps() {
+	return (fixed) {1};
 }

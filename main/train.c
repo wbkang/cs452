@@ -110,14 +110,10 @@ fixed train_get_velocity(train_descriptor *this) {
 	return fixed_div(this->v10000, fixed_new(10000));
 }
 
-fixed train_get_stopdist(train_descriptor *this) {
-	return train_get_stopdist4speedidx(this, train_get_speedidx(this));
-}
-
 fixed train_get_stopdist4speedidx(train_descriptor *this, int speed_idx) {
 	fixed v = this->v_avg[speed_idx];
 	ASSERT(fixed_sgn(v) >= 0, "bad velocity for train %d", this->no);
-	if (fixed_sgn(v) == 0) return fixed_new(0);
+	if (fixed_sgn(v) <= 0) return fixed_new(0);
 	fixed dist = fixed_add(fixed_mul(this->stopm, v), this->stopb);
 	switch (this->dir) {
 		case TRAIN_FORWARD:
@@ -127,6 +123,10 @@ fixed train_get_stopdist4speedidx(train_descriptor *this, int speed_idx) {
 		default:
 			return dist; // @TODO: put an assert(0) here, dont run uninitialized trains
 	}
+}
+
+fixed train_get_stopdist(train_descriptor *this) {
+	return train_get_stopdist4speedidx(this, train_get_speedidx(this));
 }
 
 int train_get_speed(train_descriptor *this) {
@@ -145,7 +145,9 @@ void train_set_speed(train_descriptor *this, int speed, int t) {
 	this->speed = speed;
 	train_set_tspeed(this, t);
 	this->v_i10000 = this->v10000;
-	this->v_f10000 = fixed_mul(this->v_avg[train_get_speedidx(this)], fixed_new(10000));
+	int speed_idx = train_get_speedidx(this);
+	fixed v_avg = this->v_avg[speed_idx];
+	this->v_f10000 = fixed_mul(v_avg, fixed_new(10000));
 }
 
 void train_get_loc(train_descriptor *this, location *loc) {
@@ -228,6 +230,7 @@ void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc) {
 #define TRAIN_SIM_DT_EXP 2
 #define TRAIN_SIM_DT (1 << TRAIN_SIM_DT_EXP)
 
+// @TODO: add jerk
 static void train_step_sim(train_descriptor *this, int dt) {
 	const fixed margin = fixed_new(1);
 	fixed diff = fixed_sub(this->v10000, this->v_f10000);
@@ -247,9 +250,6 @@ static void train_step_sim(train_descriptor *this, int dt) {
 	this->t_sim += dt;
 }
 
-// @TODO: add acceleration
-// @TODO: add jerk
-// @TODO: modify velocity even if location is unknown
 void train_update_simulation(train_descriptor *this, int t_f) {
 	int t_i = train_get_tsim(this);
 	// train_step_sim(this, fixed_new(t_f - t_i));
@@ -270,7 +270,7 @@ static trainvcmd *lastvcmd;
 void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log) {
 	// TODO this is a weird criteria. fix this
 	if (!location_isundef(&this->destination) && this->vcmdslen == 0) {
-		char buf[100]; location2str(buf, &this->destination);
+		char buf[100];location_tostring(&this->destination, buf);
 //		ASSERT(0, "location %s", buf);
 		if (this->vcmds == NULL) {
 			this->vcmds = malloc(sizeof(trainvcmd) * TRAIN_MAX_VCMD);
@@ -307,16 +307,16 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 		vcmd2str(buf, curvcmd);
 		ASSERT(!location_isundef(&curloc), "train %d location undef while running %s", this->no, buf);
 
-		// TODO this fucks up
-		fixed dist = location_dist_dir(&curloc, &waitloc);
+		int dist = location_dist_dir(&curloc, &waitloc);
+		if (dist < 0) break;
 
-		switch(curvcmd->name) {
+		switch (curvcmd->name) {
 			case VCMD_SETREVERSE:
 				train_reverse(this->no, tid_traincmdbuf); // TODO this is bad and slow...
 				this->vcmdidx++;
 				break;
 			case VCMD_SETSPEED:
-				if (fixed_cmp(dist, fixed_new(40)) < 0) {
+				if (dist <= 40) {
 					int speed = curvcmd->data.speed;
 					train_speed(this->no, speed, tid_traincmdbuf);
 					this->vcmdidx++;
@@ -325,8 +325,8 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 				break;
 			case VCMD_SETSWITCH: {
 //				fixed switch_dist = fixed_div(train_get_stopdist(this), fixed_new(2));
-				fixed switch_dist = train_get_stopdist(this);
-				if (fixed_cmp(dist, switch_dist) < 0) {
+				int switch_dist = fixed_int(train_get_stopdist(this));
+				if (dist <= switch_dist) {
 					char *branchname = curvcmd->data.switchinfo.nodename;
 					char pos = curvcmd->data.switchinfo.pos;
 					track_node *sw = lookup_get(nodemap, branchname);
@@ -343,16 +343,16 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 				break;
 			}
 			case VCMD_STOP: {
-				fixed stopdist = train_get_stopdist(this);
-				if (fixed_cmp(dist, stopdist) < 0) {
+				int stopdist = fixed_int(train_get_stopdist(this));
+				if (dist <= stopdist) {
 					char buf[100], buf2[100];
-					location2str(buf, &curloc);
-					location2str(buf2, &waitloc);
-					logdisplay_printf(log, "curloc:%s", buf);
+					location_tostring(&curloc, buf);
+					location_tostring(&waitloc, buf2);
+					logdisplay_printf(log, "curloc: %s", buf);
 					logdisplay_flushline(log);
-					logdisplay_printf(log, "waitloc:%s", buf2);
+					logdisplay_printf(log, "waitloc: %s", buf2);
 					logdisplay_flushline(log);
-					logdisplay_printf(log, "dist:%F,stopdist:%F", dist, stopdist);
+					logdisplay_printf(log, "dist: %dmm, stopdist: %dmm", dist, stopdist);
 					logdisplay_flushline(log);
 					train_speed(this->no, 0, tid_traincmdbuf);
 					this->vcmdidx++;

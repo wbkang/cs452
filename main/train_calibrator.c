@@ -3,6 +3,7 @@
 #include <string.h>
 #include <train_calibrator.h>
 #include <gps.h>
+#include <util.h>
 
 #define CALIB_SENSOR_START "E8"
 #define CALIB_SENSOR_END "C14"
@@ -132,7 +133,7 @@ static void calibrator_setup_track(a0state *state) {
 	engineer_set_track(eng, s, ns, c, nc);
 }
 
-void calibrate_train(a0state *state, int train_no, int min, int max) {
+void calibrate_train(a0state *state, int train_no, int speed_min, int speed_max) {
 	engineer *eng = state->eng;
 
 	if (calib_state.state != IDLE) {
@@ -141,8 +142,8 @@ void calibrate_train(a0state *state, int train_no, int min, int max) {
 	}
 
 	// clamp range to allowed range
-	min = MAX(min, CALIB_MIN_SPEED);
-	max = MIN(max, CALIB_MAX_SPEED);
+	speed_min = max(speed_min, CALIB_MIN_SPEED);
+	speed_max = min(speed_max, CALIB_MAX_SPEED);
 
 	// stop the train
 	engineer_set_speed(eng, train_no, 0);
@@ -157,9 +158,9 @@ void calibrate_train(a0state *state, int train_no, int min, int max) {
 	calib_state.state = ORIENTING;
 	engineer_set_speed(eng, train_no, CALIB_ORIENTING_SPEED);
 	calib_state.ascending = TRUE;
-	calib_state.cur_speed = min - 1;
-	calib_state.min_speed = min;
-	calib_state.max_speed = max;
+	calib_state.cur_speed = speed_min - 1;
+	calib_state.min_speed = speed_min;
+	calib_state.max_speed = speed_max;
 	calib_state.testrun = TRUE;
 
 	logstrip_printf(state->cmdlog, "calibrating train %d", train_no);
