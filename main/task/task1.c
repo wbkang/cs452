@@ -25,7 +25,7 @@ void task1() {
 //		if (strcmp("q", buf) == 0) ExitKernel(0);
 //		Putc(COM2, '\r', tid_com2);
 //		prog = find_func_addr(buf);
-//	} while(prog == NULL);
+//	} while (prog == NULL);
 	prog = a0;
 	Create(MIN_PRIORITY, prog);
 }

@@ -37,9 +37,9 @@ engineer *engineer_new(char track_name) {
 	}
 
 	this->con = console_new(COM2);
-	this->log = logdisplay_new(this->con, 11, 56, 8, 80, ROUNDROBIN);
-	this->log2 = logdisplay_new(this->con, 11 + 9, 56, 8, 80, ROUNDROBIN);
-	this->triplog = logdisplay_new(this->con, 11 + 18, 56 + 25, 8 + 14, 80, ROUNDROBIN);
+	this->log = logdisplay_new(this->con, 11, 56, 8, 100, ROUNDROBIN);
+	this->log2 = logdisplay_new(this->con, 11 + 9, 56, 8, 100, ROUNDROBIN);
+	this->triplog = logdisplay_new(this->con, 11 + 18, 56 + 25, 8 + 14, 100, ROUNDROBIN);
 	this->tid_time = WhoIs(NAME_TIMESERVER);
 	this->reservation = track_reservation_new();
 
@@ -153,6 +153,11 @@ void engineer_on_set_switch(engineer *this, int id, int pos, int t) {
 	track_node *br = engineer_get_tracknode(this, "BR", id);
 	int dir = POS2DIR(pos);
 	br->switch_dir = dir;
+	logdisplay_printf(this->log2,
+		"engineer_on_set_switch(eng, %d, %d, %d) [%s]",
+		id, pos, t, br->name
+	);
+	logdisplay_flushline(this->log2);
 }
 
 void engineer_set_switch(engineer *this, int id, int pos, int offsolenoid) {
@@ -222,12 +227,14 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 				// @TODO: replace this with something more efficient, since we have a max range we should stop looking outside of that range.
 				int dist = location_dist_min(&loc_past, loc);
 				logdisplay_printf(this->log2,
-					"testing train %d at loc %s+%F vs loc %s+%F (%dmm)",
-					train_no,
-					loc_past.edge->src->name,
-					loc_past.offset,
+					"testing loc %s+%Fmm vs train %d at now: %s+%Fmm, old: %s+%Fmm (%dmm)",
 					loc->edge->src->name,
 					loc->offset,
+					train_no,
+					loc_train.edge->src->name,
+					loc_train.offset,
+					loc_past.edge->src->name,
+					loc_past.offset,
 					dist
 				);
 				logdisplay_flushline(this->log2);

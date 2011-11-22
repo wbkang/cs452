@@ -14,18 +14,21 @@ int location_isundef(location *this) {
 	return this->edge == NULL && fixed_sgn(this->offset) == 0;
 }
 
-int location_isvalid(location *this) {
-	if (this == NULL) return FALSE;
-	if (this->edge == NULL) return fixed_sgn(this->offset) == 0; // undefined
-	if (fixed_sgn(this->offset) < 0) return FALSE; // negative offset
+int location_isinvalid(location *this) {
+	if (this == NULL) return -1;
+	if (this->edge == NULL) {
+		if (fixed_sgn(this->offset) == 0) return 0; // undefined
+		return -2;
+	}
+	if (fixed_sgn(this->offset) < 0) return -3; // negative offset
 	fixed edge_len = fixed_new(this->edge->dist);
-	if (fixed_cmp(this->offset, edge_len) >= 0) return FALSE; // "overflow" offset
-	return TRUE;
+	if (fixed_cmp(this->offset, edge_len) >= 0) return -4; // "overflow" offset
+	return 0;
 }
 
 int location_dist_min(location *A, location *B) {
-	ASSERT(location_isvalid(A), "bad 'from' location");
-	ASSERT(location_isvalid(B), "bad 'to' location");
+	ASSERT(!location_isinvalid(A), "bad 'from' location: %d", location_isinvalid(A));
+	ASSERT(!location_isinvalid(B), "bad 'to' location: %d", location_isinvalid(B));
 	if (location_isundef(A) || location_isundef(B)) return -1;
 	int distAB = track_distance(A->edge->src, B->edge->src);
 	int distBA = track_distance(B->edge->src, A->edge->src);
@@ -39,9 +42,10 @@ int location_dist_min(location *A, location *B) {
 }
 
 int location_dist_dir(location *A, location *B) {
-	ASSERT(location_isvalid(A), "bad 'from' location");
-	ASSERT(location_isvalid(B), "bad 'to' location");
-	if (location_isundef(A) || location_isundef(B)) -1;
+	ASSERT(!location_isinvalid(A), "bad 'from' location: %d", location_isinvalid(A));
+	ASSERT(!location_isinvalid(B), "bad 'to' location: %d", location_isinvalid(B));
+	if (location_isundef(A)) return -1;
+	if (location_isundef(B)) return -2;
 	int doff = fixed_int(fixed_sub(B->offset, A->offset));
 	if (A->edge == B->edge && fixed_cmp(A->offset, B->offset) > 0) {
 		// A & B share edge but A->offset > B->offset, loop around
@@ -49,21 +53,20 @@ int location_dist_dir(location *A, location *B) {
 		ASSERTNOTNULL(from_next_node);
 		ASSERT(from_next_node != A->edge->src, "same node");
 		int dist = track_distance(from_next_node, A->edge->src);
-		if (dist < 0) return -2;
+		if (dist < 0) return -3;
 		track_edge *next_edge = A->edge;
 		ASSERTNOTNULL(next_edge);
 		return dist + next_edge->dist - doff;
 	} else {
 		int dist = track_distance(A->edge->src, B->edge->src);
-		if (dist < 0) return -3;
+		if (dist < 0) return -4;
 		return dist + doff;
 	}
 }
 
-// @TODO: potential problem here if slightly over-increment past an exit/enter
 // @TODO: uses current switch state. return multiple 'virtual' locations instead?
 int location_add(location *this, fixed dx) {
-	ASSERT(location_isvalid(this), "bad location");
+	ASSERT(!location_isinvalid(this), "bad location: %d", location_isinvalid(this));
 	if (location_isundef(this)) return -1; // incrementing undefined location
 	int sgn = fixed_sgn(dx);
 	if (sgn == 0) return 0;
@@ -72,38 +75,53 @@ int location_add(location *this, fixed dx) {
 		for (;;) {
 			fixed len_edge = fixed_new(this->edge->dist);
 			if (fixed_cmp(this->offset, len_edge) < 0) return 0;
-			track_edge *next_edge = track_next_edge(this->edge->dest);
+			track_node *n_next = this->edge->dest;
+			ASSERTNOTNULL(n_next);
+			track_edge *next_edge = track_next_edge(n_next);
 			if (next_edge) {
 				this->edge = next_edge;
 				this->offset = fixed_sub(this->offset, len_edge);
-			} else {
-				this->offset = len_edge;
+			} else if (n_next->type == NODE_EXIT) {
+				this->offset = fixed_sub(len_edge, fixed_eps());
 				return -2; // dead end
+			} else {
+				ASSERT(0, "ran into a non-exit node with no edge %s, dir %d", n_next->name, n_next->switch_dir);
+				return -3;
 			}
 		}
 	} else {
+		// @TODO: problem if backup into an enter
 		while (fixed_sgn(this->offset) < 0) {
 			track_node *n = this->edge->src;
-			n = n->reverse;
-			n = track_next_node(n);
-			if (!n) return -4;
-			n = n->reverse;
-			this->edge = n->edge;
-			this->offset = fixed_add(this->offset, fixed_new(n->edge->dist));
+			track_node *n_rev = n->reverse;
+			track_node *n_rev_prev = track_next_node(n_rev);
+			if (!n_rev_prev) return -4;
+			track_node *n_prev = n_rev_prev->reverse;
+			track_edge *edge = n_prev->edge;
+			if (edge[0].dest == n) {
+				this->edge = &edge[0];
+			} else if (edge[1].dest == n) {
+				this->edge = &edge[1];
+			} else {
+				ASSERT(0, "3 edges, wtf?");
+			}
+			this->offset = fixed_add(fixed_new(this->edge->dist), this->offset);
 		}
 		return 0;
 	}
 	*this = location_undef();
-	return -3;
+	return -5;
 }
 
 int location_tostring(location *this, char *buf) {
 	char * const origbuf = buf;
 	if (location_isundef(this)) {
-		buf += sprintf(buf, "[location: UNDEFINED]");
+		buf += sprintf(buf, "UNDEF. LOC.");
+	} else if (fixed_sgn(this->offset) == 0) {
+		buf += sprintf(buf, "%s", this->edge->src->name);
 	} else {
 		buf += sprintf(buf,
-			"[location: %s->%s, offset: %F]",
+			"(%s->%s + %Fmm)",
 			this->edge->src->name, this->edge->dest->name, this->offset
 		);
 	}
