@@ -427,6 +427,17 @@ static void handle_train_switch_all(a0state *state, char pos) {
 	}
 }
 
+static void handle_set_dest(a0state *state, int trainno, char *type, int id, int dist_cm) {
+	train_descriptor *train = &state->eng->train[trainno];
+	track_node *destnode = engineer_get_tracknode(state->eng, type, id);
+	location dest =	location_new(&destnode->edge[0]);
+	location_add(&dest, fixed_new(dist_cm * 10));
+	train_set_dest(train, &dest);
+	char destname[100];
+	location2str(destname, &dest);
+	logstrip_printf(state->cmdlog, "Set train %d to go to %s", trainno, destname);
+}
+
 static void tick_engineer(void* s) {
 	a0state *state = s;
 	engineer_ontick(state->eng);
@@ -470,6 +481,27 @@ static void handle_command(void* s, char *cmd, int size) {
 			handle_setup_demotrack(state);
 			break;
 		}
+		case 'g': {
+			if (*c == 't') { // goto position (gt #+ [a-zA-Z]+[0-9]+ #+)
+				ACCEPT('t');
+				ACCEPT(' ');
+				int train = strgetui(&c);
+				if (!train_goodtrain(train)) goto badcmd;
+				ACCEPT(' ');
+				char type[4];
+				uint len = strgetw(c, type, 4);
+				if (len == 0) goto badcmd;
+				c += len;
+				int id = strgetui(&c);
+				ACCEPT(' ');
+				int dist_cm = strgetui(&c);
+				ACCEPT('\0');
+				handle_set_dest(state, train, type, id, 10 * dist_cm);
+			} else {
+				goto badcmd;
+			}
+			break;
+		}
 		case 't': { // set train speed(tr # #)
 			ACCEPT('r');
 			ACCEPT(' ');
@@ -491,7 +523,7 @@ static void handle_command(void* s, char *cmd, int size) {
 			engineer_reverse(eng, train);
 			break;
 		}
-		case 'l': { // reverse train (rv #+)
+		case 'l': { // lose train (lt #+)
 			ACCEPT('t');
 			ACCEPT(' ');
 			int train = strgetui(&c);

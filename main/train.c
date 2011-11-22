@@ -1,4 +1,8 @@
 #include <train.h>
+#include <gps.h>
+#include <lookup.h>
+#include <string.h>
+#include <ui/logdisplay.h>
 
 // @TODO: remember the average velocity per edge as opposed to per track
 // @TODO: fill in all velocities for at least two trains
@@ -15,6 +19,7 @@ void train_init_static(train_descriptor *train) {
 			}
 			train->ai_avg10000 = fixed_new(0);
 			train->ad_avg10000 = fixed_new(0);
+			train->calibrated = FALSE;
 			break;
 		case 38:
 			train->stopm = fixed_div(fixed_new(110993), fixed_new(100));
@@ -64,6 +69,7 @@ void train_init_static(train_descriptor *train) {
 			// train->ai_avg10000 = fixed_div(fixed_new(49669), fixed_new(10000));
 			train->ai_avg10000 = fixed_div(fixed_new(20101), fixed_new(10000));
 			train->ad_avg10000 = fixed_div(fixed_new(-20101), fixed_new(10000));
+			train->calibrated = TRUE;
 			break;
 		default:
 			train->stopm = fixed_new(0);
@@ -76,11 +82,12 @@ void train_init_static(train_descriptor *train) {
 			}
 			train->ai_avg10000 = fixed_new(0);
 			train->ad_avg10000 = fixed_new(0);
+			train->calibrated = FALSE;
 			break;
 	}
 }
 
-void train_init(train_descriptor *this, int no) {
+void train_init(train_descriptor *this, int no, gps *gps) {
 	this->no = no;
 	this->dir = TRAIN_UNKNOWN;
 	this->v10000 = fixed_new(0);
@@ -91,6 +98,11 @@ void train_init(train_descriptor *this, int no) {
 	this->last_speed = 0;
 	this->loc = location_undef();
 	this->t_sim = 0;
+	this->gps = gps;
+	this->vcmds = NULL;
+	this->vcmdidx = 0;
+	this->vcmdslen = 0;
+	this->destination = location_undef();
 	train_init_static(this);
 }
 
@@ -242,8 +254,140 @@ void train_update_simulation(train_descriptor *this, int t_f) {
 	int t_i = train_get_tsim(this);
 	// train_step_sim(this, fixed_new(t_f - t_i));
 	int time = TICK2MS(t_f - t_i);
+//	train_step_sim(this, time);
 	for (int i = (time >> TRAIN_SIM_DT_EXP); i > 0; --i) {
 		train_step_sim(this, TRAIN_SIM_DT);
 	}
 	train_step_sim(this, time & (TRAIN_SIM_DT - 1));
+}
+
+void train_set_dest(train_descriptor *this, location *dest) {
+	this->destination = *dest;
+}
+
+static trainvcmd *lastvcmd;
+
+void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log) {
+	// TODO this is a weird criteria. fix this
+	if (!location_isundef(&this->destination) && this->vcmdslen == 0) {
+		char buf[100]; location2str(buf, &this->destination);
+//		ASSERT(0, "location %s", buf);
+		if (this->vcmds == NULL) {
+			this->vcmds = malloc(sizeof(trainvcmd) * TRAIN_MAX_VCMD);
+		}
+		gps_findpath(this->gps, this, &this->destination, TRAIN_MAX_VCMD, this->vcmds, &this->vcmdslen);
+		lastvcmd = NULL;
+
+		for (int i = 0; i < this->vcmdslen; i++) {
+			char vcmdname[100];
+			vcmd2str(vcmdname, &this->vcmds[i]);
+//			PRINT("trip plan %d: %s", i, vcmdname);
+			logdisplay_printf(log, "trip plan %d: %s", i, vcmdname);
+			logdisplay_flushline(log);
+		}
+//		ExitKernel(0);
+		this->vcmdidx = 0;
+	}
+
+	while (this->vcmdidx < this->vcmdslen) {
+		trainvcmd *curvcmd = &this->vcmds[this->vcmdidx];
+		char vcmdname[100];
+		vcmd2str(vcmdname, curvcmd);
+
+//		if (curvcmd != lastvcmd) {
+//			logdisplay_printf(log, "examining %s", vcmdname);
+//			logdisplay_flushline(log);
+//		}
+
+		location waitloc = curvcmd->location;
+		location curloc;
+		train_get_loc(this, &curloc);
+		char buf[100];
+		vcmd2str(buf, curvcmd);
+		ASSERT(location_isvalid(&curloc), "train %d location invalid while running %s", this->no, buf);
+
+		fixed dist = location_dist_dir(&curloc, &waitloc);
+
+		switch(curvcmd->name) {
+	//		case VCMD_SETREVERSE:
+	//			traincmdbuffer_put(tid_traincmdbuf, REVERSE, this->no, NULL);
+	//			break;
+			case VCMD_SETSPEED:
+				if (fixed_cmp(dist, fixed_new(40)) < 0) {
+					int speed = curvcmd->data.speed;
+					train_speed(this->no, speed, tid_traincmdbuf);
+					this->vcmdidx++;
+					lastvcmd = curvcmd;
+					continue;
+				}
+				break;
+//			case VCMD_WAITFORLOC: {
+//				location waitloc = curvcmd->location;
+//				location curloc;
+//				train_get_loc(this, &curloc);
+//				char buf[100];
+//				vcmd2str(buf, curvcmd);
+//				ASSERT(location_isvalid(&curloc), "train %d location invalid while running %s", this->no, buf);
+//
+//				fixed dist = location_dist_min(&curloc, &waitloc);
+//
+//				if (fixed_cmp(dist, fixed_new(40)) < 0) {
+//					this->vcmdidx++;
+//					char buf[100];
+//					location2str(buf, &curloc);
+//					logdisplay_printf(log, "finished waiting .. curloc:%s, dist:%F", buf, dist);
+//					logdisplay_flushline(log);
+//					// this is a terrible way to do it. run it once more.
+//					train_run_vcmd(this, tid_traincmdbuf, nodemap, log);
+//				}
+//				break;
+//			}
+			case VCMD_SETSWITCH: {
+//				fixed switch_dist = fixed_div(train_get_stopdist(this), fixed_new(2));
+				fixed switch_dist = train_get_stopdist(this);
+				if (fixed_cmp(dist, switch_dist) < 0) {
+					char *branchname = curvcmd->data.switchinfo.nodename;
+					char pos = curvcmd->data.switchinfo.pos;
+					track_node *sw = lookup_get(nodemap, branchname);
+					ASSERT(sw, "switch is null for %s", branchname);
+					char temp[5];
+					branchname += strgetw(branchname, temp, 5);
+					int branchno = strgetui(&branchname);
+					ASSERT(branchno > 0, "wrong branch no %d", branchno);
+					this->vcmdidx++;
+					train_switch(branchno, pos, tid_traincmdbuf);
+					train_solenoidoff(tid_traincmdbuf);
+					lastvcmd = curvcmd;
+					continue;
+				}
+				break;
+			}
+			case VCMD_STOP: {
+				fixed stopdist = train_get_stopdist(this);
+				if (fixed_cmp(dist, stopdist) < 0) {
+					char buf[100], buf2[100];
+					location2str(buf, &curloc);
+					location2str(buf2, &waitloc);
+					logdisplay_printf(log, "cl:%s,dist:%F,stopdist:%F", buf, dist, stopdist);
+					logdisplay_flushline(log);
+					train_speed(this->no, 0, tid_traincmdbuf);
+					this->vcmdidx++;
+					lastvcmd = curvcmd;
+					continue;
+				}
+				break;
+			}
+			default: {
+				ASSERT(0, "unknown command %s", vcmdname);
+				break; // unreachable
+			}
+		}
+		break;
+	}
+
+	if (this->vcmdslen > 0 && this->vcmdidx == this->vcmdslen) {
+		this->vcmdidx = 0;
+		this->vcmdslen = 0;
+		this->destination = location_undef();
+	}
 }
