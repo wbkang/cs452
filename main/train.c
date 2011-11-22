@@ -304,8 +304,9 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 		train_get_loc(this, &curloc);
 		char buf[100];
 		vcmd2str(buf, curvcmd);
-		ASSERT(location_isvalid(&curloc), "train %d location invalid while running %s", this->no, buf);
+		ASSERT(!location_isundef(&curloc), "train %d location undef while running %s", this->no, buf);
 
+		// TODO this fucks up
 		fixed dist = location_dist_dir(&curloc, &waitloc);
 
 		switch(curvcmd->name) {
@@ -368,7 +369,11 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 					char buf[100], buf2[100];
 					location2str(buf, &curloc);
 					location2str(buf2, &waitloc);
-					logdisplay_printf(log, "cl:%s,dist:%F,stopdist:%F", buf, dist, stopdist);
+					logdisplay_printf(log, "curloc:%s", buf);
+					logdisplay_flushline(log);
+					logdisplay_printf(log, "waitloc:%s", buf2);
+					logdisplay_flushline(log);
+					logdisplay_printf(log, "dist:%F,stopdist:%F", dist, stopdist);
 					logdisplay_flushline(log);
 					train_speed(this->no, 0, tid_traincmdbuf);
 					this->vcmdidx++;
