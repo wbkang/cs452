@@ -19,8 +19,8 @@ typedef struct _tag_train_engineer {
 	console *con; // @TODO: replace with a ui task tid
 	logdisplay *log; // @TODO: replace with a ui task tid
 	logdisplay *log2; // @TODO: replace with a ui task tid
+	logdisplay *triplog; // @TODO: replace with a ui task tid
 	int tid_time;
-	gps *gps;
 } engineer;
 
 engineer *engineer_new(char track_name);

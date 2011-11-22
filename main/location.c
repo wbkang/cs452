@@ -17,7 +17,7 @@ int location_isundef(location *this) {
 
 int location_isvalid(location *this) {
 	if (this == NULL) return FALSE;
-	if (this->edge == NULL) return fixed_sgn(this->offset) == 0; // undefined
+	if (this->edge == NULL) return FALSE; // undefined TODO fixed_sgn(this->offset) == 0
 	if (fixed_sgn(this->offset) < 0) return FALSE; // negative offset
 	fixed edge_len = fixed_new(this->edge->dist);
 	if (fixed_cmp(this->offset, edge_len) >= 0) return FALSE; // "overflow" offset
@@ -110,4 +110,17 @@ int location_add(location *this, fixed dx) {
 	}
 	*this = location_undef();
 	return -3;
+}
+
+int location2str(char *buf, location *l) {
+	char * const origbuf = buf;
+	track_edge *edge = l->edge;
+
+	if (location_isundef(l)) {
+		buf += sprintf(buf, "[location:UNDEFINED]");
+	} else {
+		buf += sprintf(buf, "[location:%s->%s,offset:%F]",
+				edge->src->name, edge->dest->name, l->offset);
+	}
+	return buf - origbuf;
 }

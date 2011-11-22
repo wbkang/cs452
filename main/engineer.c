@@ -16,11 +16,6 @@ engineer *engineer_new(char track_name) {
 	// start
 	train_go(this->tid_traincmdbuf);
 
-	// initialize train descriptors
-	TRAIN_FOREACH(train_no) {
-		train_init(&this->train[train_no], train_no);
-	}
-
 	// initialize track object
 	this->track_nodes_arr = malloc(sizeof(track_node) * TRACK_MAX);
 	switch (track_name) {
@@ -35,13 +30,19 @@ engineer *engineer_new(char track_name) {
 			break;
 	}
 
+	gps *gps = gps_new(this->track_nodes_arr);
+	// initialize train descriptors
+	TRAIN_FOREACH(train_no) {
+		train_init(&this->train[train_no], train_no, gps);
+	}
+
 	this->con = console_new(COM2);
 	this->log = logdisplay_new(this->con, 11, 56, 8, 80, ROUNDROBIN);
 	this->log2 = logdisplay_new(this->con, 11 + 9, 56, 8, 80, ROUNDROBIN);
+	this->triplog = logdisplay_new(this->con, 11 + 18, 56 + 25, 8 + 14, 80, ROUNDROBIN);
 	this->tid_time = WhoIs(NAME_TIMESERVER);
 	this->reservation = track_reservation_new();
 
-	this->gps = gps_new(this->track_nodes_arr);
 	return this;
 }
 
@@ -269,5 +270,6 @@ void engineer_ontick(engineer *this) {
 	int t = Time(this->tid_time);
 	TRAIN_FOREACH(train_no) {
 		train_update_simulation(&this->train[train_no], t);
+		train_run_vcmd(&this->train[train_no], this->tid_traincmdbuf, this->track_nodes, this->triplog);
 	}
 }

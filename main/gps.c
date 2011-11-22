@@ -46,10 +46,30 @@ static inline void trainvcmd_addswitch(trainvcmd *rv_vcmd, int *idx, char const 
 	(*idx)++;
 }
 
-static inline char gps_getnextswitchpos(track_edge *edgeafterbranch) {
-	track_node *nextnode = edgeafterbranch->dest;
-	return (edgeafterbranch == &nextnode->edge[DIR_STRAIGHT]) ? 's' : 'c';
+static inline char gps_getnextswitchpos(track_node *sw, track_edge *edgeafterbranch) {
+	return (edgeafterbranch == &sw->edge[DIR_STRAIGHT]) ? 's' : 'c';
+}
 
+static inline void gps_get_closest_switch(track_edge const *nextedge,
+		track_node **rv_closest_switch_node,
+		fixed *rv_closest_switch_dist) {
+	int const max_search_depth = 10;
+
+
+	fixed switchdist = fixed_new(nextedge->dist);
+	track_node *cur_node = nextedge->dest;
+	for (int i = 0; i < max_search_depth; i++) {
+		if (cur_node->type == NODE_BRANCH) {
+			*rv_closest_switch_node = cur_node;
+			*rv_closest_switch_dist = switchdist;
+			return;
+		} else if (cur_node->type == NODE_EXIT) {
+			break;
+		} else {
+			cur_node = cur_node->edge[0].dest;
+		}
+	}
+	*rv_closest_switch_node = NULL;
 }
 
 void gps_findpath(gps *this,
@@ -81,7 +101,7 @@ void gps_findpath(gps *this,
 		fixed stopdist = train_get_stopdist4speedidx(train, speedidx);
 
 		if ((pathlen > 0 || trainloc.edge != dest->edge) && trainloc.edge->dest->type == NODE_BRANCH) {
-			trainvcmd_addswitch(rv_vcmd, &cmdlen, trainloc.edge->dest->name, gps_getnextswitchpos(path[0]));
+			trainvcmd_addswitch(rv_vcmd, &cmdlen, trainloc.edge->dest->name, gps_getnextswitchpos(trainloc.edge->dest, path[0]));
 		}
 		for (int i = 0; i < pathlen; i++) {
 			track_edge *nextedge = path[i];
@@ -90,9 +110,15 @@ void gps_findpath(gps *this,
 			fixed stopat = fixed_sub(remainingdist, stopdist);
 			location stoploc = location_new(nextedge);
 			location_add(&stoploc, stopat);
+			track_node *closest_switch_node;
+			fixed closest_switch_dist = fixed_new(0);
+			gps_get_closest_switch(nextedge, &closest_switch_node, &closest_switch_dist);
+
 			int needtostop = fixed_cmp(stopat, nextedgedist) < 0 && fixed_sgn(stopat) >= 0;
-			int needtoswitch = nextnode->type == NODE_BRANCH
-					&& fixed_sgn(fixed_sub(remainingdist, nextedgedist)) > 0;
+			int needtoswitch = closest_switch_node // exists
+					&& closest_switch_node->type == NODE_BRANCH // branch
+					&& fixed_cmp(remainingdist, closest_switch_dist) > 0 // do we need to go past the switch
+					&& fixed_cmp(fixed_sub(closest_switch_dist, fixed_new(SWITCH_DIST)), nextedgedist); // do we need to switch in the current edge
 			int stopfirst = fixed_sgn(fixed_sub(stopat, fixed_new(SWITCH_DIST))) < 0;
 
 			if (needtostop && stopfirst) {
@@ -103,11 +129,12 @@ void gps_findpath(gps *this,
 			// if this is not the last branch
 			if (needtoswitch) {
 				location switchloc = location_new(nextedge);
-				location_add(&switchloc, fixed_sub(nextedgedist, fixed_new(SWITCH_DIST)));
+				fixed switch_at = fixed_sub(closest_switch_dist, fixed_new(SWITCH_DIST));
+				location_add(&switchloc, switch_at);
 				track_edge *edgeafterbranch = path[i+1];
 
 				trainvcmd_addwaitloc(rv_vcmd, &cmdlen, switchloc);
-				trainvcmd_addswitch(rv_vcmd, &cmdlen, nextnode->name, gps_getnextswitchpos(edgeafterbranch));
+				trainvcmd_addswitch(rv_vcmd, &cmdlen, nextnode->name, gps_getnextswitchpos(nextnode, edgeafterbranch));
 			}
 
 			if (needtostop && !stopfirst) {
@@ -117,7 +144,6 @@ void gps_findpath(gps *this,
 
 			remainingdist = fixed_sub(remainingdist, nextedgedist);
 			ASSERT(fixed_sgn(remainingdist) >= 0, "remaining dist neg: %F", remainingdist);
-
 		}
 
 		*rv_len = cmdlen;
