@@ -169,6 +169,7 @@ void train_reverse_dir(train_descriptor *this) {
 void train_on_reverse(train_descriptor *this) {
 	train_reverse_dir(this);
 	location_reverse(&this->loc);
+	location_add(&this->loc, this->len_pickup);
 }
 
 int train_get_tspeed(train_descriptor *this) {
