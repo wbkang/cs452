@@ -247,11 +247,11 @@ void train_update_simulation(train_descriptor *this, int t_f) {
 	int t_i = train_get_tsim(this);
 	// train_step_sim(this, fixed_new(t_f - t_i));
 	int time = TICK2MS(t_f - t_i);
-	train_step_sim(this, time);
-//	for (int i = (time >> TRAIN_SIM_DT_EXP); i > 0; --i) {
-//		train_step_sim(this, TRAIN_SIM_DT);
-//	}
-//	train_step_sim(this, time & (TRAIN_SIM_DT - 1));
+//	train_step_sim(this, time);
+	for (int i = (time >> TRAIN_SIM_DT_EXP); i > 0; --i) {
+		train_step_sim(this, TRAIN_SIM_DT);
+	}
+	train_step_sim(this, time & (TRAIN_SIM_DT - 1));
 }
 
 void train_set_dest(train_descriptor *this, location *dest) {
