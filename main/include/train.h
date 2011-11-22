@@ -131,7 +131,7 @@ static inline void train_reverse(char train, int tid) {
 static inline void train_switch(char no, char pos, int tid) {
 	ASSERT(track_switchpos_isgood(pos), "bad position: %d", pos);
 	traincmdbuffer_put(tid, SWITCH, no, pos);
-	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_SOLENOID, NULL);
+//	traincmdbuffer_put(tid, PAUSE, TRAIN_PAUSE_SOLENOID, NULL);
 }
 
 static inline void train_solenoidoff(int tid) {

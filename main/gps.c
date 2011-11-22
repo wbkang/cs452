@@ -5,13 +5,14 @@
 #include <string.h>
 #include <engineer.h>
 #include <stdio.h>
+#include <location.h>
 
 #define MAX_PATH 160
 #define CRUISE_SPEED 12
 
 static void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_node *tgt, track_edge **rv_edge, int *rv_edgecnt);
 static fixed gps_distace(location *start, location *end, track_edge **path, int pathlen);
-static char const *vcmdnames[] = { "SETSPEED", "SETREVERSE", "SETSWITCH", "WAITFORMS", "WAITFORLOC" };
+static char const *vcmdnames[] = { "SETSPEED", "SETREVERSE", "SETSWITCH", "WAITFORMS", "WAITFORLOC", "STOP" };
 
 gps *gps_new(track_node *nodes) {
 	gps *this = malloc(sizeof(gps));
@@ -23,25 +24,27 @@ gps *gps_new(track_node *nodes) {
 	return this;
 }
 
-static inline void trainvcmd_addspeed(trainvcmd *rv_vcmd, int *idx, int speed) {
+static inline void trainvcmd_addspeed(trainvcmd *rv_vcmd, int *idx, int speed, location *speedloc) {
 	rv_vcmd[*idx].type = TRAINVCMD;
 	rv_vcmd[*idx].name = VCMD_SETSPEED;
 	rv_vcmd[*idx].data.speed = speed;
+	rv_vcmd[*idx].location = *speedloc;
 	(*idx)++;
 }
 
-static inline void trainvcmd_addwaitloc(trainvcmd *rv_vcmd, int *idx, location l) {
+static inline void trainvcmd_addstop(trainvcmd *rv_vcmd, int *idx, location *stoploc) {
 	rv_vcmd[*idx].type = TRAINVCMD;
-	rv_vcmd[*idx].name = VCMD_WAITFORLOC;
-	rv_vcmd[*idx].data.waitloc = l;
+	rv_vcmd[*idx].name = VCMD_STOP;
+	rv_vcmd[*idx].location = *stoploc;
 	(*idx)++;
 }
 
-static inline void trainvcmd_addswitch(trainvcmd *rv_vcmd, int *idx, char const *switchname, char pos) {
+static inline void trainvcmd_addswitch(trainvcmd *rv_vcmd, int *idx, char const *switchname, char pos, location *switchloc) {
 	rv_vcmd[*idx].type = TRAINVCMD;
 	rv_vcmd[*idx].name = VCMD_SETSWITCH;
 	strcpy(rv_vcmd[*idx].data.switchinfo.nodename, switchname);
 	rv_vcmd[*idx].data.switchinfo.pos = pos;
+	rv_vcmd[*idx].location = *switchloc;
 	(*idx)++;
 }
 
@@ -89,69 +92,24 @@ void gps_findpath(gps *this,
 
 	if (pathlen > 0) {
 		fixed dist = gps_distace(&trainloc, dest, path, pathlen);
-		int speedidx = train_get_speedidx(train);
 		dist = fixed_sub(dist, fixed_sub(fixed_new(trainloc.edge->dist), trainloc.offset));
+
 		if (train_get_speed(train) == 0) {
-			trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED);
-			speedidx = train_speed2speedidx(0, CRUISE_SPEED);
+			trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, &trainloc);
 		}
 
-		fixed remainingdist = dist;
-		fixed stopdist = train_get_stopdist4speedidx(train, speedidx);
-
-		if ((pathlen > 0 || trainloc.edge != dest->edge) && trainloc.edge->dest->type == NODE_BRANCH) {
-			trainvcmd_addswitch(rv_vcmd, &cmdlen, trainloc.edge->dest->name, gps_getnextswitchpos(trainloc.edge->dest, path[0]));
-		}
 		for (int i = 0; i < pathlen; i++) {
 			track_edge *nextedge = path[i];
-			fixed nextedgedist = fixed_new(nextedge->dist);
-			fixed stopat = fixed_sub(remainingdist, stopdist);
-			location stoploc = location_new(nextedge);
-			location_add(&stoploc, stopat);
-			track_node *closest_switch_node;
-			fixed closest_switch_dist = fixed_new(0);
-			gps_get_closest_switch(nextedge, &closest_switch_node, &closest_switch_dist);
-			fixed switch_dist = fixed_div(stopdist, fixed_new(2));
-			fixed switch_at = fixed_sub(closest_switch_dist, switch_dist);
-
-			int needtostop = fixed_cmp(stopat, nextedgedist) < 0 && fixed_sgn(stopat) >= 0;
-			int needtoswitch = closest_switch_node // exists
-					&& closest_switch_node->type == NODE_BRANCH // branch
-					&& fixed_cmp(remainingdist, closest_switch_dist) > 0 // do we need to go past the switch
-					&& fixed_cmp(switch_at, nextedgedist) < 0 // do we need to switch in the current edge
-					&& fixed_sgn(switch_at) >= 0;;
-			int stopfirst = fixed_cmp(stopat, switch_at) < 0;
-
-			if (needtostop && stopfirst) {
-				trainvcmd_addwaitloc(rv_vcmd, &cmdlen, stoploc);
-				trainvcmd_addspeed(rv_vcmd, &cmdlen, 0);
-			}
-
-			// if this is not the last branch
-			if (needtoswitch) {
+			track_node *curnode = path[i]->src;
+			if (curnode->type == NODE_BRANCH) {
+				char pos = gps_getnextswitchpos(curnode, nextedge);
 				location switchloc = location_new(nextedge);
-				fixed switch_at = fixed_sub(closest_switch_dist, switch_dist);
-				location_add(&switchloc, switch_at);
-				track_edge *edgeafterbranch = NULL;
-				for (int k = i + 1; k < pathlen; k++) {
-					if (path[k]->src == closest_switch_node) {
-						edgeafterbranch = path[k];
-					}
-				}
-				ASSERTNOTNULL(edgeafterbranch);
 
-				trainvcmd_addwaitloc(rv_vcmd, &cmdlen, switchloc);
-				trainvcmd_addswitch(rv_vcmd, &cmdlen, closest_switch_node->name, gps_getnextswitchpos(closest_switch_node, edgeafterbranch));
+				trainvcmd_addswitch(rv_vcmd, &cmdlen, curnode->name, pos, &switchloc);
 			}
-
-			if (needtostop && !stopfirst) {
-				trainvcmd_addwaitloc(rv_vcmd, &cmdlen, stoploc);
-				trainvcmd_addspeed(rv_vcmd, &cmdlen, 0);
-			}
-
-			remainingdist = fixed_sub(remainingdist, nextedgedist);
-			ASSERT(fixed_sgn(remainingdist) >= 0, "remaining dist neg: %F", remainingdist);
 		}
+
+		trainvcmd_addstop(rv_vcmd, &cmdlen, dest);
 
 		*rv_len = cmdlen;
 	} else {
@@ -281,16 +239,23 @@ static fixed gps_distace(location *start, location *end, track_edge **path, int 
 
 int vcmd2str(char *buf, trainvcmd *vcmd) {
 	char * const origbuf = buf;
+	char locname[100];
 	buf += sprintf(buf, "[%s ", vcmdnames[vcmd->name]);
 	switch(vcmd->name) {
-		case VCMD_WAITFORLOC:
-			buf += sprintf(buf, "src:%s offset:%F", vcmd->data.waitloc.edge->src->name, vcmd->data.waitloc.offset);
+//		case VCMD_WAITFORLOC:
+//			buf += sprintf(buf, "src:%s offset:%F", vcmd->data.waitloc.edge->src->name, vcmd->data.waitloc.offset);
+//			break;
+		case VCMD_STOP:
+			location2str(locname, &vcmd->location);
+			buf += sprintf(buf, "stop at %s", locname);
 			break;
 		case VCMD_SETSPEED:
-			buf += sprintf(buf, "speed:%d", vcmd->data.speed);
+			location2str(locname, &vcmd->location);
+			buf += sprintf(buf, "speed:%d at %s", vcmd->data.speed, locname);
 			break;
 		case VCMD_SETSWITCH:
-			buf += sprintf(buf, "switch %s to %c", vcmd->data.switchinfo.nodename, vcmd->data.switchinfo.pos);
+			location2str(locname, &vcmd->location);
+			buf += sprintf(buf, "switch %s to %c at %s", vcmd->data.switchinfo.nodename, vcmd->data.switchinfo.pos, locname);
 			break;
 		case VCMD_SETREVERSE:
 			buf += sprintf(buf, "reverse");

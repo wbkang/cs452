@@ -56,7 +56,7 @@ typedef struct {
 } msg_sub;
 
 typedef enum {
-	VCMD_SETSPEED, VCMD_SETREVERSE, VCMD_SETSWITCH, VCMD_WAITFORMS, VCMD_WAITFORLOC
+	VCMD_SETSPEED, VCMD_SETREVERSE, VCMD_SETSWITCH, VCMD_WAITFORMS, VCMD_WAITFORLOC, VCMD_STOP
 } trainvcmdname;
 
 typedef struct {
@@ -69,6 +69,6 @@ typedef struct {
 			char pos;
 		} switchinfo;
 		int timeout;
-		location waitloc;
 	} data;
+	location location;
 } trainvcmd;
