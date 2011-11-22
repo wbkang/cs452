@@ -24,8 +24,6 @@ typedef char *va_list;
 #define VMEM(x) (*(vmemptr)(x))
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
-#define MAX(x, y) ((x) > (y) ? (x) : (y))
-#define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define INSTALL_INTERRUPT_HANDLER(vec, jmp) { VMEM((vec) + 0x20) = (uint)(jmp); }
 #define READ_INTERRUPT_HANDLER(vec) VMEM((vec) + 0x20)
 // turn mask bits on/off in word based on flags
@@ -72,6 +70,14 @@ static inline void uptime_teardown() {
 static inline uint uptime() {
 	int s = 0;
     return ((VMEM(0x80810064) & 0xff) << (32 - s)) | (VMEM(0x80810060) >> s); // timer4
+}
+
+static inline int min(int a, int b) {
+	return a < b ? a : b;
+}
+
+static inline int max(int a, int b) {
+	return a < b ? b : a;
 }
 
 static inline uint abs(int n) {

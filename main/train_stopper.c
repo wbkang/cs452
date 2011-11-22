@@ -25,21 +25,20 @@ static void ontick(void* s) {
 
 	if (location_isundef(train_loc)) return; // unknown train position
 
-	fixed stop_dist = engineer_sim_stopdist(eng, train_no);
-	if (fixed_sgn(stop_dist) <= 0) return; // unknown stop distance
+	int stop_dist = fixed_int(engineer_sim_stopdist(eng, train_no));
+	if (stop_dist < 0) return; // unknown stop distance
 
 	location stat = tloc;
-	location_add(&stat, stop_dist);
+	location_add(&stat, fixed_new(stop_dist));
 
-	fixed stop_from = location_dist_dir(train_loc, dest);
-	if (fixed_sgn(stop_from) < 0) return; // bad path
+	int stop_from = location_dist_dir(train_loc, dest);
+	if (stop_from < 0) return; // bad path
 
-	fixed stop_at = fixed_abs(fixed_sub(stop_from, stop_dist));
+	int stop_at = abs(stop_from - stop_dist);
 
 	// @TODO: this should be a function of average error in position. something like nudge_dt * v / 2
-	const fixed margin = fixed_new(15);
 
-	if (fixed_cmp(stop_at, margin) > 0) return; // wait
+	if (stop_at > 15) return; // wait
 
 	engineer_set_speed(eng, train_no, 0);
 	dumbbus_unregister(((a0state*) s)->simbus, ontick);

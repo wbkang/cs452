@@ -28,7 +28,7 @@ void publisher() {
 	publisher_state state;
 	state.num_clients = 0;
 
-	const int size_packet = MIN(STACK_SIZE - 1000, MAX_MSG_SIZE);
+	const int size_packet = min(STACK_SIZE - 1000, MAX_MSG_SIZE);
 	void* packet = malloc(size_packet);
 
 	for (;;) {

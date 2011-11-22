@@ -164,8 +164,8 @@ static inline void train_stop(int tid) {
 void train_init_static(train_descriptor *train);
 void train_init(train_descriptor *this, int no, struct gps *gps);
 fixed train_get_velocity(train_descriptor *this);
-fixed train_get_stopdist(train_descriptor *this);
 fixed train_get_stopdist4speedidx(train_descriptor *this, int speed_idx);
+fixed train_get_stopdist(train_descriptor *this);
 int train_get_speed(train_descriptor *this);
 int train_get_speedidx(train_descriptor *this);
 void train_set_speed(train_descriptor *this, int speed, int t);

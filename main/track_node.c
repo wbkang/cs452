@@ -10,8 +10,8 @@ track_edge *track_next_edge(track_node *node) {
 			return &node->edge[0];
 		case NODE_BRANCH: {
 			int dir = node->switch_dir;
-			if (dir < 0) return NULL; // unknown branch position
-			return &node->edge[dir];
+			if (dir == 0 || dir == 1) return &node->edge[dir];
+			return NULL; // unknown branch position
 		}
 		default:
 			return NULL; // unkown node type

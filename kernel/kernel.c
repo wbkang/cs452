@@ -110,7 +110,7 @@ static void handle_abort() {
 			faultname, faulttype, faultdomain, datafaultaddr);
 	bwprintf(1, "cpsr:%d (%x)", cpsr, cpsr);
 
-	while(1);
+	for (;;);
 }
 
 void kernel_init() {
@@ -268,7 +268,7 @@ static inline void transfer_msg(task_descriptor *sender, task_descriptor *receiv
 	// set up lengths
 	int sender_msglen = SENDER_MSGLEN(sender_r[3]);
 	int receiver_msglen = receiver_r[2];
-	int len = MIN(sender_msglen, receiver_msglen);
+	int len = min(sender_msglen, receiver_msglen);
 	// set up message buffers
 	void* sender_msg = (void*) sender_r[1];
 	void* receiver_msg = (void*) receiver_r[1];
@@ -286,7 +286,7 @@ static inline void transfer_reply(task_descriptor *sender, task_descriptor *rece
 	// set up lengths
 	int sender_replylen = SENDER_REPLYLEN(sender_r[3]);
 	int receiver_replylen = receiver_r[2];
-	int len = MIN(sender_replylen, receiver_replylen);
+	int len = min(sender_replylen, receiver_replylen);
 	// set up message buffers
 	void* sender_reply = (void*) sender_r[2];
 	void* receiver_reply = (void*) receiver_r[1];
