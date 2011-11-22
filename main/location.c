@@ -112,6 +112,19 @@ int location_add(location *this, fixed dx) {
 	return -3;
 }
 
+int location2str(char *buf, location *l) {
+	char * const origbuf = buf;
+	track_edge *edge = l->edge;
+
+	if (location_isundef(l)) {
+		buf += sprintf(buf, "[location:UNDEFINED]");
+	} else {
+		buf += sprintf(buf, "[location:%s->%s,offset:%F]",
+				edge->src->name, edge->dest->name, l->offset);
+	}
+	return buf - origbuf;
+}
+
 int location_reverse(location *this) {
 	if (location_isundef(this)) return -1; // reversing undefined location
 	fixed offset = fixed_sub(fixed_new(this->edge->dist), this->offset);
