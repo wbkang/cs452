@@ -246,15 +246,15 @@ int vcmd2str(char *buf, trainvcmd *vcmd) {
 //			buf += sprintf(buf, "src:%s offset:%F", vcmd->data.waitloc.edge->src->name, vcmd->data.waitloc.offset);
 //			break;
 		case VCMD_STOP:
-			location2str(locname, &vcmd->location);
+			location_tostring(&vcmd->location, locname);
 			buf += sprintf(buf, "stop at %s", locname);
 			break;
 		case VCMD_SETSPEED:
-			location2str(locname, &vcmd->location);
+			location_tostring(&vcmd->location, locname);
 			buf += sprintf(buf, "speed:%d at %s", vcmd->data.speed, locname);
 			break;
 		case VCMD_SETSWITCH:
-			location2str(locname, &vcmd->location);
+			location_tostring(&vcmd->location, locname);
 			buf += sprintf(buf, "switch %s to %c at %s", vcmd->data.switchinfo.nodename, vcmd->data.switchinfo.pos, locname);
 			break;
 		case VCMD_SETREVERSE:

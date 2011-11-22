@@ -268,7 +268,7 @@ static trainvcmd *lastvcmd;
 void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log) {
 	// TODO this is a weird criteria. fix this
 	if (!location_isundef(&this->destination) && this->vcmdslen == 0) {
-		char buf[100]; location2str(buf, &this->destination);
+		char buf[100];location_tostring(&this->destination, buf);
 //		ASSERT(0, "location %s", buf);
 		if (this->vcmds == NULL) {
 			this->vcmds = malloc(sizeof(trainvcmd) * TRAIN_MAX_VCMD);
@@ -333,7 +333,7 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 //				if (fixed_cmp(dist, fixed_new(40)) < 0) {
 //					this->vcmdidx++;
 //					char buf[100];
-//					location2str(buf, &curloc);
+//					location_tostring(&curloc, buf);
 //					logdisplay_printf(log, "finished waiting .. curloc:%s, dist:%F", buf, dist);
 //					logdisplay_flushline(log);
 //					// this is a terrible way to do it. run it once more.
@@ -365,8 +365,8 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 				fixed stopdist = train_get_stopdist(this);
 				if (fixed_cmp(dist, stopdist) < 0) {
 					char buf[100], buf2[100];
-					location2str(buf, &curloc);
-					location2str(buf2, &waitloc);
+					location_tostring(&curloc, buf);
+					location_tostring(&waitloc, buf2);
 					logdisplay_printf(log, "curloc:%s", buf);
 					logdisplay_flushline(log);
 					logdisplay_printf(log, "waitloc:%s", buf2);
