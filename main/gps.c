@@ -101,6 +101,19 @@ static inline void gps_getstoploc(location *loc, track_node *cur_node, track_nod
 	}
 }
 
+static int gps_collapsereverse(track_node *startnode, track_node **path, int pathlen, train_descriptor *train) {
+	if (pathlen < 1 && fixed_sgn(train_get_velocity(train)) > 0) {
+		return -1;
+	}
+
+	for (int i = 0; i < pathlen; i++) {
+		if (path[i] == startnode->reverse) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 void gps_findpath(gps *this,
 		train_descriptor *train,
 		location *dest,
@@ -139,26 +152,19 @@ void gps_findpath(gps *this,
 		fixed dist = gps_distance(&trainloc, dest, path, pathlen);
 		dist = fixed_sub(dist, fixed_sub(fixed_new(trainloc.edge->dist), trainloc.offset));
 
-		// reverse case
-		if (path[0] == trainloc.edge->dest->reverse) {
-			if (fixed_sgn(train_get_velocity(train))<= 0 && pathlen >= 3) {
-				trainvcmd_addreverse(rv_vcmd, &cmdlen, NULL);
-				trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
-			} else {
-				track_node *cur_node = trainloc.edge->dest;
-				location stoploc;
-				gps_getstoploc(&stoploc, cur_node, path[0], train);
+		int collapseidx = gps_collapsereverse(trainloc.edge->src, path, pathlen, train);
+		int startidx;
 
-				trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
-				trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
-				trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
-				trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
-			}
+		if (collapseidx >= 0) {
+			trainvcmd_addreverse(rv_vcmd, &cmdlen, NULL);
+			trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
+			startidx = collapseidx;
 		} else {
 			trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, &trainloc);
+			startidx = 0;
 		}
 
-		for (int i = 0; i < pathlen - 1; i++) {
+		for (int i = startidx; i < pathlen - 1; i++) {
 			track_node *curnode = path[i];
 			track_node *nextnode = path[i + 1];
 			track_edge *nextedge = gps_gettrackedge(curnode, nextnode);

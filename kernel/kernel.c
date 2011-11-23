@@ -71,7 +71,7 @@ static void handle_abort() {
 	int fp;
 	READ_REGISTER(fp);
 	scheduler_running()->registers.r[REG_FP] = fp;
-	td_print_crash_dump();
+//	td_print_crash_dump();
 	int cpsr;
 	READ_CPSR(cpsr);
 	cpsr &= 0x1f;

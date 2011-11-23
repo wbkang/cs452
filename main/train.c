@@ -457,7 +457,8 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 
 int train_get_reverse_cost(train_descriptor *this, int dist) {
 	(void)dist;
-	return train_get_train_length(this) << 1;
+//	return train_get_train_length(this) << 1;
+	return 0;
 }
 
 int train_get_train_length(train_descriptor *this) {

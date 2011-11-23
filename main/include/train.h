@@ -125,7 +125,7 @@ static inline void train_speed(char train, char speed, int tid) {
 
 static inline void train_reverse(char train, int tid) {
 	ASSERT(train_goodtrain(train), "bad train: %d", train);
-	traincmdbuffer_put(tid, REVERSE, train, NULL);
+	traincmdbuffer_put(tid, REVERSE_UI, train, NULL);
 }
 
 static inline void train_switch(char no, char pos, int tid) {

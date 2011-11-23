@@ -259,7 +259,6 @@ void track_template_updatesensor(track_template *tt, char module, int id, int tr
 					console_effect(con, EFFECT_FG_CYAN);
 					break;
 				default:
-					console_effect(con, EFFECT_BRIGHT);
 					console_effect(con, EFFECT_FG_BLUE);
 					break;
 				}
