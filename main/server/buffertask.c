@@ -27,8 +27,8 @@ static inline void tx(buffertask_state *state, int tid) {
 
 static inline void handle_put(buffertask_state *state, int tid, void* item) {
 	ASSERT(!buffer_full(state->items), "buffer full");
-	buffer_put(state->items, item);
 	Reply(tid, NULL, 0);
+	buffer_put(state->items, item);
 	if (!queue_empty(state->get_blocked)) {
 		tx(state, (int) queue_get(state->get_blocked));
 	}

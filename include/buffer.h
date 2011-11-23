@@ -14,7 +14,7 @@ typedef struct _tag_buffer {
 buffer *buffer_new(uint size, uint elem_bytes);
 
 static inline void** buffer_inc(void** p, int bytes) {
-	return (void**) ((int) p + bytes);
+	return (void**) ((uint) p + bytes);
 }
 
 static inline void** buffer_increment(buffer *this, void** p) {

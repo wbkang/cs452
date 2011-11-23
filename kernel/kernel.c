@@ -374,7 +374,7 @@ static inline int kernel_awaitevent(int eventid) {
  */
 
 int Send(int tid, void* msg, int msglen, void* reply, int replylen) {
-	if (UNLIKELY((msglen | replylen) & 0xffff0000)) {
+	if (UNLIKELY(((uint) msglen | (uint) replylen) & 0xffff0000)) {
 		ASSERT(0, "msglen: %d, replylen: %d TOOBIG", msglen, replylen);
 		return -3; // unreachable
 	}
