@@ -7,6 +7,7 @@
 #include <track_node.h>
 #include <location.h>
 #include <gps.h>
+#include <track_reservation.h>
 #include <lookup.h>
 #include <server/traincmdbuffer.h>
 #include <ui/logdisplay.h>

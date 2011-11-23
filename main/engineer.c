@@ -41,7 +41,6 @@ engineer *engineer_new(char track_name) {
 	this->log2 = logdisplay_new(this->con, 11 + 9, 56, 8, 100, ROUNDROBIN);
 	this->triplog = logdisplay_new(this->con, 11 + 18, 56 + 25, 8 + 14, 100, ROUNDROBIN);
 	this->tid_time = WhoIs(NAME_TIMESERVER);
-	this->reservation = track_reservation_new();
 
 	return this;
 }

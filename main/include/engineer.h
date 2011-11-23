@@ -5,7 +5,6 @@
 #include <lookup.h>
 #include <fixed.h>
 #include <location.h>
-#include <track_reservation.h>
 #include <console.h> // @TODO: replace for a ui task
 #include <ui/logdisplay.h> // @TODO: replace for a ui task
 #include <gps.h>
@@ -15,7 +14,6 @@ typedef struct _tag_train_engineer {
 	train_descriptor train[TRAIN_MAX_TRAIN_ADDR + 1];
 	lookup *track_nodes;
 	track_node *track_nodes_arr;
-	track_reservation *reservation;
 	console *con; // @TODO: replace with a ui task tid
 	logdisplay *log; // @TODO: replace with a ui task tid
 	logdisplay *log2; // @TODO: replace with a ui task tid
