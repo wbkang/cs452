@@ -10,7 +10,6 @@
 
 #define MAX_PATH 160
 #define CRUISE_SPEED 10
-#define REVERSE_OVERSHOOT 250
 #define REVERSE_TIMEOUT 4000
 #define REVERSE_COST 500
 
@@ -86,15 +85,7 @@ static inline track_edge *gps_gettrackedge(track_node *from, track_node *to) {
 	}
 }
 
-static inline int gps_reverse_overshoot_dist(track_node *nextnode) {
-	if (nextnode->type == NODE_MERGE) {
-		return REVERSE_OVERSHOOT;
-	} else {
-		return 0;
-	}
-}
-
-static inline void gps_getstoploc(location *loc, track_node *cur_node, track_node *next_node) {
+static inline void gps_getstoploc(location *loc, track_node *cur_node, track_node *next_node, train_descriptor *train) {
 	ASSERTNOTNULL(loc);
 	ASSERTNOTNULL(cur_node);
 	ASSERTNOTNULL(next_node);
@@ -106,7 +97,7 @@ static inline void gps_getstoploc(location *loc, track_node *cur_node, track_nod
 	} else {
 		ASSERTNOTNULL(&cur_node->edge[0]);
 		*loc = location_new(&cur_node->edge[0]);
-		location_add(loc, fixed_new(gps_reverse_overshoot_dist(cur_node)));
+		location_add(loc, fixed_new(train_get_train_length(train) << 1));
 	}
 }
 
@@ -124,7 +115,7 @@ void gps_findpath(gps *this,
 	track_node *path[MAX_PATH];
 	int pathlen;
 	// TODO now using arbitrary reverse distance
-	dijkstra(this->track_node, this->heap_dijkstra, src, dest->edge->src, path, &pathlen, 0);
+	dijkstra(this->track_node, this->heap_dijkstra, src, dest->edge->src, path, &pathlen, train);
 
 	char buf[100];
 	location_tostring(&trainloc, buf);
@@ -150,25 +141,17 @@ void gps_findpath(gps *this,
 
 		// reverse case
 		if (path[0] == trainloc.edge->dest->reverse) {
-			if (fixed_sgn(train_get_velocity(train))<= 0) {
+			if (fixed_sgn(train_get_velocity(train))<= 0 && pathlen >= 3) {
 				trainvcmd_addreverse(rv_vcmd, &cmdlen, NULL);
 				trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
 			} else {
 				track_node *cur_node = trainloc.edge->dest;
 				location stoploc;
-				gps_getstoploc(&stoploc, cur_node, path[0]);
+				gps_getstoploc(&stoploc, cur_node, path[0], train);
 
 				trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
 				trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
 				trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
-//
-//				if (path[0]->type == NODE_BRANCH && pathlen > 1) {
-//					char pos = gps_getnextswitchpos(path[0], gps_get_track_edge(path[0], path[1]));
-//					location switchloc = stoploc;
-//					location_reverse(&switchloc);
-//					trainvcmd_addswitch(rv_vcmd, cmdlen, path[0], pos, &switchloc);
-//				}
-
 				trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
 			}
 		} else {
@@ -190,7 +173,7 @@ void gps_findpath(gps *this,
 			// reverse plan
 			if (!nextedge) {
 				location stoploc;
-				gps_getstoploc(&stoploc, curnode, nextnode);
+				gps_getstoploc(&stoploc, curnode, nextnode, train);
 
 				trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
 				trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
@@ -212,7 +195,7 @@ void gps_findpath(gps *this,
 			track_node *cur_node = trainloc.edge->dest;
 			track_node *next_node = trainloc.edge->dest->reverse;
 			location stoploc;
-			gps_getstoploc(&stoploc, cur_node, next_node);
+			gps_getstoploc(&stoploc, cur_node, next_node, train);
 			trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
 			trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
 			trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
@@ -241,8 +224,7 @@ static inline uint num_neighbour(track_node *n) {
 
 // code taken from http://en.wikipedia.org/wiki/Dijkstra's_algorithm#Algorithm
 // @TODO: keep this algorithm independent of gps, pass in whats needed as args
-void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_node *tgt, track_node **rv_nodes, int *rv_nodecnt, int stopdist) {
-	int const reverse_dist = REVERSE_COST; // TODO fix this
+void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_node *tgt, track_node **rv_nodes, int *rv_nodecnt, train_descriptor *train) {
 	int const infinity = INT_MAX;
 	int dist[TRACK_MAX];
 	track_node *previous[TRACK_MAX];
@@ -293,23 +275,12 @@ void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_nod
 		{
 			track_node *u_rev = u->reverse;
 			int u_rev_idx = u_rev - nodeary;
-			int rev_neighbour_cnt = num_neighbour(u_rev);
-			for (int i = 0; i < rev_neighbour_cnt; i++) {
-				track_edge *edge = &u_rev->edge[i];
-				track_node *v = edge->dest;
-				int vidx = v - nodeary;
-
-				int alt = (dist[vidx] == infinity) ? edge->dist : dist[vidx] + edge->dist;
-				int reverse_cost = (dist[u_rev_idx] == infinity) ? reverse_dist : dist[u_rev_idx] + reverse_dist;
-
-				if (alt + reverse_cost < dist[vidx] && reverse_cost < dist[u_rev_idx]) {
-					dist[vidx] = alt + reverse_cost;
-					previous[vidx] = u_rev;
-					heap_decrease_key_min(unoptimized, v, alt + reverse_cost);
-					dist[u_rev_idx] = reverse_cost;
-					previous[u_rev_idx] = u;
-					heap_decrease_key_min(unoptimized, u_rev, reverse_cost);
-				}
+			int rev_dist = train_get_reverse_cost(train, dist[uidx]);
+			int alt_rev_dist = (dist[u_rev_idx] == infinity) ? rev_dist : dist[u_rev_idx] + rev_dist;
+			if (alt_rev_dist < dist[u_rev_idx]) {
+				dist[u_rev_idx] = alt_rev_dist;
+				previous[u_rev_idx] = u;
+				heap_decrease_key_min(unoptimized, u_rev, alt_rev_dist);
 			}
 		}
 	}
@@ -372,9 +343,9 @@ int vcmd2str(char *buf, trainvcmd *vcmd) {
 	char locname[100];
 	buf += sprintf(buf, "[%s ", vcmdnames[vcmd->name]);
 	switch (vcmd->name) {
-//		case VCMD_WAITFORLOC:
-//			buf += sprintf(buf, "src:%s offset:%F", vcmd->data.waitloc.edge->src->name, vcmd->data.waitloc.offset);
-//			break;
+		case VCMD_WAITFORLOC:
+			buf += sprintf(buf, "src:%s offset:%F", vcmd->location.edge->src, vcmd->location.offset);
+			break;
 		case VCMD_STOP:
 			location_tostring(&vcmd->location, locname);
 			buf += sprintf(buf, "stop at %s", locname);
