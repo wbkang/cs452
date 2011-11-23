@@ -92,7 +92,7 @@ static inline void gps_getstoploc(location *loc, track_node *cur_node, track_nod
 	if (cur_node->type == NODE_EXIT) {
 		ASSERTNOTNULL(&next_node->edge[0]);
 		*loc = location_new(&next_node->edge[0]);
-		location_add(loc, fixed_new(50));
+		location_add(loc, fixed_new(20));
 		location_reverse(loc);
 	} else {
 		ASSERTNOTNULL(&cur_node->edge[0]);
