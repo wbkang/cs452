@@ -343,9 +343,9 @@ int vcmd2str(char *buf, trainvcmd *vcmd) {
 	char locname[100];
 	buf += sprintf(buf, "[%s ", vcmdnames[vcmd->name]);
 	switch (vcmd->name) {
-//		case VCMD_WAITFORLOC:
-//			buf += sprintf(buf, "src:%s offset:%F", vcmd->data.waitloc.edge->src->name, vcmd->data.waitloc.offset);
-//			break;
+		case VCMD_WAITFORLOC:
+			buf += sprintf(buf, "src:%s offset:%F", vcmd->location.edge->src, vcmd->location.offset);
+			break;
 		case VCMD_STOP:
 			location_tostring(&vcmd->location, locname);
 			buf += sprintf(buf, "stop at %s", locname);
