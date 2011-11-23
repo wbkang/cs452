@@ -34,11 +34,9 @@ static void ontick(void* s) {
 	int stop_from = location_dist_dir(train_loc, dest);
 	if (stop_from < 0) return; // bad path
 
-	int stop_at = abs(stop_from - stop_dist);
-
 	// @TODO: this should be a function of average error in position. something like nudge_dt * v / 2
 
-	if (stop_at > 15) return; // wait
+	if (abs(stop_from - stop_dist) > 5) return; // wait
 
 	engineer_set_speed(eng, train_no, 0);
 	dumbbus_unregister(((a0state*) s)->simbus, ontick);

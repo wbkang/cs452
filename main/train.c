@@ -8,55 +8,42 @@
 // @TODO: fill in all velocities for at least two trains
 void train_init_static(train_descriptor *train) {
 	switch (train->no) {
-		case 37:
-			train->stopm = fixed_div(fixed_new(30838), fixed_new(10));
-			train->stopb = fixed_div(fixed_new(-70501), fixed_new(100));
+		case 37: {
+			train->stopm = fixed_div(fixed_new(27477), fixed_new(10));
+			train->stopb = fixed_div(fixed_new(-55248), fixed_new(100));
 			train->len_pickup = fixed_new(50);
 			train->dist2nose = fixed_new(22);
 			train->dist2tail = fixed_new(120);
-			TRAIN_FOREACH_SPEEDIDX(i) {
-				train->v_avg[i] = fixed_new(0);
-			}
-			train->ai_avg10000 = fixed_new(0);
-			train->ad_avg10000 = fixed_new(0);
-			train->calibrated = FALSE;
-			break;
-		case 38:
-			train->stopm = fixed_div(fixed_new(110993), fixed_new(100));
-			train->stopb = fixed_div(fixed_new(-60299), fixed_new(1000));
-			train->len_pickup = fixed_new(50);
-			train->dist2nose = fixed_new(25);
-			train->dist2tail = fixed_new(80);
 
 			int data[] = {
-					0, 1,
-					0, 1,
-					0, 1,
-					0, 1,
-					0, 1,
-					0, 1,
-					0, 1,
-					0, 1,
-					18520, 49713,
-					21698, 50722,
-					23865, 50783,
-					25991, 50414,
-					27665, 50045,
-					30188, 51152,
-					30690, 50476,
-					0, 1,
-					0, 1,
-					0, 1,
-					0, 1,
-					0, 1,
-					0, 1,
-					0, 1,
-					18311, 50783,
-					20510, 50599,
-					22569, 50047,
-					24923, 50416,
-					27130, 50477,
-					29246, 50722
+				0, 1,
+				375, 24412,
+				1099, 24828,
+				4354, 45681,
+				5016, 32530,
+				5909, 28733,
+				10040, 38175,
+				10080, 32287,
+				10401, 29063,
+				12011, 29060,
+				10401, 23254,
+				10080, 20093,
+				15769, 28908,
+				18145, 30863,
+				22764, 36842,
+				599, 42800,
+				1099, 51365,
+				2185, 31977,
+				5016, 40147,
+				10040, 56597,
+				10080, 44062,
+				10426, 36965,
+				10426, 31529,
+				10263, 27023,
+				10263, 23853,
+				12846, 26978,
+				11845, 22568,
+				16089, 28535
 			};
 
 			TRAIN_FOREACH_SPEEDIDX(i) {
@@ -66,11 +53,61 @@ void train_init_static(train_descriptor *train) {
 				train->v_avg[i] = fixed_div(fixed_new(v10000), fixed_new(10000));
 			}
 
-			// train->ai_avg10000 = fixed_div(fixed_new(49669), fixed_new(10000));
-			train->ai_avg10000 = fixed_div(fixed_new(20101), fixed_new(10000));
-			train->ad_avg10000 = fixed_div(fixed_new(-20101), fixed_new(10000));
+			train->ai_avg10000 = fixed_div(fixed_new(16363), fixed_new(10000));
+			train->ad_avg10000 = fixed_div(fixed_new(-16363), fixed_new(10000));
 			train->calibrated = TRUE;
 			break;
+		}
+		case 38: {
+			train->stopm = fixed_div(fixed_new(118403), fixed_new(100));
+			train->stopb = fixed_div(fixed_new(-93842), fixed_new(1000));
+			train->len_pickup = fixed_new(50);
+			train->dist2nose = fixed_new(25);
+			train->dist2tail = fixed_new(80);
+
+			int data[] = {
+				0, 1,
+				445, 103217,
+				3213, 38768,
+				4630, 32945,
+				7050, 36503,
+				8661, 35831,
+				11691, 40407,
+				10639, 31140,
+				12611, 32524,
+				14656, 33872,
+				12611, 26533,
+				21271, 40711,
+				18230, 32337,
+				19619, 32578,
+				36037, 58152,
+				445, 103217,
+				1410, 25227,
+				3850, 35460,
+				10539, 64302,
+				7091, 32959,
+				11412, 42560,
+				12028, 38705,
+				19340, 52800,
+				19661, 47915,
+				14166, 31185,
+				23150, 46491,
+				21564, 39870,
+				25735, 44219
+			};
+
+			TRAIN_FOREACH_SPEEDIDX(i) {
+				int dx = data[i * 2];
+				int dt = data[i * 2 + 1];
+				int v10000 = (10000 * dx) / dt;
+				train->v_avg[i] = fixed_div(fixed_new(v10000), fixed_new(10000));
+			}
+
+			train->ai_avg10000 = fixed_div(fixed_new(30577), fixed_new(10000));
+			train->ad_avg10000 = fixed_div(fixed_new(-30577), fixed_new(10000));
+			train->calibrated = TRUE;
+			break;
+		}
 		default:
 			train->stopm = fixed_new(0);
 			train->stopb = fixed_new(0);
@@ -229,6 +266,28 @@ void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc) {
 #define TRAIN_SIM_DT (1 << TRAIN_SIM_DT_EXP)
 
 // @TODO: add jerk
+// static void train_step_sim(train_descriptor *this, int dt) {
+// 	const fixed margin = fixed_new(1);
+// 	fixed diff = fixed_sub(this->v10000, this->v_f10000);
+// 	fixed fdt = fixed_new(dt);
+// 	if (fixed_cmp(fixed_abs(diff), margin) > 0) {
+// 		fixed dv10000 = fixed_abs(fixed_sub(this->v_f10000, this->v_i10000));
+// 		fixed a10000 = fixed_div(dv10000, this->stopm);
+// 		if (fixed_sgn(diff) < 0) {
+// 			this->v10000 = fixed_add(this->v10000, fixed_mul(a10000, fdt));
+// 		} else {
+// 			this->v10000 = fixed_sub(this->v10000, fixed_mul(a10000, fdt));
+// 		}
+// 	}
+// 	if (!location_isundef(&this->loc) && fixed_cmp(fixed_abs(this->v10000), margin) > 0) {
+// 		fixed dx10000 = fixed_mul(this->v10000, fdt);
+// 		fixed dx = fixed_div(dx10000, fixed_new(10000));
+// 		location_add(&this->loc, dx);
+// 	}
+// 	this->t_sim += dt;
+// }
+
+// // @TODO: add jerk
 static void train_step_sim(train_descriptor *this, int dt) {
 	const fixed margin = fixed_new(1);
 	fixed diff = fixed_sub(this->v10000, this->v_f10000);
