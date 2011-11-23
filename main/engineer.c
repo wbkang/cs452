@@ -103,8 +103,14 @@ void engineer_reverse(engineer *this, int train_no) {
 	fixed v = train_get_velocity(train);
 	engineer_set_speed(this, train_no, 0);
 	if (fixed_sgn(v) > 0) {
-		fixed stoptime = fixed_div(fixed_mul(fixed_new(2), dstop), v);
-		stoptime = fixed_add(stoptime, fixed_new(MS2TICK(500)));
+		fixed stoptime;
+		if (fixed_sgn(dstop) > 0) {
+			stoptime = fixed_div(fixed_mul(fixed_new(2), dstop), v);
+			stoptime = fixed_add(stoptime, fixed_new(MS2TICK(500)));
+		} else {
+			stoptime = fixed_new(0);
+		}
+
 		traincmdbuffer_put(this->tid_traincmdbuf, PAUSE, fixed_int(stoptime), NULL);
 		traincmdbuffer_put(this->tid_traincmdbuf, REVERSE, train_no, NULL);
 		traincmdbuffer_put(this->tid_traincmdbuf, PAUSE, TRAIN_PAUSE_AFTER_REVERSE, NULL);
@@ -293,7 +299,7 @@ void engineer_ontick(engineer *this) {
 		train_descriptor *train = &this->train[train_no];
 		if (train->calibrated) {
 			train_update_simulation(train, t);
-			train_run_vcmd(train, this->tid_traincmdbuf, this->track_nodes, this->triplog);
+			train_run_vcmd(train, this->tid_traincmdbuf, this->track_nodes, this->triplog, t);
 		}
 	}
 }

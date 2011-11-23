@@ -82,7 +82,7 @@ int location_add(location *this, fixed dx) {
 				this->edge = next_edge;
 				this->offset = fixed_sub(this->offset, len_edge);
 			} else if (n_next->type == NODE_EXIT) {
-				this->offset = fixed_sub(len_edge, fixed_eps());
+				this->offset = fixed_sub(len_edge, fixed_new(1));
 				return -2; // dead end
 			} else {
 				ASSERT(0, "ran into a non-exit node with no edge %s, dir %d", n_next->name, n_next->switch_dir);
@@ -116,7 +116,7 @@ int location_add(location *this, fixed dx) {
 int location_tostring(location *this, char *buf) {
 	char * const origbuf = buf;
 	if (location_isundef(this)) {
-		buf += sprintf(buf, "UNDEF. LOC.");
+		buf += sprintf(buf, "(undefined)");
 	} else if (fixed_sgn(this->offset) == 0) {
 		buf += sprintf(buf, "%s", this->edge->src->name);
 	} else {
