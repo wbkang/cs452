@@ -39,6 +39,7 @@ typedef enum {
 
 typedef struct {
 	msgtype type;
+	// int timestamp; // @TODO: temp
 	traincmdname name;
 	int arg1;
 	int arg2;

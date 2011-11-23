@@ -88,8 +88,8 @@ static void ui_reverse(a0state *state, int train, int t) {
 }
 
 static void ui_switch(a0state *state, char no, char pos, int t) {
-	logdisplay_printf(state->log, "[%7d] switched switch %d to %c", t, no, pos);
-	logdisplay_flushline(state->log);
+	// logdisplay_printf(state->log, "[%7d] switched switch %d to %c", t, no, pos);
+	// logdisplay_flushline(state->log);
 	track_template_updateswitch(state->template, no, pos);
 	console_flush(state->con);
 }
@@ -132,7 +132,7 @@ static track ask_track(a0state *state) {
 #define STOP_UP2SPEED2 2
 #define STOP_STOPPING 3
 #define STOP_REVERSING 4
-#define STOP_PAUSE MS2TICK(20000)
+#define STOP_PAUSE MS2TICK(5000)
 
 struct {
 	int state;
@@ -141,7 +141,7 @@ struct {
 
 static void init_csdstate() {
 	csdstate.state = STOP_INIT;
-	csdstate.speed = 8;
+	csdstate.speed = 6;
 }
 
 static void calib_stopdist(void* s) {
@@ -159,7 +159,7 @@ static void calib_stopdist(void* s) {
 			break;
 		case STOP_UP2SPEED1:
 			if (cur_sensor == e8) {
-				csdstate.state = STOP_STOPPING;
+				csdstate.state = STOP_UP2SPEED2;
 			}
 			break;
 		case STOP_UP2SPEED2:
@@ -179,7 +179,7 @@ static void calib_stopdist(void* s) {
 				engineer_set_switch(eng, 11, 's');
 				Delay(STOP_PAUSE, eng->tid_time);
 				if (csdstate.speed == 14) {
-					csdstate.speed = 8;
+					csdstate.speed = 6;
 				} else {
 					csdstate.speed += 1;
 				}
@@ -614,6 +614,8 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 				int train_no = cmd->arg1;
 				int speed = cmd->arg2;
 				ui_speed(state, train_no, speed, t);
+				// logdisplay_printf(state->log, "[%7d] set speed of train %d to %d, lag %dms", t, train_no, speed, t - cmd->timestamp);
+				// logdisplay_flushline(state->log);
 				engineer_on_set_speed(eng, train_no, speed, t);
 				break;
 			}
@@ -628,6 +630,8 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 				char pos = cmd->arg2;
 				engineer_on_set_switch(eng, no, pos, t);
 				ui_switch(state, no, pos, t);
+				// logdisplay_printf(state->log, "[%7d] switched switch %d to %c, lag %dms", t, no, pos, t - cmd->timestamp);
+				// logdisplay_flushline(state->log);
 				break;
 			}
 			case SOLENOID: {
@@ -678,8 +682,8 @@ void a0() {
 	// dumbbus_register(state.sensor_bus, &jerk);
 	// init_csdstate();
 	// dumbbus_register(state.sensor_bus, &calib_stopdist);
-	init_v_avg();
-	dumbbus_register(state.sensor_bus, &get_v_avg);
+	// init_v_avg();
+	// dumbbus_register(state.sensor_bus, &get_v_avg);
 
 	// time bus
 	state.bus10hz = dumbbus_new();

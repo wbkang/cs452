@@ -28,11 +28,11 @@ void traincmdrunner() {
 				break;
 			}
 			case REVERSE: {
-				// Delay(TRAIN_PAUSE_REVERSE, tid_time);
+				Delay(TRAIN_PAUSE_REVERSE, tid_time);
 				char train = cmd->arg1;
 				Putc(COM1, TRAIN_REVERSE, tid_com1);
 				Putc(COM1, train, tid_com1);
-				// Delay(TRAIN_PAUSE_AFTER_REVERSE, tid_time); // @TODO: why?
+				Delay(TRAIN_PAUSE_AFTER_REVERSE, tid_time); // @TODO: why?
 				break;
 			}
 			case SWITCH: {
