@@ -10,6 +10,7 @@
 #include <funcmap.h>
 
 void task1() {
+	VMEM(0x60000000)  = 0;
 	timeserver_create();
 	ioserver_create(COM1, OFF, 2400, 2, 8, OFF);
 	ioserver_create(COM2, OFF, 115200, 1, 8, OFF);

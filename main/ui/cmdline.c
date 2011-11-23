@@ -8,6 +8,7 @@
 }
 
 static void cmdline_movecursor(cmdline *this) {
+	console_flush(this->con);
 	console_cursor_unsave(this->con);
 	console_move(this->con, this->line, this->col + this->cmdidx + 1);
 	console_cursor_save(this->con);
