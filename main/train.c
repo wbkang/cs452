@@ -124,7 +124,7 @@ void train_init_static(train_descriptor *train) {
 	}
 }
 
-void train_init(train_descriptor *this, int no, gps *gps) {
+void train_init(train_descriptor *this, int no, struct gps *gps) {
 	this->no = no;
 	this->dir = TRAIN_UNKNOWN;
 	this->v10000 = fixed_new(0);
