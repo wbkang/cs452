@@ -1,7 +1,7 @@
+#include <server/traincmdrunner.h>
 #include <syscall.h>
 #include <train.h>
 #include <uconst.h>
-#include <server/traincmdrunner.h>
 #include <server/traincmdbuffer.h>
 #include <server/publisher.h>
 #include <server/switchcmdrunner.h>
@@ -66,6 +66,6 @@ void traincmdrunner() {
 	}
 }
 
-int traincmdrunner_new(int tid_buffer) {
+int traincmdrunner_new() {
 	return Create(PRIORITY_TRAINCMDRUNNER, traincmdrunner);
 }

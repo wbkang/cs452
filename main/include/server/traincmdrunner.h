@@ -1,3 +1,5 @@
 #pragma once
-int traincmdrunner_new();
+
 void traincmdrunner();
+
+int traincmdrunner_new();

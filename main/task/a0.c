@@ -733,8 +733,8 @@ void a0() {
 	for (;;) {
 		int tid;
 		int rcvlen = Receive(&tid, msg, LEN_MSG);
-		ASSERT(rcvlen >= sizeof(msg_header), "bad data");
 		Reply(tid, NULL, 0);
+		ASSERT(rcvlen >= sizeof(msg_header), "bad data");
 		msg_header *header = (msg_header*) msg;
 		switch (header->type) {
 			case SENSOR:

@@ -17,7 +17,7 @@ void courier() {
 	msg_header *req = malloc(size_req);
 	req->type = REQ;
 
-	const int size_packet = min(STACK_SIZE - 1000, MAX_MSG_SIZE);
+	const int size_packet = min(STACK_SIZE - 10000, MAX_MSG_SIZE);
 	void *packet = malloc(size_packet);
 
 	for (;;) {

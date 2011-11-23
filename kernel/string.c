@@ -185,12 +185,12 @@ void *memcpy(void *dst, void const *src, uint len) {
     return dst;
 }
 
-//// bulletproof memcpy
-//void *memcpy8(void *dst, void const *src, uint len) {
+// bulletproof memcpy
+// void *memcpy(void *dst, void const *src, uint len) {
 //    char *ldst = (char*) dst;
 //    char const *lsrc = (char const*) src;
 //    while (len--) {
 //        *ldst++ = *lsrc++;
 //    }
 //    return dst;
-//}
+// }
