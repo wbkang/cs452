@@ -102,6 +102,7 @@ void train_init(train_descriptor *this, int no, gps *gps) {
 	this->vcmds = NULL;
 	this->vcmdidx = 0;
 	this->vcmdslen = 0;
+	this->vcmdwait = 0;
 	this->destination = location_undef();
 	train_init_static(this);
 }
@@ -110,9 +111,10 @@ fixed train_get_velocity(train_descriptor *this) {
 	return fixed_div(this->v10000, fixed_new(10000));
 }
 
-fixed train_get_stopdist4speedidx(train_descriptor *this, int speed_idx) {
-	fixed v = this->v_avg[speed_idx];
-	ASSERT(fixed_sgn(v) >= 0, "bad velocity for train %d", this->no);
+
+fixed train_get_stopdist(train_descriptor *this) {
+	fixed v = train_get_velocity(this);
+//	ASSERT(fixed_sgn(v) >= 0, "bad velocity for train %d:%F", this->no, v);
 	if (fixed_sgn(v) <= 0) return fixed_new(0);
 	fixed dist = fixed_add(fixed_mul(this->stopm, v), this->stopb);
 	switch (this->dir) {
@@ -123,10 +125,6 @@ fixed train_get_stopdist4speedidx(train_descriptor *this, int speed_idx) {
 		default:
 			return dist; // @TODO: put an assert(0) here, dont run uninitialized trains
 	}
-}
-
-fixed train_get_stopdist(train_descriptor *this) {
-	return train_get_stopdist4speedidx(this, train_get_speedidx(this));
 }
 
 int train_get_speed(train_descriptor *this) {
@@ -267,16 +265,22 @@ void train_set_dest(train_descriptor *this, location *dest) {
 
 static trainvcmd *lastvcmd;
 
-void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log) {
+void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick) {
 	// TODO this is a weird criteria. fix this
+	// TODO add unknown location handling
 	if (!location_isundef(&this->destination) && this->vcmdslen == 0) {
 		char buf[100];location_tostring(&this->destination, buf);
 //		ASSERT(0, "location %s", buf);
 		if (this->vcmds == NULL) {
 			this->vcmds = malloc(sizeof(trainvcmd) * TRAIN_MAX_VCMD);
 		}
-		gps_findpath(this->gps, this, &this->destination, TRAIN_MAX_VCMD, this->vcmds, &this->vcmdslen);
+		gps_findpath(this->gps, this, &this->destination, TRAIN_MAX_VCMD, this->vcmds, &this->vcmdslen, log);
 		lastvcmd = NULL;
+
+		if (this->vcmdslen == 0) {
+			logdisplay_printf(log, "no trip plan.");
+			logdisplay_flushline(log);
+		}
 
 		for (int i = 0; i < this->vcmdslen; i++) {
 			char vcmdname[100];
@@ -294,10 +298,11 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 		char vcmdname[100];
 		vcmd2str(vcmdname, curvcmd);
 
-//		if (curvcmd != lastvcmd) {
-//			logdisplay_printf(log, "examining %s", vcmdname);
-//			logdisplay_flushline(log);
-//		}
+		if (curvcmd != lastvcmd) {
+			logdisplay_printf(log, "[%2d]examining %s", this->vcmdidx, vcmdname);
+			logdisplay_flushline(log);
+		}
+		lastvcmd = curvcmd;
 
 		location waitloc = curvcmd->location;
 		location curloc;
@@ -306,45 +311,28 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 		vcmd2str(buf, curvcmd);
 		ASSERT(!location_isundef(&curloc), "train %d location undef while running %s", this->no, buf);
 
-		int dist = location_dist_dir(&curloc, &waitloc);
-		if (dist < 0) break;
-
 		switch (curvcmd->name) {
-	//		case VCMD_SETREVERSE:
-	//			traincmdbuffer_put(tid_traincmdbuf, REVERSE, this->no, NULL);
-	//			break;
-			case VCMD_SETSPEED:
+			case VCMD_SETREVERSE:
+//				if (fixed_sgn(train_get_velocity(this)) == 0) {
+					traincmdbuffer_put(tid_traincmdbuf, REVERSE, this->no, NULL);
+					this->vcmdidx++;
+					continue;
+//				}
+//				break;
+			case VCMD_SETSPEED: {
+				int dist = location_isundef(&waitloc) ? 0 : location_dist_dir(&curloc, &waitloc);
+				if (dist < 0) break;
 				if (dist <= 40) {
 					int speed = curvcmd->data.speed;
 					train_speed(this->no, speed, tid_traincmdbuf);
 					this->vcmdidx++;
-					lastvcmd = curvcmd;
 					continue;
 				}
 				break;
-//			case VCMD_WAITFORLOC: {
-//				location waitloc = curvcmd->location;
-//				location curloc;
-//				train_get_loc(this, &curloc);
-//				char buf[100];
-//				vcmd2str(buf, curvcmd);
-//				ASSERT(location_isvalid(&curloc), "train %d location invalid while running %s", this->no, buf);
-//
-//				int dist = location_dist_min(&curloc, &waitloc);
-//
-//				if (dist >= 0 && dist <= 40) {
-//					this->vcmdidx++;
-//					char buf[100];
-//					location_tostring(&curloc, buf);
-//					logdisplay_printf(log, "finished waiting .. curloc: %s, dist: %dmm", buf, dist);
-//					logdisplay_flushline(log);
-//					// this is a terrible way to do it. run it once more.
-//					train_run_vcmd(this, tid_traincmdbuf, nodemap, log);
-//				}
-//				break;
-//			}
+			}
 			case VCMD_SETSWITCH: {
-//				fixed switch_dist = fixed_div(train_get_stopdist(this), fixed_new(2));
+				int dist = location_isundef(&waitloc) ? 0 : location_dist_dir(&curloc, &waitloc);
+				if (dist < 0) break;
 				int switch_dist = fixed_int(train_get_stopdist(this));
 				if (dist <= switch_dist) {
 					char *branchname = curvcmd->data.switchinfo.nodename;
@@ -357,12 +345,13 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 					ASSERT(branchno > 0, "wrong branch no %d", branchno);
 					this->vcmdidx++;
 					train_switch(branchno, pos, tid_traincmdbuf);
-					lastvcmd = curvcmd;
 					continue;
 				}
 				break;
 			}
 			case VCMD_STOP: {
+				int dist = location_isundef(&waitloc) ? 0 : location_dist_dir(&curloc, &waitloc);
+				if (dist < 0) break;
 				int stopdist = fixed_int(train_get_stopdist(this));
 				if (dist <= stopdist) {
 					char buf[100], buf2[100];
@@ -376,7 +365,20 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 					logdisplay_flushline(log);
 					train_speed(this->no, 0, tid_traincmdbuf);
 					this->vcmdidx++;
-					lastvcmd = curvcmd;
+					continue;
+				}
+				break;
+			}
+			case VCMD_WAITFORMS: {
+				if (this->vcmdwait == 0) {
+					this->vcmdwait = tick;
+				}
+
+				if (this->vcmdwait + MS2TICK(curvcmd->data.timeout) <= tick) {
+					logdisplay_printf(log, "done waiting:vcmdwait:%d,t/o:%d,tick:%d", this->vcmdwait,  MS2TICK(curvcmd->data.timeout), tick);
+					logdisplay_flushline(log);
+					this->vcmdwait = 0;
+					this->vcmdidx++;
 					continue;
 				}
 				break;
