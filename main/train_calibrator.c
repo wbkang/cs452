@@ -5,7 +5,7 @@
 #include <gps.h>
 #include <util.h>
 
-#define CALIB_SWITCHDELAY MS2TICK(1000)
+#define CALIB_SWITCHDELAY MS2TICK(3000)
 #define CALIB_SENSOR_START "E8"
 #define CALIB_SENSOR_END "C14"
 #define CALIB_SENSOR_WRONG_DIR "E7"

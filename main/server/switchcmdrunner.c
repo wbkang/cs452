@@ -29,7 +29,7 @@ void switchcmdrunner() {
 		int tid;
 		// logstrip_printf(log, "receiving");
 		int len = Receive(&tid, cmd, sizeof(traincmd));
-		logstrip_printf(log, "received from %d", tid);
+		// logstrip_printf(log, "received from %d", tid);
 		Reply(tid, NULL, 0);
 		ASSERT(len == sizeof(traincmd), "bad data");
 		switch (cmd->name) {

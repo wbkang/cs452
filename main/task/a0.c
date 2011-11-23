@@ -280,6 +280,9 @@ struct {
 } app_v_avg_state;
 
 static void init_v_avg() {
+	app_v_avg_state.last_sensor = NULL;
+	app_v_avg_state.dx = 0;
+	app_v_avg_state.dt = 0;
 }
 
 static void get_v_avg(void* s) {
@@ -288,15 +291,6 @@ static void get_v_avg(void* s) {
 	int train_no = state->cur_train;
 	if (train_no < 0) return;
 
-	location loc;
-	engineer_get_loc(eng, train_no, &loc);
-	if (location_isundef(&loc)) {
-		app_v_avg_state.last_sensor = NULL;
-		app_v_avg_state.dx = 0;
-		app_v_avg_state.dt = 0;
-		return;
-	}
-
 	track_node *last_sensor = app_v_avg_state.last_sensor;
 	app_v_avg_state.last_sensor = state->cur_sensor;
 	int t_last_sensor = app_v_avg_state.t_last_sensor;
@@ -304,7 +298,7 @@ static void get_v_avg(void* s) {
 	int t_sensor = Time(state->tid_time);
 	app_v_avg_state.t_last_sensor = t_sensor;
 
-	if (last_sensor == NULL) return;
+	if (!last_sensor) return;
 
 	int dt = t_sensor - t_last_sensor;
 	if (dt <= 0) return;
@@ -317,9 +311,10 @@ static void get_v_avg(void* s) {
 
 	logdisplay_printf(
 		state->log,
-		"[%=7d] %s to %s is %d / %d (%F) [%d / %d (%F)]",
+		"[%7d] %s to %s is {%d} %d / %d (%F) [%d / %d (%F)]",
 		t_sensor,
 		last_sensor->name, sensor->name,
+		engineer_get_speedidx(eng, train_no),
 		app_v_avg_state.dx, app_v_avg_state.dt,
 		fixed_div(fixed_new(10000 * app_v_avg_state.dx / app_v_avg_state.dt), fixed_new(10000)),
 		dx, dt,
@@ -335,27 +330,15 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 	engineer_onsensor(eng, rawmsg);
 	ui_sensor(state, m->module[0], m->id, m->state);
 
-	logdisplay_printf(
-		state->log,
-		"[%7d] %s%d %s",
-		m->timestamp, m->module, m->id, m->state == ON ? "on" : "off"
-	);
-	logdisplay_flushline(state->log);
+	// logdisplay_printf(
+	// 	state->log,
+	// 	"[%7d] %s%d %s",
+	// 	m->timestamp, m->module, m->id, m->state == ON ? "on" : "off"
+	// );
+	// logdisplay_flushline(state->log);
 
 	if (m->state == OFF) return;
 	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
-
-	/*if (strcmp(sensor->name, "D5") == 0) {
-		engineer_set_switch(eng, 153, 'C', FALSE);
-		engineer_set_switch(eng, 154, 'S', FALSE);
-		engineer_set_switch(eng, 155, 'C', FALSE);
-		engineer_set_switch(eng, 156, 'S', TRUE);
-	} else if (strcmp(sensor->name, "C11") == 0) {
-		engineer_set_switch(eng, 153, 'S', FALSE);
-		engineer_set_switch(eng, 154, 'C', FALSE);
-		engineer_set_switch(eng, 155, 'S', FALSE);
-		engineer_set_switch(eng, 156, 'C', TRUE);
-	}*/
 
 	state->last_sensor = state->cur_sensor;
 	state->cur_sensor = sensor;
@@ -459,6 +442,9 @@ static void handle_command(void* s, char *cmd, int size) {
 	if (!size) goto badcmd;
 
 	switch (*c++) {
+		case 'v':
+			init_v_avg();
+			break;
 		case 'c': {
 			ACCEPT('a');
 			ACCEPT('l');
@@ -692,8 +678,8 @@ void a0() {
 	// dumbbus_register(state.sensor_bus, &jerk);
 	// init_csdstate();
 	// dumbbus_register(state.sensor_bus, &calib_stopdist);
-	// init_v_avg();
-	// dumbbus_register(state.sensor_bus, &get_v_avg);
+	init_v_avg();
+	dumbbus_register(state.sensor_bus, &get_v_avg);
 
 	// time bus
 	state.bus10hz = dumbbus_new();
