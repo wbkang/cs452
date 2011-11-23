@@ -133,7 +133,7 @@ track_node *engineer_get_tracknode(engineer *this, char *type, int id) {
 	return rv;
 }
 
-track_node *engineer_get_tracknodearr(engineer *this) {
+track_node *engineer_get_track(engineer *this) {
 	return this->track_nodes_arr;
 }
 

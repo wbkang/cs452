@@ -199,78 +199,78 @@ static void calib_stopdist(void* s) {
 	}
 }
 
-// struct {
-// 	int state;
-// 	int count;
-// 	int dx;
-// 	int dt;
-// 	track_node *start;
-// 	track_node *last_sensor;
-// 	int last_timestamp;
-// 	int v_i_x;
-// 	int v_i_t;
-// } j;
+struct {
+	int state;
+	int count;
+	int dx;
+	int dt;
+	track_node *start;
+	track_node *last_sensor;
+	int last_timestamp;
+	int v_i_x;
+	int v_i_t;
+} j;
 
-// #define JERK_STABILIZE_NUM_SENSORS 10
+#define JERK_STABILIZE_NUM_SENSORS 10
 
-// static void init_jerk() {
-// 	j.state = 0;
-// }
+static void init_jerk() {
+	j.state = 0;
+}
 
-// static void jerk(a0state *state, track_node *sensor, int timestamp) {
-// 	engineer *eng = state->eng;
-// 	track_node *last_sensor = j.last_sensor;
-// 	int dx = track_distance(last_sensor, sensor);
-// 	int dt = TICK2MS(timestamp - j.last_timestamp);
-// 	j.last_sensor = sensor;
-// 	j.last_timestamp = timestamp;
+static void jerk(a0state *state, track_node *sensor, int timestamp) {
+	engineer *eng = state->eng;
+	track_node *last_sensor = j.last_sensor;
+	int dx = track_distance(last_sensor, sensor);
+	int dt = TICK2MS(timestamp - j.last_timestamp);
+	j.last_sensor = sensor;
+	j.last_timestamp = timestamp;
 
-// 	switch (j.state) {
-// 		case 0: // get to v_i
-// 			logstrip_printf(state->cmdlog, "getting to v_i");
-// 			engineer_set_speed(eng, 38, 8);
-// 			j.state = 1;
-// 			j.count = 0;
-// 			break;
-// 		case 1: // stabilize v_i
-// 			logstrip_printf(state->cmdlog, "stabilizing v_i");
-// 			j.count++;
-// 			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
-// 				j.state = 2;
-// 			}
-// 			break;
-// 		case 2: // get to v_f
-// 			logstrip_printf(state->cmdlog, "getting to v_f");
-// 			engineer_set_speed(eng, 38, 14);
-// 			j.state = 3;
-// 			j.count = 0;
-// 			j.dx = 0;
-// 			j.dt = 0;
-// 			j.v_i_x = dx;
-// 			j.v_i_t = dt;
-// 			j.start = sensor;
-// 			break;
-// 		case 3: // stabilize v_f
-// 			logstrip_printf(state->cmdlog, "stabilizing v_f");
-// 			j.dx += dx;
-// 			j.dt += dt;
-// 			j.count++;
-// 			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
-// 				// "dx/dt = %d/%d from %s to %s, v_i = %d/%d, v_f = %d/%d"
-// 				logdisplay_printf(
-// 					state->log,
-// 					"%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d",
-// 					j.start->name, sensor->name,
-// 					j.dx, j.dt,
-// 					j.v_i_x, j.v_i_t,
-// 					dx, dt
-// 				);
-// 				logdisplay_flushline(state->log);
-// 				j.state = 0;
-// 			}
-// 			break;
-// 	}
-// }
+	switch (j.state) {
+		case 0: // get to v_i
+			logstrip_printf(state->cmdlog, "getting to v_i");
+			engineer_set_speed(eng, 38, 8);
+			j.state = 1;
+			j.count = 0;
+			break;
+		case 1: // stabilize v_i
+			logstrip_printf(state->cmdlog, "stabilizing v_i");
+			j.count++;
+			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
+				j.state = 2;
+			}
+			break;
+		case 2: // get to v_f
+			logstrip_printf(state->cmdlog, "getting to v_f");
+			engineer_set_speed(eng, 38, 12);
+			j.state = 3;
+			j.count = 0;
+			j.dx = 0;
+			j.dt = 0;
+			j.v_i_x = dx;
+			j.v_i_t = dt;
+			j.start = sensor;
+			break;
+		case 3: // stabilize v_f
+			logstrip_printf(state->cmdlog, "stabilizing v_f");
+			j.dx += dx;
+			j.dt += dt;
+			j.count++;
+			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
+				// "dx/dt = %d/%d from %s to %s, v_i = %d/%d, v_f = %d/%d"
+				logdisplay_printf(
+					state->log,
+					"%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d",
+					j.start->name, sensor->name,
+					j.dx, j.dt,
+					j.v_i_x, j.v_i_t,
+					dx, dt
+				);
+				logdisplay_flushline(state->log);
+				j.state = 0;
+			}
+			break;
+	}
+}
 
 struct {
 	track_node *last_sensor;
@@ -432,10 +432,18 @@ static void tick_engineer(void* s) {
 	} \
 }
 
+#define ENFORCE(test, msg) { \
+	if (!(test)) { \
+		errmsg = msg; \
+		goto badcmd; \
+	} \
+}
+
 static void handle_command(void* s, char *cmd, int size) {
 	a0state *state = s;
 	engineer *eng = state->eng;
 	int quit = FALSE;
+	char *errmsg = NULL;
 	char *c = cmd;
 	cmdline_clear(state->cmdline);
 
@@ -445,21 +453,24 @@ static void handle_command(void* s, char *cmd, int size) {
 		case 'v':
 			init_v_avg();
 			break;
-		case 'c': {
-			ACCEPT('a');
-			ACCEPT('l');
+		case 'a': {
+			ACCEPT('d');
+			ACCEPT('d');
 			ACCEPT(' ');
 			int train = strgetui(&c);
-			if (!train_goodtrain(train)) goto badcmd;
-			// ACCEPT(' ');
-			// int min = strgetui(&c);
-			// if (!calib_goodmin(min)) goto badcmd;
-			// ACCEPT(' ');
-			// int max = strgetui(&c);
-			// if (!calib_goodmax(max)) goto badcmd;
-			// if (min > max) goto badcmd;
+			ENFORCE(train_goodtrain(train), "bad train");
+			ACCEPT(' ');
+			char sig1mod = *c++;
+			ENFORCE(sig1mod >= 'A' && sig1mod <= 'E', "bad start sensor mod");
+			int sig1id = strgetui(&c);
+			ENFORCE(sig1id >= 1 && sig1id <= 16, "bad start sensor id");
+			ACCEPT(' ');
+			char sig2mod = *c++;
+			ENFORCE(sig1mod >= 'A' && sig1mod <= 'E', "bad finish sensor mod");
+			int sig2id = strgetui(&c);
+			ENFORCE(sig2id >= 1 && sig2id <= 16, "bad start sensor id");
 			ACCEPT('\0');
-			calibrate_train(state, train, 8, 12);
+			calibrate_train(state, train, sig1mod, sig1id, sig2mod, sig2id);
 			break;
 		}
 		case 'd': {
@@ -578,7 +589,12 @@ static void handle_command(void* s, char *cmd, int size) {
 
 	return;
 	badcmd:
-	logstrip_printf(state->cmdlog, "bad command: \"%s\"", cmd);
+	if (errmsg) {
+		logstrip_printf(state->cmdlog, "bad command: \"%s\", %s", cmd, errmsg);
+	} else {
+		logstrip_printf(state->cmdlog, "bad command: \"%s\"", cmd);
+	}
+
 }
 
 static void handle_comin(a0state *state, char msg[]) {
