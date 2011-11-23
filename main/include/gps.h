@@ -14,7 +14,7 @@ struct gps {
 };
 
 gps *gps_new(track_node *nodes);
-void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_node *tgt, track_node **rv_nodes, int *rv_nodecnt, int stopdist);
+void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_node *tgt, track_node **rv_nodes, int *rv_nodecnt, struct train_descriptor *train);
 void gps_findpath(gps *this,
 		struct train_descriptor *train,
 		location *dest,
