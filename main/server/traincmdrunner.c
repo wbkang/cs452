@@ -20,7 +20,7 @@ void traincmdrunner() {
 		switch (cmd->name) {
 			case SPEED: {
 				char train = cmd->arg1;
-				char speed = cmd->arg2;
+				char speed = cmd->arg2 + 16;
 				Putc(COM1, speed, tid_com1);
 				Putc(COM1, train, tid_com1);
 				break;
