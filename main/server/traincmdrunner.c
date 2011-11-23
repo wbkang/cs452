@@ -28,6 +28,12 @@ void traincmdrunner() {
 				break;
 			}
 			case REVERSE: {
+				char train = cmd->arg1;
+				Putc(COM1, TRAIN_REVERSE, tid_com1);
+				Putc(COM1, train, tid_com1);
+				break;
+			}
+			case REVERSE_UI: {
 				Delay(TRAIN_PAUSE_REVERSE, tid_time);
 				char train = cmd->arg1;
 				Putc(COM1, TRAIN_REVERSE, tid_com1);
