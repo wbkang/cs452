@@ -12,11 +12,14 @@
 
 static struct {
 	enum { IDLE, ORIENTING, GO2END, SKIPPING, CALIBRATING } state;
+	int train_no;
+	track_node *front;
+	track_node *back;
+
 	int min_speed;
 	int max_speed;
 	int ascending;
 	int cur_speed;
-	int train_no;
 	int testrun;
 } calib_state;
 
@@ -74,13 +77,13 @@ static void handle_sensor_response(void* s) {
 			ASSERT(0, "shouldn't be idle");
 			break;
 		case ORIENTING:
-			if (strcmp(sensor->name, CALIB_SENSOR_END) == 0) { // correct
+			if (sensor == calib_state.front) { // correct
 				engineer_train_set_dir(eng, train_no, TRAIN_FORWARD);
 				engineer_set_speed(eng, train_no, 0);
 				calibrator_quit(state);
 				state->cur_train = train_no;
 				// calibrator_start(eng, train_no);
-			} else if (strcmp(sensor->name, CALIB_SENSOR_WRONG_DIR) == 0) {
+			} else if (sensor == calib_state.back) {
 				engineer_train_set_dir(eng, train_no, TRAIN_BACKWARD);
 				engineer_reverse(eng, train_no);
 				engineer_set_speed(eng, train_no, 0);
@@ -134,24 +137,36 @@ static void calibrator_setup_track(a0state *state) {
 	engineer_set_track(eng, s, ns, c, nc);
 }
 
-void calibrate_train(a0state *state, int train_no, int speed_min, int speed_max) {
+void calibrate_train(a0state *state, int train_no, char sig1mod, int sig1id, char sig2mod, int sig2id) {
 	engineer *eng = state->eng;
 
 	if (calib_state.state != IDLE) {
-		logstrip_printf(state->cmdlog, "train calibrator is busy, try later");
+		calibrator_quit(state);
+	}
+
+	char mod[2];
+	mod[1] = '\0';
+
+	mod[0] = sig1mod;
+	track_node *front = engineer_get_tracknode(eng, mod, sig1id);
+	if (!front) {
+		logstrip_printf(state->cmdlog, "bad front sensor %c%d", sig1mod, sig1id);
 		return;
 	}
 
-	// clamp range to allowed range
-	speed_min = max(speed_min, CALIB_MIN_SPEED);
-	speed_max = min(speed_max, CALIB_MAX_SPEED);
+	mod[0] = sig2mod;
+	track_node *back = engineer_get_tracknode(eng, mod, sig2id);
+	if (!back) {
+		logstrip_printf(state->cmdlog, "bad back sensor %c%d", sig2mod, sig2id);
+		return;
+	}
 
 	// stop the train
 	engineer_set_speed(eng, train_no, 0);
 
 	// set track to calibration mode
-	calibrator_setup_track(state);
-	Delay(CALIB_SWITCHDELAY, eng->tid_time);
+	// calibrator_setup_track(state);
+	// Delay(CALIB_SWITCHDELAY, eng->tid_time);
 
 	// set currently active train
 	calib_state.train_no = train_no;
@@ -159,13 +174,10 @@ void calibrate_train(a0state *state, int train_no, int speed_min, int speed_max)
 	// initialize
 	calib_state.state = ORIENTING;
 	engineer_set_speed(eng, train_no, CALIB_ORIENTING_SPEED);
-	calib_state.ascending = TRUE;
-	calib_state.cur_speed = speed_min - 1;
-	calib_state.min_speed = speed_min;
-	calib_state.max_speed = speed_max;
-	calib_state.testrun = TRUE;
+	calib_state.front = front;
+	calib_state.back = back;
 
-	logstrip_printf(state->cmdlog, "calibrating train %d", train_no);
+	logstrip_printf(state->cmdlog, "orienting train %d", train_no);
 
 	// register for sensor notifications
 	dumbbus_register(state->sensor_bus, &handle_sensor_response);
