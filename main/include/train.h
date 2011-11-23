@@ -75,6 +75,7 @@ struct train_descriptor {
 	struct gps *gps;
 	int vcmdidx;
 	trainvcmd *vcmds;
+	trainvcmd *last_run_vcmd;
 	int vcmdslen;
 	int vcmdwait;
 	location destination;

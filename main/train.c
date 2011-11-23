@@ -261,21 +261,20 @@ void train_update_simulation(train_descriptor *this, int t_f) {
 
 void train_set_dest(train_descriptor *this, location *dest) {
 	this->destination = *dest;
+	this->vcmdidx = 0;
+	this->vcmdslen = 0;
 }
-
-static trainvcmd *lastvcmd;
 
 void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick) {
 	// TODO this is a weird criteria. fix this
 	// TODO add unknown location handling
 	if (!location_isundef(&this->destination) && this->vcmdslen == 0) {
 		char buf[100];location_tostring(&this->destination, buf);
-//		ASSERT(0, "location %s", buf);
 		if (this->vcmds == NULL) {
 			this->vcmds = malloc(sizeof(trainvcmd) * TRAIN_MAX_VCMD);
 		}
 		gps_findpath(this->gps, this, &this->destination, TRAIN_MAX_VCMD, this->vcmds, &this->vcmdslen, log);
-		lastvcmd = NULL;
+		this->last_run_vcmd = NULL;
 
 		if (this->vcmdslen == 0) {
 			logdisplay_printf(log, "no trip plan.");
@@ -285,11 +284,9 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 		for (int i = 0; i < this->vcmdslen; i++) {
 			char vcmdname[100];
 			vcmd2str(vcmdname, &this->vcmds[i]);
-//			PRINT("trip plan %d: %s", i, vcmdname);
 			logdisplay_printf(log, "trip plan %d: %s", i, vcmdname);
 			logdisplay_flushline(log);
 		}
-//		ExitKernel(0);
 		this->vcmdidx = 0;
 	}
 
@@ -298,27 +295,29 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 		char vcmdname[100];
 		vcmd2str(vcmdname, curvcmd);
 
-		if (curvcmd != lastvcmd) {
+		if (curvcmd != this->last_run_vcmd) {
 			logdisplay_printf(log, "[%2d]examining %s", this->vcmdidx, vcmdname);
 			logdisplay_flushline(log);
 		}
-		lastvcmd = curvcmd;
+		this->last_run_vcmd = curvcmd;
 
 		location waitloc = curvcmd->location;
 		location curloc;
 		train_get_loc(this, &curloc);
 		char buf[100];
 		vcmd2str(buf, curvcmd);
-		ASSERT(!location_isundef(&curloc), "train %d location undef while running %s", this->no, buf);
+		if (location_isundef(&curloc)) {
+			logdisplay_printf(log, "[%2d]i lost the location of train %d. cancel the trip.");
+			logdisplay_flushline(log);
+			location nowhere = location_undef();
+			train_set_dest(this, &nowhere);
+		}
 
 		switch (curvcmd->name) {
 			case VCMD_SETREVERSE:
-//				if (fixed_sgn(train_get_velocity(this)) == 0) {
 					traincmdbuffer_put(tid_traincmdbuf, REVERSE, this->no, NULL);
 					this->vcmdidx++;
 					continue;
-//				}
-//				break;
 			case VCMD_SETSPEED: {
 				int dist = location_isundef(&waitloc) ? 0 : location_dist_dir(&curloc, &waitloc);
 				if (dist < 0) break;
@@ -392,9 +391,8 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 	}
 
 	if (this->vcmdslen > 0 && this->vcmdidx == this->vcmdslen) {
-		this->vcmdidx = 0;
-		this->vcmdslen = 0;
-		this->destination = location_undef();
+		location nowhere = location_undef();
+		train_set_dest(this, &nowhere);
 	}
 }
 
