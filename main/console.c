@@ -17,7 +17,7 @@ void console_hidecursor(console *this) {
 }
 
 void console_effect(console *this, int effect){
-	console_printf(this,"\033[%dm", effect);
+	console_printf(this, "\033[%dm", effect);
 }
 
 void console_effect_reset(console *this) {
