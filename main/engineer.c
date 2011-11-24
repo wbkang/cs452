@@ -302,7 +302,7 @@ void engineer_ontick(engineer *this) {
 		train_descriptor *train = &this->train[train_no];
 		if (train->calibrated) {
 			train_update_simulation(train, t);
-			train_run_vcmd(train, this->tid_traincmdbuf, this->track_nodes, this->triplog, t);
+			train_ontick(train, this->tid_traincmdbuf, this->track_nodes, this->triplog, t);
 		}
 	}
 }

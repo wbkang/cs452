@@ -363,28 +363,34 @@ static void printloc(void* s) {
 	char *direction_str;
 	switch (train_get_dir(train)) {
 		case TRAIN_FORWARD:
-			direction_str = "forward";
+			direction_str = "->";
 			break;
 		case TRAIN_BACKWARD:
-			direction_str = "backward";
+			direction_str = "<-";
 			break;
 		default:
-			direction_str = "somewhere";
+			direction_str = "?";
 			break;
 	}
 
-	fixed v = train_get_velocity(train);
+	char msg[512];
+	char *b = msg;
 
-	logstrip_printf(state->trainloc,
-		"%-5s + %Fcm heading %s at velocity %F (c: %F, i: %F, f: %F)",
+	b += sprintf(b,
+		"train %d at %-5s+%Fmm heading %s at %dmm/s, res:",
+		train_no,
 		location_isundef(&loc) ? "?" : loc.edge->src->name,
-		fixed_div(loc.offset, fixed_new(10)),
+		fixed_int(loc.offset),
 		direction_str,
-		v,
-		train->v10000,
-		train->v_i10000,
-		train->v_f10000
+		fixed_int(fixed_mul(train_get_velocity(train), fixed_new(1000)))
 	);
+
+	for (int i = 0; i < train->reservation->len; i++) {
+		track_edge *e = train->reservation->edges[i];
+		b += sprintf(b, " %s-%s", e->src->name, e->dest->name);
+	}
+
+	logstrip_printf(state->trainloc, msg);
 }
 
 static void handle_setup_demotrack(a0state *state) {
@@ -410,15 +416,15 @@ static void handle_train_switch_all(a0state *state, char pos) {
 	}
 }
 
-static void handle_set_dest(a0state *state, int trainno, char *type, int id, int dist_cm) {
-	train_descriptor *train = &state->eng->train[trainno];
+static void handle_set_dest(a0state *state, int train_no, char *type, int id, int dist_cm) {
+	train_descriptor *train = &state->eng->train[train_no];
 	track_node *destnode = engineer_get_tracknode(state->eng, type, id);
 	location dest =	location_fromnode(destnode, 0);
 	location_add(&dest, fixed_new(dist_cm * 10));
 	train_set_dest(train, &dest);
 	char destname[100];
 	location_tostring(&dest, destname);
-	logstrip_printf(state->cmdlog, "Set train %d to go to %s", trainno, destname);
+	logstrip_printf(state->cmdlog, "Set train %d to go to %s", train_no, destname);
 }
 
 static void tick_engineer(void* s) {
@@ -488,7 +494,7 @@ static void handle_command(void* s, char *cmd, int size) {
 				ACCEPT(' ');
 				int dist_cm = strgetui(&c);
 				ACCEPT('\0');
-				handle_set_dest(state, train, type, id, 10 * dist_cm);
+				handle_set_dest(state, train, type, id, dist_cm);
 			} else {
 				goto badcmd;
 			}
