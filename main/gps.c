@@ -8,7 +8,7 @@
 #include <location.h>
 #include <ui/logdisplay.h>
 
-#define CRUISE_SPEED 10
+#define CRUISE_SPEED 12
 #define REVERSE_TIMEOUT 4000
 #define REVERSE_COST 500
 
@@ -92,6 +92,8 @@ static int gps_collapsereverse(track_node *startnode, track_node **path, int pat
 	return -1;
 }
 
+#define NO_PATH_RANDOM_WAIT 1024
+
 void gps_findpath(gps *this,
 		train_descriptor *train,
 		location *dest,
@@ -119,7 +121,10 @@ void gps_findpath(gps *this,
 	int cmdlen = 0;
 
 	if (*pathlen <= 0) {
-		*rv_len = 0;
+		// trainvcmd_addspeed(rv_vcmd, &cmdlen, 0, NULL);
+		// trainvcmd_addpause(rv_vcmd, &cmdlen, random() & (NO_PATH_RANDOM_WAIT - 1));
+		// *pathlen = cmdlen;
+		*rv_len = cmdlen;
 		return;
 	}
 
@@ -249,7 +254,8 @@ void dijkstra(track_node *nodes, heap *unoptimized, track_node *src, track_node 
 				}
 			}
 		}
-		if (u->type != NODE_MERGE) {
+
+		{
 			track_node *u_rev = u->reverse;
 			int u_rev_idx = u_rev - nodes;
 			int rev_dist = train_get_reverse_cost(train, dist[uidx], u);

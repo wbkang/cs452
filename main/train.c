@@ -147,7 +147,7 @@ void train_init(train_descriptor *this, int no, struct gps *gps) {
 	this->vcmdwait = 0;
 	this->destination = location_undef();
 
-	this->state = TRAIN_LOST;
+	this->state = TRAIN_GOOD;
 
 	train_init_static(this);
 	if (this->calibrated) {
@@ -176,7 +176,7 @@ fixed train_get_velocity(train_descriptor *this) {
 }
 
 int train_ismoving(train_descriptor *this) {
-	fixed const margin = fixed_new(10);
+	fixed const margin = fixed_new(1);
 	return fixed_cmp(this->v10000, margin) > 0;
 }
 
@@ -320,27 +320,59 @@ void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc) {
 #define TRAIN_SIM_DT_EXP 0
 #define TRAIN_SIM_DT (1 << TRAIN_SIM_DT_EXP)
 
-// @TODO: instead of linearly increasing velocity scale 3t^2-2t^3
-static void train_step_sim(train_descriptor *this, int dt) {
-	const fixed margin = fixed_new(1);
+static void train_step_sim(train_descriptor *this, int t_f) {
+	fixed const margin = fixed_new(1);
 	fixed diff = fixed_sub(this->v10000, this->v_f10000);
-	fixed fdt = fixed_new(dt);
 	if (fixed_cmp(fixed_abs(diff), margin) > 0) {
-		fixed dv10000 = fixed_abs(fixed_sub(this->v_f10000, this->v_i10000));
-		fixed a10000 = fixed_add(fixed_div(fixed_mul(this->a_m10000, dv10000), fixed_new(10000)), this->a_b10000);
-		if (fixed_sgn(diff) < 0) {
-			this->v10000 = fixed_add(this->v10000, fixed_mul(a10000, fdt));
-		} else {
-			this->v10000 = fixed_sub(this->v10000, fixed_mul(a10000, fdt));
-		}
+		fixed dv10000 = fixed_sub(this->v_f10000, this->v_i10000);
+
+		fixed dv10000a = fixed_abs(dv10000);
+
+		// fixed a10000 = fixed_add(fixed_div(fixed_mul(this->a_m10000, dv10000a), fixed_new(10000)), this->a_b10000);
+
+		fixed a10000 = fixed_add(fixed_mul(this->a_m10000, fixed_div(dv10000a, fixed_new(10000))), this->a_b10000);
+
+		fixed t = fixed_new(t_f - this->t_speed);
+
+		fixed atov = fixed_div(fixed_mul(a10000, t), dv10000a);
+		fixed atov2 = fixed_mul(atov, atov);
+		fixed atov3 = fixed_mul(atov2, atov);
+
+		fixed A = fixed_mul(fixed_new(3), atov2);
+		fixed B = fixed_mul(fixed_new(-2), atov3);
+
+		this->v10000 = fixed_add(this->v_i10000, fixed_mul(dv10000, fixed_add(A, B)));
 	}
+	fixed fdt = fixed_new(t_f - this->t_sim);
 	if (!location_isundef(&this->loc) && fixed_cmp(fixed_abs(this->v10000), margin) > 0) {
 		fixed dx10000 = fixed_mul(this->v10000, fdt);
 		fixed dx = fixed_div(dx10000, fixed_new(10000));
 		location_add(&this->loc, dx);
 	}
-	this->t_sim += dt;
+	this->t_sim = t_f;
 }
+
+// @TODO: instead of linearly increasing velocity scale 3t^2-2t^3
+// static void train_step_sim(train_descriptor *this, int dt) {
+// 	const fixed margin = fixed_new(1);
+// 	fixed diff = fixed_sub(this->v10000, this->v_f10000);
+// 	fixed fdt = fixed_new(dt);
+// 	if (fixed_cmp(fixed_abs(diff), margin) > 0) {
+// 		fixed dv10000 = fixed_abs(fixed_sub(this->v_f10000, this->v_i10000));
+// 		fixed a10000 = fixed_add(fixed_div(fixed_mul(this->a_m10000, dv10000), fixed_new(10000)), this->a_b10000);
+// 		if (fixed_sgn(diff) < 0) {
+// 			this->v10000 = fixed_add(this->v10000, fixed_mul(a10000, fdt));
+// 		} else {
+// 			this->v10000 = fixed_sub(this->v10000, fixed_mul(a10000, fdt));
+// 		}
+// 	}
+// 	if (!location_isundef(&this->loc) && fixed_cmp(fixed_abs(this->v10000), margin) > 0) {
+// 		fixed dx10000 = fixed_mul(this->v10000, fdt);
+// 		fixed dx = fixed_div(dx10000, fixed_new(10000));
+// 		location_add(&this->loc, dx);
+// 	}
+// 	this->t_sim += dt;
+// }
 
 // @TODO: add jerk
 // static void train_step_sim(train_descriptor *this, int dt) {
@@ -384,15 +416,25 @@ static void train_step_sim(train_descriptor *this, int dt) {
 // 	this->t_sim += dt;
 // }
 
+// void train_update_simulation(train_descriptor *this, int t_f) {
+// 	int t_i = train_get_tsim(this);
+// 	// train_step_sim(this, fixed_new(t_f - t_i));
+// 	int time = TICK2MS(t_f - t_i);
+// //	train_step_sim(this, time);
+// 	for (int i = (time >> TRAIN_SIM_DT_EXP); i > 0; --i) {
+// 		train_step_sim(this, TRAIN_SIM_DT);
+// 	}
+// 	train_step_sim(this, time & (TRAIN_SIM_DT - 1));
+// }
+
 void train_update_simulation(train_descriptor *this, int t_f) {
 	int t_i = train_get_tsim(this);
-	// train_step_sim(this, fixed_new(t_f - t_i));
-	int time = TICK2MS(t_f - t_i);
-//	train_step_sim(this, time);
-	for (int i = (time >> TRAIN_SIM_DT_EXP); i > 0; --i) {
-		train_step_sim(this, TRAIN_SIM_DT);
+	for (int t = t_i; t <= t_f; t += 2) {
+		train_step_sim(this, t);
 	}
-	train_step_sim(this, time & (TRAIN_SIM_DT - 1));
+	if ((t_f - t_i) & 1) {
+		train_step_sim(this, t_f);
+	}
 }
 
 void train_set_dest(train_descriptor *this, location *dest) {
@@ -401,20 +443,18 @@ void train_set_dest(train_descriptor *this, location *dest) {
 	this->vcmdslen = 0;
 }
 
-#define RESERVE_BEHIND 100
-#define RESERVE_AHEAD 100
-#define REROUTE_TIMEOUT 5000
+#define RESERVE_BEHIND 0
+#define RESERVE_AHEAD 200
 
 // @TODO: use recursion to branch out reserve independently of switch dir
 static int train_try_reserve(train_descriptor *this) {
-	reservation_req *r = this->reservation;
-	reservation_free(r, this->no);
-
 	location trainloc;
 	train_get_loc(this, &trainloc);
 
 	if (location_isundef(&trainloc)) return FALSE; // no point, lost
 
+	reservation_req req;
+	req.len = 0;
 	track_edge *e;
 
 	location back = trainloc;
@@ -422,29 +462,32 @@ static int train_try_reserve(train_descriptor *this) {
 	e = back.edge;
 	location_add(&back, fixed_add(train_dist2back(this), fixed_new(RESERVE_BEHIND)));
 	while (e != back.edge) {
-		ASSERT(r->len < MAX_PATH, "r->len = %d >= MAX_PATH", r->len);
+		ASSERT(req.len < MAX_PATH, "r->len = %d >= MAX_PATH", req.len);
 		ASSERTNOTNULL(e);
-		ASSERTNOTNULL(r->edges);
-		r->edges[r->len++] = e;
+		ASSERTNOTNULL(req.edges);
+		req.edges[req.len++] = e->reverse;
 		e = track_next_edge(e->dest);
 	}
-	r->edges[r->len++] = back.edge;
+	req.edges[req.len++] = back.edge;
 
 	location front = trainloc;
 	e = front.edge;
-	location_add(&front, fixed_add(train_get_stopdist(this), fixed_new(RESERVE_AHEAD)));
+	fixed r = fixed_div(fixed_new(120), fixed_new(100));
+	location_add(&front, fixed_mul(train_get_stopdist(this), r));
 	while (e != front.edge) {
-		ASSERT(r->len < MAX_PATH, "r->len = %d >= MAX_PATH", r->len);
+		ASSERT(req.len < MAX_PATH, "r->len = %d >= MAX_PATH", req.len);
 		ASSERTNOTNULL(e);
-		ASSERTNOTNULL(r->edges);
-		r->edges[r->len++] = e;
+		ASSERTNOTNULL(req.edges);
+		req.edges[req.len++] = e;
 		e = track_next_edge(e->dest);
 	}
-	r->edges[r->len++] = front.edge;
+	req.edges[req.len++] = front.edge;
 
-	if (!reservation_checkpath(r, this->no)) return FALSE;
+	if (!reservation_checkpath(&req, this->no)) return FALSE;
 
-	reservation_path(r, this->no);
+	reservation_free(this->reservation, this->no);
+	reservation_path(&req, this->no);
+	*this->reservation = req;
 	return TRUE;
 }
 
@@ -458,40 +501,49 @@ void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, 
 		return;
 	}
 
+	// if dest and no commands, reroute
 	if (!location_isundef(&this->destination) && this->vcmdslen == 0) {
-		char buf[100];
-		location_tostring(&this->destination, buf);
+		// char buf[100];
+		// location_tostring(&this->destination, buf);
 
 		gps_findpath(this->gps, this, &this->destination, TRAIN_MAX_VCMD, this->vcmds, &this->vcmdslen, log);
 		this->last_run_vcmd = NULL;
 
-		if (this->vcmdslen == 0) {
-			logdisplay_printf(log, "cant find trip plan");
-			logdisplay_flushline(log);
-		}
+		// if (this->vcmdslen == 0) {
+		// 	logdisplay_printf(log, "cant find trip plan");
+		// 	logdisplay_flushline(log);
+		// }
 
-		if (this->vcmdslen > 0) {
-
-			for (int i = 0; i < this->vcmdslen; i++) {
-				char vcmdname[100];
-				vcmd2str(vcmdname, &this->vcmds[i]);
-				logdisplay_printf(log, "trip plan %d: %s", i, vcmdname);
-				logdisplay_flushline(log);
-			}
-		}
+		// if (this->vcmdslen > 0) {
+		// 	for (int i = 0; i < this->vcmdslen; i++) {
+		// 		char vcmdname[100];
+		// 		vcmd2str(vcmdname, &this->vcmds[i]);
+		// 		logdisplay_printf(log, "trip plan %d: %s", i, vcmdname);
+		// 		logdisplay_flushline(log);
+		// 	}
+		// }
 		this->vcmdidx = 0;
 	}
 
 	int reserved = train_try_reserve(this);
 
-	if (location_isundef(&this->destination)) return;
-
-	if (!reserved) {
-		if (this->vcmdslen > 0) {
-			this->vcmdslen = 0;
-			train_speed(this->no, 0, tid_traincmdbuf);
-		}
-		return;
+	switch (this->state) {
+		case TRAIN_GOOD: // following a path
+			if (reserved) {
+				// follow this path
+			} else {
+				this->state = TRAIN_BAD;
+				this->vcmdslen = 0;
+				train_speed(this->no, 0, tid_traincmdbuf);
+			}
+			break;
+		case TRAIN_BAD:
+			if (reserved) {
+				this->state = TRAIN_GOOD; // follow this path
+			} else {
+				this->vcmdslen = 0; // bad path, reroute
+			}
+			break;
 	}
 
 	while (this->vcmdidx < this->vcmdslen) { // if there are commands to run
@@ -591,7 +643,6 @@ void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, 
 		}
 		break;
 	}
-
 	if (this->vcmdslen > 0 && this->vcmdidx == this->vcmdslen) {
 		location nowhere = location_undef();
 		train_set_dest(this, &nowhere);
@@ -602,12 +653,15 @@ void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, 
 int train_get_reverse_cost(train_descriptor *this, int dist, track_node *node) {
 	(void) dist;
 
-	if (train_ismoving(this) && node->type != NODE_EXIT && !can_occupy(node->edge, this->no)) return infinity;
+	if (node->type == NODE_MERGE) return infinity;
+
+	// if (train_ismoving(this) && node->type != NODE_EXIT && !can_occupy(node->edge, this->no)) return infinity;
 
 	track_node *rev = node->reverse;
 	location junk = location_fromnode(rev, 0);
 	track_edge *e = junk.edge;
-	location_add(&junk, fixed_new(train_get_length(this) + train_get_poserr(this)));
+	// @todo add loc err
+	location_add(&junk, fixed_new(train_get_length(this) + 200));
 	if (!can_occupy(junk.edge, this->no)) return infinity;
 	while (e != junk.edge) {
 		ASSERTNOTNULL(e);
@@ -617,6 +671,6 @@ int train_get_reverse_cost(train_descriptor *this, int dist, track_node *node) {
 		if (dest->type == NODE_BRANCH) return infinity;
 		e = track_next_edge(dest);
 	}
-	return 0;
+	return junk.edge->dist;
 	// return train_get_length(this) + train_get_poserr(this);
 }
