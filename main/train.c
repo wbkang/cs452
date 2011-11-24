@@ -159,8 +159,6 @@ fixed train_get_velocity(train_descriptor *this) {
 
 fixed train_get_stopdist(train_descriptor *this) {
 	fixed v = train_get_velocity(this);
-//	ASSERT(fixed_sgn(v) >= 0, "bad velocity for train %d:%F", this->no, v);
-	if (fixed_sgn(v) <= 0) return fixed_new(0);
 	fixed dist = fixed_add(fixed_mul(this->stopm, v), this->stopb);
 	switch (this->dir) {
 		case TRAIN_FORWARD:
@@ -251,7 +249,7 @@ int train_get_length(train_descriptor *this) {
 }
 
 int train_get_poserr(train_descriptor *this) {
-	return 200;
+	return 400;
 }
 
 // simulate the distance the train would travel from t_i to t_f

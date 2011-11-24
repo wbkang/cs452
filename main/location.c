@@ -93,8 +93,8 @@ int location_add(location *this, fixed dx) {
 	if (location_isundef(this)) return -1; // incrementing undefined location
 	int sgn = fixed_sgn(dx);
 	if (sgn == 0) return 0;
-	this->offset = fixed_add(this->offset, dx);
 	if (sgn > 0) {
+		this->offset = fixed_add(this->offset, dx);
 		for (;;) {
 			fixed len_edge = fixed_new(this->edge->dist);
 			if (fixed_cmp(this->offset, len_edge) < 0) return 0;
@@ -113,27 +113,21 @@ int location_add(location *this, fixed dx) {
 			}
 		}
 	} else {
-		// @TODO: problem if backup into an enter
-		while (fixed_sgn(this->offset) < 0) {
-			track_node *n = this->edge->src;
-			track_node *n_rev = n->reverse;
-			track_node *n_rev_prev = track_next_node(n_rev);
-			if (!n_rev_prev) return -4;
-			track_node *n_prev = n_rev_prev->reverse;
-			track_edge *edge = n_prev->edge;
-			if (edge[0].dest == n) {
-				this->edge = &edge[0];
-			} else if (edge[1].dest == n) {
-				this->edge = &edge[1];
-			} else {
-				ASSERT(0, "3 edges, wtf?");
-			}
-			this->offset = fixed_add(fixed_new(this->edge->dist), this->offset);
-		}
+		location_reverse(this);
+		location_add(this, fixed_neg(dx));
+		location_reverse(this);
 		return 0;
 	}
 	*this = location_undef();
 	return -5;
+}
+
+int location_reverse(location *this) {
+	if (location_isundef(this)) return -1; // reversing undefined location
+	fixed offset = fixed_sub(fixed_new(this->edge->dist), this->offset);
+	*this = location_fromedge(this->edge->reverse);
+	location_add(this, offset);
+	return 0;
 }
 
 int location_tostring(location *this, char *buf) {
@@ -149,12 +143,4 @@ int location_tostring(location *this, char *buf) {
 		);
 	}
 	return buf - origbuf;
-}
-
-int location_reverse(location *this) {
-	if (location_isundef(this)) return -1; // reversing undefined location
-	fixed offset = fixed_sub(fixed_new(this->edge->dist), this->offset);
-	*this = location_fromedge(this->edge->reverse);
-	location_add(this, offset);
-	return 0;
 }
