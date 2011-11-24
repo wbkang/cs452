@@ -28,6 +28,7 @@ typedef struct {
 	dumbbus *sensor_bus;
 	dumbbus *bus10hz;
 	dumbbus *simbus;
+	dumbbus *printlocbus;
 	timedisplay *timedisplay;
 	track_template *template;
 	int timestamp;
@@ -40,6 +41,7 @@ typedef struct {
 	// timers
 	int tid_refresh;
 	int tid_simstep;
+	int tid_printloc;
 } a0state;
 
 void a0();

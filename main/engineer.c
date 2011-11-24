@@ -200,7 +200,7 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
-		if (fixed_sgn(train_get_velocity(train)) > 0) { // moving
+		if (train_ismoving(train)) { // moving
 			location loc_train;
 			train_get_loc(train, &loc_train);
 			if (!location_isundef(&loc_train)) { // known location
@@ -246,7 +246,7 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 	train_descriptor *rv = NULL;
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
-		if (fixed_sgn(train_get_velocity(train)) > 0) { // moving
+		if (train_ismoving(train)) { // moving
 			location loc_train;
 			train_get_loc(train, &loc_train);
 			if (location_isundef(&loc_train)) { // unknown location

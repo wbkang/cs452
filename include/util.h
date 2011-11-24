@@ -122,15 +122,18 @@ int main();
 void dump_registers(int r0, int r1, int r2, int r3);
 void print_stack_trace(uint fp, int clearscreen);
 
+int MyTid();
+
 #if ASSERT_ENABLED
 #define ASSERT(X, ...) { \
 	if (!(X)) { /*__asm("swi 12\n\t");*/ \
+		int tid = MyTid(); \
 		VMEM(VIC1 + INTENCLR_OFFSET) = ~0; \
 		VMEM(VIC2 + INTENCLR_OFFSET) = ~0; \
 		bwprintf(0, "%c", 0x61); \
 		int fp, lr, pc; READ_REGISTER(fp); READ_REGISTER(lr); READ_REGISTER(pc); \
 		/*bwprintf(1, "\x1B[2J" "\x1B[1;1H");*/ \
-		bwprintf(1, "assertion failed in file " __FILE__ " line:" TOSTRING(__LINE__) " lr: %x pc: %x" CRLF, lr, pc); \
+		bwprintf(1, "assertion failed in file " __FILE__ " line:" TOSTRING(__LINE__) " lr: %x pc: %x, tid: %d" CRLF, lr, pc, tid); \
 		bwprintf(1, "[%s] ", __func__); \
 		bwprintf(1, __VA_ARGS__); \
 		bwprintf(1, "\n"); \

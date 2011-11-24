@@ -172,6 +172,11 @@ fixed train_get_velocity(train_descriptor *this) {
 	return fixed_div(this->v10000, fixed_new(10000));
 }
 
+int train_ismoving(train_descriptor *this) {
+	fixed const margin = fixed_new(10);
+	return fixed_cmp(this->v10000, margin) > 0;
+}
+
 fixed train_get_stopdist(train_descriptor *this) {
 	fixed v = train_get_velocity(this);
 	fixed dist = fixed_add(fixed_mul(this->stopm, v), this->stopb);
@@ -393,7 +398,9 @@ void train_set_dest(train_descriptor *this, location *dest) {
 	this->vcmdslen = 0;
 }
 
-#define RESERVE_AHEAD 200
+#define RESERVE_BEHIND 100
+#define RESERVE_AHEAD 100
+#define REROUTE_TIMEOUT 5000
 
 // @TODO: use recursion to branch out reserve independently of switch dir
 static int train_try_reserve(train_descriptor *this) {
@@ -410,7 +417,7 @@ static int train_try_reserve(train_descriptor *this) {
 	location back = trainloc;
 	location_reverse(&back);
 	e = back.edge;
-	location_add(&back, train_dist2back(this));
+	location_add(&back, fixed_add(train_dist2back(this), fixed_new(RESERVE_BEHIND)));
 	while (e != back.edge) {
 		ASSERT(r->len < MAX_PATH, "r->len = %d >= MAX_PATH", r->len);
 		ASSERTNOTNULL(e);
@@ -439,13 +446,13 @@ static int train_try_reserve(train_descriptor *this) {
 }
 
 void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick) {
-
-	if (location_isundef(&this->loc)) { // skip me
+	if (location_isundef(&this->loc)) {
 		this->vcmdslen = 0;
 		return;
 	}
 
-	// hack so that train doesn't have to do this
+	// if (!location_isundef(&this->destination) && !(this->vcmdidx < this->vcmdslen && this->vcmds[this->vcmdidx].name == VCMD_WAITFORMS) && ((this->vcmdslen == 0) || (tick - this->t_route > REROUTE_TIMEOUT))) {
+
 	if (!location_isundef(&this->destination) && this->vcmdslen == 0) {
 		char buf[100];
 		location_tostring(&this->destination, buf);
@@ -453,16 +460,20 @@ void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, 
 		gps_findpath(this->gps, this, &this->destination, TRAIN_MAX_VCMD, this->vcmds, &this->vcmdslen, log);
 		this->last_run_vcmd = NULL;
 
-		// if (this->vcmdslen == 0) {
-		// 	logdisplay_printf(log, "cant find trip plan");
-		// 	logdisplay_flushline(log);
-		// }
-
-		for (int i = 0; i < this->vcmdslen; i++) {
-			char vcmdname[100];
-			vcmd2str(vcmdname, &this->vcmds[i]);
-			logdisplay_printf(log, "trip plan %d: %s", i, vcmdname);
+		if (this->vcmdslen == 0) {
+			logdisplay_printf(log, "cant find trip plan");
 			logdisplay_flushline(log);
+		}
+
+		if (this->vcmdslen > 0) {
+			// this->t_route = tick;
+
+			for (int i = 0; i < this->vcmdslen; i++) {
+				char vcmdname[100];
+				vcmd2str(vcmdname, &this->vcmds[i]);
+				logdisplay_printf(log, "trip plan %d: %s", i, vcmdname);
+				logdisplay_flushline(log);
+			}
 		}
 		this->vcmdidx = 0;
 	}
@@ -472,15 +483,11 @@ void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, 
 	if (location_isundef(&this->destination)) return;
 
 	if (!reserved) {
-		this->vcmdslen = 0;
-		if (train_get_speed(this) != 0) {
-			logdisplay_printf(log, "cant reserve (%d)", this->no);
-			logdisplay_flushline(log);
+		if (this->vcmdslen > 0) {
+			this->vcmdslen = 0;
 			train_speed(this->no, 0, tid_traincmdbuf);
 		}
-		// @TODO: this should be better.. like re routing or something.
-		// location nowhere = location_undef();
-		// train_set_dest(this, &nowhere);
+		return;
 	}
 
 	while (this->vcmdidx < this->vcmdslen) {
@@ -591,7 +598,7 @@ void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, 
 int train_get_reverse_cost(train_descriptor *this, int dist, track_node *node) {
 	(void) dist;
 
-	if (fixed_sgn(train_get_velocity(this)) > 0 && node->type != NODE_EXIT && !can_occupy(node->edge, this->no)) return infinity;
+	if (train_ismoving(this) && node->type != NODE_EXIT && !can_occupy(node->edge, this->no)) return infinity;
 
 	track_node *rev = node->reverse;
 	location junk = location_fromnode(rev, 0);
