@@ -715,6 +715,7 @@ void a0() {
 	// time bus
 	state.bus10hz = dumbbus_new();
 	dumbbus_register(state.bus10hz, &ui_time);
+	state.printlocbus = dumbbus_new();
 	dumbbus_register(state.printlocbus, &printloc);
 
 	state.simbus = dumbbus_new();
