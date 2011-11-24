@@ -8,7 +8,6 @@
 #include <location.h>
 #include <ui/logdisplay.h>
 
-#define MAX_PATH 160
 #define CRUISE_SPEED 10
 #define REVERSE_TIMEOUT 4000
 #define REVERSE_COST 500
@@ -125,15 +124,15 @@ void gps_findpath(gps *this,
 	train_get_loc(train, &trainloc);
 
 	track_node *src = trainloc.edge->dest;
-	track_node *path[MAX_PATH];
-	int pathlen;
+	track_node **path = train->path->nodes;
+	int *pathlen = &train->path->pathlen;
 	// TODO now using arbitrary reverse distance
-	dijkstra(this->track_node, this->heap_dijkstra, src, dest->edge->src, path, &pathlen, train);
+	dijkstra(this->track_node, this->heap_dijkstra, src, dest->edge->src, path, pathlen, train);
 
 	char buf[100];
 	location_tostring(&trainloc, buf);
 	logdisplay_printf(log, "dj:%s", buf);
-	for ( int i = 0 ; i < pathlen; i++) {
+	for ( int i = 0 ; i < *pathlen; i++) {
 		logdisplay_printf(log, "->%s", path[i]->name);
 	}
 	logdisplay_flushline(log);
@@ -148,11 +147,11 @@ void gps_findpath(gps *this,
 
 	int cmdlen = 0;
 
-	if (pathlen > 0) {
-		fixed dist = gps_distance(&trainloc, dest, path, pathlen);
+	if (*pathlen > 0) {
+		fixed dist = gps_distance(&trainloc, dest, path, *pathlen);
 		dist = fixed_sub(dist, fixed_sub(fixed_new(trainloc.edge->dist), trainloc.offset));
 
-		int collapseidx = gps_collapsereverse(trainloc.edge->src, path, pathlen, train);
+		int collapseidx = gps_collapsereverse(trainloc.edge->src, path, *pathlen, train);
 		int startidx;
 
 		if (collapseidx >= 0) {
@@ -164,7 +163,7 @@ void gps_findpath(gps *this,
 			startidx = 0;
 		}
 
-		for (int i = startidx; i < pathlen - 1; i++) {
+		for (int i = startidx; i < *pathlen - 1; i++) {
 			track_node *curnode = path[i];
 			track_node *nextnode = path[i + 1];
 			track_edge *nextedge = gps_gettrackedge(curnode, nextnode);
@@ -189,7 +188,7 @@ void gps_findpath(gps *this,
 		}
 
 		{
-			track_node *last_node = path[pathlen - 1];
+			track_node *last_node = path[*pathlen - 1];
 			if (last_node->type == NODE_BRANCH) {
 				char pos = gps_getnextswitchpos(last_node, dest->edge);
 				location switchloc = location_new(dest->edge);
@@ -197,7 +196,7 @@ void gps_findpath(gps *this,
 			}
 		}
 
-		if (path[pathlen - 1] == trainloc.edge->dest) {
+		if (path[*pathlen - 1] == trainloc.edge->dest) {
 			track_node *cur_node = trainloc.edge->dest;
 			track_node *next_node = trainloc.edge->dest->reverse;
 			location stoploc;
