@@ -8,12 +8,16 @@ typedef enum {
 #define DIR_STRAIGHT 0
 #define DIR_CURVED 1
 
+#define TRAIN_UNOCCUPIED -1
+#define MAX_PATH 160
+
 typedef struct track_node track_node;
 typedef struct track_edge track_edge;
 
 struct track_edge {
 	track_edge *reverse;
 	track_node *src, *dest;
+	int owner;
 	int dist; // in mm
 	int num;
 };

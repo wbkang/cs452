@@ -415,6 +415,7 @@ lookup *%s(track_node *track) {
         fh.write("\ttrack[%d].edge[DIR_%s].dest = &track[%d];\n" % (idx, dir.upper(), idx2))
         fh.write("\ttrack[%d].edge[DIR_%s].dist = %s;\n" % (idx, dir.upper(), dist))
         fh.write("\ttrack[%d].edge[DIR_%s].num = %d;\n" % (idx, dir.upper(), edge_num))
+        fh.write("\ttrack[%d].edge[DIR_%s].owner = -1;\n" % (idx, dir.upper()))
         edge_num += 1
     fh.write("\tlookup_put(sensormap, (void*) track[%d].name, track + %d);\n" % (idx, idx))
   fh.write("\treturn sensormap;\n}\n")

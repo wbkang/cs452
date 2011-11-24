@@ -108,10 +108,10 @@ void train_init_static(train_descriptor *train) {
 
 			train->ai_avg10000 = fixed_div(fixed_new(30577), fixed_new(10000));
 			train->ad_avg10000 = fixed_div(fixed_new(-30577), fixed_new(10000));
-
+			
 			train->a_m10000 = fixed_div(fixed_new(41155), fixed_new(10000));
 			train->a_b10000 = fixed_div(fixed_new(4520), fixed_new(10000));
-
+			
 			train->calibrated = TRUE;
 			break;
 		}
@@ -131,7 +131,7 @@ void train_init_static(train_descriptor *train) {
 	}
 }
 
-void train_init(train_descriptor *this, int no, gps *gps) {
+void train_init(train_descriptor *this, int no, struct gps *gps) {
 	this->no = no;
 	this->dir = TRAIN_UNKNOWN;
 	this->v10000 = fixed_new(0);
@@ -148,6 +148,7 @@ void train_init(train_descriptor *this, int no, gps *gps) {
 	this->vcmdslen = 0;
 	this->vcmdwait = 0;
 	this->destination = location_undef();
+	this->path = NULL;
 	train_init_static(this);
 }
 
@@ -367,6 +368,13 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 		if (this->vcmds == NULL) {
 			this->vcmds = malloc(sizeof(trainvcmd) * TRAIN_MAX_VCMD);
 		}
+		if (this->path == NULL) {
+			this->path = malloc(sizeof(path));
+			this->path->start = location_undef();
+			this->path->end = location_undef();
+			this->path->pathlen = 0;
+		}
+
 		gps_findpath(this->gps, this, &this->destination, TRAIN_MAX_VCMD, this->vcmds, &this->vcmdslen, log);
 		this->last_run_vcmd = NULL;
 

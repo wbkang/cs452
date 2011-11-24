@@ -7,6 +7,7 @@
 #include <track_node.h>
 #include <location.h>
 #include <gps.h>
+#include <track_reservation.h>
 #include <lookup.h>
 #include <server/traincmdbuffer.h>
 #include <ui/logdisplay.h>
@@ -82,6 +83,7 @@ struct train_descriptor {
 	int vcmdslen;
 	int vcmdwait;
 	location destination;
+	struct path *path;
 };
 
 static inline int train_switchi2no(int i) {
@@ -183,3 +185,4 @@ void train_update_simulation(train_descriptor *this, int t_f);
 void train_set_dest(train_descriptor *this, location *dest);
 void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick);
 int train_get_reverse_cost(train_descriptor *this, int dist);
+int train_get_train_length(train_descriptor *this);
