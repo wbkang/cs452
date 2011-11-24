@@ -3,60 +3,56 @@
 #include <syscall.h>
 #include <train.h>
 
-static inline void mark_occupied(int trainno, track_edge *e) {
+// @TODO: implement sparse set to improve this
+// http://research.swtch.com/2008/03/using-uninitialized-memory-for-fun-and.html
+
+static inline int can_occupy(track_edge *e, int train_no) {
 	ASSERTNOTNULL(e);
-	ASSERT(e->owner == trainno || e->owner == TRAIN_UNOCCUPIED,
-			"tr%d trying to occupy the edge %s->%s owned by %d.",
-			trainno, e->src->name, e->dest->name, e->owner);
-	e->owner = trainno;
-	e->reverse->owner = trainno;
+//	ASSERT(e->owner == train_no || e->owner == TRAIN_UNOCCUPIED,
+//				"tr%d trying to occupy the edge %s->%s owned by %d.",
+//				train_no, e->src->name, e->dest->name, e->owner);
+	return (e->owner == train_no || e->owner == TRAIN_UNOCCUPIED) &&
+			(e->reverse->owner == train_no || e->reverse->owner == TRAIN_UNOCCUPIED);
 }
 
-static inline void mark_free(int trainno, track_edge *e) {
-	ASSERTNOTNULL(e);
-	ASSERT(e->owner == TRAIN_UNOCCUPIED || e->owner == trainno,
-			"train edge %s->%s already occupied by tr%d",
+static inline void mark_occupied(track_edge *e, int train_no) {
+	ASSERT(can_occupy(e, train_no),
+			"train %d trying to occupy edge %s->%s owned by %d.",
+			train_no, e->src->name, e->dest->name, e->owner);
+	e->owner = train_no;
+	e->reverse->owner = train_no;
+}
+
+static inline void mark_free(track_edge *e, int train_no) {
+	ASSERT(can_occupy(e, train_no),
+			"edge %s->%s already occupied by train %d",
 			e->src->name, e->dest->name, e->owner);
-	ASSERT(e->reverse->owner == TRAIN_UNOCCUPIED || e->reverse->owner == trainno,
-				"train edge %s->%s already occupied by tr%d",
-				e->src->name, e->dest->name, e->owner);
 	e->owner = TRAIN_UNOCCUPIED;
 	e->reverse->owner = TRAIN_UNOCCUPIED;
 }
 
-static inline int can_occupy(int trainno, track_edge *e) {
-	ASSERTNOTNULL(e);
-//	ASSERT(e->owner == trainno || e->owner == TRAIN_UNOCCUPIED,
-//				"tr%d trying to occupy the edge %s->%s owned by %d.",
-//				trainno, e->src->name, e->dest->name, e->owner);
-	return (e->owner == trainno || e->owner == TRAIN_UNOCCUPIED) &&
-			(e->reverse->owner == trainno || e->reverse->owner == TRAIN_UNOCCUPIED);
-}
-
-int reserve_checkpath(int trainno, reservation_req *req) {
+int reservation_checkpath(reservation_req *req, int train_no) {
 	ASSERTNOTNULL(req);
 	for (int i = 0; i < req->len; i++) {
-		ASSERTNOTNULL(req->edges[i]);
-		if (!can_occupy(trainno, req->edges[i])) {
+		if (!can_occupy(req->edges[i], train_no)) {
+			req->len = 0;
 			return FALSE;
 		}
 	}
 	return TRUE;
 }
 
-void reserve_path(int trainno, reservation_req *req) {
+void reservation_path(reservation_req *req, int train_no) {
 	ASSERTNOTNULL(req);
-	ASSERT(reserve_checkpath(trainno, req), "can't reserve the path for train %d", trainno);
 	for (int i = 0; i < req->len; i++) {
-		ASSERTNOTNULL(req->edges[i]);
-		mark_occupied(trainno, req->edges[i]);
+		mark_occupied(req->edges[i], train_no);
 	}
 }
 
-void reserve_return(int trainno, reservation_req *req) {
+void reservation_free(reservation_req *req, int train_no) {
 	ASSERTNOTNULL(req);
 	for (int i = 0; i < req->len; i++) {
-		ASSERTNOTNULL(req->edges[i]);
-		mark_free(trainno, req->edges[i]);
+		mark_free(req->edges[i], train_no);
 	}
+	req->len = 0;
 }
