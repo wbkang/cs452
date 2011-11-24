@@ -20,7 +20,10 @@ typedef struct {
 	logdisplay *log;
 	logstrip *cmdlog;
 	logstrip *sensorlog;
-	logstrip *trainloc;
+	logstrip *trainloc1;
+	logstrip *trainloc1r;
+	logstrip *trainloc2;
+	logstrip *trainloc2r;
 	cmdline *cmdline;
 	dumbbus *sensor_bus;
 	dumbbus *bus10hz;

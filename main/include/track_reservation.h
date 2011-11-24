@@ -20,6 +20,7 @@ struct reservation_req {
 	int len;
 };
 
+int can_occupy(track_edge *e, int train_no);
 int reservation_checkpath(reservation_req *req, int train_no);
 void reservation_path(reservation_req *req, int train_no);
 void reservation_free(reservation_req *req, int train_no);
