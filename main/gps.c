@@ -151,7 +151,7 @@ void gps_findpath(gps *this,
 	int cmdlen = 0;
 
 	if (*pathlen > 0) {
-int collapseidx = gps_collapsereverse(trainloc.edge->src, path, *pathlen, train);
+		int collapseidx = gps_collapsereverse(trainloc.edge->src, path, *pathlen, train);
 		int startidx;
 
 		if (collapseidx >= 0) {
