@@ -158,7 +158,7 @@ static inline void train_stop(int tid) {
  * Train object
  */
 
-void train_init_static(train_descriptor *train);
+void train_init_static(train_descriptor *this);
 void train_init(train_descriptor *this, int no, struct gps *gps);
 fixed train_get_velocity(train_descriptor *this);
 fixed train_get_stopdist4speedidx(train_descriptor *this, int speed_idx);
@@ -181,5 +181,5 @@ fixed train_simulate_dx(train_descriptor *this, int t_i, int t_f);
 void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc);
 void train_update_simulation(train_descriptor *this, int t_f);
 void train_set_dest(train_descriptor *this, location *dest);
-void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick) ;
+void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick);
 int train_get_reverse_cost(train_descriptor *this, int dist);
