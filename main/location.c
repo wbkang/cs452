@@ -100,16 +100,18 @@ int location_add(location *this, fixed dx) {
 			if (fixed_cmp(this->offset, len_edge) < 0) return 0;
 			track_node *n_next = this->edge->dest;
 			ASSERTNOTNULL(n_next);
-			track_edge *next_edge = track_next_edge(n_next);
-			if (next_edge) {
-				this->edge = next_edge;
-				this->offset = fixed_sub(this->offset, len_edge);
-			} else if (n_next->type == NODE_EXIT) {
-				this->offset = fixed_sub(len_edge, fixed_new(1));
+			if (n_next->type == NODE_EXIT) {
+				*this = location_fromnode(n_next, DIR_AHEAD);
 				return -2; // dead end
 			} else {
-				ASSERT(0, "ran into a non-exit node with no edge %s, dir %d", n_next->name, n_next->switch_dir);
-				return -3;
+				track_edge *next_edge = track_next_edge(n_next);
+				if (next_edge) {
+					this->edge = next_edge;
+					this->offset = fixed_sub(this->offset, len_edge);
+				} else {
+					ASSERT(0, "ran into a non-exit node (%s) with unknown edge dir (%d)", n_next->name, n_next->switch_dir);
+					return -3;
+				}
 			}
 		}
 	} else {
