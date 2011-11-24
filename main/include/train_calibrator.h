@@ -15,4 +15,4 @@ static inline int calib_goodmax(int max) {
 
 void calibrator_init();
 
-void calibrate_train(a0state *state, int train_no, char sig1mod, int sig1id, char sig2mod, int sig2id);
+void calibrate_train(a0state *state, int train_no, char sig1mod, int sig1id);

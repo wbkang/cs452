@@ -178,6 +178,7 @@ int train_get_tspeed(train_descriptor *this);
 void train_set_tspeed(train_descriptor *this, int t_speed);
 int train_get_tsim(train_descriptor *this);
 void train_set_tsim(train_descriptor *this, int t_sim);
+int train_get_length(train_descriptor *this);
 fixed train_simulate_dx(train_descriptor *this, int t_i, int t_f);
 void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc);
 void train_update_simulation(train_descriptor *this, int t_f);

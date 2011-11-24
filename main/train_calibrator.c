@@ -137,7 +137,7 @@ static void calibrator_setup_track(a0state *state) {
 	engineer_set_track(eng, s, ns, c, nc);
 }
 
-void calibrate_train(a0state *state, int train_no, char sig1mod, int sig1id, char sig2mod, int sig2id) {
+void calibrate_train(a0state *state, int train_no, char sig1mod, int sig1id) {
 	engineer *eng = state->eng;
 
 	if (calib_state.state != IDLE) {
@@ -154,10 +154,9 @@ void calibrate_train(a0state *state, int train_no, char sig1mod, int sig1id, cha
 		return;
 	}
 
-	mod[0] = sig2mod;
-	track_node *back = engineer_get_tracknode(eng, mod, sig2id);
+	track_node *back = front->reverse->edge->dest;
 	if (!back) {
-		logstrip_printf(state->cmdlog, "bad back sensor %c%d", sig2mod, sig2id);
+		logstrip_printf(state->cmdlog, "no back node for start node %c%d", sig1mod, sig1id);
 		return;
 	}
 
