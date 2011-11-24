@@ -67,7 +67,6 @@ static inline void trainvcmd_addswitch(trainvcmd *rv_vcmd, int *idx, char const 
 	(*idx)++;
 }
 
-
 static inline char gps_getnextswitchpos(track_node *sw, track_edge *edgeafterbranch) {
 	if (edgeafterbranch == &sw->edge[DIR_STRAIGHT]) return 's';
 	if (edgeafterbranch == &sw->edge[DIR_CURVED]) return 'c';
@@ -79,6 +78,7 @@ static inline void gps_get_rev_stoploc(train_descriptor *train, track_node *node
 	ASSERTNOTNULL(node);
 	*rv_loc = location_fromnode(node, 0);
 	if (node->type == NODE_MERGE) {
+		ASSERT(0, "cant reverse at a merge, invalid path");
 		int len = train_get_length(train) + train_get_poserr(train);
 		location_add(rv_loc, fixed_new(len));
 	}
@@ -108,21 +108,13 @@ void gps_findpath(gps *this,
 	// TODO now using arbitrary reverse distance
 	dijkstra(this->track_node, this->heap_dijkstra, src, dest->edge->src, path, pathlen, train);
 
-	char buf[100];
-	location_tostring(&trainloc, buf);
-	logdisplay_printf(log, "dj: %s", buf);
-	for (int i = 0; i < *pathlen; i++) {
-		logdisplay_printf(log, "->%s", path[i]->name);
-	}
-	logdisplay_flushline(log);
-//
-//	char buf[100];
-//	location_tostring(&trainloc, buf);
-//	PRINT( "dj:%s", buf);
-//	for ( int i = 0 ; i < pathlen; i++) {
-//		PRINT("%d->%s", i, path[i]->name);
-//	}
-//	ExitKernel(0);
+	// char buf[100];
+	// location_tostring(&trainloc, buf);
+	// logdisplay_printf(log, "dj: %s", buf);
+	// for (int i = 0; i < *pathlen; i++) {
+	// 	logdisplay_printf(log, "->%s", path[i]->name);
+	// }
+	// logdisplay_flushline(log);
 
 	int cmdlen = 0;
 
@@ -211,7 +203,6 @@ static inline uint num_neighbour(track_node *n) {
 // code taken from http://en.wikipedia.org/wiki/Dijkstra's_algorithm#Algorithm
 // @TODO: keep this algorithm independent of gps, pass in whats needed as args
 void dijkstra(track_node *nodes, heap *unoptimized, track_node *src, track_node *dest, track_node **rv_nodes, int *rv_len_nodes, train_descriptor *train) {
-	int const infinity = INT_MAX;
 	int dist[TRACK_MAX];
 	track_node *previous[TRACK_MAX];
 	heap_clear(unoptimized);
@@ -236,7 +227,16 @@ void dijkstra(track_node *nodes, heap *unoptimized, track_node *src, track_node 
 			int neighbour_cnt = num_neighbour(u);
 			for (int i = 0; i < neighbour_cnt; i++) {
 				track_edge *edge = &u->edge[i];
+				if (!can_occupy(edge, train->no)) continue;
 				track_node *v = edge->dest;
+				if (v->type == NODE_MERGE) {
+					track_node *v_rev = v->reverse;
+					track_edge *other_edge = &v_rev->edge[0] == edge ? &v_rev->edge[1] : &v_rev->edge[0];
+					if (!can_occupy(other_edge, train->no)) continue;
+				} else if (u->type == NODE_BRANCH) {
+					track_edge *other_edge = &u->edge[0] == edge ? &u->edge[1] : &u->edge[0];
+					if (!can_occupy(other_edge, train->no)) continue;
+				}
 				int vidx = v - nodes;
 
 				int alt = (dist[vidx] == infinity) ? edge->dist : dist[vidx] + edge->dist;
@@ -248,11 +248,11 @@ void dijkstra(track_node *nodes, heap *unoptimized, track_node *src, track_node 
 				}
 			}
 		}
-		{
+		if (u->type != NODE_MERGE) {
 			track_node *u_rev = u->reverse;
 			int u_rev_idx = u_rev - nodes;
-			int rev_dist = train_get_reverse_cost(train, dist[uidx]);
-			int alt_rev_dist = (dist[u_rev_idx] == infinity) ? rev_dist : dist[u_rev_idx] + rev_dist;
+			int rev_dist = train_get_reverse_cost(train, dist[uidx], u);
+			int alt_rev_dist = (rev_dist == infinity || dist[u_rev_idx] == infinity) ? rev_dist : dist[u_rev_idx] + rev_dist;
 			if (alt_rev_dist < dist[u_rev_idx]) {
 				dist[u_rev_idx] = alt_rev_dist;
 				previous[u_rev_idx] = u;
