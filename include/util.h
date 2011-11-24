@@ -36,6 +36,7 @@ typedef char *va_list;
 #define UNLIKELY(x) __builtin_expect((x), 0)
 #define INT_MIN ((int) 0x80000000)
 #define INT_MAX 0x7fffffff
+#define infinity INT_MAX
 #define MEMCHECK() malloc(0)
 
 #define PUTS(...) { \
