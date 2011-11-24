@@ -55,6 +55,10 @@ void train_init_static(train_descriptor *train) {
 
 			train->ai_avg10000 = fixed_div(fixed_new(16363), fixed_new(10000));
 			train->ad_avg10000 = fixed_div(fixed_new(-16363), fixed_new(10000));
+
+			train->a_m10000 = fixed_div(fixed_new(-2448), fixed_new(10000));
+			train->a_b10000 = fixed_div(fixed_new(17159), fixed_new(10000));
+
 			train->calibrated = TRUE;
 			break;
 		}
@@ -115,7 +119,11 @@ void train_init_static(train_descriptor *train) {
 			train->dist2nose = fixed_new(0);
 			train->dist2tail = fixed_new(0);
 			TRAIN_FOREACH_SPEEDIDX(i) {
-				train->v_avg[i] = fixed_new(0);
+				train->v_avg[i
+			train->a_m10000 = fixed_div(fixed_new(41155), fixed_new(10000));
+			train->a_b10000 = fixed_div(fixed_new(4520), fixed_new(10000));
+
+] = fixed_new(0);
 			}
 			train->ai_avg10000 = fixed_new(0);
 			train->ad_avg10000 = fixed_new(0);
@@ -239,7 +247,9 @@ void train_set_tsim(train_descriptor *this, int t_sim) {
 }
 
 // simulate the distance the train would travel from t_i to t_f
-// assuming t_i <= t_f and that t_i is relatively close to the current time
+// assuming t_i <= void train_on_reverse(train_descriptor *this, int t) {
+	train_update_simulation(this, t);
+ent time
 fixed train_simulate_dx(train_descriptor *this, int t_i, int t_f) {
 	fixed v = train_get_velocity(this); // @TODO: don't assume current velocity
 	if (fixed_sgn(v) > 0) {
@@ -275,12 +285,33 @@ void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc) {
 // 		fixed dv10000 = fixed_abs(fixed_sub(this->v_f10000, this->v_i10000));
 // 		fixed a10000 = fixed_div(dv10000, this->stopm);
 // 		if (fixed_sgn(diff) < 0) {
-// 			this->v10000 = fixed_add(this->v10000, fixed_mul(a10000, fdt));
+// 			location_add(rv_loc, fixed_neg(dx));
+00, fixed_mul(a10000, fdt));
 // 		} else {
-// 			this->v10000 = fixed_sub(this->v10000, fixed_mul(a10000, fdt));
-// 		}
-// 	}
-// 	if (!location_isundef(&this->loc) && fixed_cmp(fixed_abs(this->v10000), margin) > 0) {
+// 			this->v10000 = fixed_sub(this->v10000, fixed_mul(a1000#define TRAIN_SIM_DT_EXP 0
+if (!location_isundef(&this->loc) && fixed_cmp(fixed_abs(this->v1static void train_step_sim(train_descriptor *this, int dt) {
+	const fixed margin = fixed_new(1);
+	fixed diff = fixed_sub(this->v10000, this->v_f10000);
+	fixed fdt = fixed_new(dt);
+	if (fixed_cmp(fixed_abs(diff), margin) > 0) {
+		fixed dv10000 = fixed_abs(fixed_sub(this->v_f10000, this->v_i10000));
+		fixed a10000 = fixed_add(fixed_div(fixed_mul(this->a_m10000, dv10000), fixed_new(10000)), this->a_b10000);
+		if (fixed_sgn(diff) < 0) {
+			this->v10000 = fixed_add(this->v10000, fixed_mul(a10000, fdt));
+		} else {
+			this->v10000 = fixed_sub(this->v10000, fixed_mul(a10000, fdt));
+		}
+	}
+	if (!location_isundef(&this->loc) && fixed_cmp(fixed_abs(this->v10000), margin) > 0) {
+		fixed dx10000 = fixed_mul(this->v10000, fdt);
+		fixed dx = fixed_div(dx10000, fixed_new(10000));
+		location_add(&this->loc, dx);
+	}
+	this->t_sim += dt;
+}
+
+// @TODO: add jerk
+0000), margin) > 0) {
 // 		fixed dx10000 = fixed_mul(this->v10000, fdt);
 // 		fixed dx = fixed_div(dx10000, fixed_new(10000));
 // 		location_add(&this->loc, dx);
@@ -359,30 +390,25 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 
 	while (this->vcmdidx < this->vcmdslen) {
 		trainvcmd *curvcmd = &this->vcmds[this->vcmdidx];
-		char vcmdname[100];
-		vcmd2str(vcmdname, curvcmd);
-
-		if (curvcmd != this->last_run_vcmd) {
-			logdisplay_printf(log, "[%2d]examining %s", this->vcmdidx, vcmdname);
-			logdisplay_flushline(log);
-		}
-		this->last_run_vcmd = curvcmd;
-
-		location waitloc = curvcmd->location;
-		location curloc;
-		train_get_loc(this, &curloc);
-		char buf[100];
-		vcmd2str(buf, curvcmd);
-		if (location_isundef(&curloc)) {
-			logdisplay_printf(log, "[%2d]i lost the location of train %d. cancel the trip.");
-			logdisplay_flushline(log);
-			location nowhere = location_undef();
-			train_set_dest(this, &nowhere);
-		}
-
-		switch (curvcmd->name) {
-			case VCMD_SETREVERSE:
-					traincmdbuffer_put(tid_traincmdbuf, REVERSE, this->no, NULL);
+		char vcmdname[1// static void train_step_sim(train_descriptor *this, int dt) {
+// 	const fixed margin = fixed_new(1);
+// 	fixed diff = fixed_sub(this->v10000, this->v_f10000);
+// 	fixed fdt = fixed_new(dt);
+// 	if (fixed_cmp(fixed_abs(diff), margin) > 0) {
+// 		if (fixed_sgn(diff) < 0) {
+// 			this->v10000 = fixed_add(this->v10000, fixed_mul(this->ai_avg10000, fdt));
+// 		} else {
+// 			this->v10000 = fixed_add(this->v10000, fixed_mul(this->ad_avg10000, fdt));
+// 		}
+// 	}
+// 	if (!location_isundef(&this->loc) && fixed_cmp(fixed_abs(this->v10000), margin) > 0) {
+// 		fixed dx10000 = fixed_mul(this->v10000, fdt);
+// 		fixed dx = fixed_div(dx10000, fixed_new(10000));
+// 		location_add(&this->loc, dx);
+// 	}
+// 	this->t_sim += dt;
+// }
+ REVERSE, this->no, NULL);
 					this->vcmdidx++;
 					continue;
 			case VCMD_SETSPEED: {
