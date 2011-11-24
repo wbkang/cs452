@@ -85,7 +85,7 @@ static inline void gps_get_rev_stoploc(train_descriptor *train, track_node *node
 }
 
 static int gps_collapsereverse(track_node *startnode, track_node **path, int pathlen, train_descriptor *train) {
-	if (pathlen == 0 || fixed_sgn(train_get_velocity(train)) > 0) return -1;
+	if (pathlen == 0 || train_ismoving(train)) return -1;
 	for (int i = 0; i < pathlen; i++) {
 		if (path[i] == startnode->reverse) return i;
 	}
@@ -118,75 +118,76 @@ void gps_findpath(gps *this,
 
 	int cmdlen = 0;
 
-	if (*pathlen > 0) {
-		int collapseidx = gps_collapsereverse(trainloc.edge->src, path, *pathlen, train);
-		int startidx;
+	if (*pathlen <= 0) {
+		*rv_len = 0;
+		return;
+	}
 
-		if (collapseidx >= 0) {
-			trainvcmd_addreverse(rv_vcmd, &cmdlen, NULL);
-			trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
-			startidx = collapseidx;
-		} else {
-			trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, &trainloc);
-			startidx = 0;
-		}
+	int collapseidx = gps_collapsereverse(trainloc.edge->src, path, *pathlen, train);
+	int startidx;
 
-		for (int i = startidx; i < *pathlen - 1; i++) {
-			track_node *curnode = path[i];
-			track_node *nextnode = path[i + 1];
-			track_edge *nextedge = track_get_edge(curnode, nextnode);
-			ASSERT(nextedge || curnode->reverse == nextnode, "i: %d curnode: %s, nextnode: %s", i, curnode->name, nextnode->name);
+	if (collapseidx >= 0) {
+		trainvcmd_addreverse(rv_vcmd, &cmdlen, NULL);
+		trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
+		startidx = collapseidx;
+	} else {
+		trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, &trainloc);
+		startidx = 0;
+	}
 
-			if (nextedge) {
-				if (curnode->type == NODE_BRANCH) {
-					char pos = gps_getnextswitchpos(curnode, nextedge);
-					location switchloc = location_fromedge(nextedge);
-					trainvcmd_addswitch(rv_vcmd, &cmdlen, curnode->name, pos, &switchloc);
-				} else {
-					// nothing to do
-				}
-			} else if (curnode->reverse == nextnode) { // reverse plan
-				location stoploc;
-				gps_get_rev_stoploc(train, curnode, &stoploc);
+	for (int i = startidx; i < *pathlen - 1; i++) {
+		track_node *curnode = path[i];
+		track_node *nextnode = path[i + 1];
+		track_edge *nextedge = track_get_edge(curnode, nextnode);
+		ASSERT(nextedge || curnode->reverse == nextnode, "i: %d curnode: %s, nextnode: %s", i, curnode->name, nextnode->name);
 
-				trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
-				trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
-				trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
-				// @TODO: this works but the stop at the end is useless
-				if (i < *pathlen - 2) {
-					trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
-				}
+		if (nextedge) {
+			if (curnode->type == NODE_BRANCH) {
+				char pos = gps_getnextswitchpos(curnode, nextedge);
+				location switchloc = location_fromedge(nextedge);
+				trainvcmd_addswitch(rv_vcmd, &cmdlen, curnode->name, pos, &switchloc);
 			} else {
-				ASSERT(0, "no edge between %s and %s", curnode->name, nextnode->name);
+				// nothing to do
 			}
+		} else if (curnode->reverse == nextnode) { // reverse plan
+			location stoploc;
+			gps_get_rev_stoploc(train, curnode, &stoploc);
+
+			trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
+			trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
+			trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
+			// @TODO: this works but the stop at the end is useless
+			if (i < *pathlen - 2) {
+				trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
+			}
+		} else {
+			ASSERT(0, "no edge between %s and %s", curnode->name, nextnode->name);
 		}
+	}
 
-		track_node *last_node = path[*pathlen - 1];
+	track_node *last_node = path[*pathlen - 1];
 
-		if (last_node->type == NODE_BRANCH) {
-			char pos = gps_getnextswitchpos(last_node, dest->edge);
-			location switchloc = location_fromedge(dest->edge);
-			trainvcmd_addswitch(rv_vcmd, &cmdlen, last_node->name, pos, &switchloc);
-		}
+	if (last_node->type == NODE_BRANCH) {
+		char pos = gps_getnextswitchpos(last_node, dest->edge);
+		location switchloc = location_fromedge(dest->edge);
+		trainvcmd_addswitch(rv_vcmd, &cmdlen, last_node->name, pos, &switchloc);
+	}
 
-		// if (last_node == trainloc.edge->dest) {
-		// 	track_node *cur_node = trainloc.edge->dest;
-		// 	track_node *next_node = trainloc.edge->dest->reverse;
-		// 	location stoploc;
-		// 	gps_get_rev_stoploc(train, cur_node, &stoploc);
-		// 	trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
-		// 	trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
-		// 	trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
-		// 	trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
-		// }
+	// if (last_node == trainloc.edge->dest) {
+	// 	track_node *cur_node = trainloc.edge->dest;
+	// 	track_node *next_node = trainloc.edge->dest->reverse;
+	// 	location stoploc;
+	// 	gps_get_rev_stoploc(train, cur_node, &stoploc);
+	// 	trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
+	// 	trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
+	// 	trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
+	// 	trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
+	// }
 
 //			ExitKernel(0);
-		trainvcmd_addstop(rv_vcmd, &cmdlen, dest);
+	trainvcmd_addstop(rv_vcmd, &cmdlen, dest);
 
-		*rv_len = cmdlen;
-	} else {
-		*rv_len = 0;
-	}
+	*rv_len = cmdlen;
 }
 
 static inline uint num_neighbour(track_node *n) {

@@ -367,8 +367,7 @@ static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *lo
 			break;
 	}
 
-	location dest;
-	train_get_loc(train, &dest);
+	location dest = train->destination;
 
 	logstrip_printf(log1,
 		"train %d at %s+%dmm heading %s at %dmm/s to %s+%dmm",
@@ -621,6 +620,8 @@ static void handle_time(a0state *state, char msg[], int tid) {
 		dumbbus_dispatch(state->bus10hz, state);
 	} else if (tid == state->tid_simstep) {
 		dumbbus_dispatch(state->simbus, state);
+	} else if (tid == state->tid_printloc) {
+		dumbbus_dispatch(state->printlocbus, state);
 	} else {
 		ASSERT(0, "time message from unknown task");
 	}
@@ -714,7 +715,7 @@ void a0() {
 	// time bus
 	state.bus10hz = dumbbus_new();
 	dumbbus_register(state.bus10hz, &ui_time);
-	dumbbus_register(state.bus10hz, &printloc);
+	dumbbus_register(state.printlocbus, &printloc);
 
 	state.simbus = dumbbus_new();
 	dumbbus_register(state.simbus, &tick_engineer);
@@ -739,6 +740,10 @@ void a0() {
 	int tid_refreshbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_refreshbuffer, 9, MS2TICK(100));
 	state.tid_refresh = courier_new(9, tid_refreshbuffer, MyTid());
+
+	int tid_printlocbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
+	timenotifier_new(tid_printlocbuffer, 9, MS2TICK(500));
+	state.tid_printloc = courier_new(9, tid_printlocbuffer, MyTid());
 
 	int tid_simstepbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(15));
