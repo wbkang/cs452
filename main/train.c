@@ -146,6 +146,9 @@ void train_init(train_descriptor *this, int no, struct gps *gps) {
 	this->vcmdidx = 0;
 	this->vcmdwait = 0;
 	this->destination = location_undef();
+
+	this->state = TRAIN_LOST;
+
 	train_init_static(this);
 	if (this->calibrated) {
 		this->reservation = malloc(sizeof(reservation_req));
@@ -447,11 +450,13 @@ static int train_try_reserve(train_descriptor *this) {
 
 void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick) {
 	if (location_isundef(&this->loc)) {
-		this->vcmdslen = 0;
+		if (this->vcmdslen > 0) {
+			this->vcmdslen = 0;
+			location nowhere = location_undef();
+			train_set_dest(this, &nowhere);
+		}
 		return;
 	}
-
-	// if (!location_isundef(&this->destination) && !(this->vcmdidx < this->vcmdslen && this->vcmds[this->vcmdidx].name == VCMD_WAITFORMS) && ((this->vcmdslen == 0) || (tick - this->t_route > REROUTE_TIMEOUT))) {
 
 	if (!location_isundef(&this->destination) && this->vcmdslen == 0) {
 		char buf[100];
@@ -466,7 +471,6 @@ void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, 
 		}
 
 		if (this->vcmdslen > 0) {
-			// this->t_route = tick;
 
 			for (int i = 0; i < this->vcmdslen; i++) {
 				char vcmdname[100];
@@ -490,7 +494,7 @@ void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, 
 		return;
 	}
 
-	while (this->vcmdidx < this->vcmdslen) {
+	while (this->vcmdidx < this->vcmdslen) { // if there are commands to run
 		trainvcmd *curvcmd = &this->vcmds[this->vcmdidx];
 		char vcmdname[100];
 		vcmd2str(vcmdname, curvcmd);

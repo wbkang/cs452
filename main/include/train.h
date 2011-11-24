@@ -62,7 +62,6 @@ struct train_descriptor {
 	fixed ai_avg10000;
 	fixed ad_avg10000;
 	int calibrated;
-
 	fixed a_m10000;
 	fixed a_b10000;
 	// dynamic data
@@ -75,8 +74,6 @@ struct train_descriptor {
 	int last_speed;
 	location loc;
 	int t_sim;
-
-	int t_route;
 	// vcmd stuff
 	struct gps *gps;
 	int vcmdidx;
@@ -87,7 +84,7 @@ struct train_descriptor {
 	location destination;
 	struct path *path;
 	struct reservation_req *reservation;
-	int state;
+	enum {TRAIN_LOST, TRAIN_IDLE, TRAIN_FOLLOWING} state;
 };
 
 static inline int train_switchi2no(int i) {
