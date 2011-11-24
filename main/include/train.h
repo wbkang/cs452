@@ -84,7 +84,7 @@ struct train_descriptor {
 	location destination;
 	struct path *path;
 	struct reservation_req *reservation;
-	enum {TRAIN_LOST, TRAIN_IDLE, TRAIN_FOLLOWING} state;
+	enum {TRAIN_GOOD, TRAIN_BAD} state;
 };
 
 static inline int train_switchi2no(int i) {

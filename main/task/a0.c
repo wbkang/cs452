@@ -743,7 +743,7 @@ void a0() {
 	state.tid_refresh = courier_new(9, tid_refreshbuffer, MyTid());
 
 	int tid_printlocbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
-	timenotifier_new(tid_printlocbuffer, 9, MS2TICK(500));
+	timenotifier_new(tid_printlocbuffer, 9, MS2TICK(200));
 	state.tid_printloc = courier_new(9, tid_printlocbuffer, MyTid());
 
 	int tid_simstepbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
