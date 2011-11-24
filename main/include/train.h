@@ -78,6 +78,7 @@ struct train_descriptor {
 	struct gps *gps;
 	int vcmdidx;
 	trainvcmd *vcmds;
+	trainvcmd *last_run_vcmd;
 	int vcmdslen;
 	int vcmdwait;
 	location destination;
@@ -127,7 +128,7 @@ static inline void train_speed(char train, char speed, int tid) {
 
 static inline void train_reverse(char train, int tid) {
 	ASSERT(train_goodtrain(train), "bad train: %d", train);
-	traincmdbuffer_put(tid, REVERSE, train, NULL);
+	traincmdbuffer_put(tid, REVERSE_UI, train, NULL);
 }
 
 static inline void train_switch(char no, char pos, int tid) {
@@ -180,3 +181,5 @@ void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc);
 void train_update_simulation(train_descriptor *this, int t_f);
 void train_set_dest(train_descriptor *this, location *dest);
 void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick) ;
+int train_get_reverse_cost(train_descriptor *this, int dist);
+int train_get_train_length(train_descriptor *this);
