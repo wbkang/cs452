@@ -195,7 +195,9 @@ void engineer_train_on_loc(engineer *this, train_descriptor *train, location *lo
 }
 
 train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_loc) {
-	// @TODO: instead of using the first train whose position is lower than some threshold, first find the closest train, then see if its position is lower than some threshold
+	train_descriptor *closest_train = NULL;
+	int closest_dist = -1;
+
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
 		if (fixed_sgn(train_get_velocity(train)) > 0) { // moving
@@ -206,22 +208,41 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 				train_get_loc_hist(train, t_loc, &loc_past);
 				// @TODO: replace this with something more efficient, since we have a max range we should stop looking outside of that range.
 				int dist = location_dist_min(&loc_past, loc);
-				logdisplay_printf(this->log2,
-					"testing loc %s+%Fmm vs train %d at now: %s+%Fmm, old: %s+%Fmm (%dmm)",
-					loc->edge->src->name,
-					loc->offset,
-					train_no,
-					loc_train.edge->src->name,
-					loc_train.offset,
-					loc_past.edge->src->name,
-					loc_past.offset,
-					dist
-				);
+				if (dist >= 0) {
+					if (!closest_train || dist < closest_dist) {
+						closest_train = train;
+						closest_dist = dist;
+					}
+					logdisplay_printf(this->log2,
+						"testing %s+%dmm vs train %d at %s+%dmm (was at %s+%dmm), distance: %dmm",
+						loc->edge->src->name,
+						fixed_int(loc->offset),
+						train_no,
+						loc_train.edge->src->name,
+						fixed_int(loc_train.offset),
+						loc_past.edge->src->name,
+						fixed_int(loc_past.offset),
+						dist
+					);
+				} else {
+					logdisplay_printf(this->log2,
+						"testing %s+%dmm vs train %d at %s+%dmm (was at %s+%dmm), no path found",
+						loc->edge->src->name,
+						fixed_int(loc->offset),
+						train_no,
+						loc_train.edge->src->name,
+						fixed_int(loc_train.offset),
+						loc_past.edge->src->name,
+						fixed_int(loc_past.offset)
+					);
+				}
 				logdisplay_flushline(this->log2);
-				if (dist >= 0 && dist <= 400) return train;
 			}
 		}
 	}
+
+	if (closest_train && closest_dist < 400) return closest_train; // @TODO: pull out magic constant
+
 	train_descriptor *rv = NULL;
 	TRAIN_FOREACH(train_no) {
 		train_descriptor *train = &this->train[train_no];
@@ -229,7 +250,15 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 			location loc_train;
 			train_get_loc(train, &loc_train);
 			if (location_isundef(&loc_train)) { // unknown location
-				if (rv) return NULL;
+				if (rv) {
+					logdisplay_printf(this->log2,
+						"can't attribute %s+%dmm, multiple moving trains with no loc",
+						loc->edge->src->name,
+						fixed_int(loc->offset)
+					);
+					logdisplay_flushline(this->log2);
+					return NULL;
+				}
 				rv = train;
 			}
 		}
@@ -241,9 +270,9 @@ void engineer_onloc(engineer *this, location *loc, int t_loc) {
 	train_descriptor *train = engineer_attribute_loc(this, loc, t_loc);
 	if (train) {
 		logdisplay_printf(this->log2,
-			"attrib. loc. %s + %Fmm to train %d",
+			"attributing %s+%Fmm to train %d",
 			loc->edge->src->name,
-			loc->offset,
+			fixed_int(loc->offset),
 			train->no
 		);
 		logdisplay_flushline(this->log2);
