@@ -20,6 +20,6 @@ struct reservation_req {
 	int len;
 };
 
-int reserve_checkpath(int trainno, reservation_req *req);
-void reserve_path(int trainno, reservation_req *req);
-void reserve_return(int trainno, reservation_req *req);
+int reservation_checkpath(reservation_req *req, int train_no);
+void reservation_path(reservation_req *req, int train_no);
+void reservation_free(reservation_req *req, int train_no);
