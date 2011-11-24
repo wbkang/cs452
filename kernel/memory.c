@@ -92,7 +92,7 @@ static inline void mmu_set_ap(int idx, int ap) {
 	// read section base table register
 	__asm volatile ("mrc p15, 0, %[sec], c2, c0, 0\n\t" : [sec] "=r" (section_base));
 //	PRINT("marking %x as %d", idx, ap);
-	int entry = VMEM(section_base + idx * 4) & ~(0x11 << 10);
+	int entry = VMEM(section_base + idx * 4) & ~(0x3 << 10);
 	VMEM(section_base + idx * 4) = entry | (ap << 10);
 }
 
