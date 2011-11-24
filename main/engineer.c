@@ -144,11 +144,11 @@ void engineer_on_set_switch(engineer *this, int id, int pos, int t) {
 }
 
 void engineer_set_switch(engineer *this, int id, int pos) {
-	track_node *br = engineer_get_tracknode(this, "BR", id);
-	int dir = POS2DIR(pos);
-	if (br->switch_dir != dir) { // assume only engineer switches branches
+	// track_node *br = engineer_get_tracknode(this, "BR", id);
+	// int dir = POS2DIR(pos);
+	// if (br->switch_dir != dir) { // assume only engineer switches branches
 		train_switch(id, pos, this->tid_traincmdbuf);
-	}
+	// }
 }
 
 train_direction engineer_train_get_dir(engineer *this, int train_no) {

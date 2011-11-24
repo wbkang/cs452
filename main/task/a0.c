@@ -347,13 +347,7 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 	dumbbus_dispatch(state->sensor_bus, state);
 }
 
-static void printloc(void* s) {
-	a0state *state = s;
-	engineer *eng = state->eng;
-
-	int train_no = state->cur_train;
-	if (train_no < 0) return;
-
+static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *log2) {
 	train_descriptor *train = &eng->train[train_no];
 
 	location loc;
@@ -363,34 +357,45 @@ static void printloc(void* s) {
 	char *direction_str;
 	switch (train_get_dir(train)) {
 		case TRAIN_FORWARD:
-			direction_str = "->";
+			direction_str = ">";
 			break;
 		case TRAIN_BACKWARD:
-			direction_str = "<-";
+			direction_str = "<";
 			break;
 		default:
 			direction_str = "?";
 			break;
 	}
 
-	char msg[512];
-	char *b = msg;
+	location dest;
+	train_get_loc(train, &dest);
 
-	b += sprintf(b,
-		"train %d at %-5s+%Fmm heading %s at %dmm/s, res:",
+	logstrip_printf(log1,
+		"train %d at %s+%dmm heading %s at %dmm/s to %s+%dmm",
 		train_no,
 		location_isundef(&loc) ? "?" : loc.edge->src->name,
 		fixed_int(loc.offset),
 		direction_str,
-		fixed_int(fixed_mul(train_get_velocity(train), fixed_new(1000)))
+		fixed_int(fixed_mul(train_get_velocity(train), fixed_new(1000))),
+		location_isundef(&dest) ? "?" : dest.edge->src->name,
+		fixed_int(dest.offset)
 	);
 
+	char msg[512];
+	char *b = msg;
+	b += sprintf(b, "\treserving:");
 	for (int i = 0; i < train->reservation->len; i++) {
 		track_edge *e = train->reservation->edges[i];
 		b += sprintf(b, " %s-%s", e->src->name, e->dest->name);
 	}
+	logstrip_printf(log2, msg);
+}
 
-	logstrip_printf(state->trainloc, msg);
+static void printloc(void* s) {
+	a0state *state = s;
+	engineer *eng = state->eng;
+	printstuff(eng, 37, state->trainloc1, state->trainloc1r);
+	printstuff(eng, 38, state->trainloc2, state->trainloc2r);
 }
 
 static void handle_setup_demotrack(a0state *state) {
@@ -692,7 +697,10 @@ void a0() {
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
 	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 80, ROUNDROBIN);
 	state.timedisplay = timedisplay_new(state.con, 1, 9);
-	state.trainloc = logstrip_new(state.con, 9, 58);
+	state.trainloc1 = logstrip_new(state.con, 2, 50);
+	state.trainloc1r = logstrip_new(state.con, 3, 50);
+	state.trainloc2 = logstrip_new(state.con, 4, 50);
+	state.trainloc2r = logstrip_new(state.con, 5, 50);
 
 	// sensor bus
 	state.sensor_bus = dumbbus_new();

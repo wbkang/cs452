@@ -6,7 +6,7 @@
 // @TODO: implement sparse set to improve this
 // http://research.swtch.com/2008/03/using-uninitialized-memory-for-fun-and.html
 
-static inline int can_occupy(track_edge *e, int train_no) {
+int can_occupy(track_edge *e, int train_no) {
 	ASSERTNOTNULL(e);
 //	ASSERT(e->owner == train_no || e->owner == TRAIN_UNOCCUPIED,
 //				"tr%d trying to occupy the edge %s->%s owned by %d.",

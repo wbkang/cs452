@@ -260,7 +260,7 @@ int train_get_length(train_descriptor *this) {
 }
 
 int train_get_poserr(train_descriptor *this) {
-	return 400;
+	return 100;
 }
 
 fixed train_dist2front(train_descriptor *this) {
@@ -393,7 +393,7 @@ void train_set_dest(train_descriptor *this, location *dest) {
 	this->vcmdslen = 0;
 }
 
-#define RESERVE_AHEAD 50
+#define RESERVE_AHEAD 200
 
 // @TODO: use recursion to branch out reserve independently of switch dir
 static int train_try_reserve(train_descriptor *this) {
@@ -422,9 +422,7 @@ static int train_try_reserve(train_descriptor *this) {
 
 	location front = trainloc;
 	e = front.edge;
-	ASSERT(fixed_sgn(train_get_stopdist(this)) >= 0, "bad stopdist %F", train_get_stopdist(this));
-	int n = location_add(&front, fixed_add(train_get_stopdist(this), fixed_new(RESERVE_AHEAD)));
-	ASSERT(n >= 0, "bad add");
+	location_add(&front, fixed_add(train_get_stopdist(this), fixed_new(RESERVE_AHEAD)));
 	while (e != front.edge) {
 		ASSERT(r->len < MAX_PATH, "r->len = %d >= MAX_PATH", r->len);
 		ASSERTNOTNULL(e);
@@ -442,6 +440,11 @@ static int train_try_reserve(train_descriptor *this) {
 
 void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick) {
 
+	if (location_isundef(&this->loc)) { // skip me
+		this->vcmdslen = 0;
+		return;
+	}
+
 	// hack so that train doesn't have to do this
 	if (!location_isundef(&this->destination) && this->vcmdslen == 0) {
 		char buf[100];
@@ -450,12 +453,10 @@ void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, 
 		gps_findpath(this->gps, this, &this->destination, TRAIN_MAX_VCMD, this->vcmds, &this->vcmdslen, log);
 		this->last_run_vcmd = NULL;
 
-		if (this->vcmdslen == 0) {
-			logdisplay_printf(log, "cant find trip plan");
-			logdisplay_flushline(log);
-			location nowhere = location_undef();
-			train_set_dest(this, &nowhere);
-		}
+		// if (this->vcmdslen == 0) {
+		// 	logdisplay_printf(log, "cant find trip plan");
+		// 	logdisplay_flushline(log);
+		// }
 
 		for (int i = 0; i < this->vcmdslen; i++) {
 			char vcmdname[100];
@@ -466,17 +467,20 @@ void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, 
 		this->vcmdidx = 0;
 	}
 
-	if (location_isundef(&this->loc)) return; // skip me
-
 	int reserved = train_try_reserve(this);
 
+	if (location_isundef(&this->destination)) return;
+
 	if (!reserved) {
-		logdisplay_printf(log, "cant reserve (%d)", this->no);
-		logdisplay_flushline(log);
-		train_speed(this->no, 0, tid_traincmdbuf);
+		this->vcmdslen = 0;
+		if (train_get_speed(this) != 0) {
+			logdisplay_printf(log, "cant reserve (%d)", this->no);
+			logdisplay_flushline(log);
+			train_speed(this->no, 0, tid_traincmdbuf);
+		}
 		// @TODO: this should be better.. like re routing or something.
-		location nowhere = location_undef();
-		train_set_dest(this, &nowhere);
+		// location nowhere = location_undef();
+		// train_set_dest(this, &nowhere);
 	}
 
 	while (this->vcmdidx < this->vcmdslen) {
@@ -584,7 +588,24 @@ void train_ontick(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, 
 }
 
 // @TODO: give the distance since last stop (reverse)
-int train_get_reverse_cost(train_descriptor *this, int dist) {
+int train_get_reverse_cost(train_descriptor *this, int dist, track_node *node) {
 	(void) dist;
-	return train_get_length(this) + train_get_poserr(this);
+
+	if (fixed_sgn(train_get_velocity(this)) > 0 && node->type != NODE_EXIT && !can_occupy(node->edge, this->no)) return infinity;
+
+	track_node *rev = node->reverse;
+	location junk = location_fromnode(rev, 0);
+	track_edge *e = junk.edge;
+	location_add(&junk, fixed_new(train_get_length(this) + train_get_poserr(this)));
+	if (!can_occupy(junk.edge, this->no)) return infinity;
+	while (e != junk.edge) {
+		ASSERTNOTNULL(e);
+		if (!can_occupy(e, this->no)) return infinity;
+		track_node *dest = e->dest;
+		// TODO: dont stop on merges either?
+		if (dest->type == NODE_BRANCH) return infinity;
+		e = track_next_edge(dest);
+	}
+	return 0;
+	// return train_get_length(this) + train_get_poserr(this);
 }
