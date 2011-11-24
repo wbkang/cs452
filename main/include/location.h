@@ -18,5 +18,5 @@ int location_isinvalid(location *this);
 int location_dist_min(location *A, location *B);
 int location_dist_dir(location *A, location *B);
 int location_add(location *this, fixed dx);
-int location_tostring(location *this, char *buf);
 int location_reverse(location *this);
+int location_tostring(location *this, char *buf);
