@@ -92,10 +92,10 @@ static void test_heap() {
 	heap *h = heap_new(size);
 	void *got, *expected;
 	for (int i = size - 1; i != -1; i--) {
-		heap_insert_min(h, (void*) i, 11 * i);
+		heap_min_insert(h, (void*) i, 11 * i);
 	}
 	for (int i = 0; i < size; i++) {
-		got = heap_extract_min(h);
+		got = heap_min_extract(h);
 		expected = (void*) i;
 		EXPECT(expected, got);
 	}

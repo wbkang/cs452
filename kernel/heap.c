@@ -36,7 +36,7 @@ static inline int heap_put(heap *this, void *data, int key) {
 	return i;
 }
 
-static inline void heap_bubbleup_min(heap *this, uint i) {
+static inline void heap_min_bubbleup(heap *this, uint i) {
 	while (i > 0) {
 		uint p = heap_parent(i);
 		if (this->arr[p].key <= this->arr[i].key) return;
@@ -44,7 +44,7 @@ static inline void heap_bubbleup_min(heap *this, uint i) {
 	}
 }
 
-void heap_decrease_key_min(heap *this, void* data, int newkey) {
+void heap_min_decrease_key(heap *this, void* data, int newkey) {
 	int pos = -1;
 	for (int i = 0; i < this->size; i++) {
 		if (this->arr[i].data == data) {
@@ -57,9 +57,9 @@ void heap_decrease_key_min(heap *this, void* data, int newkey) {
 	ASSERT(item->key >= newkey, "newkey %d is not smaller than the original key %d", newkey, item->key);
 
 	item->key = newkey;
-	heap_bubbleup_min(this, pos);
+	heap_min_bubbleup(this, pos);
 }
-// inline void heap_bubbleup_max(heap *this, uint i) {
+// inline void heap_max_bubbleup(heap *this, uint i) {
 // 	while (i > 0) {
 // 		uint p = heap_parent(i);
 // 		if (this->arr[p].key >= this->arr[i].key) return;
@@ -67,15 +67,15 @@ void heap_decrease_key_min(heap *this, void* data, int newkey) {
 // 	}
 // }
 
-void heap_insert_min(heap *this, void* data, int key) {
-	heap_bubbleup_min(this, heap_put(this, data, key));
+void heap_min_insert(heap *this, void* data, int key) {
+	heap_min_bubbleup(this, heap_put(this, data, key));
 }
 
-// void heap_insert_max(heap *this, void* data, int key) {
-// 	heap_bubbleup_max(this, heap_put(this, data, key));
+// void heap_max_insert(heap *this, void* data, int key) {
+// 	heap_max_bubbleup(this, heap_put(this, data, key));
 // }
 
-static inline void heap_heapify_min(heap *this, uint i) {
+static inline void heap_min_heapify(heap *this, uint i) {
 	for (;;) {
 		uint left = heap_leftchild(i);
 		if (left >= this->size) return; // no left child -> no right child
@@ -94,7 +94,7 @@ static inline void heap_heapify_min(heap *this, uint i) {
 	}
 }
 
-// inline void heap_heapify_max(heap *this, uint i) {
+// inline void heap_max_heapify(heap *this, uint i) {
 // 	for (;;) {
 // 		uint left = heap_leftchild(i);
 // 		if (left >= this->size) return; // no left child -> no right child
@@ -113,26 +113,26 @@ static inline void heap_heapify_min(heap *this, uint i) {
 // 	}
 // }
 
-void* heap_extract_min(heap *this) {
+void* heap_min_extract(heap *this) {
 	ASSERT(!heap_empty(this), "empty");
 	heap_item *top = this->arr;
 	this->size--;
 	void* rv = top->data;
 	if (this->size > 0) {
 		*top = this->arr[this->size];
-		heap_heapify_min(this, 0);
+		heap_min_heapify(this, 0);
 	}
 	return rv;
 }
 
-// void* heap_extract_max(heap *this) {
+// void* heap_max_extract(heap *this) {
 //	ASSERT(!heap_empty(this), "empty");
 //	heap_item *top = this->arr;
 // 	this->size--;
 // 	void* rv = top->data;
 // 	if (this->size > 0) {
 // 		*top = this->arr[this->size];
-// 		heap_heapify_max(this, 0);
+// 		heap_max_heapify(this, 0);
 // 	}
 // 	return rv;
 // }

@@ -10,7 +10,8 @@ struct location {
 	fixed offset;
 };
 
-location location_new(track_edge *edge);
+location location_fromedge(track_edge *edge);
+location location_fromnode(track_node *node, int edge_idx);
 location location_undef();
 int location_isundef(location *this);
 int location_isinvalid(location *this);

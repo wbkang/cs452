@@ -128,14 +128,14 @@ static void handle_sensor_response(void* s) {
 	}
 }
 
-static void calibrator_setup_track(a0state *state) {
-	engineer *eng = state->eng;
-	int s[] = {1, 2, 4, 6, 7, 9, 14, 16, 153, 155};
-	int c[] = {3, 5, 8, 10, 11, 12, 13, 15, 17, 18, 154, 156};
-	int ns = sizeof(s) / sizeof(int);
-	int nc = sizeof(c) / sizeof(int);
-	engineer_set_track(eng, s, ns, c, nc);
-}
+// static void calibrator_setup_track(a0state *state) {
+// 	engineer *eng = state->eng;
+// 	int s[] = {1, 2, 4, 6, 7, 9, 14, 16, 153, 155};
+// 	int c[] = {3, 5, 8, 10, 11, 12, 13, 15, 17, 18, 154, 156};
+// 	int ns = sizeof(s) / sizeof(int);
+// 	int nc = sizeof(c) / sizeof(int);
+// 	engineer_set_track(eng, s, ns, c, nc);
+// }
 
 void calibrate_train(a0state *state, int train_no, char sig1mod, int sig1id) {
 	engineer *eng = state->eng;

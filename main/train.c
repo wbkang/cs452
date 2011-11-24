@@ -108,10 +108,10 @@ void train_init_static(train_descriptor *train) {
 
 			train->ai_avg10000 = fixed_div(fixed_new(30577), fixed_new(10000));
 			train->ad_avg10000 = fixed_div(fixed_new(-30577), fixed_new(10000));
-			
+
 			train->a_m10000 = fixed_div(fixed_new(41155), fixed_new(10000));
 			train->a_b10000 = fixed_div(fixed_new(4520), fixed_new(10000));
-			
+
 			train->calibrated = TRUE;
 			break;
 		}
@@ -250,6 +250,10 @@ int train_get_length(train_descriptor *this) {
 	return fixed_int(this->dist2nose) + fixed_int(this->dist2tail) + fixed_int(this->len_pickup);
 }
 
+int train_get_poserr(train_descriptor *this) {
+	return 200;
+}
+
 // simulate the distance the train would travel from t_i to t_f
 // assuming t_i <= t_f and that t_i is relatively close to the current time
 fixed train_simulate_dx(train_descriptor *this, int t_i, int t_f) {
@@ -277,7 +281,7 @@ void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc) {
 #define TRAIN_SIM_DT_EXP 0
 #define TRAIN_SIM_DT (1 << TRAIN_SIM_DT_EXP)
 
-// @TODO: add jerk
+// @TODO: instead of linearly increasing velocity scale 3t^2-2t^3
 static void train_step_sim(train_descriptor *this, int dt) {
 	const fixed margin = fixed_new(1);
 	fixed diff = fixed_sub(this->v10000, this->v_f10000);
