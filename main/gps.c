@@ -232,7 +232,7 @@ void dijkstra(track_node *nodes, heap *unoptimized, track_node *src, track_node 
 				track_node *v = edge->dest;
 				if (v->type == NODE_MERGE) {
 					track_node *v_rev = v->reverse;
-					track_edge *other_edge = &v_rev->edge[0] == edge ? &v_rev->edge[1] : &v_rev->edge[0];
+					track_edge *other_edge = v_rev->edge[0].reverse == edge ? v_rev->edge[1].reverse : v_rev->edge[0].reverse;
 					if (!can_occupy(other_edge, train->no)) continue;
 				} else if (u->type == NODE_BRANCH) {
 					track_edge *other_edge = &u->edge[0] == edge ? &u->edge[1] : &u->edge[0];
