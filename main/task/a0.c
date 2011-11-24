@@ -413,7 +413,7 @@ static void handle_train_switch_all(a0state *state, char pos) {
 static void handle_set_dest(a0state *state, int trainno, char *type, int id, int dist_cm) {
 	train_descriptor *train = &state->eng->train[trainno];
 	track_node *destnode = engineer_get_tracknode(state->eng, type, id);
-	location dest =	location_new(&destnode->edge[0]);
+	location dest =	location_fromnode(destnode, 0);
 	location_add(&dest, fixed_new(dist_cm * 10));
 	train_set_dest(train, &dest);
 	char destname[100];

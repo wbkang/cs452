@@ -24,7 +24,7 @@ static inline void timeserver_do_tick(timeserver_state *state, int tid_notifier)
 	ReplyInt(tid_notifier, 0); // unblock notifier
 	state->time++;
 	while (!heap_empty(state->tasks) && heap_peekkey(state->tasks) <= state->time) {
-		int tid = (int) heap_extract_min(state->tasks);
+		int tid = (int) heap_min_extract(state->tasks);
 		ReplyInt(tid, 0);
 	}
 }
@@ -34,7 +34,7 @@ static inline void timeserver_do_time(timeserver_state *state, int tid) {
 }
 
 static inline void timeserver_do_delayuntil(timeserver_state *state, int tid, int ticks) {
-	heap_insert_min(state->tasks, (void*) tid, ticks);
+	heap_min_insert(state->tasks, (void*) tid, ticks);
 }
 
 static inline void timeserver_do_delay(timeserver_state *state, int tid, int ticks) {

@@ -258,7 +258,7 @@ void engineer_onsensor(engineer *this, char data[]) {
 	engineer_ontick(this);
 	msg_sensor *msg = (msg_sensor*) data;
 	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
-	location loc_sensor = location_new(sensor->edge);
+	location loc_sensor = location_fromnode(sensor, 0);
 	if (msg->state == OFF) {
 		return; // @TODO: removing this reduces simulation accuracy, why?
 		fixed len_pickup = fixed_new(50); // @TODO: don't hardcode, even though so easy

@@ -20,8 +20,8 @@ void switchcmdrunner() {
 
 
 
-	console *con = console_new(COM2);
-	logstrip *log = logstrip_new(con, 2, 80);
+	// console *con = console_new(COM2);
+	// logstrip *log = logstrip_new(con, 2, 80);
 
 
 

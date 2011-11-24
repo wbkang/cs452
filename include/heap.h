@@ -32,8 +32,8 @@ static inline int heap_peekkey(heap *this) {
 }
 
 heap *heap_new(int size);
-void heap_insert_min(heap *this, void* data, int key);
-void *heap_extract_min(heap *this);
-void heap_decrease_key_min(heap *this, void* data, int newkey);
-// void heap_insert_max(heap *this, void* data, int key);
-// void *heap_extract_max(heap *this);
+void heap_min_insert(heap *this, void* data, int key);
+void *heap_min_extract(heap *this);
+void heap_min_decrease_key(heap *this, void* data, int newkey);
+// void heap_max_insert(heap *this, void* data, int key);
+// void *heap_max_extract(heap *this);

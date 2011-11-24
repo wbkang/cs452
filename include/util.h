@@ -89,6 +89,14 @@ static inline int overflow(int x, int y) {
 	return (y > 0 && x > INT_MAX - y) || (y < 0 && x < INT_MIN - y);
 }
 
+#define REVERSE_ARR(arr, size) { \
+	for (int i = (size >> 1) - 1; i >= 0; i--) { \
+		void* item = arr[i]; \
+		arr[i] = arr[size - i - 1]; \
+		arr[size - i - 1] = item; \
+	} \
+}
+
 ///////////// DEBUG
 #define MEM_PROTECTION 0 // MEM_CACHE must be on
 #define MEM_CACHE 1

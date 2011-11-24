@@ -61,7 +61,7 @@ void train_stopper_setup(a0state *state, int train_no, char *type, int id, int o
 	}
 
 	ts_state.train_no = train_no;
-	ts_state.dest = location_new(track_next_edge(dest));
+	ts_state.dest = location_fromnode(dest, 0);
 	location_add(&ts_state.dest, fixed_new(over));
 
 	if (location_isundef(&ts_state.dest)) {

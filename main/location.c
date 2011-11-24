@@ -1,12 +1,35 @@
 #include <location.h>
 #include <util.h>
 
-location location_new(track_edge *edge) {
+#define LOCATION_EXIT_MARGIN 20
+
+location location_fromedge(track_edge *edge) {
 	return (location) {edge, fixed_new(0)};
 }
 
+location location_fromnode(track_node *node, int edge_idx) {
+	ASSERTNOTNULL(node);
+	switch (node->type) {
+		case NODE_SENSOR:
+		case NODE_MERGE:
+		case NODE_ENTER:
+			return location_fromedge(&node->edge[DIR_AHEAD]);
+		case NODE_BRANCH:
+			return location_fromedge(&node->edge[edge_idx]);
+		case NODE_EXIT: {
+			location rv = location_fromnode(node->reverse, DIR_AHEAD);
+			location_add(&rv, fixed_new(LOCATION_EXIT_MARGIN));
+			location_reverse(&rv);
+			return rv;
+		}
+		default:
+			ASSERT(0, "bad node type %d", node->type);
+			return location_undef();
+	}
+}
+
 location location_undef() {
-	return location_new(NULL);
+	return location_fromedge(NULL);
 }
 
 int location_isundef(location *this) {
@@ -131,7 +154,7 @@ int location_tostring(location *this, char *buf) {
 int location_reverse(location *this) {
 	if (location_isundef(this)) return -1; // reversing undefined location
 	fixed offset = fixed_sub(fixed_new(this->edge->dist), this->offset);
-	*this = location_new(this->edge->reverse);
+	*this = location_fromedge(this->edge->reverse);
 	location_add(this, offset);
 	return 0;
 }
