@@ -37,9 +37,9 @@ engineer *engineer_new(char track_name) {
 	}
 
 	this->con = console_new(COM2);
-	this->log = logdisplay_new(this->con, 11, 56, 8, 100, ROUNDROBIN);
-	this->log2 = logdisplay_new(this->con, 11 + 9, 56, 8, 100, ROUNDROBIN);
-	this->triplog = logdisplay_new(this->con, 11 + 18, 56 + 25, 8 + 14, 100, ROUNDROBIN);
+	this->log = logdisplay_new(this->con, 11, 56, 8, 100, ROUNDROBIN, "train location log");
+	this->log2 = logdisplay_new(this->con, 11 + 9, 56, 8, 100, ROUNDROBIN, "location attribution log");
+	this->triplog = logdisplay_new(this->con, 11 + 18, 56 + 25, 8 + 14, 100, ROUNDROBIN, "engineer triplog");
 	this->tid_time = WhoIs(NAME_TIMESERVER);
 
 	return this;
