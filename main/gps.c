@@ -13,7 +13,7 @@
 #define REVERSE_TIMEOUT 4000
 #define REVERSE_COST 500
 
-static fixed gps_distance(location *start, location *end, track_node **path, int pathlen);
+// static fixed gps_distance(location *start, location *end, track_node **path, int pathlen);
 static char const *vcmdnames[] = { "SETSPEED", "SETREVERSE", "SETSWITCH", "WAITFORMS", "WAITFORLOC", "STOP" };
 
 gps *gps_new(track_node *nodes) {
@@ -70,7 +70,10 @@ static inline void trainvcmd_addswitch(trainvcmd *rv_vcmd, int *idx, char const 
 
 
 static inline char gps_getnextswitchpos(track_node *sw, track_edge *edgeafterbranch) {
-	return (edgeafterbranch == &sw->edge[DIR_STRAIGHT]) ? 's' : 'c';
+	if (edgeafterbranch == &sw->edge[DIR_STRAIGHT]) return 's';
+	if (edgeafterbranch == &sw->edge[DIR_CURVED]) return 'c';
+	ASSERT(0, "edgeafterbranch not an edge of sw");
+	return '\0'; // unreachable
 }
 
 
@@ -102,7 +105,7 @@ static inline void gps_getstoploc(location *loc, track_node *cur_node, track_nod
 }
 
 static int gps_collapsereverse(track_node *startnode, track_node **path, int pathlen, train_descriptor *train) {
-	if (pathlen < 1 && fixed_sgn(train_get_velocity(train)) > 0) {
+	if (pathlen == 0 || fixed_sgn(train_get_velocity(train)) > 0) {
 		return -1;
 	}
 
@@ -149,9 +152,6 @@ void gps_findpath(gps *this,
 	int cmdlen = 0;
 
 	if (pathlen > 0) {
-		fixed dist = gps_distance(&trainloc, dest, path, pathlen);
-		dist = fixed_sub(dist, fixed_sub(fixed_new(trainloc.edge->dist), trainloc.offset));
-
 		int collapseidx = gps_collapsereverse(trainloc.edge->src, path, pathlen, train);
 		int startidx;
 
@@ -168,45 +168,46 @@ void gps_findpath(gps *this,
 			track_node *curnode = path[i];
 			track_node *nextnode = path[i + 1];
 			track_edge *nextedge = gps_gettrackedge(curnode, nextnode);
-			ASSERT(nextedge || curnode->reverse == nextnode, "i:%d curnode:%s, nextnode:%s", i, curnode->name, nextnode->name);
+			ASSERT(nextedge || curnode->reverse == nextnode, "i: %d curnode: %s, nextnode: %s", i, curnode->name, nextnode->name);
 
-			if (curnode->type == NODE_BRANCH) {
-				char pos = gps_getnextswitchpos(curnode, nextedge);
-				location switchloc = location_new(nextedge);
-				trainvcmd_addswitch(rv_vcmd, &cmdlen, curnode->name, pos, &switchloc);
-			}
-
-			// reverse plan
-			if (!nextedge) {
+			if (nextedge) {
+				if (curnode->type == NODE_BRANCH) {
+					char pos = gps_getnextswitchpos(curnode, nextedge);
+					location switchloc = location_new(nextedge);
+					trainvcmd_addswitch(rv_vcmd, &cmdlen, curnode->name, pos, &switchloc);
+				}
+			} else if (curnode->reverse == nextnode) { // reverse plan
 				location stoploc;
 				gps_getstoploc(&stoploc, curnode, nextnode, train);
 
 				trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
 				trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
 				trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
+				// TODO if this is the last edge then do not start the train again
 				trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
+			} else {
+				ASSERT(0, "no edge between %s and %s", curnode->name, nextnode->name);
 			}
 		}
 
-		{
-			track_node *last_node = path[pathlen - 1];
-			if (last_node->type == NODE_BRANCH) {
-				char pos = gps_getnextswitchpos(last_node, dest->edge);
-				location switchloc = location_new(dest->edge);
-				trainvcmd_addswitch(rv_vcmd, &cmdlen, last_node->name, pos, &switchloc);
-			}
+		track_node *last_node = path[pathlen - 1];
+
+		if (last_node->type == NODE_BRANCH) {
+			char pos = gps_getnextswitchpos(last_node, dest->edge);
+			location switchloc = location_new(dest->edge);
+			trainvcmd_addswitch(rv_vcmd, &cmdlen, last_node->name, pos, &switchloc);
 		}
 
-		if (path[pathlen - 1] == trainloc.edge->dest) {
-			track_node *cur_node = trainloc.edge->dest;
-			track_node *next_node = trainloc.edge->dest->reverse;
-			location stoploc;
-			gps_getstoploc(&stoploc, cur_node, next_node, train);
-			trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
-			trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
-			trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
-			trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
-		}
+		// if (last_node == trainloc.edge->dest) {
+		// 	track_node *cur_node = trainloc.edge->dest;
+		// 	track_node *next_node = trainloc.edge->dest->reverse;
+		// 	location stoploc;
+		// 	gps_getstoploc(&stoploc, cur_node, next_node, train);
+		// 	trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
+		// 	trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
+		// 	trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
+		// 	trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
+		// }
 
 //			ExitKernel(0);
 		trainvcmd_addstop(rv_vcmd, &cmdlen, dest);
@@ -254,13 +255,9 @@ void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_nod
 		track_node *u = heap_extract_min(unoptimized);
 		int uidx = u - nodeary;
 
-		if (dist[uidx] == infinity) {
-			break;
-		}
+		if (dist[uidx] == infinity) break;
 
-		if (u == tgt) {
-			break;
-		}
+		if (u == tgt) break;
 
 		{
 			int neighbour_cnt = num_neighbour(u);
@@ -291,7 +288,7 @@ void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_nod
 		}
 	}
 
-	if (dist[tgtidx] != infinity) {
+	if (dist[tgtidx] < infinity) {
 		track_node *u = tgt;
 		int uidx = u - nodeary;
 		int pos = 0;
@@ -303,72 +300,71 @@ void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_nod
 			uidx = u - nodeary;
 		}
 
-		for (int i = 0; i < pos / 2; i++) { // reverse the path
+		for (int i = (pos >> 1) - 1; i >= 0; i--) { // reverse the path
 			track_node *n = rv_nodes[i];
 			rv_nodes[i] = rv_nodes[pos - i - 1];
 			rv_nodes[pos - i - 1] = n;
 		}
 
 		*rv_nodecnt = pos;
-	}
-	else {
+	} else {
 		*rv_nodecnt = 0;
 	}
 }
 
-static fixed gps_distance(location *start, location *end, track_node **path, int pathlen) {
-	ASSERT((int)path % 4 == 0, "path unaligned");
-	ASSERT((int)start % 4 == 0, "start unaligned");
-	ASSERT((int)end % 4 == 0, "end unaligned");
-	fixed total = fixed_new(0);
-	ASSERT(start->edge->dist > 0, "start->edge->dist %d", start->edge->dist);
-	total = fixed_add(total, fixed_sub(fixed_new(start->edge->dist), start->offset));
-	total = fixed_add(total, end->offset);
-	int cnt = 0;
-	char startbuf[100], endbuf[100];
-	location_tostring(start, startbuf);
-	location_tostring(end, endbuf);
+// static fixed gps_distance(location *start, location *end, track_node **path, int pathlen) {
+// 	ASSERT((int) path & 3 == 0, "path unaligned");
+// 	ASSERT((int) start & 3 == 0, "start unaligned");
+// 	ASSERT((int) end & 3 == 0, "end unaligned");
+// 	fixed total = fixed_new(0);
+// 	ASSERT(start->edge->dist > 0, "start->edge->dist %d", start->edge->dist);
+// 	total = fixed_add(total, fixed_sub(fixed_new(start->edge->dist), start->offset));
+// 	total = fixed_add(total, end->offset);
+// 	int cnt = 0;
+// 	char startbuf[100], endbuf[100];
+// 	location_tostring(start, startbuf);
+// 	location_tostring(end, endbuf);
 
-	if (pathlen > 0) {
-		track_node *curnode = path[cnt];
-		while (curnode != end->edge->src) {
-			track_edge * const curedge = gps_gettrackedge(curnode, path[cnt+1]);
-			ASSERT(curedge || curnode->reverse == path[cnt+1], "wtf");
-			if (curedge) { // this is a non reverse segment
-				total = fixed_add(total, fixed_new(curedge->dist));
-			}
-			curnode = path[++cnt];
-		}
-	}
+// 	if (pathlen > 0) {
+// 		track_node *curnode = path[cnt];
+// 		while (curnode != end->edge->src) {
+// 			track_edge * const curedge = gps_gettrackedge(curnode, path[cnt+1]);
+// 			ASSERT(curedge || curnode->reverse == path[cnt+1], "wtf");
+// 			if (curedge) { // this is a non reverse segment
+// 				total = fixed_add(total, fixed_new(curedge->dist));
+// 			}
+// 			curnode = path[++cnt];
+// 		}
+// 	}
 
-	return total;
-}
+// 	return total;
+// }
 
 int vcmd2str(char *buf, trainvcmd *vcmd) {
 	char * const origbuf = buf;
-	char locname[100];
-	buf += sprintf(buf, "[%s ", vcmdnames[vcmd->name]);
+	buf += sprintf(buf, "[%s: ", vcmdnames[vcmd->name]);
 	switch (vcmd->name) {
 		case VCMD_WAITFORLOC:
-			buf += sprintf(buf, "src:%s offset:%F", vcmd->location.edge->src, vcmd->location.offset);
+			buf += sprintf("wait for ", buf);
+			buf += location_tostring(&vcmd->location, buf);
 			break;
 		case VCMD_STOP:
-			location_tostring(&vcmd->location, locname);
-			buf += sprintf(buf, "stop at %s", locname);
+			buf += sprintf("stop at ", buf);
+			buf += location_tostring(&vcmd->location, buf);
 			break;
 		case VCMD_SETSPEED:
-			location_tostring(&vcmd->location, locname);
-			buf += sprintf(buf, "speed:%d at %s", vcmd->data.speed, locname);
+			buf += sprintf(buf, "speed %d at ", vcmd->data.speed);
+			buf += location_tostring(&vcmd->location, buf);
 			break;
 		case VCMD_SETSWITCH:
-			location_tostring(&vcmd->location, locname);
-			buf += sprintf(buf, "switch %s to %c at %s", vcmd->data.switchinfo.nodename, vcmd->data.switchinfo.pos, locname);
+			buf += sprintf(buf, "switch %s to %c at ", vcmd->data.switchinfo.nodename, vcmd->data.switchinfo.pos);
+			buf += location_tostring(&vcmd->location, buf);
 			break;
 		case VCMD_SETREVERSE:
 			buf += sprintf(buf, "reverse");
 			break;
 		case VCMD_WAITFORMS:
-			buf += sprintf(buf, "for %dms", vcmd->data.timeout);
+			buf += sprintf(buf, "pause for %dms", vcmd->data.timeout);
 			break;
 	}
 	buf += sprintf(buf, "]");
