@@ -413,7 +413,7 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 				this->vcmdidx++;
 				continue;
 			case VCMD_SETSPEED: {
-				int dist = location_isundef(&waitloc) ? 0 : location_dist_dir(&curloc, &waitloc);
+				int dist = location_isundef(&waitloc) ? 0 : location_dist_min(&curloc, &waitloc);
 				if (dist < 0) break;
 				if (dist <= 40) {
 					int speed = curvcmd->data.speed;
@@ -424,7 +424,7 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 				break;
 			}
 			case VCMD_SETSWITCH: {
-				int dist = location_isundef(&waitloc) ? 0 : location_dist_dir(&curloc, &waitloc);
+				int dist = location_isundef(&waitloc) ? 0 : location_dist_min(&curloc, &waitloc);
 				if (dist < 0) break;
 				int switch_dist = fixed_int(train_get_stopdist(this));
 				if (dist <= switch_dist) {
@@ -443,7 +443,7 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 				break;
 			}
 			case VCMD_STOP: {
-				int dist = location_isundef(&waitloc) ? 0 : location_dist_dir(&curloc, &waitloc);
+				int dist = location_isundef(&waitloc) ? 0 : location_dist_min(&curloc, &waitloc);
 				if (dist < 0) break;
 				int stopdist = fixed_int(train_get_stopdist(this));
 				if (dist <= stopdist) {
