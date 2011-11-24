@@ -464,13 +464,8 @@ static void handle_command(void* s, char *cmd, int size) {
 			ENFORCE(sig1mod >= 'A' && sig1mod <= 'E', "bad start sensor mod");
 			int sig1id = strgetui(&c);
 			ENFORCE(sig1id >= 1 && sig1id <= 16, "bad start sensor id");
-			ACCEPT(' ');
-			char sig2mod = *c++;
-			ENFORCE(sig1mod >= 'A' && sig1mod <= 'E', "bad finish sensor mod");
-			int sig2id = strgetui(&c);
-			ENFORCE(sig2id >= 1 && sig2id <= 16, "bad start sensor id");
 			ACCEPT('\0');
-			calibrate_train(state, train, sig1mod, sig1id, sig2mod, sig2id);
+			calibrate_train(state, train, sig1mod, sig1id);
 			break;
 		}
 		case 'd': {
