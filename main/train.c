@@ -55,6 +55,10 @@ void train_init_static(train_descriptor *train) {
 
 			train->ai_avg10000 = fixed_div(fixed_new(16363), fixed_new(10000));
 			train->ad_avg10000 = fixed_div(fixed_new(-16363), fixed_new(10000));
+
+			train->a_m10000 = fixed_div(fixed_new(-2448), fixed_new(10000));
+			train->a_b10000 = fixed_div(fixed_new(17159), fixed_new(10000));
+
 			train->calibrated = TRUE;
 			break;
 		}
@@ -105,6 +109,10 @@ void train_init_static(train_descriptor *train) {
 
 			train->ai_avg10000 = fixed_div(fixed_new(30577), fixed_new(10000));
 			train->ad_avg10000 = fixed_div(fixed_new(-30577), fixed_new(10000));
+
+			train->a_m10000 = fixed_div(fixed_new(41155), fixed_new(10000));
+			train->a_b10000 = fixed_div(fixed_new(4520), fixed_new(10000));
+
 			train->calibrated = TRUE;
 			break;
 		}
@@ -215,7 +223,8 @@ void train_reverse_dir(train_descriptor *this) {
 	}
 }
 
-void train_on_reverse(train_descriptor *this) {
+void train_on_reverse(train_descriptor *this, int t) {
+	train_update_simulation(this, t);
 	train_reverse_dir(this);
 	location_reverse(&this->loc);
 	location_add(&this->loc, this->len_pickup);
@@ -256,14 +265,35 @@ void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc) {
 	int t_f = train_get_tsim(this);
 	ASSERT(t_i <= t_f, "asking for non-historic data");
 	fixed dx = train_simulate_dx(this, t_i, t_f);
-	dx = fixed_neg(dx);
 	train_get_loc(this, rv_loc);
-	location_add(rv_loc, dx);
+	location_add(rv_loc, fixed_neg(dx));
 }
 
 // simulation step is 2^TRAIN_SIM_DT_EXP milliseconds
-#define TRAIN_SIM_DT_EXP 2
+#define TRAIN_SIM_DT_EXP 0
 #define TRAIN_SIM_DT (1 << TRAIN_SIM_DT_EXP)
+
+// @TODO: add jerk
+static void train_step_sim(train_descriptor *this, int dt) {
+	const fixed margin = fixed_new(1);
+	fixed diff = fixed_sub(this->v10000, this->v_f10000);
+	fixed fdt = fixed_new(dt);
+	if (fixed_cmp(fixed_abs(diff), margin) > 0) {
+		fixed dv10000 = fixed_abs(fixed_sub(this->v_f10000, this->v_i10000));
+		fixed a10000 = fixed_add(fixed_div(fixed_mul(this->a_m10000, dv10000), fixed_new(10000)), this->a_b10000);
+		if (fixed_sgn(diff) < 0) {
+			this->v10000 = fixed_add(this->v10000, fixed_mul(a10000, fdt));
+		} else {
+			this->v10000 = fixed_sub(this->v10000, fixed_mul(a10000, fdt));
+		}
+	}
+	if (!location_isundef(&this->loc) && fixed_cmp(fixed_abs(this->v10000), margin) > 0) {
+		fixed dx10000 = fixed_mul(this->v10000, fdt);
+		fixed dx = fixed_div(dx10000, fixed_new(10000));
+		location_add(&this->loc, dx);
+	}
+	this->t_sim += dt;
+}
 
 // @TODO: add jerk
 // static void train_step_sim(train_descriptor *this, int dt) {
@@ -288,24 +318,24 @@ void train_get_loc_hist(train_descriptor *this, int t_i, location *rv_loc) {
 // }
 
 // // @TODO: add jerk
-static void train_step_sim(train_descriptor *this, int dt) {
-	const fixed margin = fixed_new(1);
-	fixed diff = fixed_sub(this->v10000, this->v_f10000);
-	fixed fdt = fixed_new(dt);
-	if (fixed_cmp(fixed_abs(diff), margin) > 0) {
-		if (fixed_sgn(diff) < 0) {
-			this->v10000 = fixed_add(this->v10000, fixed_mul(this->ai_avg10000, fdt));
-		} else {
-			this->v10000 = fixed_add(this->v10000, fixed_mul(this->ad_avg10000, fdt));
-		}
-	}
-	if (!location_isundef(&this->loc) && fixed_cmp(fixed_abs(this->v10000), margin) > 0) {
-		fixed dx10000 = fixed_mul(this->v10000, fdt);
-		fixed dx = fixed_div(dx10000, fixed_new(10000));
-		location_add(&this->loc, dx);
-	}
-	this->t_sim += dt;
-}
+// static void train_step_sim(train_descriptor *this, int dt) {
+// 	const fixed margin = fixed_new(1);
+// 	fixed diff = fixed_sub(this->v10000, this->v_f10000);
+// 	fixed fdt = fixed_new(dt);
+// 	if (fixed_cmp(fixed_abs(diff), margin) > 0) {
+// 		if (fixed_sgn(diff) < 0) {
+// 			this->v10000 = fixed_add(this->v10000, fixed_mul(this->ai_avg10000, fdt));
+// 		} else {
+// 			this->v10000 = fixed_add(this->v10000, fixed_mul(this->ad_avg10000, fdt));
+// 		}
+// 	}
+// 	if (!location_isundef(&this->loc) && fixed_cmp(fixed_abs(this->v10000), margin) > 0) {
+// 		fixed dx10000 = fixed_mul(this->v10000, fdt);
+// 		fixed dx = fixed_div(dx10000, fixed_new(10000));
+// 		location_add(&this->loc, dx);
+// 	}
+// 	this->t_sim += dt;
+// }
 
 void train_update_simulation(train_descriptor *this, int t_f) {
 	int t_i = train_get_tsim(this);

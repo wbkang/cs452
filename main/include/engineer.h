@@ -31,7 +31,7 @@ void engineer_set_speed(engineer *this, int train_no, int speed);
 fixed engineer_get_velocity(engineer *this, int train_no);
 int engineer_get_speedidx(engineer *this, int train_no);
 void engineer_get_loc(engineer *this, int train_no, location *loc);
-void engineer_on_reverse(engineer *this, int train_no);
+void engineer_on_reverse(engineer *this, int train_no, int t);
 void engineer_reverse(engineer *this, int train_no);
 void engineer_set_track(engineer *this, int s[], int ns, int c[], int nc);
 track_node *engineer_get_tracknode(engineer *this, char *type, int id);
