@@ -64,8 +64,8 @@ static enum direction opposite_direction[] = {
 };
 
 static void sensor_pic_def(track_template *tt, char mod, int id1, enum direction dir1, int id2, int row, int col) {
-	sensor_pic_info *spinfo1 = &(tt->sensor_pic_info_table[mod - 'A'][id1]);
-	sensor_pic_info *spinfo2 = &(tt->sensor_pic_info_table[mod - 'A'][id2]);
+	sensor_pic_info *spinfo1 = &(tt->sensor_pic_info_table[mod - 'A'][id1 - 1]);
+	sensor_pic_info *spinfo2 = &(tt->sensor_pic_info_table[mod - 'A'][id2 - 1]);
 	spinfo1->dir = dir1;
 	spinfo1->row = row;
 	spinfo1->col = col;
@@ -169,7 +169,7 @@ static void init_sensor_pic(track_template *tt) {
 }
 
 static sensor_pic_info *get_sensor_pic_info(track_template *tt, char mod, int id) {
-	sensor_pic_info *spinfo = &tt->sensor_pic_info_table[mod - 'A'][id];
+	sensor_pic_info *spinfo = &tt->sensor_pic_info_table[mod - 'A'][id - 1];
 	ASSERT((uint) spinfo < 0x3f000000, "omfg. tt:%x, mod:%d(%c), id:%d", tt, mod, mod, id);
 	return spinfo;
 }
