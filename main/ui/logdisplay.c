@@ -6,13 +6,24 @@
 
 #define ROUND_ROBIN_PREFIX "> "
 
-logdisplay *logdisplay_new(console *con, int line, int col, int totallines, int totalcols, int rotation) {
+static void logdisplay_put_title(logdisplay* this) {
+	console_move(this->con, this->line, this->col);
+	console_effect(this->con, EFFECT_UNDERSCORE);
+	char fmt[this->totalcols + 1];
+	sprintf(fmt, "%%-%ds");
+	console_printf(this->con, fmt, this->title);
+	console_effect_reset(this->con);
+	console_flush(this->con);
+}
+
+logdisplay *logdisplay_new(console *con, int line, int col, int totallines, int totalcols, int rotation, char *title) {
 	logdisplay *this = malloc(sizeof(logdisplay) + sizeof(char*) * totallines);
 	this->con = con;
-	this->line = line;
+	this->line = line + 1; // for the title
 	this->col = col;
-	this->totallines = totallines;
+	this->totallines = totallines - 1; // for the title
 	this->totalcols = totalcols;
+	this->title = title;
 	if (rotation == ROUNDROBIN) this->totalcols -= strlen(ROUND_ROBIN_PREFIX); // accounting for the starting arrow
 	this->curcol = 0;
 	this->curline = 0;
@@ -24,6 +35,7 @@ logdisplay *logdisplay_new(console *con, int line, int col, int totallines, int 
 	}
 
 	this->rotation = rotation;
+	logdisplay_put_title(this);
 	return this;
 }
 

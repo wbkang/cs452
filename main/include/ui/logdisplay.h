@@ -13,10 +13,11 @@ typedef struct {
 	int topline;
 	enum { ROUNDROBIN, SCROLLING } rotation;
 	struct console *con;
+	char *title;
 	char *buf[];
 } logdisplay;
 
-logdisplay *logdisplay_new(console *con, int line, int col, int totallines, int totalcols, int rotation);
+logdisplay *logdisplay_new(console *con, int line, int col, int totallines, int totalcols, int rotation, char *title);
 void logdisplay_puts(logdisplay *this, char* str);
 void logdisplay_flushline(logdisplay *this);
 
