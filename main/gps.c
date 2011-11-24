@@ -100,7 +100,7 @@ static inline void gps_getstoploc(location *loc, track_node *cur_node, track_nod
 	} else {
 		ASSERTNOTNULL(&cur_node->edge[0]);
 		*loc = location_new(&cur_node->edge[0]);
-		location_add(loc, fixed_new(train_get_train_length(train) << 1));
+		location_add(loc, fixed_new(train_get_length(train) << 1));
 	}
 }
 
@@ -175,6 +175,8 @@ void gps_findpath(gps *this,
 					char pos = gps_getnextswitchpos(curnode, nextedge);
 					location switchloc = location_new(nextedge);
 					trainvcmd_addswitch(rv_vcmd, &cmdlen, curnode->name, pos, &switchloc);
+				} else {
+					// nothing to do
 				}
 			} else if (curnode->reverse == nextnode) { // reverse plan
 				location stoploc;
@@ -183,8 +185,10 @@ void gps_findpath(gps *this,
 				trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
 				trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
 				trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
-				// TODO if this is the last edge then do not start the train again
-				trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
+				// @TODO: this works but the stop at the end is useless
+				if (i < pathlen - 2) {
+					trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
+				}
 			} else {
 				ASSERT(0, "no edge between %s and %s", curnode->name, nextnode->name);
 			}
