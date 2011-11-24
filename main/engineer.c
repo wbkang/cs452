@@ -86,9 +86,9 @@ void engineer_get_loc(engineer *this, int train_no, location *loc) {
 	train_get_loc(&this->train[train_no], loc);
 }
 
-void engineer_on_reverse(engineer *this, int train_no) {
+void engineer_on_reverse(engineer *this, int train_no, int t) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_on_reverse(&this->train[train_no]);
+	train_on_reverse(&this->train[train_no], t);
 }
 
 // @TODO: this is a tricky thing because it's technically a small path involving 3 commands and 2 delays. this needs to be rethought in the context of a path finder.
