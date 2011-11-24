@@ -75,18 +75,6 @@ static inline char gps_getnextswitchpos(track_node *sw, track_edge *edgeafterbra
 	return '\0'; // unreachable
 }
 
-
-static inline track_edge *gps_gettrackedge(track_node *from, track_node *to) {
-	if (from->type == NODE_BRANCH && from->edge[1].dest == to) {
-		return &from->edge[1];
-	} else if (from->edge[0].dest == to) {
-		return &from->edge[0];
-	} else {
-//		ASSERT(0, "no direct edge from %s to %s", from->name, to->name);
-		return 0; // unreachable
-	}
-}
-
 static inline void gps_getstoploc(location *loc, track_node *cur_node, track_node *next_node, train_descriptor *train) {
 	ASSERTNOTNULL(loc);
 	ASSERTNOTNULL(cur_node);
@@ -166,7 +154,7 @@ void gps_findpath(gps *this,
 		for (int i = startidx; i < *pathlen - 1; i++) {
 			track_node *curnode = path[i];
 			track_node *nextnode = path[i + 1];
-			track_edge *nextedge = gps_gettrackedge(curnode, nextnode);
+			track_edge *nextedge = track_get_edge(curnode, nextnode);
 			ASSERT(nextedge || curnode->reverse == nextnode, "i: %d curnode: %s, nextnode: %s", i, curnode->name, nextnode->name);
 
 			if (nextedge) {
@@ -185,7 +173,7 @@ void gps_findpath(gps *this,
 				trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
 				trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
 				// @TODO: this works but the stop at the end is useless
-				if (i < pathlen - 2) {
+				if (i < *pathlen - 2) {
 					trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
 				}
 			} else {
@@ -331,7 +319,7 @@ void dijkstra(track_node *nodeary, heap *unoptimized, track_node *src, track_nod
 // 	if (pathlen > 0) {
 // 		track_node *curnode = path[cnt];
 // 		while (curnode != end->edge->src) {
-// 			track_edge * const curedge = gps_gettrackedge(curnode, path[cnt+1]);
+// 			track_edge * const curedge = track_get_edge(curnode, path[cnt+1]);
 // 			ASSERT(curedge || curnode->reverse == path[cnt+1], "wtf");
 // 			if (curedge) { // this is a non reverse segment
 // 				total = fixed_add(total, fixed_new(curedge->dist));
