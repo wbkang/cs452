@@ -3,7 +3,7 @@
 #include <util.h>
 #include <stdio.h>
 
-#define CONSOLE_CLEAR "\x1B[2J"
+#define CONSOLE_CLEAR "\x1B[2J\x1Br"
 #define CONSOLE_ERASE_SOL "\x1B[1K"
 #define CONSOLE_ERASE_EOL "\x1B[K"
 #define CONSOLE_EFFECT(effect) "\033[" TOSTRING(effect) "m"
