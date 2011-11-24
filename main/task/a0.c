@@ -732,6 +732,8 @@ void a0() {
 
 	void *msg = malloc(LEN_MSG);
 
+	handle_setup_demotrack(&state);
+
 	for (;;) {
 		int tid;
 		int rcvlen = Receive(&tid, msg, LEN_MSG);
