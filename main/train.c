@@ -5,7 +5,6 @@
 #include <ui/logdisplay.h>
 
 // @TODO: remember the average velocity per edge as opposed to per track
-// @TODO: fill in all velocities for at least two trains
 void train_init_static(train_descriptor *train) {
 	switch (train->no) {
 		case 37: {
