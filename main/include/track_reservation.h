@@ -13,6 +13,13 @@ struct path {
 	track_node *nodes[MAX_PATH];
 };
 
-int reserve_checkpath(int trainno, path *p);
-int reserve_path(int trainno, path *p);
-int reserve_return(int trainno, path *p);
+typedef struct reservation_req reservation_req;
+
+struct reservation_req {
+	track_edge *edges[MAX_PATH];
+	int len;
+};
+
+int reserve_checkpath(int trainno, reservation_req *req);
+void reserve_path(int trainno, reservation_req *req);
+void reserve_return(int trainno, reservation_req *req);
