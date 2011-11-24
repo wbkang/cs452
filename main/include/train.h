@@ -80,6 +80,7 @@ struct train_descriptor {
 	int vcmdslen;
 	int vcmdwait;
 	location destination;
+	struct path *path;
 };
 
 static inline int train_switchi2no(int i) {
