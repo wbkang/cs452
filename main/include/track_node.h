@@ -46,6 +46,17 @@ static inline int track_switchpos_isgood(int pos) {
 	return track_switchpos_straight(pos) || track_switchpos_curved(pos);
 }
 
+static inline track_edge *track_get_edge(track_node *from, track_node *to) {
+	if (from->type == NODE_BRANCH && from->edge[1].dest == to) {
+		return &from->edge[1];
+	} else if (from->edge[0].dest == to) {
+		return &from->edge[0];
+	} else {
+		return 0; // unreachable
+	}
+}
+
+
 track_edge *track_next_edge(track_node *node);
 track_node *track_next_node(track_node *node);
 int track_distance(track_node *from, track_node *to);

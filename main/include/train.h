@@ -84,6 +84,7 @@ struct train_descriptor {
 	int vcmdwait;
 	location destination;
 	struct path *path;
+	struct reservation_req *reservation;
 };
 
 static inline int train_switchi2no(int i) {

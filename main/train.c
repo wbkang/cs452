@@ -149,6 +149,7 @@ void train_init(train_descriptor *this, int no, struct gps *gps) {
 	this->vcmdwait = 0;
 	this->destination = location_undef();
 	this->path = NULL;
+	this->reservation = NULL;
 	train_init_static(this);
 }
 
@@ -358,6 +359,47 @@ void train_set_dest(train_descriptor *this, location *dest) {
 	this->vcmdslen = 0;
 }
 
+static int train_try_reserve(train_descriptor *this) {
+	if (!this->reservation) {
+		this->reservation = malloc(sizeof(reservation_req));
+		this->reservation->len = 0;
+	}
+
+	reservation_req *r = this->reservation;
+	reserve_return(this->no, r);
+	r->len = 0;
+
+	location trainloc;
+	train_get_loc(this, &trainloc);
+
+	if (location_isundef(&trainloc)) {
+		// no point reserving anything here if i dont know where i am...
+		return FALSE;
+	}
+
+	// include the edge the train is on
+	r->edges[r->len++] = trainloc.edge;
+
+	// include the edge the train's tail is on
+	location traintail = trainloc;
+	location_add(&traintail, fixed_neg(fixed_new(train_get_length(this))));
+	r->edges[r->len++] = traintail.edge;
+
+	ASSERT(reserve_checkpath(this->no, r), "WTF? i can't reserve my own space for train %d", this->no);
+
+	// TODO sketchy
+	const int safetyroom = 50;
+	fixed remainingdist = fixed_add(train_get_stopdist(this), fixed_new(safetyroom));
+
+	if (!reserve_checkpath(this->no, r)) {
+		return FALSE;
+	} else {
+		reserve_path(this->no, r);
+		return TRUE;
+	}
+//	return 0;
+}
+
 void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick) {
 	// TODO add unknown location handling
 
@@ -365,10 +407,12 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 	if (!location_isundef(&this->destination) && this->vcmdslen == 0) {
 		char buf[100];
 		location_tostring(&this->destination, buf);
-		if (this->vcmds == NULL) {
+
+		// TODO fix this malloc madness.
+		if (!this->vcmds) {
 			this->vcmds = malloc(sizeof(trainvcmd) * TRAIN_MAX_VCMD);
 		}
-		if (this->path == NULL) {
+		if (!this->path) {
 			this->path = malloc(sizeof(path));
 			this->path->start = location_undef();
 			this->path->end = location_undef();
@@ -390,6 +434,17 @@ void train_run_vcmd(train_descriptor *this, int tid_traincmdbuf, lookup *nodemap
 			logdisplay_flushline(log);
 		}
 		this->vcmdidx = 0;
+	}
+
+	int reserved = train_try_reserve(this);
+
+	if (!location_isundef(&this->destination) && !reserved) {
+		logdisplay_printf(log, "I couldn't reserve the track. stopping the train.");
+		logdisplay_flushline(log);
+		train_speed(this->no, 0, tid_traincmdbuf);
+		// TODO this should be better.. like re routing or something.
+		location nowhere = location_undef();
+		train_set_dest(this, &nowhere);
 	}
 
 	while (this->vcmdidx < this->vcmdslen) {
