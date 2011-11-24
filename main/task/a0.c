@@ -638,7 +638,7 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 			case REVERSE: {
 				int train_no = cmd->arg1;
 				ui_reverse(state, train_no, t);
-				engineer_on_reverse(eng, train_no);
+				engineer_on_reverse(eng, train_no, t);
 				break;
 			}
 			case SWITCH: {
