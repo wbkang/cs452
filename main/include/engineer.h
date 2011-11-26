@@ -11,7 +11,7 @@
 
 typedef struct _tag_train_engineer {
 	int tid_traincmdbuf;
-	train_descriptor train[TRAIN_MAX_TRAIN_ADDR + 1];
+	train_state train[TRAIN_MAX_TRAIN_ADDR + 1];
 	lookup *track_nodes;
 	track_node *track_nodes_arr;
 	console *con; // @TODO: replace with a ui task tid
@@ -23,7 +23,7 @@ typedef struct _tag_train_engineer {
 
 engineer *engineer_new(char track_name);
 void engineer_destroy(engineer *this);
-fixed engineer_sim_stopdist(engineer *this, int train_no);
+int engineer_sim_stopdist(engineer *this, int train_no);
 void engineer_on_set_speed(engineer *this, int train_no, int speed, int t);
 void engineer_set_speed(engineer *this, int train_no, int speed);
 fixed engineer_get_velocity(engineer *this, int train_no);
@@ -39,8 +39,8 @@ void engineer_set_switch(engineer *this, int id, int pos);
 train_direction engineer_train_get_dir(engineer *this, int train_no);
 void engineer_train_set_dir(engineer *this, int train_no, train_direction dir);
 void engineer_train_lose_loc(engineer *this, int train_no);
-void engineer_train_on_loc(engineer *this, train_descriptor *train, location *loc_new, int t_loc);
-train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_loc);
+void engineer_train_on_loc(engineer *this, train_state *train, location *loc_new, int t_loc);
+train_state *engineer_attribute_loc(engineer *this, location *loc, int t_loc);
 void engineer_onloc(engineer *this, location *loc, int t_loc);
 void engineer_onsensor(engineer *this, char data[]);
 void engineer_ontick(engineer *this);

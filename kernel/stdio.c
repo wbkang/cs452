@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <util.h>
 #include <fixed.h>
 
 static void uint2str(uint num, uint base, char *bf) {

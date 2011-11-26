@@ -64,6 +64,16 @@ int location_dist_min(location *A, location *B) {
 	return min(abs(distAB + doff), abs(distBA - doff));
 }
 
+int location_dist_abs(location *A, location *B) { // @TODO: this is terrible
+	location a = *A;
+	location b = *B;
+	int dist1 = location_dist_min(A, B);
+	location_reverse(&a);
+	location_reverse(&b);
+	int dist2 = location_dist_min(A, B);
+	return min(dist1, dist2);
+}
+
 int location_dist_dir(location *A, location *B) {
 	ASSERT(!location_isinvalid(A), "bad 'from' location: %d", location_isinvalid(A));
 	ASSERT(!location_isinvalid(B), "bad 'to' location: %d", location_isinvalid(B));
@@ -140,8 +150,8 @@ int location_tostring(location *this, char *buf) {
 		buf += sprintf(buf, "%s", this->edge->src->name);
 	} else {
 		buf += sprintf(buf,
-			"(%s->%s + %Fmm)",
-			this->edge->src->name, this->edge->dest->name, this->offset
+			"(%s-%s+%dmm)",
+			this->edge->src->name, this->edge->dest->name, fixed_int(this->offset)
 		);
 	}
 	return buf - origbuf;

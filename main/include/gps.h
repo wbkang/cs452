@@ -6,7 +6,7 @@
 #include <track_node.h>
 #include <ui/logdisplay.h>
 
-struct train_descriptor;
+struct train_state;
 typedef struct gps gps;
 struct gps {
 	track_node *track_node;
@@ -20,9 +20,9 @@ void dijkstra(track_node *nodeary,
 		track_node *tgt,
 		track_node **rv_nodes,
 		int *rv_nodecnt,
-		struct train_descriptor *train);
+		struct train_state *train);
 void gps_findpath(gps *this,
-		struct train_descriptor *train,
+		struct train_state *train,
 		location *dest,
 		int maxlen,
 		trainvcmd *rv_vcmd,

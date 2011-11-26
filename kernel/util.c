@@ -27,22 +27,26 @@ uint random() {
     return (m_z << 16) + m_w;  /* 32-bit result */
 }
 
-void print_stack_trace(uint fp, int clearscreen) {
+void print_stack_trace(uint fp, int one) {
 	if (!fp) return;
 
 	__init_funclist();
 	int pc = 0, lr = 0, depth = 20;
 
-	if (clearscreen) {
-		bwprintf(1, CONSOLE_CLEAR "\x1B[1;1H");
+	bwprintf(1, CONSOLE_EFFECT(EFFECT_RESET));
+
+	if (one) {
+		bwprintf(1, CONSOLE_EFFECT(EFFECT_BRIGHT) CONSOLE_EFFECT(EFFECT_FG_BLUE) "asmline\t\torigin\t\tfunction\n" CONSOLE_EFFECT(EFFECT_RESET));
 	}
 
-	bwprintf(1, CONSOLE_EFFECT(EFFECT_RESET));
-	bwprintf(1, CONSOLE_EFFECT(EFFECT_BRIGHT) CONSOLE_EFFECT(EFFECT_FG_BLUE) "asmline\t\torigin\t\tfunction\n" CONSOLE_EFFECT(EFFECT_RESET));
 	do {
 		pc = VMEM(fp) - 16;
 		int asm_line_num = (lr == 0) ? 0 : ((lr - pc) >> 2);
-		bwprintf(1, "%d\t\t%x\t%s\n", asm_line_num, pc, find_function_name(pc));
+		if (one) {
+			bwprintf(1, "%d\t\t%x\t%s\n", asm_line_num, pc, find_function_name(pc));
+		} else {
+			bwprintf(1, "%s @ %x-%d, ", find_function_name(pc), pc, asm_line_num);
+		}
 
 		if (lr == (int) Exit) break;
 

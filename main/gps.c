@@ -10,7 +10,7 @@
 
 #define CRUISE_SPEED 12
 #define REVERSE_TIMEOUT 4000
-#define REVERSE_COST 500
+#define STOP_TIMEOUT 4000
 
 // static fixed gps_distance(location *start, location *end, track_node **path, int pathlen);
 static char const *vcmdnames[] = { "SETSPEED", "SETREVERSE", "SETSWITCH", "WAITFORMS", "WAITFORLOC", "STOP" };
@@ -74,17 +74,17 @@ static inline char gps_getnextswitchpos(track_node *sw, track_edge *edgeafterbra
 	return '\0'; // unreachable
 }
 
-static inline void gps_get_rev_stoploc(train_descriptor *train, track_node *node, location *rv_loc) {
+static inline void gps_get_rev_stoploc(train_state *train, track_node *node, location *rv_loc) {
 	ASSERTNOTNULL(node);
 	*rv_loc = location_fromnode(node, 0);
 	if (node->type == NODE_MERGE) {
-		ASSERT(0, "cant reverse at a merge, invalid path");
+		ASSERT(0, "invalid path, yo");
 		int len = train_get_length(train) + train_get_poserr(train);
 		location_add(rv_loc, fixed_new(len));
 	}
 }
 
-static int gps_collapsereverse(track_node *startnode, track_node **path, int pathlen, train_descriptor *train) {
+static int gps_collapsereverse(track_node *startnode, track_node **path, int pathlen, train_state *train) {
 	if (pathlen == 0 || train_ismoving(train)) return -1;
 	for (int i = 0; i < pathlen; i++) {
 		if (path[i] == startnode->reverse) return i;
@@ -92,15 +92,7 @@ static int gps_collapsereverse(track_node *startnode, track_node **path, int pat
 	return -1;
 }
 
-#define NO_PATH_RANDOM_WAIT 1024
-
-void gps_findpath(gps *this,
-		train_descriptor *train,
-		location *dest,
-		int maxlen,
-		trainvcmd *rv_vcmd,
-		int *rv_len,
-		logdisplay *log) {
+void gps_findpath(gps *this, train_state *train, location *dest, int maxlen, trainvcmd *rv_vcmd, int *rv_len, logdisplay *log) {
 	location trainloc;
 	train_get_loc(train, &trainloc);
 
@@ -124,7 +116,7 @@ void gps_findpath(gps *this,
 		// trainvcmd_addspeed(rv_vcmd, &cmdlen, 0, NULL);
 		// trainvcmd_addpause(rv_vcmd, &cmdlen, random() & (NO_PATH_RANDOM_WAIT - 1));
 		// *pathlen = cmdlen;
-		*rv_len = cmdlen;
+		*rv_len = 0;
 		return;
 	}
 
@@ -191,6 +183,7 @@ void gps_findpath(gps *this,
 
 //			ExitKernel(0);
 	trainvcmd_addstop(rv_vcmd, &cmdlen, dest);
+	trainvcmd_addpause(rv_vcmd, &cmdlen, STOP_TIMEOUT);
 
 	*rv_len = cmdlen;
 }
@@ -208,7 +201,7 @@ static inline uint num_neighbour(track_node *n) {
 
 // code taken from http://en.wikipedia.org/wiki/Dijkstra's_algorithm#Algorithm
 // @TODO: keep this algorithm independent of gps, pass in whats needed as args
-void dijkstra(track_node *nodes, heap *unoptimized, track_node *src, track_node *dest, track_node **rv_nodes, int *rv_len_nodes, train_descriptor *train) {
+void dijkstra(track_node *nodes, heap *unoptimized, track_node *src, track_node *dest, track_node **rv_nodes, int *rv_len_nodes, train_state *train) {
 	int dist[TRACK_MAX];
 	track_node *previous[TRACK_MAX];
 	heap_clear(unoptimized);
@@ -243,10 +236,9 @@ void dijkstra(track_node *nodes, heap *unoptimized, track_node *src, track_node 
 					track_edge *other_edge = &u->edge[0] == edge ? &u->edge[1] : &u->edge[0];
 					if (!can_occupy(other_edge, train->no)) continue;
 				}
+				if (edge->dist == infinity) continue;
+				int alt = dist[uidx] + edge->dist;
 				int vidx = v - nodes;
-
-				int alt = (dist[vidx] == infinity) ? edge->dist : dist[vidx] + edge->dist;
-
 				if (alt < dist[vidx]) {
 					dist[vidx] = alt;
 					previous[vidx] = u;
@@ -257,25 +249,38 @@ void dijkstra(track_node *nodes, heap *unoptimized, track_node *src, track_node 
 
 		{
 			track_node *u_rev = u->reverse;
+			// @TODO: we need to overshoot this because the train teleports by train length
+			if (u_rev == dest) continue;
 			int u_rev_idx = u_rev - nodes;
 			int rev_dist = train_get_reverse_cost(train, dist[uidx], u);
-			int alt_rev_dist = (rev_dist == infinity || dist[u_rev_idx] == infinity) ? rev_dist : dist[u_rev_idx] + rev_dist;
-			if (alt_rev_dist < dist[u_rev_idx]) {
-				dist[u_rev_idx] = alt_rev_dist;
+			if (rev_dist == infinity) continue;
+			int alt = dist[uidx] + rev_dist;
+			if (alt < dist[u_rev_idx]) {
+				dist[u_rev_idx] = alt;
 				previous[u_rev_idx] = u;
-				heap_min_decrease_key(unoptimized, u_rev, alt_rev_dist);
+				heap_min_decrease_key(unoptimized, u_rev, alt);
 			}
 		}
 	}
 
-	int destidx = dest - nodes;
-	if (dist[destidx] < infinity) {
-		track_node *u = dest;
-		int uidx = destidx;
+	track_node *u = dist[dest - nodes] < infinity ? dest : NULL;
+
+	// if (!u) {
+	// 	int maxdist = 0;
+	// 	for (int i = 0; i < TRACK_MAX; i++) {
+	// 		if (dist[i] < infinity && dist[i] > maxdist) {
+	// 			maxdist = dist[i];
+	// 			u = &nodes[i];
+	// 		}
+	// 	}
+	// }
+
+	if (u) {
+		int uidx = u - nodes;
 		int len = 0;
 
 		while (u) {
-			ASSERT(len < MAX_PATH,  "path size too big!? %d", len);
+			ASSERT(len < MAX_PATH, "path size too big!? %d", len);
 			rv_nodes[len++] = u;
 			u = previous[uidx];
 			uidx = u - nodes;
@@ -430,7 +435,7 @@ int vcmd2str(char *buf, trainvcmd *vcmd) {
 //		ASSERT(cnt == 6, "cnt != 6! %d", cnt);
 //	}
 //	{
-//		train_descriptor *train = &eng->train[38];
+//		train_state *train = &eng->train[38];
 //
 //		track_node *c14 = &eng->track_nodes_arr[45];
 //		track_node *c10 = &eng->track_nodes_arr[41];
