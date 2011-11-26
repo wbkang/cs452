@@ -199,57 +199,63 @@ static inline uint num_neighbour(track_node *n) {
 	}
 }
 
+static int dist_between(track_node *u, track_edge *e, track_node *v, train_state *train) {
+	int train_no = train->no;
+	if (v->type == NODE_MERGE) {
+		track_node *v_rev = v->reverse;
+		if (!can_occupy(&v_rev->edge[0], train_no)) return infinity;
+		if (!can_occupy(&v_rev->edge[1], train_no)) return infinity;
+	} else if (u->type == NODE_BRANCH) {
+		if (!can_occupy(&u->edge[0], train_no)) return infinity;
+		if (!can_occupy(&u->edge[1], train_no)) return infinity;
+	} else {
+		if (!can_occupy(e, train_no)) return infinity;
+	}
+	return e->dist;
+}
+
 // code taken from http://en.wikipedia.org/wiki/Dijkstra's_algorithm#Algorithm
 // @TODO: keep this algorithm independent of gps, pass in whats needed as args
-void dijkstra(track_node *nodes, heap *unoptimized, track_node *src, track_node *dest, track_node **rv_nodes, int *rv_len_nodes, train_state *train) {
+void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, track_node **rv_nodes, int *rv_len_nodes, train_state *train) {
 	int dist[TRACK_MAX];
 	track_node *previous[TRACK_MAX];
-	heap_clear(unoptimized);
+	heap_clear(Q);
 
 	for (int i = 0; i < TRACK_MAX; i++) {
-		previous[i] = NULL;
 		track_node *node = &nodes[i];
 		int cost = (node == src) ? 0 : infinity;
 		dist[i] = cost;
-		heap_min_insert(unoptimized, node, cost);
+		heap_min_insert(Q, node, cost);
+
+		previous[i] = NULL;
 	}
 
-	while (!heap_empty(unoptimized)) {
-		track_node *u = heap_min_extract(unoptimized);
+	while (!heap_empty(Q)) {
+		track_node *u = heap_min_extract(Q);
 		int uidx = u - nodes;
 
 		if (dist[uidx] == infinity) break;
 
-		if (u == dest) break;
+		if (u == dest) break; // the path to u==dest is optimized, stop looking
 
 		{
-			int neighbour_cnt = num_neighbour(u);
-			for (int i = 0; i < neighbour_cnt; i++) {
+			for (int i = num_neighbour(u) - 1; i >= 0; --i) {
 				track_edge *edge = &u->edge[i];
-				if (!can_occupy(edge, train->no)) continue;
 				track_node *v = edge->dest;
-				if (v->type == NODE_MERGE) {
-					track_node *v_rev = v->reverse;
-					track_edge *other_edge = v_rev->edge[0].reverse == edge ? v_rev->edge[1].reverse : v_rev->edge[0].reverse;
-					if (!can_occupy(other_edge, train->no)) continue;
-				} else if (u->type == NODE_BRANCH) {
-					track_edge *other_edge = &u->edge[0] == edge ? &u->edge[1] : &u->edge[0];
-					if (!can_occupy(other_edge, train->no)) continue;
-				}
-				if (edge->dist == infinity) continue;
-				int alt = dist[uidx] + edge->dist;
+				int dist_btwn = dist_between(u, edge, v, train);
+				if (dist_btwn == infinity) continue;
+				int alt = dist[uidx] + dist_btwn;
 				int vidx = v - nodes;
 				if (alt < dist[vidx]) {
 					dist[vidx] = alt;
 					previous[vidx] = u;
-					heap_min_decrease_key(unoptimized, v, alt);
+					heap_min_decrease_key(Q, v, alt);
 				}
 			}
 		}
-
 		{
 			track_node *u_rev = u->reverse;
-			// @TODO: we need to overshoot this because the train teleports by train length
+			// @TODO: for now we reverse only on landmarks, so this is not possible
 			if (u_rev == dest) continue;
 			int u_rev_idx = u_rev - nodes;
 			int rev_dist = train_get_reverse_cost(train, dist[uidx], u);
@@ -258,7 +264,7 @@ void dijkstra(track_node *nodes, heap *unoptimized, track_node *src, track_node 
 			if (alt < dist[u_rev_idx]) {
 				dist[u_rev_idx] = alt;
 				previous[u_rev_idx] = u;
-				heap_min_decrease_key(unoptimized, u_rev, alt);
+				heap_min_decrease_key(Q, u_rev, alt);
 			}
 		}
 	}
