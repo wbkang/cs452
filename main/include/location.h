@@ -20,4 +20,5 @@ int location_dist_abs(location *A, location *B);
 int location_dist_dir(location *A, location *B);
 int location_add(location *this, fixed dx);
 int location_reverse(location *this);
+void location_tonextnode(location *this);
 int location_tostring(location *this, char *buf);
