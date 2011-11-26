@@ -85,7 +85,6 @@ static void handle_sensor_response(void* s) {
 				// calibrator_start(eng, train_no);
 			} else if (sensor == calib_state.back) {
 				engineer_train_set_dir(eng, train_no, TRAIN_BACKWARD);
-				engineer_reverse(eng, train_no);
 				engineer_set_speed(eng, train_no, 0);
 				calibrator_quit(state);
 				state->cur_train = train_no;

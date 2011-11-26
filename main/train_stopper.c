@@ -25,7 +25,7 @@ static void ontick(void* s) {
 
 	if (location_isundef(train_loc)) return; // unknown train position
 
-	int stop_dist = fixed_int(engineer_sim_stopdist(eng, train_no));
+	int stop_dist = engineer_sim_stopdist(eng, train_no);
 	if (stop_dist < 0) return; // unknown stop distance
 
 	location stat = tloc;

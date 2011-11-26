@@ -80,16 +80,16 @@ static void handle_abort() {
 	lr -= 4;
 	bwprintf(1, "possible undefined instruction %x at %x\n", VMEM(lr), lr);
 
-	int faulttype;
+	unsigned int faulttype;
 	__asm volatile ("mrc p15, 0, %[ft], c5, c0, 0\n\t" : [ft] "=r" (faulttype));
 	faulttype &= 0xf;
 
-	int faultdomain;
+	unsigned int faultdomain;
 	__asm volatile ("mrc p15, 0, %[fd], c5, c0, 0\n\t" : [fd] "=r" (faultdomain));
 	faultdomain >>= 4;
 	faultdomain &= 0xf;
 
-	int datafaultaddr;
+	unsigned int datafaultaddr;
 	__asm volatile ("mrc p15, 0, %[dfa], c6, c0, 0\n\t" : [dfa] "=r" (datafaultaddr));
 
 	char *faultname = "unknown";
@@ -106,9 +106,10 @@ static void handle_abort() {
 		faultname = "external abort on noncacheable";
 	}
 
+	// @TODO: why does faultdomain sometimes return defaultaddr? wtf
 	bwprintf(1, "possible faulttype: %s (%d), faultdomain: %d, datafaultaddr: %x\n",
 			faultname, faulttype, faultdomain, datafaultaddr);
-	bwprintf(1, "cpsr:%d (%x)", cpsr, cpsr);
+	bwprintf(1, "cpsr: %d (%x)", cpsr, cpsr);
 
 	for (;;);
 }

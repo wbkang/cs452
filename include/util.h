@@ -132,11 +132,12 @@ int MyTid();
 		VMEM(VIC2 + INTENCLR_OFFSET) = ~0; \
 		bwprintf(0, "%c", 0x61); \
 		int fp, lr, pc; READ_REGISTER(fp); READ_REGISTER(lr); READ_REGISTER(pc); \
-		/*bwprintf(1, "\x1B[2J" "\x1B[1;1H");*/ \
+		bwprintf(1, "\x1B[1;1H" "\x1B[1K"); \
 		bwprintf(1, "assertion failed in file " __FILE__ " line:" TOSTRING(__LINE__) " lr: %x pc: %x, tid: %d" CRLF, lr, pc, tid); \
 		bwprintf(1, "[%s] ", __func__); \
 		bwprintf(1, __VA_ARGS__); \
 		bwprintf(1, "\n"); \
+		bwprintf(1, "\x1B[1K"); \
 		print_stack_trace(fp, 0); \
 		die(); \
 	} \

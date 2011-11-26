@@ -39,7 +39,7 @@ engineer *engineer_new(char track_name) {
 	this->con = console_new(COM2);
 	this->log = logdisplay_new(this->con, 11, 56, 8, 100, ROUNDROBIN, "train location log");
 	this->log2 = logdisplay_new(this->con, 11 + 9, 56, 8, 100, ROUNDROBIN, "location attribution log");
-	this->triplog = logdisplay_new(this->con, 11 + 20, 56 + 25, 8 + 12, 100, ROUNDROBIN, "engineer triplog");
+	this->triplog = logdisplay_new(this->con, 11 + 20, 56 + 15, 8 + 12, 100, ROUNDROBIN, "engineer triplog");
 	this->tid_time = WhoIs(NAME_TIMESERVER);
 
 	return this;
@@ -47,7 +47,7 @@ engineer *engineer_new(char track_name) {
 
 void engineer_destroy(engineer *this) {
 	TRAIN_FOREACH(train_no) {
-		train_descriptor *train = &this->train[train_no];
+		train_state *train = &this->train[train_no];
 		if (train_get_speed(train) > 0) {
 			engineer_set_speed(this, train_no, 0);
 		}
@@ -56,7 +56,7 @@ void engineer_destroy(engineer *this) {
 	Flush(WhoIs(NAME_IOSERVER_COM1));
 }
 
-fixed engineer_sim_stopdist(engineer *this, int train_no) {
+int engineer_sim_stopdist(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	return train_get_stopdist(&this->train[train_no]);
 }
@@ -73,7 +73,9 @@ fixed engineer_get_velocity(engineer *this, int train_no) {
 
 void engineer_on_set_speed(engineer *this, int train_no, int speed, int t) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_set_speed(&this->train[train_no], speed, t);
+	train_state *train = &this->train[train_no];
+	if (!train->calibrated) return;
+	train_set_speed(train, speed, t);
 }
 
 void engineer_set_speed(engineer *this, int train_no, int speed) {
@@ -88,16 +90,18 @@ void engineer_get_loc(engineer *this, int train_no, location *loc) {
 
 void engineer_on_reverse(engineer *this, int train_no, int t) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
+	train_state *train = &this->train[train_no];
+	if (!train->calibrated) return;
 	train_on_reverse(&this->train[train_no], t);
 }
 
 // @TODO: this is a tricky thing because it's technically a small path involving 3 commands and 2 delays. this needs to be rethought in the context of a path finder.
 void engineer_reverse(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_descriptor *train = &this->train[train_no];
+	train_state *train = &this->train[train_no];
 
 	int speed = train_get_speed(train);
-	// fixed dstop = train_get_stopdist(train);
+	// int dstop = train_get_stopdist(train);
 	// fixed v = train_get_velocity(train);
 	engineer_set_speed(this, train_no, 0);
 	// if (fixed_sgn(v) > 0) {
@@ -167,7 +171,7 @@ void engineer_train_lose_loc(engineer *this, int train_no) {
 	train_set_loc(&this->train[train_no], &undef);
 }
 
-void engineer_train_on_loc(engineer *this, train_descriptor *train, location *loc_new, int t_loc) {
+void engineer_train_on_loc(engineer *this, train_state *train, location *loc_new, int t_loc) {
 	int now = Time(this->tid_time);
 
 	train_update_simulation(train, now);
@@ -183,23 +187,24 @@ void engineer_train_on_loc(engineer *this, train_descriptor *train, location *lo
 		int dist = location_dist_min(&loc, loc_new);
 		ASSERT(dist >= 0, "bad distance %d", dist);
 		logdisplay_printf(this->log,
-			"pred: %-5s + %Fmm, attrib: %-5s + %Fmm (%dmm)",
+			"pred: %-5s + %-3dmm, attrib: %-5s + %-3dmm (%dmm)",
 			loc.edge->src->name,
-			loc.offset,
+			fixed_int(loc.offset),
 			loc_new->edge->src->name,
-			loc_new->offset,
+			fixed_int(loc_new->offset),
 			dist
 		);
 		logdisplay_flushline(this->log);
 	}
 }
 
-train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_loc) {
-	train_descriptor *closest_train = NULL;
+train_state *engineer_attribute_loc(engineer *this, location *loc, int t_loc) {
+	train_state *closest_train = NULL;
 	int closest_dist = -1;
 
 	TRAIN_FOREACH(train_no) {
-		train_descriptor *train = &this->train[train_no];
+		train_state *train = &this->train[train_no];
+		if (!train->calibrated) continue;
 		if (train_ismoving(train)) { // moving
 			location loc_train;
 			train_get_loc(train, &loc_train);
@@ -243,9 +248,10 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 
 	if (closest_train && closest_dist < 400) return closest_train; // @TODO: pull out magic constant
 
-	train_descriptor *rv = NULL;
+	train_state *rv = NULL;
 	TRAIN_FOREACH(train_no) {
-		train_descriptor *train = &this->train[train_no];
+		train_state *train = &this->train[train_no];
+		if (!train->calibrated) continue;
 		if (train_ismoving(train)) { // moving
 			location loc_train;
 			train_get_loc(train, &loc_train);
@@ -267,7 +273,7 @@ train_descriptor *engineer_attribute_loc(engineer *this, location *loc, int t_lo
 }
 
 void engineer_onloc(engineer *this, location *loc, int t_loc) {
-	train_descriptor *train = engineer_attribute_loc(this, loc, t_loc);
+	train_state *train = engineer_attribute_loc(this, loc, t_loc);
 	if (train) {
 		logdisplay_printf(this->log2,
 			"attributing %s+%Fmm to train %d",
@@ -299,7 +305,7 @@ void engineer_onsensor(engineer *this, char data[]) {
 void engineer_ontick(engineer *this) {
 	int t = Time(this->tid_time);
 	TRAIN_FOREACH(train_no) {
-		train_descriptor *train = &this->train[train_no];
+		train_state *train = &this->train[train_no];
 		if (train->calibrated) {
 			train_update_simulation(train, t);
 			train_ontick(train, this->tid_traincmdbuf, this->track_nodes, this->triplog, t);

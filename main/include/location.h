@@ -16,6 +16,7 @@ location location_undef();
 int location_isundef(location *this);
 int location_isinvalid(location *this);
 int location_dist_min(location *A, location *B);
+int location_dist_abs(location *A, location *B);
 int location_dist_dir(location *A, location *B);
 int location_add(location *this, fixed dx);
 int location_reverse(location *this);
