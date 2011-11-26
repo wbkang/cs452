@@ -714,10 +714,10 @@ void a0() {
 	state.sensor_bus = dumbbus_new();
 	// init_jerk();
 	// dumbbus_register(state.sensor_bus, &jerk);
-	init_csdstate();
-	dumbbus_register(state.sensor_bus, &calib_stopdist);
-	init_v_avg();
-	dumbbus_register(state.sensor_bus, &get_v_avg);
+	// init_csdstate();
+	// dumbbus_register(state.sensor_bus, &calib_stopdist);
+	// init_v_avg();
+	// dumbbus_register(state.sensor_bus, &get_v_avg);
 
 	// time bus
 	state.bus10hz = dumbbus_new();
@@ -749,9 +749,9 @@ void a0() {
 	timenotifier_new(tid_refreshbuffer, 9, MS2TICK(100));
 	state.tid_refresh = courier_new(9, tid_refreshbuffer, MyTid());
 
-	// int tid_printlocbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
-	// timenotifier_new(tid_printlocbuffer, 9, MS2TICK(200));
-	// state.tid_printloc = courier_new(9, tid_printlocbuffer, MyTid());
+	int tid_printlocbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
+	timenotifier_new(tid_printlocbuffer, 9, MS2TICK(200));
+	state.tid_printloc = courier_new(9, tid_printlocbuffer, MyTid());
 
 	int tid_simstepbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(15));

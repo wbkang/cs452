@@ -604,7 +604,7 @@ void train_ontick(train_state *this, int tid_traincmdbuf, lookup *nodemap, logdi
 			case VCMD_SETSWITCH: {
 				int dist = location_isundef(&waitloc) ? 0 : location_dist_min(&curloc, &waitloc);
 				if (dist < 0) break;
-				int switch_dist = train_get_stopdist(this);
+				int switch_dist = train_get_stopdist(this) + train_get_poserr(this); // ok to be safe
 				if (dist <= switch_dist) {
 					char *branchname = curvcmd->data.switchinfo.nodename;
 					char pos = curvcmd->data.switchinfo.pos;
@@ -670,8 +670,9 @@ void train_ontick(train_state *this, int tid_traincmdbuf, lookup *nodemap, logdi
 		// train_set_dest(this, &nowhere);
 
 		if (fixed_sgn(train_get_velocity(this)) == 0) { // ensure the train stopped
-			char m = 'A' + (random() % 5);
-			int id = 1 + (random() % 16);
+			int time = Time(WhoIs(NAME_TIMESERVER));
+			char m = 'A' + (time % 5);
+			int id = 1 + (time % 16);
 			char name[16];
 			sprintf(name, "%c%d", m, id);
 			location dest = location_fromnode(lookup_get(nodemap, name), 0);
@@ -686,7 +687,9 @@ int train_get_reverse_cost(train_state *this, int dist, track_node *node) {
 	// return 0;
 
 	if (node->type == NODE_MERGE) return infinity;
-	// 	int reserve_dist = train_get_length(this) + train_get_poserr(this);
+
+	int reserve_dist = train_get_length(this) + train_get_poserr(this);
+
 	// 	track_node *n = node;
 	// 	while (reserve_dist > 0) {
 	// 		if (!n) return infinity;
@@ -698,17 +701,17 @@ int train_get_reverse_cost(train_state *this, int dist, track_node *node) {
 	// if (train_ismoving(this) && node->type != NODE_EXIT && !can_occupy(node->edge, this->no)) return infinity;
 
 	track_node *rev = node->reverse;
-	location junk = location_fromnode(rev, 0);
-	track_edge *e = junk.edge;
-	location_add(&junk, fixed_new(train_get_length(this) + train_get_poserr(this)));
-	if (!can_occupy(junk.edge, this->no)) return infinity;
-	while (e != junk.edge) {
+	track_edge *e = &rev->edge[0]; // will start on this edge after reversing
+	location train_front = location_fromnode(rev, 0); // safe estimate of train nose loc
+	location_add(&train_front, fixed_new(reserve_dist));
+	location_tonextnode(&train_front); // round up
+
+	while (e != train_front.edge) {
 		ASSERTNOTNULL(e);
 		if (!can_occupy(e, this->no)) return infinity;
-		track_node *dest = e->dest;
-		// TODO: dont stop on merges either?
-		if (dest->type == NODE_BRANCH) return infinity;
-		e = track_next_edge(dest);
+		if (e->dest->type == NODE_BRANCH) return infinity; // a branch is too close
+		e = track_next_edge(e->dest);
 	}
+
 	return 2 * train_get_stopdist(this);
 }

@@ -134,6 +134,11 @@ int location_add(location *this, fixed dx) {
 	return -5;
 }
 
+void location_tonextnode(location *this) {
+	this->edge = track_next_edge(this->edge->dest);
+	this->offset = fixed_new(0);
+}
+
 int location_reverse(location *this) {
 	if (location_isundef(this)) return -1; // reversing undefined location
 	fixed offset = fixed_sub(fixed_new(this->edge->dist), this->offset);
