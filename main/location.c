@@ -97,7 +97,7 @@ int location_dist_dir(location *A, location *B) {
 	}
 }
 
-// @TODO: uses current switch state. return multiple 'virtual' locations instead?
+// @TODO: don't use current switch state
 int location_add(location *this, fixed dx) {
 	ASSERT(!location_isinvalid(this), "bad location: %d", location_isinvalid(this));
 	if (location_isundef(this)) return -1; // incrementing undefined location

@@ -455,24 +455,8 @@ void train_set_dest(train_state *this, location *dest) {
 	this->vcmdslen = 0;
 }
 
-#define RESERVE_BEHIND 100
-#define RESERVE_AHEAD 100
-
-static int walk(track_node *node, int dist, track_edge *arr[], int *len) {
-	if (dist < 0) return TRUE;
-	if (!node) return FALSE;
-
-	int num_edges = track_numedges(node);
-	if (num_edges == 0) return TRUE; // special case exits, say you can reserve
-
-	for (int i = 0; i < num_edges; i++) {
-		track_edge *edge = &node->edge[i];
-		arr[(*len)++] = edge;
-		if (!walk(edge->dest, dist - edge->dist, arr, len)) return FALSE;
-	}
-
-	return TRUE;
-}
+#define RESERVE_BEHIND 0
+#define RESERVE_AHEAD 200
 
 static int train_update_reservations(train_state *this, logdisplay *log) {
 	location trainloc;
@@ -492,10 +476,10 @@ static int train_update_reservations(train_state *this, logdisplay *log) {
 	int tonextnode = trainloc.edge->dist - toprevnode;
 
 	int ahead = RESERVE_AHEAD + train_get_stopdist(this) - tonextnode;
-	if (!walk(trainloc.edge->dest, ahead, req.edges, &req.len)) return FALSE;
+	if (!track_walk(trainloc.edge->dest, ahead, MAX_PATH, req.edges, &req.len)) return FALSE;
 
 	int behind = RESERVE_BEHIND + train_dist2back(this) - toprevnode;
-	if (!walk(trainloc.edge->src->reverse, behind, req.edges, &req.len)) return FALSE;
+	if (!track_walk(trainloc.edge->src->reverse, behind, MAX_PATH, req.edges, &req.len)) return FALSE;
 
 	if (!reservation_checkpath(&req, this->no)) return FALSE;
 
@@ -681,37 +665,21 @@ void train_ontick(train_state *this, int tid_traincmdbuf, lookup *nodemap, logdi
 	}
 }
 
-// @TODO: give the distance since last stop (reverse)
-int train_get_reverse_cost(train_state *this, int dist, track_node *node) {
-	// if (train_ismoving(this)) return infinity;
-	// return 0;
+int train_get_reverse_cost(train_state *train, int dist, track_node *node) {
+	int reserve_dist = train_get_length(train) + train_get_poserr(train);
 
-	if (node->type == NODE_MERGE) return infinity;
+	track_edge *edges[MAX_PATH];
+	int num_edges = 0;
 
-	int reserve_dist = train_get_length(this) + train_get_poserr(this);
-
-	// 	track_node *n = node;
-	// 	while (reserve_dist > 0) {
-	// 		if (!n) return infinity;
-	// 		if (!can_occupy(&node->edge[0], this->no)) return infinity;
-	// 		reserve_dist -= node->edge[0].dist;
-	// 		n = track_next_node(n);
-	// 	}
-
-	// if (train_ismoving(this) && node->type != NODE_EXIT && !can_occupy(node->edge, this->no)) return infinity;
-
-	track_node *rev = node->reverse;
-	track_edge *e = &rev->edge[0]; // will start on this edge after reversing
-	location train_front = location_fromnode(rev, 0); // safe estimate of train nose loc
-	location_add(&train_front, fixed_new(reserve_dist));
-	location_tonextnode(&train_front); // round up
-
-	while (e != train_front.edge) {
-		ASSERTNOTNULL(e);
-		if (!can_occupy(e, this->no)) return infinity;
-		if (e->dest->type == NODE_BRANCH) return infinity; // a branch is too close
-		e = track_next_edge(e->dest);
+	if (!track_walk(node->reverse, reserve_dist, MAX_PATH, edges, &num_edges)) {
+		return infinity; // not enough room to reverse
 	}
 
-	return 2 * train_get_stopdist(this);
+	for (int i = 0; i < num_edges; i++) {
+		track_edge *edge = edges[i];
+		if (!can_occupy(edge, train->no)) return infinity; // reserved by somebody else
+		if (edge->src->type == NODE_BRANCH) return infinity; // too close to a branch
+	}
+
+	return train_get_stopdist(train);
 }
