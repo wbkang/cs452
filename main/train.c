@@ -458,8 +458,23 @@ void train_set_dest(train_state *this, location *dest) {
 #define RESERVE_BEHIND 100
 #define RESERVE_AHEAD 100
 
-// @TODO: use recursion to branch out reserve independently of switch dir
-static int train_update_reservations(train_state *this) {
+static int walk(track_node *node, int dist, track_edge *arr[], int *len) {
+	if (dist < 0) return TRUE;
+	if (!node) return FALSE;
+
+	int num_edges = track_numedges(node);
+	if (num_edges == 0) return TRUE; // special case exits, say you can reserve
+
+	for (int i = 0; i < num_edges; i++) {
+		track_edge *edge = &node->edge[i];
+		arr[(*len)++] = edge;
+		if (!walk(edge->dest, dist - edge->dist, arr, len)) return FALSE;
+	}
+
+	return TRUE;
+}
+
+static int train_update_reservations(train_state *this, logdisplay *log) {
 	location trainloc;
 	train_get_loc(this, &trainloc);
 
@@ -470,32 +485,17 @@ static int train_update_reservations(train_state *this) {
 
 	reservation_req req;
 	req.len = 0;
-	track_edge *e;
 
-	location back = trainloc;
-	location_reverse(&back);
-	e = back.edge;
-	location_add(&back, fixed_new(train_dist2back(this) + RESERVE_BEHIND));
-	while (e != back.edge) {
-		ASSERT(req.len < MAX_PATH, "r->len = %d >= MAX_PATH", req.len);
-		ASSERTNOTNULL(e);
-		ASSERTNOTNULL(req.edges);
-		req.edges[req.len++] = e->reverse;
-		e = track_next_edge(e->dest);
-	}
-	req.edges[req.len++] = back.edge;
+	req.edges[req.len++] = trainloc.edge;
 
-	location front = trainloc;
-	e = front.edge;
-	location_add(&front, fixed_new(RESERVE_AHEAD + (train_get_stopdist(this) * 12) / 10));
-	while (e != front.edge) {
-		ASSERT(req.len < MAX_PATH, "r->len = %d >= MAX_PATH", req.len);
-		ASSERTNOTNULL(e);
-		ASSERTNOTNULL(req.edges);
-		req.edges[req.len++] = e;
-		e = track_next_edge(e->dest);
-	}
-	req.edges[req.len++] = front.edge;
+	int toprevnode = fixed_int(trainloc.offset);
+	int tonextnode = trainloc.edge->dist - toprevnode;
+
+	int ahead = RESERVE_AHEAD + train_get_stopdist(this) - tonextnode;
+	if (!walk(trainloc.edge->dest, ahead, req.edges, &req.len)) return FALSE;
+
+	int behind = RESERVE_BEHIND + train_dist2back(this) - toprevnode;
+	if (!walk(trainloc.edge->src->reverse, behind, req.edges, &req.len)) return FALSE;
 
 	if (!reservation_checkpath(&req, this->no)) return FALSE;
 
@@ -506,7 +506,7 @@ static int train_update_reservations(train_state *this) {
 }
 
 void train_ontick(train_state *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick) {
-	int reserved = train_update_reservations(this);
+	int reserved = train_update_reservations(this, log);
 
 	if (location_isundef(&this->loc)) {
 		if (this->vcmdslen > 0) {

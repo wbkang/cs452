@@ -34,10 +34,7 @@ static inline void mark_free(track_edge *e, int train_no) {
 int reservation_checkpath(reservation_req *req, int train_no) {
 	ASSERTNOTNULL(req);
 	for (int i = 0; i < req->len; i++) {
-		if (!can_occupy(req->edges[i], train_no)) {
-			req->len = 0;
-			return FALSE;
-		}
+		if (!can_occupy(req->edges[i], train_no)) return FALSE;
 	}
 	return TRUE;
 }
