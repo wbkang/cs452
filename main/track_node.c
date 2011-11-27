@@ -43,3 +43,15 @@ int track_distance(track_node *from, track_node *to) {
 
 	return dist;
 }
+
+int track_numedges(track_node *node) {
+	if (!node) return 0;
+	switch (node->type) {
+		case NODE_BRANCH:
+			return 2;
+		case NODE_EXIT:
+			return 0;
+		default:
+			return 1;
+	}
+}

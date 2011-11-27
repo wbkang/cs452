@@ -56,7 +56,7 @@ static inline track_edge *track_get_edge(track_node *from, track_node *to) {
 	}
 }
 
-
 track_edge *track_next_edge(track_node *node);
 track_node *track_next_node(track_node *node);
 int track_distance(track_node *from, track_node *to);
+int track_numedges(track_node *node);

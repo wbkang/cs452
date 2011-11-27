@@ -10,10 +10,12 @@
 
 #define CRUISE_SPEED 12
 #define REVERSE_TIMEOUT 4000
-#define STOP_TIMEOUT 4000
+#define STOP_TIMEOUT 6000
 
 // static fixed gps_distance(location *start, location *end, track_node **path, int pathlen);
-static char const *vcmdnames[] = { "SETSPEED", "SETREVERSE", "SETSWITCH", "WAITFORMS", "WAITFORLOC", "STOP" };
+static char const *vcmdnames[] = {
+	"SETSPEED", "SETREVERSE", "SETSWITCH", "WAITFORMS", "WAITFORLOC", "STOP"
+};
 
 gps *gps_new(track_node *nodes) {
 	gps *this = malloc(sizeof(gps));
@@ -188,17 +190,6 @@ void gps_findpath(gps *this, train_state *train, location *dest, int maxlen, tra
 	*rv_len = cmdlen;
 }
 
-static inline uint num_neighbour(track_node *n) {
-	switch (n->type) {
-		case NODE_BRANCH:
-			return 2;
-		case NODE_EXIT:
-			return 0;
-		default:
-			return 1;
-	}
-}
-
 static int dist_between(track_node *u, track_edge *e, track_node *v, train_state *train) {
 	int train_no = train->no;
 	if (v->type == NODE_MERGE) {
@@ -239,7 +230,7 @@ void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, tra
 		if (u == dest) break; // the path to u==dest is optimized, stop looking
 
 		{
-			for (int i = num_neighbour(u) - 1; i >= 0; --i) {
+			for (int i = track_numedges(u) - 1; i >= 0; --i) {
 				track_edge *edge = &u->edge[i];
 				track_node *v = edge->dest;
 				int dist_btwn = dist_between(u, edge, v, train);
