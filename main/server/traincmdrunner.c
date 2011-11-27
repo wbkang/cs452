@@ -22,6 +22,7 @@ void traincmdrunner() {
 		switch (cmd->name) {
 			case SPEED: {
 				char train = cmd->arg1;
+				// @TODO: consider 76 to honk, 64 to stop honking
 				char speed = cmd->arg2 | 16; // @TODO: don't hardcode headlights
 				Putc(COM1, speed, tid_com1);
 				Putc(COM1, train, tid_com1);

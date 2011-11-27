@@ -1,5 +1,6 @@
 #include <track_node.h>
 #include <constants.h>
+#include <util.h>
 
 track_edge *track_next_edge(track_node *node) {
 	if (!node) return NULL; // bad node
@@ -25,7 +26,8 @@ track_node *track_next_node(track_node *node) {
 }
 
 int track_distance(track_node *from, track_node *to) {
-	if (!from || !to) return -1; // bad nodes
+	if (!from) return -1; // bad 'from' node
+	if (!to) return -2; // bad 'to' node
 
 	track_node *jump1 = from;
 	track_node *jump2 = from;
@@ -33,12 +35,12 @@ int track_distance(track_node *from, track_node *to) {
 
 	while (jump1 != to) {
 		track_edge *edge = track_next_edge(jump1);
-		if (!edge) return -2; // no more edges
+		if (!edge) return -3; // no more edges
 		dist += edge->dist;
 		jump1 = edge->dest;
-		if (!jump1) return -3; // unending edge
+		if (!jump1) return -4; // unending edge
 		jump2 = track_next_node(track_next_node(jump2));
-		if (jump1 == jump2) return -4; // cycle
+		if (jump1 == jump2) return -5; // cycle
 	}
 
 	return dist;
@@ -54,4 +56,22 @@ int track_numedges(track_node *node) {
 		default:
 			return 1;
 	}
+}
+
+// starting from 'node' walk a distance 'dist' forward and put all met edges into 'arr'
+int track_walk(track_node *node, int dist, int maxlen, track_edge *arr[], int *len) {
+	if (dist <= 0) return TRUE;
+	if (!node) return FALSE;
+
+	int num_edges = track_numedges(node);
+	if (num_edges == 0) return TRUE; // special case exits, say you can reserve
+
+	for (int i = 0; i < num_edges; i++) {
+		track_edge *edge = &node->edge[i];
+		ASSERT(*len < maxlen, "'arr' full, len %d max len %d", *len, maxlen);
+		arr[(*len)++] = edge;
+		if (!track_walk(edge->dest, dist - edge->dist, maxlen, arr, len)) return FALSE;
+	}
+
+	return TRUE;
 }
