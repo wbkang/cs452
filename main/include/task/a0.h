@@ -35,7 +35,6 @@ typedef struct {
 	// train data
 	engineer *eng;
 	// these are not scalable to multiple trains
-	int cur_train;
 	track_node *cur_sensor;
 	track_node *last_sensor;
 	// timers
