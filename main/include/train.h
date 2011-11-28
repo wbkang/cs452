@@ -69,9 +69,9 @@ struct train_state {
 	int calibrated; // @TODO: hack, dont initialize uncalibrated trains..
 	int no;
 	train_direction dir;
-	fixed v10k;
-	fixed v_i10k;
-	fixed v_f10k;
+	fixed v;
+	fixed v_i;
+	fixed v_f;
 	fixed a10k;
 	fixed a_i10k;
 
@@ -172,6 +172,7 @@ static inline void train_stop(int tid) {
 int train_init_cal(int train_no, train_cal *cal);
 void train_init(train_state *this, int no, struct gps *gps);
 fixed train_get_velocity(train_state *this);
+fixed train_get_cruising_velocity(train_state *this);
 int train_is_moving(train_state *this);
 int train_get_stopdist4speedidx(train_state *this, int speed_idx);
 int train_get_stopdist(train_state *this);
@@ -202,4 +203,4 @@ void train_ontick(train_state *this, int tid_traincmdbuf, lookup *nodemap, logdi
 int train_get_reverse_cost(train_state *this, int dist, track_node *node);
 int train_get_train_length(train_state *this);
 
-fixed train_accel10k(train_cal *cal, fixed v_i10k, fixed v_f10k);
+fixed train_accel10k(train_cal *cal, fixed v_i, fixed v_f);

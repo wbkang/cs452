@@ -175,9 +175,9 @@ void train_init(train_state *this, int no, struct gps *gps) {
 	this->no = no;
 	this->dir = TRAIN_UNKNOWN;
 
-	this->v10k = fixed_new(0);
-	this->v_i10k = fixed_new(0);
-	this->v_f10k = fixed_new(0);
+	this->v = fixed_new(0);
+	this->v_i = fixed_new(0);
+	this->v_f = fixed_new(0);
 
 	this->a10k = fixed_new(0);
 	this->a_i10k = fixed_new(0);
@@ -219,11 +219,16 @@ void train_init(train_state *this, int no, struct gps *gps) {
 }
 
 fixed train_get_velocity(train_state *this) {
-	return fixed_div(this->v10k, fixed_new(10000));
+	return this->v;
+}
+
+fixed train_get_cruising_velocity(train_state *this) {
+	int speed_idx = train_get_speedidx(this);
+	return this->cal.v_avg[speed_idx];
 }
 
 int train_is_moving(train_state *this) {
-	return fixed_sgn(this->v10k) != 0;
+	return fixed_sgn(this->v) >= 0;
 }
 
 int train_get_stopdist(train_state *this) {
@@ -248,13 +253,10 @@ void train_set_speed(train_state *this, int speed, int t) {
 	this->last_speed = this->speed;
 	this->speed = speed;
 	train_set_tspeed(this, t);
-	this->v_i10k = this->v10k;
-	int speed_idx = train_get_speedidx(this);
-	fixed v_avg = this->cal.v_avg[speed_idx];
-	this->v_f10k = fixed_mul(v_avg, fixed_new(10000));
+	this->v_i = train_get_velocity(this);
+	this->v_f = train_get_cruising_velocity(this);
 	this->a_i10k = this->a10k;
-	this->ma10k = train_accel10k(&this->cal, this->v_i10k, this->v_f10k);
-	this->a10k = this->ma10k;
+	this->ma10k = train_accel10k(&this->cal, this->v_i, this->v_f);
 }
 
 void train_get_frontloc(train_state *this, location *rv_loc_front) {
@@ -369,10 +371,9 @@ void train_get_pickuploc_hist(train_state *this, int t_i, location *rv_loc) {
 	location_add(rv_loc, fixed_neg(dx));
 }
 
-fixed train_accel10k(train_cal *cal, fixed v_i10k, fixed v_f10k) {
-	fixed dv = fixed_div(fixed_sub(v_f10k, v_i10k), fixed_new(10000));
-	fixed a10k = fixed_mul(cal->a_m10k, dv);
-	if (fixed_cmp(v_i10k, v_f10k) < 0) {
+fixed train_accel10k(train_cal *cal, fixed v_i, fixed v_f) {
+	fixed a10k = fixed_mul(cal->a_m10k, fixed_sub(v_f, v_i));
+	if (fixed_cmp(v_i, v_f) < 0) {
 		a10k = fixed_add(a10k, cal->a_b10k);
 	} else {
 		a10k = fixed_sub(a10k, cal->a_b10k);
@@ -417,25 +418,24 @@ fixed train_accel10k(train_cal *cal, fixed v_i10k, fixed v_f10k) {
 // }
 
 static void train_update_pos(train_state *this, int t_f) {
-	fixed const margin = fixed_new(1);
-	fixed diff = fixed_sub(this->v10k, this->v_f10k);
-	if (fixed_cmp(fixed_abs(diff), margin) > 0) {
-		fixed dv10k = fixed_sub(this->v_f10k, this->v_i10k);
+	fixed const margin = fixed_div(fixed_new(1), fixed_new(10000));
+	if (fixed_cmp(fixed_abs(fixed_sub(this->v, this->v_f)), margin) > 0) {
+		fixed dv = fixed_sub(this->v_f, this->v_i);
 		fixed t = fixed_new(t_f - this->t_speed);
-		fixed atov = fixed_mul(fixed_div(this->ma10k, dv10k), t);
+		fixed atov10k = fixed_div(fixed_mul(this->ma10k, t), dv);
+		fixed atov = fixed_div(atov10k, fixed_new(10000));
 		fixed atov2 = fixed_mul(atov, atov);
 		fixed atov3 = fixed_mul(atov2, atov);
 		fixed A = fixed_mul(fixed_new(3), atov2);
 		fixed B = fixed_mul(fixed_new(-2), atov3);
-		this->v10k = fixed_add(this->v_i10k, fixed_mul(dv10k, fixed_add(A, B)));
+		this->v = fixed_add(this->v_i, fixed_mul(dv, fixed_add(A, B)));
 	} else {
-		this->v10k = this->v_f10k;
+		this->v = this->v_f;
 		this->a10k = fixed_new(0);
 	}
 	fixed fdt = fixed_new(t_f - this->t_sim);
 	if (!train_is_lost(this) && train_is_moving(this)) {
-		fixed dx10k = fixed_mul(this->v10k, fdt);
-		fixed dx = fixed_div(dx10k, fixed_new(10000));
+		fixed dx = fixed_mul(this->v, fdt);
 		location_add(&this->loc_front, dx);
 	}
 	this->t_sim = t_f;
