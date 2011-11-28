@@ -186,7 +186,8 @@ void train_init(train_state *this, int no, struct gps *gps) {
 	this->speed = 0;
 	train_set_tspeed(this, 0);
 	this->last_speed = 0;
-	this->loc = location_undef();
+	location undef_loc = location_undef();
+	train_set_loc(this, &undef_loc);
 	this->t_sim = 0;
 	this->gps = gps;
 	this->vcmdidx = 0;

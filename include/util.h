@@ -126,7 +126,7 @@ int MyTid();
 
 #if ASSERT_ENABLED
 #define ASSERT(X, ...) { \
-	if (!(X)) { /*__asm("swi 12\n\t");*/ \
+	if (UNLIKELY(!(X))) { /*__asm("swi 12\n\t");*/ \
 		int tid = MyTid(); \
 		VMEM(VIC1 + INTENCLR_OFFSET) = ~0; \
 		VMEM(VIC2 + INTENCLR_OFFSET) = ~0; \
