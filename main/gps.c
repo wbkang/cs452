@@ -87,7 +87,7 @@ static inline void gps_get_rev_stoploc(train_state *train, track_node *node, loc
 }
 
 static int gps_collapsereverse(track_node *startnode, track_node **path, int pathlen, train_state *train) {
-	if (pathlen == 0 || train_ismoving(train)) return -1;
+	if (pathlen == 0 || train_is_moving(train)) return -1;
 	for (int i = 0; i < pathlen; i++) {
 		if (path[i] == startnode->reverse) return i;
 	}
@@ -96,7 +96,7 @@ static int gps_collapsereverse(track_node *startnode, track_node **path, int pat
 
 void gps_findpath(gps *this, train_state *train, location *dest, int maxlen, trainvcmd *rv_vcmd, int *rv_len, logdisplay *log) {
 	location trainloc;
-	train_get_loc(train, &trainloc);
+	train_get_frontloc(train, &trainloc);
 
 	track_node *src = trainloc.edge->dest;
 	track_node **path = train->path->nodes;

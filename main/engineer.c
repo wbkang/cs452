@@ -56,19 +56,9 @@ void engineer_destroy(engineer *this) {
 	Flush(WhoIs(NAME_IOSERVER_COM1));
 }
 
-int engineer_sim_stopdist(engineer *this, int train_no) {
+train_state *engineer_get_train(engineer *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	return train_get_stopdist(&this->train[train_no]);
-}
-
-int engineer_get_speedidx(engineer *this, int train_no) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	return train_get_speedidx(&this->train[train_no]);
-}
-
-fixed engineer_get_velocity(engineer *this, int train_no) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	return train_get_velocity(&this->train[train_no]);
+	return &this->train[train_no];
 }
 
 void engineer_on_set_speed(engineer *this, int train_no, int speed, int t) {
@@ -81,11 +71,6 @@ void engineer_on_set_speed(engineer *this, int train_no, int speed, int t) {
 void engineer_set_speed(engineer *this, int train_no, int speed) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_speed(train_no, speed, this->tid_traincmdbuf);
-}
-
-void engineer_get_loc(engineer *this, int train_no, location *loc) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_get_loc(&this->train[train_no], loc);
 }
 
 void engineer_on_reverse(engineer *this, int train_no, int t) {
@@ -155,94 +140,78 @@ void engineer_set_switch(engineer *this, int id, int pos) {
 	// }
 }
 
-train_direction engineer_train_get_dir(engineer *this, int train_no) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	return train_get_dir(&this->train[train_no]);
-}
-
-void engineer_train_set_dir(engineer *this, int train_no, train_direction dir) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_set_dir(&this->train[train_no], dir);
-}
-
-void engineer_train_lose_loc(engineer *this, int train_no) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	location undef = location_undef();
-	train_set_loc(&this->train[train_no], &undef);
-}
-
-void engineer_train_on_loc(engineer *this, train_state *train, location *loc_new, int t_loc) {
+void engineer_train_on_loc(engineer *this, train_state *train, location *new_loc_pickup, int t_loc) {
 	int now = Time(this->tid_time);
 
 	train_update_simulation(train, now);
 
-	location loc;
-	train_get_loc(train, &loc);
+	location loc_old;
+	train_get_frontloc(train, &loc_old);
 
 	fixed dx_lag = train_simulate_dx(train, t_loc, now);
-	location_add(loc_new, dx_lag);
-	train_set_loc(train, loc_new);
+	location_add(new_loc_pickup, dx_lag);
+	train_set_pickuploc(train, new_loc_pickup);
 
-	if (!location_isundef(&loc)) {
-		int dist = location_dist_min(&loc, loc_new);
+	if (!train_is_lost(train)) {
+		int dist = location_dist_min(&loc_old, new_loc_pickup);
 		ASSERT(dist >= 0, "bad distance %d", dist);
 		logdisplay_printf(this->log,
 			"pred: %-5s + %-3dmm, attrib: %-5s + %-3dmm (%dmm)",
-			loc.edge->src->name,
-			fixed_int(loc.offset),
-			loc_new->edge->src->name,
-			fixed_int(loc_new->offset),
+			loc_old.edge->src->name,
+			fixed_int(loc_old.offset),
+			new_loc_pickup->edge->src->name,
+			fixed_int(new_loc_pickup->offset),
 			dist
 		);
 		logdisplay_flushline(this->log);
 	}
 }
 
-train_state *engineer_attribute_loc(engineer *this, location *loc, int t_loc) {
+train_state *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, int t_loc) {
 	train_state *closest_train = NULL;
 	int closest_dist = -1;
 
 	TRAIN_FOREACH(train_no) {
 		train_state *train = &this->train[train_no];
 		if (!train->calibrated) continue;
-		if (train_ismoving(train)) { // moving
-			location loc_train;
-			train_get_loc(train, &loc_train);
-			if (!location_isundef(&loc_train)) { // known location
-				location loc_past;
-				train_get_loc_hist(train, t_loc, &loc_past);
-				// @TODO: replace this with something more efficient, since we have a max range we should stop looking outside of that range.
-				int dist = location_dist_min(&loc_past, loc);
-				if (dist >= 0) {
-					if (!closest_train || dist < closest_dist) {
-						closest_train = train;
-						closest_dist = dist;
-					}
-					logdisplay_printf(this->log2,
-						"testing %s+%dmm vs train %d at %s+%dmm (was at %s+%dmm), distance: %dmm",
-						loc->edge->src->name,
-						fixed_int(loc->offset),
-						train_no,
-						loc_train.edge->src->name,
-						fixed_int(loc_train.offset),
-						loc_past.edge->src->name,
-						fixed_int(loc_past.offset),
-						dist
-					);
-				} else {
-					logdisplay_printf(this->log2,
-						"testing %s+%dmm vs train %d at %s+%dmm (was at %s+%dmm), no path found",
-						loc->edge->src->name,
-						fixed_int(loc->offset),
-						train_no,
-						loc_train.edge->src->name,
-						fixed_int(loc_train.offset),
-						loc_past.edge->src->name,
-						fixed_int(loc_past.offset)
-					);
-				}
-				logdisplay_flushline(this->log2);
+		if (!train_is_moving(train)) continue;
+		if (train_is_lost(train)) continue;
+
+		location cur_loc_pickup;
+		train_get_pickuploc(train, &cur_loc_pickup);
+
+		location old_loc_pickup;
+		train_get_pickuploc_hist(train, t_loc, &old_loc_pickup);
+
+		// @TODO: replace this with something more efficient, since we have a max range we should stop looking outside of that range.
+		int dist = location_dist_min(&old_loc_pickup, attr_loc_pickup);
+		if (dist >= 0) {
+			if (!closest_train || dist < closest_dist) {
+				closest_train = train;
+				closest_dist = dist;
 			}
+			logdisplay_printf(this->log2,
+				"testing %s+%dmm vs train %d at %s+%dmm (was at %s+%dmm), distance: %dmm",
+				attr_loc_pickup->edge->src->name,
+				fixed_int(attr_loc_pickup->offset),
+				train_no,
+				cur_loc_pickup.edge->src->name,
+				fixed_int(cur_loc_pickup.offset),
+				old_loc_pickup.edge->src->name,
+				fixed_int(old_loc_pickup.offset),
+				dist
+			);
+		} else {
+			logdisplay_printf(this->log2,
+				"testing %s+%dmm vs train %d at %s+%dmm (was at %s+%dmm), no path found",
+				attr_loc_pickup->edge->src->name,
+				fixed_int(attr_loc_pickup->offset),
+				train_no,
+				cur_loc_pickup.edge->src->name,
+				fixed_int(cur_loc_pickup.offset),
+				old_loc_pickup.edge->src->name,
+				fixed_int(old_loc_pickup.offset)
+			);
 		}
 	}
 
@@ -252,28 +221,27 @@ train_state *engineer_attribute_loc(engineer *this, location *loc, int t_loc) {
 	TRAIN_FOREACH(train_no) {
 		train_state *train = &this->train[train_no];
 		if (!train->calibrated) continue;
-		if (train_ismoving(train)) { // moving
-			location loc_train;
-			train_get_loc(train, &loc_train);
-			if (location_isundef(&loc_train)) { // unknown location
-				if (rv) {
-					logdisplay_printf(this->log2,
-						"can't attribute %s+%dmm, multiple moving trains with no loc",
-						loc->edge->src->name,
-						fixed_int(loc->offset)
-					);
-					logdisplay_flushline(this->log2);
-					return NULL;
-				}
-				rv = train;
-			}
+		if (!train_is_moving(train)) continue;
+		if (!train_is_lost(train)) continue;
+
+		if (rv) {
+			logdisplay_printf(this->log2,
+				"can't attribute %s+%dmm, multiple moving lost trains",
+				attr_loc_pickup->edge->src->name,
+				fixed_int(attr_loc_pickup->offset)
+			);
+			logdisplay_flushline(this->log2);
+			return NULL;
 		}
+
+		rv = train;
 	}
+
 	return rv;
 }
 
 void engineer_onloc(engineer *this, location *loc, int t_loc) {
-	train_state *train = engineer_attribute_loc(this, loc, t_loc);
+	train_state *train = engineer_attribute_pickuploc(this, loc, t_loc);
 	if (train) {
 		logdisplay_printf(this->log2,
 			"attributing %s+%Fmm to train %d",
@@ -293,7 +261,7 @@ void engineer_onsensor(engineer *this, char data[]) {
 	engineer_ontick(this);
 	msg_sensor *msg = (msg_sensor*) data;
 	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
-	location loc_sensor = location_fromnode(sensor, 0);
+	location loc_sensor = location_fromnode(sensor, DIR_AHEAD);
 	if (msg->state == OFF) {
 		return; // @TODO: removing this reduces simulation accuracy, why?
 		fixed len_pickup = fixed_new(50); // @TODO: don't hardcode, even though so easy

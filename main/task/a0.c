@@ -147,14 +147,13 @@ static void init_csdstate() {
 static void calib_stopdist(void* s) {
 	a0state *state = s;
 	engineer *eng = state->eng;
-	int train_no = 39;
-	if (train_no < 0) return;
+	train_state *train = engineer_get_train(eng, 39);
 	track_node *cur_sensor = state->cur_sensor;
 	track_node *e8 = engineer_get_tracknode(eng, "E", 8);
 	switch (csdstate.state) {
 		case STOP_INIT:
 			engineer_set_switch(eng, 11, 'c');
-			engineer_set_speed(eng, train_no, csdstate.speed);
+			engineer_set_speed(eng, train->no, csdstate.speed);
 			csdstate.state = STOP_UP2SPEED1;
 			break;
 		case STOP_UP2SPEED1:
@@ -172,10 +171,10 @@ static void calib_stopdist(void* s) {
 				logdisplay_printf(
 					state->log,
 					"testing speed idx %d",
-					engineer_get_speedidx(eng, train_no)
+					train_get_speedidx(train)
 				);
 				logdisplay_flushline(state->log);
-				engineer_set_speed(eng, train_no, 0);
+				engineer_set_speed(eng, train->no, 0);
 				engineer_set_switch(eng, 11, 's');
 				Delay(STOP_PAUSE, eng->tid_time);
 				if (csdstate.speed == 14) {
@@ -183,16 +182,16 @@ static void calib_stopdist(void* s) {
 				} else {
 					csdstate.speed += 1;
 				}
-				engineer_reverse(eng, train_no);
-				engineer_set_speed(eng, train_no, 14);
+				engineer_reverse(eng, train->no);
+				engineer_set_speed(eng, train->no, 14);
 				csdstate.state = STOP_REVERSING;
 			}
 			break;
 		case STOP_REVERSING:
 			if (strcmp(cur_sensor->name, "E7") == 0) {
 				engineer_set_switch(eng, 11, 'c');
-				engineer_reverse(eng, train_no);
-				engineer_set_speed(eng, train_no, csdstate.speed);
+				engineer_reverse(eng, train->no);
+				engineer_set_speed(eng, train->no, csdstate.speed);
 				csdstate.state = STOP_UP2SPEED1;
 			}
 			break;
@@ -288,8 +287,7 @@ static void init_v_avg() {
 static void get_v_avg(void* s) {
 	a0state *state = s;
 	engineer *eng = state->eng;
-	int train_no = state->cur_train;
-	if (train_no < 0) return;
+	train_state *train = engineer_get_train(eng, 39);
 
 	track_node *last_sensor = app_v_avg_state.last_sensor;
 	app_v_avg_state.last_sensor = state->cur_sensor;
@@ -314,7 +312,7 @@ static void get_v_avg(void* s) {
 		"[%7d] %s to %s is {%d} %d / %d (%F) [%d / %d (%F)]",
 		t_sensor,
 		last_sensor->name, sensor->name,
-		engineer_get_speedidx(eng, train_no),
+		train_get_speedidx(train),
 		app_v_avg_state.dx, app_v_avg_state.dt,
 		fixed_div(fixed_new(10000 * app_v_avg_state.dx / app_v_avg_state.dt), fixed_new(10000)),
 		dx, dt,
@@ -351,7 +349,7 @@ static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *lo
 	train_state *train = &eng->train[train_no];
 
 	location loc;
-	train_get_loc(train, &loc);
+	train_get_frontloc(train, &loc);
 
 	// print
 	char *direction_str;
@@ -515,7 +513,7 @@ static void handle_command(void* s, char *cmd, int size) {
 			ACCEPT('r');
 			ACCEPT(' ');
 			int train = strgetui(&c);
-			if (!train_goodtrain(train)) goto badcmd;
+			ENFORCE(train_goodtrain(train), "bad train");
 			ACCEPT(' ');
 			int speed = strgetui(&c);
 			if (!train_goodspeed(speed)) goto badcmd;
@@ -527,7 +525,7 @@ static void handle_command(void* s, char *cmd, int size) {
 			ACCEPT('v');
 			ACCEPT(' ');
 			int train = strgetui(&c);
-			if (!train_goodtrain(train)) goto badcmd;
+			ENFORCE(train_goodtrain(train), "bad train");
 			ACCEPT('\0');
 			engineer_reverse(eng, train);
 			break;
@@ -535,10 +533,10 @@ static void handle_command(void* s, char *cmd, int size) {
 		case 'l': { // lose train (lt #+)
 			ACCEPT('t');
 			ACCEPT(' ');
-			int train = strgetui(&c);
-			if (!train_goodtrain(train)) goto badcmd;
+			int train_no = strgetui(&c);
+			ENFORCE(train_goodtrain(train_no), "bad train");
 			ACCEPT('\0');
-			engineer_train_lose_loc(eng, train);
+			train_set_lost(engineer_get_train(eng, train_no));
 			break;
 		}
 		case 's': {
@@ -729,7 +727,6 @@ void a0() {
 	dumbbus_register(state.simbus, &tick_engineer);
 
 	state.eng = engineer_new(track == TRACK_A ? 'a' : 'b');
-	state.cur_train = -1;
 	state.last_sensor = NULL;
 
 	calibrator_init();
