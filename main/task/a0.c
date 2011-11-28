@@ -729,6 +729,10 @@ void a0() {
 
 	calibrator_init();
 
+//	int tid_uibuffer = buffertask_new(NULL, PRIORITY_UISERVER, 512); // TODO hardcorded item size
+//	int tid_uiserver = Create(PRIORITY_UISERVER, uiserver);
+//	courier_new(PRIORITY_UISERVER, tid_uibuffer, tid_uiserver);
+
 	ui_init(&state);
 
 	sensorserver_new();
@@ -763,16 +767,16 @@ void a0() {
 		ASSERT(rcvlen >= sizeof(msg_header), "bad data");
 		msg_header *header = (msg_header*) msg;
 		switch (header->type) {
-			case SENSOR:
+			case MSG_SENSOR:
 				handle_sensor(&state, msg);
 				break;
-			case COM_IN:
+			case MSG_COM_IN:
 				handle_comin(&state, msg);
 				break;
-			case TIME:
+			case MSG_TIME:
 				handle_time(&state, msg, tid);
 				break;
-			case TRAINCMDRECEIPT:
+			case MSG_TRAINCMDRECEIPT:
 				handle_traincmdmsgreceipt(&state, msg);
 				break;
 			default:

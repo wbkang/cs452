@@ -29,6 +29,20 @@ asm_handle_swi:
 	mrs r0, cpsr @ return cpsr
 	ldmfd sp!, {r4-r11, pc}
 
+.global asm_handle_dabort
+asm_handle_dabort:
+	mov r1, #1
+	b abort
+
+.global asm_handle_abort
+asm_handle_abort:
+	mov r1, #0
+	abort:
+	ldr sp, =0x2000000
+	mov r0, fp
+	bl handle_abort
+	loop:
+	b loop
 
 @ this code switches to the usermode
 @ r0 is pointer to register_set (task.h) of current task descriptor
