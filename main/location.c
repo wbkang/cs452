@@ -1,6 +1,7 @@
 #include <location.h>
 #include <util.h>
 
+// @TODO: currently we consider exits to be 2cm closer than they are, why not edit the track data?
 #define LOCATION_EXIT_MARGIN 20
 
 location location_fromedge(track_edge *edge) {
@@ -9,6 +10,7 @@ location location_fromedge(track_edge *edge) {
 
 location location_fromnode(track_node *node, int edge_idx) {
 	ASSERTNOTNULL(node);
+	ASSERT(edge_idx == 0 || edge_idx == 1, "invalid edge index %d", edge_idx);
 	switch (node->type) {
 		case NODE_SENSOR:
 		case NODE_MERGE:
@@ -23,8 +25,8 @@ location location_fromnode(track_node *node, int edge_idx) {
 			return rv;
 		}
 		default:
-			ASSERT(0, "bad node type %d", node->type);
-			return location_undef();
+			ASSERT(0, "node type %d is not handled", node->type);
+			return location_undef(); // unreachable
 	}
 }
 
@@ -49,34 +51,9 @@ int location_isinvalid(location *this) {
 	return 0;
 }
 
-int location_dist_min(location *A, location *B) {
-	ASSERT(!location_isinvalid(A), "bad 'from' location: %d", location_isinvalid(A));
-	ASSERT(!location_isinvalid(B), "bad 'to' location: %d", location_isinvalid(B));
-	if (location_isundef(A) || location_isundef(B)) return -1;
-	int distAB = track_distance(A->edge->src, B->edge->src);
-	int distBA = track_distance(B->edge->src, A->edge->src);
-	int badAB = distAB < 0;
-	int badBA = distBA < 0;
-	if (badAB && badBA) return -2;
-	int doff = fixed_int(fixed_sub(B->offset, A->offset));
-	if (badAB) return abs(distBA - doff);
-	if (badBA) return abs(distAB + doff);
-	return min(abs(distAB + doff), abs(distBA - doff));
-}
-
-int location_dist_abs(location *A, location *B) { // @TODO: this is terrible
-	location a = *A;
-	location b = *B;
-	int dist1 = location_dist_min(A, B);
-	location_reverse(&a);
-	location_reverse(&b);
-	int dist2 = location_dist_min(A, B);
-	return min(dist1, dist2);
-}
-
 int location_dist_dir(location *A, location *B) {
-	ASSERT(!location_isinvalid(A), "bad 'from' location: %d", location_isinvalid(A));
-	ASSERT(!location_isinvalid(B), "bad 'to' location: %d", location_isinvalid(B));
+	ASSERT(!location_isinvalid(A), "bad 'from' location %d", location_isinvalid(A));
+	ASSERT(!location_isinvalid(B), "bad 'to' location %d", location_isinvalid(B));
 	if (location_isundef(A)) return -1;
 	if (location_isundef(B)) return -2;
 	int doff = fixed_int(fixed_sub(B->offset, A->offset));
@@ -97,9 +74,28 @@ int location_dist_dir(location *A, location *B) {
 	}
 }
 
+int location_dist_min(location *A, location *B) {
+	int distAB = location_dist_dir(A, B);
+	int distBA = location_dist_dir(B, A);
+	int goodAB = distAB >= 0;
+	int goodBA = distBA >= 0;
+	if (goodAB && goodBA) min(distAB, distBA);
+	if (goodAB) return distAB;
+	if (goodBA) return distBA;
+	return -1;
+}
+
+// int location_dist_abs(location *A, location *B) { // super terrible, dont use
+// 	location a = *A;
+// 	location_reverse(&a);
+// 	location b = *B;
+// 	location_reverse(&b);
+// 	return min(location_dist_min(A, B), location_dist_min(&a, &b));
+// }
+
 // @TODO: don't use current switch state
 int location_add(location *this, fixed dx) {
-	ASSERT(!location_isinvalid(this), "bad location: %d", location_isinvalid(this));
+	ASSERT(!location_isinvalid(this), "bad location %d", location_isinvalid(this));
 	if (location_isundef(this)) return -1; // incrementing undefined location
 	int sgn = fixed_sgn(dx);
 	if (sgn == 0) return 0;

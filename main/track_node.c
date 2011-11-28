@@ -2,6 +2,14 @@
 #include <constants.h>
 #include <util.h>
 
+track_edge *track_get_edge(track_node *from, track_node *to) {
+	for (int i = track_numedges(from) - 1; i >= 0; --i) {
+		track_edge *edge = &from->edge[i];
+		if (edge->dest == to) return edge;
+	}
+	return NULL;
+}
+
 track_edge *track_next_edge(track_node *node) {
 	if (!node) return NULL; // bad node
 	switch (node->type) {
@@ -47,14 +55,20 @@ int track_distance(track_node *from, track_node *to) {
 }
 
 int track_numedges(track_node *node) {
-	if (!node) return 0;
+	ASSERTNOTNULL(node);
 	switch (node->type) {
 		case NODE_BRANCH:
 			return 2;
+		case NODE_SENSOR:
+		case NODE_MERGE:
+		case NODE_ENTER:
+			return 1;
+		case NODE_NONE:
 		case NODE_EXIT:
 			return 0;
 		default:
-			return 1;
+			ASSERT(0, "node type %d is not handled", node->type);
+			return 0; // unreachable
 	}
 }
 
@@ -64,7 +78,7 @@ int track_walk(track_node *node, int dist, int maxlen, track_edge *arr[], int *l
 	if (!node) return FALSE;
 
 	int num_edges = track_numedges(node);
-	if (num_edges == 0) return TRUE; // special case exits, say you can reserve
+	if (num_edges == 0) return node->type == NODE_EXIT; // exits are a special case
 
 	for (int i = 0; i < num_edges; i++) {
 		track_edge *edge = &node->edge[i];
