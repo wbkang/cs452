@@ -147,7 +147,7 @@ static void init_csdstate() {
 static void calib_stopdist(void* s) {
 	a0state *state = s;
 	engineer *eng = state->eng;
-	train_state *train = engineer_get_train(eng, 39);
+	train *train = engineer_get_train(eng, 39);
 	track_node *cur_sensor = state->cur_sensor;
 	track_node *e8 = engineer_get_tracknode(eng, "E", 8);
 	switch (csdstate.state) {
@@ -287,7 +287,7 @@ static void init_v_avg() {
 static void get_v_avg(void* s) {
 	a0state *state = s;
 	engineer *eng = state->eng;
-	train_state *train = engineer_get_train(eng, 39);
+	train *train = engineer_get_train(eng, 39);
 
 	track_node *last_sensor = app_v_avg_state.last_sensor;
 	app_v_avg_state.last_sensor = state->cur_sensor;
@@ -346,7 +346,7 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 }
 
 static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *log2) {
-	train_state *train = &eng->train[train_no];
+	train *train = &eng->train[train_no];
 
 	location loc = train_get_frontloc(train);
 
@@ -419,7 +419,7 @@ static void handle_train_switch_all(a0state *state, char pos) {
 }
 
 static void handle_set_dest(a0state *state, int train_no, char *type, int id, int dist_cm) {
-	train_state *train = &state->eng->train[train_no];
+	train *train = &state->eng->train[train_no];
 	track_node *destnode = engineer_get_tracknode(state->eng, type, id);
 	location dest =	location_fromnode(destnode, 0);
 	location_add(&dest, fixed_new(dist_cm * 10));

@@ -62,8 +62,8 @@ struct train_cal {
 	fixed a_b10k;
 };
 
-typedef struct train_state train_state;
-struct train_state {
+typedef struct train train;
+struct train {
 	int calibrated; // @TODO: hack, dont initialize uncalibrated trains..
 
 	train_cal cal;
@@ -171,38 +171,38 @@ static inline void train_stop(int tid) {
  */
 
 int train_init_cal(train_cal *cal, int train_no);
-void train_init(train_state *this, int no, struct gps *gps);
-fixed train_get_velocity(train_state *this);
-fixed train_get_cruising_velocity(train_state *this);
-int train_is_moving(train_state *this);
-int train_get_stopdist4speedidx(train_state *this, int speed_idx);
-int train_get_stopdist(train_state *this);
-int train_get_speed(train_state *this);
-int train_get_speedidx(train_state *this);
-void train_set_speed(train_state *this, int speed, int t);
-void train_set_frontloc(train_state *this, location *loc_front);
-location train_get_frontloc(train_state *this);
-void train_set_pickuploc(train_state *this, location *loc_pickup);
-location train_get_pickuploc(train_state *this);
-void train_set_lost(train_state *this);
-int train_is_lost(train_state *this);
-train_direction train_get_dir(train_state *this);
-void train_set_dir(train_state *this, train_direction dir);
-void train_reverse_dir(train_state *this);
-void train_on_reverse(train_state *this, int t);
-int train_get_tspeed(train_state *this);
-void train_set_tspeed(train_state *this, int t_speed);
-int train_get_tsim(train_state *this);
-void train_set_tsim(train_state *this, int t_sim);
-int train_get_length(train_state *this);
-int train_get_poserr(train_state *this);
-int train_get_pickup2frontdist(train_state *this);
-fixed train_simulate_dx(train_state *this, int t_i, int t_f);
-location train_get_pickuploc_hist(train_state *this, int t_i);
-void train_update_simulation(train_state *this, int t_f);
-void train_set_dest(train_state *this, location *dest);
-void train_ontick(train_state *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick);
-int train_get_reverse_cost(train_state *this, int dist, track_node *node);
-int train_get_train_length(train_state *this);
+void train_init(train *this, int no, struct gps *gps);
+fixed train_get_velocity(train *this);
+fixed train_get_cruising_velocity(train *this);
+int train_is_moving(train *this);
+int train_get_stopdist4speedidx(train *this, int speed_idx);
+int train_get_stopdist(train *this);
+int train_get_speed(train *this);
+int train_get_speedidx(train *this);
+void train_set_speed(train *this, int speed, int t);
+void train_set_frontloc(train *this, location *loc_front);
+location train_get_frontloc(train *this);
+void train_set_pickuploc(train *this, location *loc_pickup);
+location train_get_pickuploc(train *this);
+void train_set_lost(train *this);
+int train_is_lost(train *this);
+train_direction train_get_dir(train *this);
+void train_set_dir(train *this, train_direction dir);
+void train_reverse_dir(train *this);
+void train_on_reverse(train *this, int t);
+int train_get_tspeed(train *this);
+void train_set_tspeed(train *this, int t_speed);
+int train_get_tsim(train *this);
+void train_set_tsim(train *this, int t_sim);
+int train_get_length(train *this);
+int train_get_poserr(train *this);
+int train_get_pickup2frontdist(train *this);
+fixed train_simulate_dx(train *this, int t_i, int t_f);
+location train_get_pickuploc_hist(train *this, int t_i);
+void train_update_simulation(train *this, int t_f);
+void train_set_dest(train *this, location *dest);
+void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick);
+int train_get_reverse_cost(train *this, int dist, track_node *node);
+int train_get_train_length(train *this);
 
 fixed train_accel10k(train_cal *cal, fixed v_i, fixed v_f);

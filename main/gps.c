@@ -76,7 +76,7 @@ static inline char gps_getnextswitchpos(track_node *sw, track_edge *edgeafterbra
 	return '\0'; // unreachable
 }
 
-static inline void gps_get_rev_stoploc(train_state *train, track_node *node, location *rv_loc) {
+static inline void gps_get_rev_stoploc(train *train, track_node *node, location *rv_loc) {
 	ASSERTNOTNULL(node);
 	*rv_loc = location_fromnode(node, 0);
 	if (node->type == NODE_MERGE) {
@@ -86,7 +86,7 @@ static inline void gps_get_rev_stoploc(train_state *train, track_node *node, loc
 	}
 }
 
-static int gps_collapsereverse(track_node *startnode, track_node **path, int pathlen, train_state *train) {
+static int gps_collapsereverse(track_node *startnode, track_node **path, int pathlen, train *train) {
 	if (pathlen == 0 || train_is_moving(train)) return -1;
 	for (int i = 0; i < pathlen; i++) {
 		if (path[i] == startnode->reverse) return i;
@@ -94,7 +94,7 @@ static int gps_collapsereverse(track_node *startnode, track_node **path, int pat
 	return -1;
 }
 
-void gps_findpath(gps *this, train_state *train, location *dest, int maxlen, trainvcmd *rv_vcmd, int *rv_len, logdisplay *log) {
+void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd *rv_vcmd, int *rv_len, logdisplay *log) {
 	location trainloc = train_get_frontloc(train);
 
 	track_node *src = trainloc.edge->dest;
@@ -189,7 +189,7 @@ void gps_findpath(gps *this, train_state *train, location *dest, int maxlen, tra
 	*rv_len = cmdlen;
 }
 
-static int dist_between(track_node *u, track_edge *e, track_node *v, train_state *train) {
+static int dist_between(track_node *u, track_edge *e, track_node *v, train *train) {
 	int train_no = train->no;
 	if (v->type == NODE_MERGE) {
 		track_node *v_rev = v->reverse;
@@ -206,7 +206,7 @@ static int dist_between(track_node *u, track_edge *e, track_node *v, train_state
 
 // code taken from http://en.wikipedia.org/wiki/Dijkstra's_algorithm#Algorithm
 // @TODO: keep this algorithm independent of gps, pass in whats needed as args
-void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, track_node **rv_nodes, int *rv_len_nodes, train_state *train) {
+void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, track_node **rv_nodes, int *rv_len_nodes, train *train) {
 	int dist[TRACK_MAX];
 	track_node *previous[TRACK_MAX];
 	heap_clear(Q);
@@ -431,7 +431,7 @@ int vcmd2str(char *buf, trainvcmd *vcmd) {
 //		ASSERT(cnt == 6, "cnt != 6! %d", cnt);
 //	}
 //	{
-//		train_state *train = &eng->train[38];
+//		train *train = &eng->train[38];
 //
 //		track_node *c14 = &eng->track_nodes_arr[45];
 //		track_node *c10 = &eng->track_nodes_arr[41];
