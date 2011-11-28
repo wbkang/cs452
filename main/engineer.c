@@ -14,6 +14,8 @@ engineer *engineer_new(char track_name) {
 
 	train_go(this->tid_traincmdbuf);
 
+	this->trainreg = trainreg_new();
+
 	track_node *nodes = malloc(sizeof(track_node) * TRACK_MAX);
 
 	switch (track_name) {
@@ -30,10 +32,6 @@ engineer *engineer_new(char track_name) {
 
 	this->gps = gps_new(nodes);
 
-	TRAIN_FOREACH(train_no) {
-		train_init(engineer_get_train(this, train_no), train_no);
-	}
-
 	this->con = console_new(COM2);
 	this->log = logdisplay_new(this->con, 11, 56, 8, 100, ROUNDROBIN, "train location log");
 	this->log2 = logdisplay_new(this->con, 11 + 9, 56, 8, 100, ROUNDROBIN, "location attribution log");
@@ -44,10 +42,9 @@ engineer *engineer_new(char track_name) {
 }
 
 void engineer_destroy(engineer *this) {
-	TRAIN_FOREACH(train_no) {
-		train *train = engineer_get_train(this, train_no);
+	trainreg_foreach(this->trainreg, train) {
 		if (train_is_moving(train)) {
-			engineer_set_speed(this, train_no, 0);
+			engineer_set_speed(this, train->no, 0);
 		}
 	}
 	train_stop(this->tid_traincmdbuf);
@@ -55,13 +52,12 @@ void engineer_destroy(engineer *this) {
 }
 
 train *engineer_get_train(engineer *this, int train_no) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	return &this->train[train_no];
+	return trainreg_get(this->trainreg, train_no);
 }
 
 void engineer_on_set_speed(engineer *this, int train_no, int speed, int t) {
-	train *train = engineer_get_train(this, train_no);
-	if (!train->calibrated) return;
+	train *train = trainreg_get(this->trainreg, train_no);
+	if (!train) return;
 	train_set_speed(train, speed, t);
 }
 
@@ -70,8 +66,8 @@ void engineer_set_speed(engineer *this, int train_no, int speed) {
 }
 
 void engineer_on_reverse(engineer *this, int train_no, int t) {
-	train *train = engineer_get_train(this, train_no);
-	if (!train->calibrated) return;
+	train *train = trainreg_get(this->trainreg, train_no);
+	if (!train) return;
 	train_on_reverse(train, t);
 }
 
@@ -140,25 +136,20 @@ void engineer_train_on_loc(engineer *this, train *train, location *new_loc_picku
 	location_add(new_loc_pickup, dx_lag);
 	train_set_pickuploc(train, new_loc_pickup);
 
-	if (!train_is_lost(train)) {
-		int dist = location_dist_min(&old_loc_pickup, new_loc_pickup);
-		logdisplay_printf(this->log,
-			"pred: %L, attrib: %L (%dmm)",
-			&old_loc_pickup,
-			&new_loc_pickup,
-			dist
-		);
-		logdisplay_flushline(this->log);
-	}
+	logdisplay_printf(this->log,
+		"pred: %L, attrib: %L (%dmm)",
+		&old_loc_pickup,
+		&new_loc_pickup,
+		location_dist_min(&old_loc_pickup, new_loc_pickup)
+	);
+	logdisplay_flushline(this->log);
 }
 
 train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, int t_loc) {
 	int closest_dist = infinity;
 	train *closest_train = NULL;
 
-	TRAIN_FOREACH(train_no) {
-		train *train = &this->train[train_no];
-		if (!train->calibrated) continue;
+	trainreg_foreach(this->trainreg, train) {
 		if (!train_is_moving(train)) continue;
 		if (train_is_lost(train)) continue;
 
@@ -176,7 +167,7 @@ train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, i
 			logdisplay_printf(this->log2,
 				"testing %L vs train %d at %L (was at %L), distance: %dmm",
 				&attr_loc_pickup,
-				train_no,
+				train->no,
 				&cur_loc_pickup,
 				&old_loc_pickup,
 				dist
@@ -185,7 +176,7 @@ train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, i
 			logdisplay_printf(this->log2,
 				"testing %L vs train %d at %L (was at %L), no path found",
 				&attr_loc_pickup,
-				train_no,
+				train->no,
 				&cur_loc_pickup,
 				&old_loc_pickup
 			);
@@ -195,9 +186,7 @@ train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, i
 	if (closest_train && closest_dist < 400) return closest_train; // @TODO: pull out magic constant
 
 	train *rv = NULL;
-	TRAIN_FOREACH(train_no) {
-		train *train = &this->train[train_no];
-		if (!train->calibrated) continue;
+	trainreg_foreach(this->trainreg, train) {
 		if (!train_is_moving(train)) continue;
 		if (!train_is_lost(train)) continue;
 
@@ -243,11 +232,8 @@ void engineer_onsensor(engineer *this, char data[]) {
 
 void engineer_ontick(engineer *this) {
 	int t = Time(this->tid_time);
-	TRAIN_FOREACH(train_no) {
-		train *train = &this->train[train_no];
-		if (train->calibrated) {
-			train_update_simulation(train, t);
-			train_ontick(train, this->tid_traincmdbuf, this->track_nodes, this->triplog, t, this->gps);
-		}
+	trainreg_foreach(this->trainreg, train) {
+		train_update_simulation(train, t);
+		train_ontick(train, this->tid_traincmdbuf, this->track_nodes, this->triplog, t, this->gps);
 	}
 }

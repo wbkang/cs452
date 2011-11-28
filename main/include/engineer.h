@@ -8,10 +8,11 @@
 #include <console.h> // @TODO: replace for a ui task
 #include <ui/logdisplay.h> // @TODO: replace for a ui task
 #include <gps.h>
+#include <train_registry.h>
 
 typedef struct _tag_train_engineer {
+	trainreg *trainreg;
 	int tid_traincmdbuf;
-	train train[TRAIN_MAX_TRAIN_ADDR + 1];
 	lookup *track_nodes;
 	console *con; // @TODO: replace with a ui task tid
 	logdisplay *log; // @TODO: replace with a ui task tid
