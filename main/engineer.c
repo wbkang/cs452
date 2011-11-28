@@ -30,11 +30,11 @@ engineer *engineer_new(char track_name) {
 			break;
 	}
 
-	gps *gps = gps_new(this->track_nodes_arr);
+	this->gps = gps_new(this->track_nodes_arr);
+
 	// initialize train descriptors
 	TRAIN_FOREACH(train_no) {
-		train *train = engineer_get_train(this, train_no);
-		train_init(train, train_no, gps);
+		train_init(engineer_get_train(this, train_no), train_no);
 	}
 
 	this->con = console_new(COM2);
@@ -255,7 +255,7 @@ void engineer_ontick(engineer *this) {
 		train *train = &this->train[train_no];
 		if (train->calibrated) {
 			train_update_simulation(train, t);
-			train_ontick(train, this->tid_traincmdbuf, this->track_nodes, this->triplog, t);
+			train_ontick(train, this->tid_traincmdbuf, this->track_nodes, this->triplog, t, this->gps);
 		}
 	}
 }
