@@ -75,7 +75,7 @@ void sensorserver() {
 	}
 	this.i_byte = 0;
 	this.i_mod = 0;
-	this.msg.type = SENSOR;
+	this.msg.type = MSG_SENSOR;
 	this.msg.module[1] = '\0';
 
 	int size_msg = max(sizeof(msg_comin), sizeof(traincmd));
@@ -92,10 +92,10 @@ void sensorserver() {
 		Reply(tid, NULL, 0);
 		msg_header *header = (msg_header*) msg;
 		switch (header->type) {
-			case COM_IN:
+			case MSG_COM_IN:
 				handle_comin(&this, msg);
 				break;
-			case TRAINCMDRECEIPT:
+			case MSG_TRAINCMDRECEIPT:
 				handle_traincmdmsgreceipt(&this, msg);
 				break;
 			default:

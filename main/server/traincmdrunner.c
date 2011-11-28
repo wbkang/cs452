@@ -14,7 +14,7 @@ void traincmdrunner() {
 	int tid_switchcmdrunner = switchcmdrunner_new(NULL);
 
 	traincmd_receipt rcpt;
-	rcpt.type = TRAINCMDRECEIPT;
+	rcpt.type = MSG_TRAINCMDRECEIPT;
 	traincmd *cmd = &rcpt.cmd;
 
 	for (;;) {

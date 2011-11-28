@@ -17,7 +17,7 @@ void timenotifier() {
 	int tid_time = WhoIs(NAME_TIMESERVER);
 
 	msg_time msg;
-	msg.type = TIME;
+	msg.type = MSG_TIME;
 
 	for (;;) {
 		Delay(args.ticks, tid_time);

@@ -71,7 +71,7 @@ void buffertask() {
 		ASSERT(size > 0, "bad packet");
 		msg_header *header = (msg_header*) packet;
 		switch (header->type) {
-			case REQ:
+			case MSG_REQ:
 				handle_get(&state, tid);
 				break;
 			default:
@@ -105,6 +105,6 @@ int buffertask_put(int tid, void* item, int item_size) {
 
 int buffertask_get(int tid, void* item, int item_size) {
 	msg_header msg;
-	msg.type = REQ;
+	msg.type = MSG_REQ;
 	return Send(tid, &msg, sizeof(msg), item, item_size);
 }
