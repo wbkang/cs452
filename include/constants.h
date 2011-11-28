@@ -25,6 +25,7 @@
 #define NAME_TRAINCMDBUFFER "03"
 #define NAME_TRAINCMDPUB "04"
 #define NAME_SENSORPUB "05"
+#define NAME_UISERVER "06"
 
 /*
  * Server priorities
@@ -41,6 +42,7 @@
 #define PRIORITY_TRAINCMDPUB (MAX_PRIORITY - 1)
 #define PRIORITY_SENSORPUB (MAX_PRIORITY - 1)
 #define PRIORITY_SWITCHCMDRUNNER 9
+#define PRIORITY_UISERVER MIN_PRIORITY
 
 /*
  * Memory constants.
