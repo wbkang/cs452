@@ -5,10 +5,24 @@
 #include <constants.h>
 #include <lookup.h>
 
+#define MAX_NUM_WHOIS_BLOCKED 32
+#define NUM_NAMES (NUM_ASCII_PRINTABLE * NUM_ASCII_PRINTABLE)
+
 typedef struct _tag_nameserver_req {
 	char no;
 	char ch[3];
 } nameserver_req;
+
+typedef struct _tag_whois_blocked {
+	int tid;
+	int hash;
+} whois_blocked;
+
+typedef struct _tag_nameserver_state {
+	lookup *nametidmap;
+	whois_blocked blocked[MAX_NUM_WHOIS_BLOCKED];
+	int num_blocked;
+} nameserver_state;
 
 static inline int goodchar(char ch) {
 	return ASCII_PRINTABLE_START <= ch && ch <= ASCII_PRINTABLE_END;
@@ -24,51 +38,73 @@ static int name_hash(void* nameptr) {
 	return name[0] * NUM_ASCII_PRINTABLE + name[1] - (NUM_ASCII_PRINTABLE + 1) * ASCII_PRINTABLE_START;
 }
 
-void nameserver() {
-	// init state
-	int hashsize = NUM_ASCII_PRINTABLE * NUM_ASCII_PRINTABLE; // two chars
-	lookup *nametidmap = lookup_new(hashsize, name_hash, NULL);
+static int handle_register(nameserver_state *state, int tid, char *name) {
+	if (!nameserver_validname(name)) return ReplyInt(tid, NAMESERVER_ERROR_BADNAME);
 
-	// init com args
-	int tid;
-	nameserver_req req;
-	// serve
-	int rv;
+	void* data = lookup_get(state->nametidmap, name);
+	ASSERT(!data, "name %s already registered to task %d", name, (int) data);
+
+	lookup_put(state->nametidmap, name, (void*) tid);
+	ReplyInt(tid, 0);
+
+	int hash = name_hash(name);
+
+	// release blocked tasks
+	for (int i = 0; i < state->num_blocked;) {
+		whois_blocked *blockee = &state->blocked[i];
+		if (blockee->hash == hash) {
+			ReplyInt(blockee->tid, tid);
+			memcpy(blockee, &state->blocked[state->num_blocked], sizeof(whois_blocked));
+			state->num_blocked--;
+		} else {
+			i++;
+		}
+	}
+
+	return 0;
+}
+
+static int handle_whois(nameserver_state *state, int tid, char *name) {
+	if (!nameserver_validname(name)) return ReplyInt(tid, NAMESERVER_ERROR_BADNAME);
+
+	void* data = lookup_get(state->nametidmap, name);
+	if (data) return ReplyInt(tid, (int) data);
+
+	// ASSERT(!strcmp(name, "04"), "name %s has not been registered", name);
+
+	ASSERT(state->num_blocked < MAX_NUM_WHOIS_BLOCKED, "too many blocked");
+	whois_blocked *blockee = &state->blocked[state->num_blocked];
+	blockee->tid = tid;
+	blockee->hash = name_hash(name);
+	state->num_blocked++;
+
+	return 0;
+}
+
+void nameserver() {
+	nameserver_state state;
+	state.nametidmap = lookup_new(NUM_NAMES, name_hash, NULL);
+	state.num_blocked = 0;
+
 	for (;;) {
+		int tid;
+		nameserver_req req;
 		int bytes = Receive(&tid, &req, sizeof(req));
 		if (bytes == sizeof(req)) {
 			switch (req.no) {
 				case NAMESERVER_REGISTERAS:
-					if (lookup_goodkey(nametidmap, req.ch)) {
-						void* data = lookup_get(nametidmap, req.ch);
-						ASSERT(!data, "name %s already registered to task %d", req.ch, (int) data);
-					}
-					lookup_put(nametidmap, req.ch, (void*) tid);
-					rv = 0;
+					handle_register(&state, tid, req.ch);
 					break;
-				case NAMESERVER_WHOIS: {
-					if (lookup_goodkey(nametidmap, req.ch)) {
-						void* data = lookup_get(nametidmap, req.ch);
-						if (data) {
-							int registered_tid = (int) data;
-							if (registered_tid >= 0) {
-								rv = registered_tid;
-								break;
-							}
-						}
-					}
-					rv = NAMESERVER_ERROR_NOTREGISTERED;
-					ASSERT(FALSE, "name \"%c%c\" not found", req.ch[0], req.ch[1]);
+				case NAMESERVER_WHOIS:
+					handle_whois(&state, tid, req.ch);
 					break;
-				}
 				default:
-					rv = NAMESERVER_ERROR_BADREQNO;
+					ReplyInt(tid, NAMESERVER_ERROR_BADREQNO);
 					break;
 			}
 		} else {
-			rv = NAMESERVER_ERROR_BADDATA;
+			ReplyInt(tid, NAMESERVER_ERROR_BADDATA);
 		}
-		Reply(tid, &rv, sizeof rv);
 	}
 }
 
@@ -76,9 +112,7 @@ static inline int nameserver_send(char reqno, char *name) {
 	if (!nameserver_validname(name)) return NAMESERVER_ERROR_BADNAME;
 	nameserver_req req;
 	req.no = reqno;
-	req.ch[0] = name[0];
-	req.ch[1] = name[1];
-	req.ch[2] = name[2];
+	strcpy(req.ch, name);
 	int rv;
 	int len = Send(NameServerTid(), &req, sizeof req, &rv, sizeof rv);
 	if (len < 0) return len;

@@ -656,8 +656,8 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 				char pos = cmd->arg2;
 				engineer_on_set_switch(eng, no, pos, t);
 				ui_switch(state, no, pos, t);
-				// logdisplay_printf(state->log, "[%7d] switched switch %d to %c, lag %dms", t, no, pos, t - cmd->timestamp);
-				// logdisplay_flushline(state->log);
+				logdisplay_printf(state->log, "[%7d] switched switch %d to %c, lag %dms", t, no, pos, t - cmd->timestamp);
+				logdisplay_flushline(state->log);
 				break;
 			}
 			case SOLENOID: {
@@ -687,9 +687,13 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 }
 
 void a0() {
-	a0state state;
+	int mytid = MyTid();
 
+	a0state state;
 	state.tid_time = WhoIs(NAME_TIMESERVER);
+
+	publisher_new(NAME_TRAINCMDPUB, PRIORITY_TRAINCMDPUB, sizeof(traincmd_receipt));
+	publisher_sub(WhoIs(NAME_TRAINCMDPUB), mytid); // WhoIs blocks
 
 	// ui
 	state.con = console_new(COM2);
@@ -700,10 +704,10 @@ void a0() {
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
 	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 70, ROUNDROBIN, "a0log");
 	state.timedisplay = timedisplay_new(state.con, 1, 9);
-	state.trainloc1 = logstrip_new(state.con, 2, 50);
-	state.trainloc1r = logstrip_new(state.con, 3, 50);
-	state.trainloc2 = logstrip_new(state.con, 4, 50);
-	state.trainloc2r = logstrip_new(state.con, 5, 50);
+	state.trainloc1 = logstrip_new(state.con, 2, 56);
+	state.trainloc1r = logstrip_new(state.con, 3, 56);
+	state.trainloc2 = logstrip_new(state.con, 4, 56);
+	state.trainloc2r = logstrip_new(state.con, 5, 56);
 
 	// sensor bus
 	state.sensor_bus = dumbbus_new();
@@ -724,6 +728,7 @@ void a0() {
 	dumbbus_register(state.simbus, &tick_engineer);
 
 	state.eng = engineer_new(track == TRACK_A ? 'a' : 'b');
+
 	state.last_sensor = NULL;
 
 	calibrator_init();
@@ -735,25 +740,23 @@ void a0() {
 	ui_init(&state);
 
 	sensorserver_new();
-	publisher_sub(WhoIs(NAME_SENSORPUB), MyTid());
-
-	publisher_sub(WhoIs(NAME_TRAINCMDPUB), MyTid());
+	publisher_sub(WhoIs(NAME_SENSORPUB), mytid);
 
 	int tid_com2buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
 	comnotifier_new(tid_com2buffer, 9, COM2, state.con->tid_console);
-	courier_new(9, tid_com2buffer, MyTid());
+	courier_new(9, tid_com2buffer, mytid, sizeof(msg_comin));
 
 	int tid_refreshbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_refreshbuffer, 9, MS2TICK(100));
-	state.tid_refresh = courier_new(9, tid_refreshbuffer, MyTid());
+	state.tid_refresh = courier_new(9, tid_refreshbuffer, mytid, sizeof(msg_time));
 
 	int tid_printlocbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_printlocbuffer, 9, MS2TICK(200));
-	state.tid_printloc = courier_new(9, tid_printlocbuffer, MyTid());
+	state.tid_printloc = courier_new(9, tid_printlocbuffer, mytid, sizeof(msg_time));
 
 	int tid_simstepbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
-	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(15));
-	state.tid_simstep = courier_new(9, tid_simstepbuffer, MyTid());
+	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(20));
+	state.tid_simstep = courier_new(9, tid_simstepbuffer, mytid, sizeof(msg_time));
 
 	void *msg = malloc(LEN_MSG);
 
@@ -779,6 +782,12 @@ void a0() {
 				handle_traincmdmsgreceipt(&state, msg);
 				break;
 			default:
+				logdisplay_printf(
+					state.log,
+					"unhandled message %d",
+					header->type
+				);
+				logdisplay_flushline(state.log);
 				break;
 		}
 	}

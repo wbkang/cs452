@@ -45,6 +45,7 @@ static void handle_comin(state *this, char msg[]) {
 		this->i_mod++;
 		if (this->i_mod == TRAIN_NUM_MODULES) {
 			this->i_mod = 0;
+			Delay(1000, WhoIs(NAME_TIMESERVER));
 			train_querysenmods(TRAIN_NUM_MODULES, this->tid_traincmdbuf);
 		}
 	}
@@ -63,7 +64,7 @@ void sensorserver() {
 	// init com1 notifier
 	int tid_com1buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
 	comnotifier_new(tid_com1buffer, 9, COM2, WhoIs(NAME_IOSERVER_COM1));
-	courier_new(9, tid_com1buffer, MyTid());
+	courier_new(9, tid_com1buffer, MyTid(), sizeof(msg_comin));
 
 	// init state
 	state this;
@@ -81,10 +82,9 @@ void sensorserver() {
 	int size_msg = max(sizeof(msg_comin), sizeof(traincmd));
 	void* msg = malloc(size_msg);
 
-	// initial query
-	train_querysenmods(TRAIN_NUM_MODULES, this.tid_traincmdbuf);
-
 	publisher_sub(WhoIs(NAME_TRAINCMDPUB), MyTid());
+
+	train_querysenmods(TRAIN_NUM_MODULES, this.tid_traincmdbuf); // initial query
 
 	for (;;) {
 		int tid;
