@@ -19,6 +19,7 @@
 #include <train_calibrator.h>
 #include <train_stopper.h>
 #include <server/buffertask.h>
+#include <server/uiserver.h>
 #include <server/courier.h>
 #include <server/publisher.h>
 
@@ -733,6 +734,10 @@ void a0() {
 	state.last_sensor = NULL;
 
 	calibrator_init();
+
+//	int tid_uibuffer = buffertask_new(NULL, PRIORITY_UISERVER, 512); // TODO hardcorded item size
+//	int tid_uiserver = Create(PRIORITY_UISERVER, uiserver);
+//	courier_new(PRIORITY_UISERVER, tid_uibuffer, tid_uiserver);
 
 	ui_init(&state);
 
