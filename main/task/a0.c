@@ -346,7 +346,7 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 }
 
 static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *log2) {
-	train *train = &eng->train[train_no];
+	train *train = engineer_get_train(eng, train_no);
 
 	location loc = train_get_frontloc(train);
 
@@ -419,7 +419,7 @@ static void handle_train_switch_all(a0state *state, char pos) {
 }
 
 static void handle_set_dest(a0state *state, int train_no, char *type, int id, int dist_cm) {
-	train *train = &state->eng->train[train_no];
+	train *train = engineer_get_train(state->eng, train_no);
 	track_node *destnode = engineer_get_tracknode(state->eng, type, id);
 	location dest =	location_fromnode(destnode, 0);
 	location_add(&dest, fixed_new(dist_cm * 10));

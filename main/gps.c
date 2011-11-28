@@ -86,11 +86,12 @@ static inline void gps_get_rev_stoploc(train *train, track_node *node, location 
 	}
 }
 
-static int gps_collapsereverse(track_node *startnode, track_node **path, int pathlen, train *train) {
-	if (pathlen == 0 || train_is_moving(train)) return -1;
-	for (int i = 0; i < pathlen; i++) {
-		if (path[i] == startnode->reverse) return i;
-	}
+static int gps_collapsereverse(track_node *startnode, track_node *path[], int pathlen, train *train) {
+	// @TODO: this is not safe because we might be sitting on a branch, needs more thought
+	// if (pathlen == 0 || train_is_moving(train)) return -1;
+	// for (int i = 0; i < pathlen; i++) {
+	// 	if (path[i] == startnode->reverse) return i;
+	// }
 	return -1;
 }
 
