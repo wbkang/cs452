@@ -15,7 +15,7 @@ void switchcmdrunner() {
 	int tid_traincmdpub = WhoIs(NAME_TRAINCMDPUB);
 
 	traincmd_receipt rcpt;
-	rcpt.type = TRAINCMDRECEIPT;
+	rcpt.type = MSG_TRAINCMDRECEIPT;
 	traincmd *cmd = &rcpt.cmd;
 
 

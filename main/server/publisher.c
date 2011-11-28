@@ -38,7 +38,7 @@ void publisher() {
 		ASSERT(size > 0, "bad packet");
 		msg_header *header = (msg_header*) packet;
 		switch (header->type) {
-			case SUB:
+			case MSG_SUB:
 				handle_sub(&state, packet);
 				break;
 			default:
@@ -64,7 +64,7 @@ int publisher_pub(int tid, void* item, int item_size) {
 
 int publisher_sub(int tid_publisher, int tid) {
 	msg_sub packet;
-	packet.type = SUB;
+	packet.type = MSG_SUB;
 	packet.tid = tid;
 	return Send(tid_publisher, &packet, sizeof(packet), NULL, 0);
 }

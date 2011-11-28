@@ -768,16 +768,16 @@ void a0() {
 		ASSERT(rcvlen >= sizeof(msg_header), "bad data");
 		msg_header *header = (msg_header*) msg;
 		switch (header->type) {
-			case SENSOR:
+			case MSG_SENSOR:
 				handle_sensor(&state, msg);
 				break;
-			case COM_IN:
+			case MSG_COM_IN:
 				handle_comin(&state, msg);
 				break;
-			case TIME:
+			case MSG_TIME:
 				handle_time(&state, msg, tid);
 				break;
-			case TRAINCMDRECEIPT:
+			case MSG_TRAINCMDRECEIPT:
 				handle_traincmdmsgreceipt(&state, msg);
 				break;
 			default:
