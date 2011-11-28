@@ -145,14 +145,18 @@ int location_reverse(location *this) {
 
 int location_tostring(location *this, char *buf) {
 	char * const origbuf = buf;
-	if (location_isundef(this)) {
+	if (!this) {
+		buf += sprintf(buf, "(NULL)");
+	} else if (location_isundef(this)) {
 		buf += sprintf(buf, "(undefined)");
 	} else if (fixed_sgn(this->offset) == 0) {
 		buf += sprintf(buf, "%s", this->edge->src->name);
 	} else {
 		buf += sprintf(buf,
 			"(%s-%s+%dmm)",
-			this->edge->src->name, this->edge->dest->name, fixed_int(this->offset)
+			this->edge->src->name,
+			this->edge->dest->name,
+			fixed_int(this->offset)
 		);
 	}
 	return buf - origbuf;

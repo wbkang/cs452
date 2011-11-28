@@ -66,6 +66,9 @@ static inline char a2i(char ch, char const **src, int base, int *nump) {
 	return ch;
 }
 
+typedef struct location location;
+int location_tostring(location *this, char *buf);
+
 static inline int format(char *buf, char const *fmt, va_list va) {
 	char * const orig_buf = buf;
 	char bf[32 + 1];
@@ -134,11 +137,14 @@ static inline int format(char *buf, char const *fmt, va_list va) {
 					*buf++ = 'x';
 					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
-				case 'F': {
+				case 'F':
 					fixed_print(bf, va_arg(va, fixed));
 					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
-				}
+				case 'L':
+					location_tostring(va_arg(va, location*), bf);
+					buf += putw(buf, width, fillchar, bf, left_align);
+					break;
 				case '%':
 					*buf++ = ch;
 					break;

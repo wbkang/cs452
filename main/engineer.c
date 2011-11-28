@@ -145,22 +145,19 @@ void engineer_train_on_loc(engineer *this, train_state *train, location *new_loc
 
 	train_update_simulation(train, now);
 
-	location loc_old;
-	train_get_frontloc(train, &loc_old);
+	location old_loc_pickup;
+	train_get_pickuploc(train, &old_loc_pickup);
 
 	fixed dx_lag = train_simulate_dx(train, t_loc, now);
 	location_add(new_loc_pickup, dx_lag);
 	train_set_pickuploc(train, new_loc_pickup);
 
 	if (!train_is_lost(train)) {
-		int dist = location_dist_min(&loc_old, new_loc_pickup);
-		ASSERT(dist >= 0, "bad distance %d", dist);
+		int dist = location_dist_min(&old_loc_pickup, new_loc_pickup);
 		logdisplay_printf(this->log,
-			"pred: %-5s + %-3dmm, attrib: %-5s + %-3dmm (%dmm)",
-			loc_old.edge->src->name,
-			fixed_int(loc_old.offset),
-			new_loc_pickup->edge->src->name,
-			fixed_int(new_loc_pickup->offset),
+			"pred: %L, attrib: %L (%dmm)",
+			&old_loc_pickup,
+			&new_loc_pickup,
 			dist
 		);
 		logdisplay_flushline(this->log);
@@ -183,34 +180,29 @@ train_state *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pic
 		location old_loc_pickup;
 		train_get_pickuploc_hist(train, t_loc, &old_loc_pickup);
 
-		// @TODO: replace this with something more efficient, since we have a max range we should stop looking outside of that range.
+		// @TODO: since we have a max range we should short circuit
 		int dist = location_dist_min(&old_loc_pickup, attr_loc_pickup);
+
 		if (dist >= 0) {
 			if (!closest_train || dist < closest_dist) {
 				closest_train = train;
 				closest_dist = dist;
 			}
 			logdisplay_printf(this->log2,
-				"testing %s+%dmm vs train %d at %s+%dmm (was at %s+%dmm), distance: %dmm",
-				attr_loc_pickup->edge->src->name,
-				fixed_int(attr_loc_pickup->offset),
+				"testing %L vs train %d at %L (was at %L), distance: %dmm",
+				&attr_loc_pickup,
 				train_no,
-				cur_loc_pickup.edge->src->name,
-				fixed_int(cur_loc_pickup.offset),
-				old_loc_pickup.edge->src->name,
-				fixed_int(old_loc_pickup.offset),
+				&cur_loc_pickup,
+				&old_loc_pickup,
 				dist
 			);
 		} else {
 			logdisplay_printf(this->log2,
-				"testing %s+%dmm vs train %d at %s+%dmm (was at %s+%dmm), no path found",
-				attr_loc_pickup->edge->src->name,
-				fixed_int(attr_loc_pickup->offset),
+				"testing %L vs train %d at %L (was at %L), no path found",
+				&attr_loc_pickup,
 				train_no,
-				cur_loc_pickup.edge->src->name,
-				fixed_int(cur_loc_pickup.offset),
-				old_loc_pickup.edge->src->name,
-				fixed_int(old_loc_pickup.offset)
+				&cur_loc_pickup,
+				&old_loc_pickup
 			);
 		}
 	}
@@ -226,9 +218,8 @@ train_state *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pic
 
 		if (rv) {
 			logdisplay_printf(this->log2,
-				"can't attribute %s+%dmm, multiple moving lost trains",
-				attr_loc_pickup->edge->src->name,
-				fixed_int(attr_loc_pickup->offset)
+				"can't attribute %L, multiple moving lost trains",
+				&attr_loc_pickup
 			);
 			logdisplay_flushline(this->log2);
 			return NULL;
@@ -243,16 +234,11 @@ train_state *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pic
 void engineer_onloc(engineer *this, location *loc, int t_loc) {
 	train_state *train = engineer_attribute_pickuploc(this, loc, t_loc);
 	if (train) {
-		logdisplay_printf(this->log2,
-			"attributing %s+%Fmm to train %d",
-			loc->edge->src->name,
-			fixed_int(loc->offset),
-			train->no
-		);
+		logdisplay_printf(this->log2, "attributing %L to train %d", &loc, train->no);
 		logdisplay_flushline(this->log2);
 		engineer_train_on_loc(this, train, loc, t_loc);
 	} else {
-		logdisplay_printf(this->log2, "spurious sensor %s", loc->edge->src->name);
+		logdisplay_printf(this->log2, "spurious location %L", &loc);
 		logdisplay_flushline(this->log2);
 	}
 }
