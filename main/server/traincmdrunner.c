@@ -5,12 +5,13 @@
 #include <server/traincmdbuffer.h>
 #include <server/publisher.h>
 #include <server/switchcmdrunner.h>
+#include <server/buffertask.h>
 
 void traincmdrunner() {
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	int tid_time = WhoIs(NAME_TIMESERVER);
 	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
-	int tid_traincmdpub = publisher_new(NAME_TRAINCMDPUB, PRIORITY_TRAINCMDPUB, sizeof(traincmd_receipt));
+	int tid_traincmdpub = WhoIs(NAME_TRAINCMDPUB);
 	int tid_switchcmdrunner = switchcmdrunner_new(NULL);
 
 	traincmd_receipt rcpt;
@@ -32,7 +33,7 @@ void traincmdrunner() {
 				char train = cmd->arg1;
 				Putc(COM1, TRAIN_REVERSE, tid_com1);
 				Putc(COM1, train, tid_com1);
-				Delay(TRAIN_PAUSE_AFTER_REVERSE, tid_time); // @TODO: why?
+				// Delay(TRAIN_PAUSE_AFTER_REVERSE, tid_time); // @TODO: why?
 				break;
 			}
 			case REVERSE_UI: {
@@ -40,11 +41,11 @@ void traincmdrunner() {
 				char train = cmd->arg1;
 				Putc(COM1, TRAIN_REVERSE, tid_com1);
 				Putc(COM1, train, tid_com1);
-				Delay(TRAIN_PAUSE_AFTER_REVERSE, tid_time); // @TODO: why?
+				// Delay(TRAIN_PAUSE_AFTER_REVERSE, tid_time); // @TODO: why?
 				break;
 			}
 			case SWITCH: {
-				int n = Send(tid_switchcmdrunner, cmd, sizeof(traincmd), NULL, 0);
+				int n = buffertask_put(tid_switchcmdrunner, cmd, sizeof(traincmd));
 				ASSERT(n >= 0, "error sending cmd to switchrunner (%d)", n);
 				continue;
 			}

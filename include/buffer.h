@@ -29,9 +29,10 @@ static inline int buffer_full(buffer *this) {
 	return this->head == buffer_increment(this, this->tail);
 }
 
-static inline void buffer_put(buffer *this, void const* item) {
+static inline void buffer_put(buffer *this, void const* item, int item_size) {
 	ASSERT(!buffer_full(this), "full");
-	memcpy(this->tail, item, this->item_size);
+	ASSERT(item_size <= this->item_size, "item size too big %d", item_size);
+	memcpy(this->tail, item, item_size);
 	this->tail = buffer_increment(this, this->tail);
 }
 
@@ -39,4 +40,12 @@ static inline void buffer_get(buffer *this, void* rv) {
 	ASSERT(!buffer_empty(this), "empty");
 	memcpy(rv, this->head, this->item_size);
 	this->head = buffer_increment(this, this->head);
+}
+
+static inline int buffer_size(buffer *this) {
+	int count = 0;
+	for (void *p = this->head; p != this->tail; p = buffer_increment(this, p)) {
+		count++;
+	}
+	return count;
 }

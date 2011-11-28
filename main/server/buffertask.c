@@ -5,6 +5,11 @@
 #include <buffer.h>
 #include <uconst.h>
 
+// @TODO: temp
+#include <console.h>
+#include <ui/logdisplay.h>
+#define DEBUGTASK 10
+
 #define NUM_BLOCKED 1
 #define SIZE_NAME 4
 
@@ -17,18 +22,41 @@ typedef struct _tag_buffertask_state {
 	int item_size;
 	buffer *items;
 	queue *get_blocked;
+	logdisplay *log;
 } buffertask_state;
 
 static inline void tx(buffertask_state *state, int tid) {
 	char item[state->item_size];
 	buffer_get(state->items, item);
+
+	if (MyTid() == DEBUGTASK) {
+		logdisplay_printf(state->log,
+			"%d get %d [%d]",
+			tid,
+			((msg_header*) item)->type,
+			buffer_size(state->items)
+		);
+		logdisplay_flushline(state->log);
+		// traincmd_receipt *rcpt = (traincmd_receipt*) item;
+		// traincmd *cmd = &rcpt->cmd;
+		// logdisplay_printf(state->log,
+		// 	"%d get %d: switch %d to %c",
+		// 	tid,
+		// 	cmd->name,
+		// 	cmd->arg1,
+		// 	cmd->arg2
+		// );
+		// logdisplay_flushline(state->log);
+	}
+
 	Reply(tid, item, state->item_size);
 }
 
-static inline void handle_put(buffertask_state *state, int tid, void* item) {
+static inline void handle_put(buffertask_state *state, int tid, void* item, int item_size) {
 	ASSERT(!buffer_full(state->items), "buffer full");
+	ASSERT(item_size <= state->item_size, "item size too big %d", item_size);
 	Reply(tid, NULL, 0);
-	buffer_put(state->items, item);
+	buffer_put(state->items, item, item_size);
 	if (!queue_empty(state->get_blocked)) {
 		tx(state, (int) queue_get(state->get_blocked));
 	}
@@ -43,7 +71,6 @@ static inline void handle_get(buffertask_state *state, int tid) {
 	}
 }
 
-// @TODO (optional): add an optimization for variable sized items. currently it copies the entire thing.
 void buffertask() {
 	// init args
 	int tid;
@@ -60,12 +87,18 @@ void buffertask() {
 	// init state
 	buffertask_state state;
 	state.item_size = args->item_size;
-	// TODO O M F G
-	state.items = buffer_new((STACK_SIZE / args->item_size / 2), args->item_size);
+	// @TODO: O M F G
+	state.items = buffer_new(((STACK_SIZE / 2) / args->item_size), args->item_size);
 	state.get_blocked = queue_new(NUM_BLOCKED);
 
 	const int size_packet = max(sizeof(msg_header), state.item_size);
 	void* packet = malloc(size_packet);
+
+	if (MyTid() == DEBUGTASK) {
+		state.log = logdisplay_new(console_new(COM2), 10, 56, 40, 100, ROUNDROBIN, "buffer log");
+	}
+
+	MEMCHECK();
 
 	for (;;) {
 		int size = Receive(&tid, packet, size_packet);
@@ -76,7 +109,44 @@ void buffertask() {
 				handle_get(&state, tid);
 				break;
 			default:
-				handle_put(&state, tid, packet);
+				if (MyTid() == DEBUGTASK) {
+					if (header->type == 6) {
+						traincmd_receipt *rcpt = packet;
+						traincmd *cmd = &rcpt->cmd;
+						if (cmd->name == 2) {
+							logdisplay_printf(state.log,
+								"%d put msg %d, %d: switch %d to %c [%d]",
+								tid,
+								header->type,
+								cmd->name,
+								cmd->arg1,
+								cmd->arg2,
+								buffer_size(state.items)
+							);
+							logdisplay_flushline(state.log);
+						} else {
+							logdisplay_printf(state.log,
+								"%d put msg %d, %d(%d, %d) [%d]",
+								tid,
+								header->type,
+								cmd->name,
+								cmd->arg1,
+								cmd->arg2,
+								buffer_size(state.items)
+							);
+							logdisplay_flushline(state.log);
+						}
+					} else {
+						logdisplay_printf(state.log,
+							"### %d put %d ### [%d]",
+							tid,
+							header->type,
+								buffer_size(state.items)
+						);
+						logdisplay_flushline(state.log);
+					}
+				}
+				handle_put(&state, tid, packet, size);
 				break;
 		}
 	}

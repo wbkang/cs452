@@ -40,3 +40,11 @@ static inline void* queue_peek(queue *this) {
 	ASSERT(!queue_empty(this), "empty");
 	return *this->head;
 }
+
+static inline int queue_size(queue *this) {
+	int count = 0;
+	for (void **p = this->head; p != this->tail; p = queue_increment(this, p)) {
+		count++;
+	}
+	return count;
+}

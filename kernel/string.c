@@ -1,4 +1,5 @@
 #include <string.h>
+
 int strcmp(const char *s1, const char *s2) {
 	int cmp = 0;
 	const char *a = s1;

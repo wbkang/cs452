@@ -100,7 +100,7 @@ void ioserver() {
 		int msglen = Receive(&tid, req, req_size);
 		if (tid == state.tid_notifier_general) {
 			handle_general(&state);
-		} else if (msglen >= sizeof(*req)) {
+		} else if (msglen >= sizeof(ioserver_req)) {
 			switch (req->no) {
 				case PUTC:
 					handle_putc(&state, tid, req->str[0]);
@@ -115,7 +115,7 @@ void ioserver() {
 					handle_flush(&state, tid);
 					break;
 				default:
-					ASSERT(FALSE, "bad reqno: %d", req->no);
+					ASSERT(0, "bad reqno %d from tid %d (my tid %d) <- WHAT THE FUCK!", req->no, tid, MyTid());
 					ReplyInt(tid, IOSERVER_ERROR_BADREQNO);
 					break;
 			}
@@ -163,7 +163,7 @@ static inline void handle_general(ioserver_state *state) {
 		if (c == 0x1b && state->channel == COM2) { // this is the crashdump
 			CrashDump();
 		} else if (queue_empty(state->input_blocked)) {
-			buffer_put(state->input, &c);
+			buffer_put(state->input, &c, sizeof(char));
 		} else {
 			int tid = (int) queue_get(state->input_blocked);
 			ReplyInt(tid, c);
@@ -227,10 +227,7 @@ static inline void handle_getc(ioserver_state *state, int tid) {
 }
 
 static inline void handle_putc(ioserver_state *state, int tid, char c) {
-	if (UNLIKELY(buffer_full(state->output))) {
-		ERROR("queue full, channel: %d, char: %c (%x)", state->channel, c, c);
-	}
-	buffer_put(state->output, &c);
+	buffer_put(state->output, &c, sizeof(char));
 	if (state->tx_empty && state->cts) {
 		txchar(state);
 	}
@@ -238,11 +235,8 @@ static inline void handle_putc(ioserver_state *state, int tid, char c) {
 }
 
 static inline void handle_putstr(ioserver_state *state, int tid, char const *str) {
-	if (UNLIKELY(buffer_full(state->output))) {
-		ERROR("queue full, channel: %d, string: %s (%x)", state->channel, str, str);
-	}
 	for (char const *p = str; *p; *p++) {
-		buffer_put(state->output, p);
+		buffer_put(state->output, p, sizeof(char));
 	}
 	if (state->tx_empty && state->cts && *str) {
 		txchar(state);

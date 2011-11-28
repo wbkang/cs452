@@ -66,10 +66,9 @@ int track_numedges(track_node *node) {
 		case NODE_NONE:
 		case NODE_EXIT:
 			return 0;
-		default:
-			ASSERT(0, "node type %d is not handled", node->type);
-			return 0; // unreachable
 	}
+	ASSERT(0, "node type %d is not handled", node->type);
+	return 0; // unreachable
 }
 
 // starting from 'node' walk a distance 'dist' forward and put all met edges into 'arr'
