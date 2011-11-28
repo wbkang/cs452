@@ -7,7 +7,7 @@ XCC	= $(CCDIR)/gcc
 AS	= $(CCDIR)/as
 AR	= $(CCDIR)/ar
 LD  = $(CCDIR)/ld
-CFLAGS  = -fno-builtin -c -fPIC -Wall -I./include -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99 -O3 -fno-omit-frame-pointer
+CFLAGS  = -g -fno-builtin -c -fPIC -Wall -I./include -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99 -fno-omit-frame-pointer 
 
 # -g: include hooks for gdb
 # -c: only compile
@@ -16,7 +16,7 @@ CFLAGS  = -fno-builtin -c -fPIC -Wall -I./include -I../include -mcpu=arm920t -ms
 # -Wall: report all warnings
 # -msoft-float: use software for floating point
 
-ASFLAGS	= -mcpu=arm920t -mapcs-32
+ASFLAGS	= -mno-fpu -mcpu=arm920t -mapcs-32
 # -mapcs-32: always create a complete stack frame
 
 ARFLAGS = rcs
@@ -56,6 +56,10 @@ generate_funcmap : $(OBJS)
 %.o : %.s
 	@echo "[AS]\t$< -> $@"
 	@$(AS) $(ASFLAGS) -o $@ $<
+
+#%.o : %.c
+#	@echo "[CC]\t$< -> $@"
+#	@$(XCC) $(CFLAGS) -o $@ $<
 
 %.s : %.c
 	@echo "[CC]\t$< -> $@"

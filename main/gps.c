@@ -28,7 +28,7 @@ gps *gps_new(track_node *nodes) {
 }
 
 static inline void trainvcmd_addspeed(trainvcmd *rv_vcmd, int *idx, int speed, location *speedloc) {
-	rv_vcmd[*idx].type = TRAINVCMD;
+	rv_vcmd[*idx].type = MSG_TRAINVCMD;
 	rv_vcmd[*idx].name = VCMD_SETSPEED;
 	rv_vcmd[*idx].data.speed = speed;
 	if (speedloc) {
@@ -40,28 +40,28 @@ static inline void trainvcmd_addspeed(trainvcmd *rv_vcmd, int *idx, int speed, l
 }
 
 static inline void trainvcmd_addstop(trainvcmd *rv_vcmd, int *idx, location *stoploc) {
-	rv_vcmd[*idx].type = TRAINVCMD;
+	rv_vcmd[*idx].type = MSG_TRAINVCMD;
 	rv_vcmd[*idx].name = VCMD_STOP;
 	rv_vcmd[*idx].location = *stoploc;
 	(*idx)++;
 }
 
 static inline void trainvcmd_addreverse(trainvcmd *rv_vcmd, int *idx, location *revloc) {
-	rv_vcmd[*idx].type = TRAINVCMD;
+	rv_vcmd[*idx].type = MSG_TRAINVCMD;
 	rv_vcmd[*idx].name = VCMD_SETREVERSE;
 	rv_vcmd[*idx].location = *revloc;
 	(*idx)++;
 }
 
 static inline void trainvcmd_addpause(trainvcmd *rv_vcmd, int *idx, int ms) {
-	rv_vcmd[*idx].type = TRAINVCMD;
+	rv_vcmd[*idx].type = MSG_TRAINVCMD;
 	rv_vcmd[*idx].name = VCMD_WAITFORMS;
 	rv_vcmd[*idx].data.timeout = ms;
 	(*idx)++;
 }
 
 static inline void trainvcmd_addswitch(trainvcmd *rv_vcmd, int *idx, char const *switchname, char pos, location *switchloc) {
-	rv_vcmd[*idx].type = TRAINVCMD;
+	rv_vcmd[*idx].type = MSG_TRAINVCMD;
 	rv_vcmd[*idx].name = VCMD_SETSWITCH;
 	strcpy(rv_vcmd[*idx].data.switchinfo.nodename, switchname);
 	rv_vcmd[*idx].data.switchinfo.pos = pos;

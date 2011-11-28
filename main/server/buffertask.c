@@ -53,14 +53,15 @@ void buffertask() {
 	Reply(tid, NULL, 0);
 
 	// init name
-	if (args->name) {
+	if (strlen(args->name) > 0) {
 		RegisterAs(args->name);
 	}
 
 	// init state
 	buffertask_state state;
 	state.item_size = args->item_size;
-	state.items = buffer_new((STACK_SIZE - 1000) / args->item_size, args->item_size);
+	// TODO O M F G
+	state.items = buffer_new((STACK_SIZE / args->item_size / 2), args->item_size);
 	state.get_blocked = queue_new(NUM_BLOCKED);
 
 	const int size_packet = max(sizeof(msg_header), state.item_size);
@@ -71,7 +72,7 @@ void buffertask() {
 		ASSERT(size > 0, "bad packet");
 		msg_header *header = (msg_header*) packet;
 		switch (header->type) {
-			case REQ:
+			case MSG_REQ:
 				handle_get(&state, tid);
 				break;
 			default:
@@ -85,15 +86,20 @@ void buffertask() {
  * API
  */
 
-int buffertask_new(char name[], int priority, int item_size) {
+int buffertask_new(char *name, int priority, int item_size) {
 	int tid = Create(priority, buffertask);
 	if (tid < 0) return tid;
-	int namesize = strlen(name) + 1;
+	int namesize = 1 + (name ? strlen(name) : 0);
+	ASSERT(namesize <= SIZE_NAME, "namesize exceeding SIZE_NAME");
 	int size = sizeof(buffertask_args) + sizeof(char) * namesize;
 	char mem[size];
 	buffertask_args *args = (void*) mem;
 	args->item_size = item_size;
-	memcpy(args->name, name, namesize);
+	if (name) {
+		strcpy(args->name, name);
+	} else {
+		args->name[0] = '\0';
+	}
 	int n = Send(tid, args, size, NULL, 0);
 	if (n < 0) return n;
 	return tid;
@@ -105,6 +111,6 @@ int buffertask_put(int tid, void* item, int item_size) {
 
 int buffertask_get(int tid, void* item, int item_size) {
 	msg_header msg;
-	msg.type = REQ;
+	msg.type = MSG_REQ;
 	return Send(tid, &msg, sizeof(msg), item, item_size);
 }

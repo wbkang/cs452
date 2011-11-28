@@ -9,8 +9,8 @@
 static void logdisplay_put_title(logdisplay* this) {
 	console_move(this->con, this->line, this->col);
 	console_effect(this->con, EFFECT_UNDERSCORE);
-	char fmt[this->totalcols + 1];
-	sprintf(fmt, "%%-%ds");
+	char fmt[10];
+	sprintf(fmt, "%%-%ds", this->totalcols);
 	console_printf(this->con, fmt, this->title);
 	console_effect_reset(this->con);
 	console_flush(this->con);
