@@ -37,13 +37,13 @@ location location_undef() {
 
 int location_isundef(location *this) {
 	ASSERTNOTNULL(this);
-	return this->edge == NULL && fixed_sgn(this->offset) == 0;
+	return this->edge == NULL && fixed_is0(this->offset);
 }
 
 int location_isinvalid(location *this) {
-	if (this == NULL) return -1;
-	if (this->edge == NULL) {
-		if (fixed_sgn(this->offset) == 0) return 0; // undefined
+	if (!this) return -1;
+	if (!this->edge) {
+		if (fixed_is0(this->offset)) return 0; // undefined
 		return -2;
 	}
 	if (fixed_sgn(this->offset) < 0) return -3; // negative offset
@@ -63,11 +63,11 @@ int location_dist_dir(location *A, location *B) {
 		track_node *from_next_node = track_next_node(A->edge->src);
 		ASSERTNOTNULL(from_next_node);
 		ASSERT(from_next_node != A->edge->src, "same node");
-		int dist = track_distance(from_next_node, A->edge->src);
+		int dist = track_distance(from_next_node, B->edge->src);
 		if (dist < 0) return -3;
 		track_edge *next_edge = A->edge;
 		ASSERTNOTNULL(next_edge);
-		return dist + next_edge->dist - doff;
+		return dist + next_edge->dist + doff;
 	} else {
 		int dist = track_distance(A->edge->src, B->edge->src);
 		if (dist < 0) return -4;
@@ -80,7 +80,7 @@ int location_dist_min(location *A, location *B) {
 	int distBA = location_dist_dir(B, A);
 	int goodAB = distAB >= 0;
 	int goodBA = distBA >= 0;
-	if (goodAB && goodBA) min(distAB, distBA);
+	if (goodAB && goodBA) return min(distAB, distBA);
 	if (goodAB) return distAB;
 	if (goodBA) return distBA;
 	return -1;
@@ -146,13 +146,17 @@ int location_reverse(location *this) {
 
 int location_tostring(location *this, char *buf) {
 	char * const origbuf = buf;
-	if (!this) {
-		buf += sprintf(buf, "(NULL)");
+	int errno = location_isinvalid(this);
+	if (errno) {
+		buf += sprintf(buf, "(invalid %d)", errno);
 	} else if (location_isundef(this)) {
 		buf += sprintf(buf, "(undefined)");
 	} else if (fixed_sgn(this->offset) == 0) {
+		ASSERTNOTNULL(this->edge->src);
 		buf += sprintf(buf, "%s", this->edge->src->name);
 	} else {
+		ASSERTNOTNULL(this->edge->src);
+		ASSERTNOTNULL(this->edge->dest);
 		buf += sprintf(buf,
 			"(%s-%s+%dmm)",
 			this->edge->src->name,

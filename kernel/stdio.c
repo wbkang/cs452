@@ -71,7 +71,7 @@ int location_tostring(location *this, char *buf);
 
 static inline int format(char *buf, char const *fmt, va_list va) {
 	char * const orig_buf = buf;
-	char bf[32 + 1];
+	char bf[64];
 	char ch, fillchar;
 	int left_align;
 	int width;
@@ -141,10 +141,13 @@ static inline int format(char *buf, char const *fmt, va_list va) {
 					fixed_print(bf, va_arg(va, fixed));
 					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
-				case 'L':
-					location_tostring(va_arg(va, location*), bf);
+				case 'L': {
+					location *loc = va_arg(va, location*);
+					// ASSERTNOTNULL(loc);
+					location_tostring(loc, bf);
 					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
+				}
 				case '%':
 					*buf++ = ch;
 					break;
