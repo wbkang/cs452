@@ -348,8 +348,7 @@ static void handle_sensor(a0state *state, char rawmsg[]) {
 static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *log2) {
 	train_state *train = &eng->train[train_no];
 
-	location loc;
-	train_get_frontloc(train, &loc);
+	location loc = train_get_frontloc(train);
 
 	// print
 	char *direction_str;
