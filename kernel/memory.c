@@ -67,7 +67,7 @@ void* umalloc(uint size) {
 void* qmalloc(uint size) {  // can be called from kernel or user
 	int mode = 0xdeadbeef;
 	READ_CPSR(mode);
-	switch (mode) {
+	switch (mode & 0x1f) {
 		case 0x10: return malloc(size); // user
 		case 0x13: return kmalloc(size); // service
 		default: // not handled

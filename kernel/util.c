@@ -35,9 +35,14 @@ void print_stack_trace(uint fp, int one) {
 
 	bwprintf(1, CONSOLE_EFFECT(EFFECT_RESET));
 
-	if (one) {
-		bwprintf(1, CONSOLE_EFFECT(EFFECT_BRIGHT) CONSOLE_EFFECT(EFFECT_FG_BLUE) "asmline\t\torigin\t\tfunction\n" CONSOLE_EFFECT(EFFECT_RESET));
+	if (fp <= 0x218000 || fp >= 0x2000000) {
+		bwprintf(1, "fp out of range: %x\n", fp);
+		return;
 	}
+
+//	if (one) {
+//		bwprintf(1, CONSOLE_EFFECT(EFFECT_BRIGHT) CONSOLE_EFFECT(EFFECT_FG_BLUE) "asmline\t\torigin\t\tfunction\n" CONSOLE_EFFECT(EFFECT_RESET));
+//	}
 
 	do {
 		pc = VMEM(fp) - 16;
@@ -45,7 +50,7 @@ void print_stack_trace(uint fp, int one) {
 		if (one) {
 			bwprintf(1, "%d\t\t%x\t%s\n", asm_line_num, pc, find_function_name(pc));
 		} else {
-			bwprintf(1, "%s @ %x-%d, ", find_function_name(pc), pc, asm_line_num);
+			bwprintf(1, "%s @ %x+%d, ", find_function_name(pc), pc, asm_line_num);
 		}
 
 		if (lr == (int) Exit) break;

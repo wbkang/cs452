@@ -59,6 +59,7 @@ int bwgetc(int channel) {
 }
 
 static char bwa2i(char ch, char **src, int base, int *nump) { // only for bwformat
+	ASSERT((uint)nump & 3 == 0, "nump unaligned %x", nump);
 	int num, digit;
 	char *p;
 	p = *src;
@@ -74,6 +75,7 @@ static char bwa2i(char ch, char **src, int base, int *nump) { // only for bwform
 }
 
 void bwformat(int channel, char *fmt, va_list va) {
+	ASSERT((uint)va < 0x2000000, "va misaligned: %x", va);
 	CHECK_COM(channel);
 	char bf[32 + 1];
 	char ch, lz;
