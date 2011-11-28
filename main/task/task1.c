@@ -10,7 +10,6 @@
 #include <funcmap.h>
 
 void task1() {
-	VMEM(0x60000000)  = 0;
 	timeserver_create();
 	ioserver_create(COM1, OFF, 2400, 2, 8, OFF);
 	ioserver_create(COM2, OFF, 115200, 1, 8, OFF);
@@ -28,5 +27,5 @@ void task1() {
 //		prog = find_func_addr(buf);
 //	} while (prog == NULL);
 	prog = a0;
-	Create(MIN_PRIORITY, prog);
+	Create(MIN_PRIORITY + 1, prog);
 }

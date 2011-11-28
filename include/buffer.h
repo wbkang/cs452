@@ -5,19 +5,19 @@
 
 typedef struct _tag_buffer {
 	int item_size;
-	void** head;
-	void** tail;
-	void** max;
+	void* head;
+	void* tail;
+	void* max;
 	void* min[];
 } buffer;
 
 buffer *buffer_new(uint size, uint elem_bytes);
 
-static inline void** buffer_inc(void** p, int bytes) {
-	return (void**) ((uint) p + bytes);
+static inline void* buffer_inc(void* p, int bytes) {
+	return (void*) ((uint) p + bytes);
 }
 
-static inline void** buffer_increment(buffer *this, void** p) {
+static inline void* buffer_increment(buffer *this, void* p) {
 	return p == this->max ? this->min : buffer_inc(p, this->item_size);
 }
 
