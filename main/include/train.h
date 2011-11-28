@@ -32,7 +32,6 @@
 #define TRAIN_MIN_TRAIN_ADDR 1
 #define TRAIN_MAX_TRAIN_ADDR 80
 #define TRAIN_GOODNO(x) (TRAIN_MIN_TRAIN_ADDR <= (x)) && ((x) <= TRAIN_MAX_TRAIN_ADDR)
-#define TRAIN_FOREACH(x) for (int (x) = TRAIN_MIN_TRAIN_ADDR; (x) <= TRAIN_MAX_TRAIN_ADDR; (x)++)
 #define TRAIN_MIN_SWITCHADDR 0
 #define TRAIN_MAX_SWITCHADDR 255
 #define TRAIN_PAUSE_SOLENOID MS2TICK(150)
@@ -96,6 +95,8 @@ struct train {
 	struct reservation_req *reservation;
 	enum {TRAIN_GOOD, TRAIN_BAD} state; // @TODO: lol wut, this is utter shit
 };
+
+typedef int (*train_fn)(train *train);
 
 static inline int train_switchi2no(int i) {
 	ASSERT(0 <= i && i < TRAIN_NUM_SWITCHADDR, "bad i");
