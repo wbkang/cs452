@@ -206,7 +206,7 @@ static int dist_between(track_node *u, track_edge *e, track_node *v, train *trai
 
 // code taken from http://en.wikipedia.org/wiki/Dijkstra's_algorithm#Algorithm
 // @TODO: keep this algorithm independent of gps, pass in whats needed as args
-void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, track_node **rv_nodes, int *rv_len_nodes, train *train) {
+void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, track_node *rv_nodes[], int *rv_len_nodes, train *train) {
 	int dist[TRACK_MAX];
 	track_node *previous[TRACK_MAX];
 	heap_clear(Q);
