@@ -6,7 +6,7 @@
 #include <constants.h>
 
 // @TODO: remember the average velocity per edge as opposed to per track (very hard)
-int train_init_cal(int train_no, train_cal *cal) {
+int train_init_cal(train_cal *cal, int train_no) {
 	switch (train_no) {
 		case 37: {
 			cal->stopm = fixed_div(fixed_new(27477), fixed_new(10));
@@ -170,10 +170,10 @@ int train_init_cal(int train_no, train_cal *cal) {
 }
 
 void train_init(train_state *this, int no, struct gps *gps) {
-	this->calibrated = train_init_cal(no, &this->cal);
+	this->calibrated = train_init_cal(&this->cal, no);
 
 	this->no = no;
-	this->dir = TRAIN_UNKNOWN;
+	train_set_dir(this, TRAIN_UNKNOWN);
 
 	this->v = fixed_new(0);
 	this->v_i = fixed_new(0);
@@ -183,17 +183,20 @@ void train_init(train_state *this, int no, struct gps *gps) {
 	this->a_i10k = fixed_new(0);
 	this->ma10k = fixed_new(0);
 
+	this->last_speed = 0;
 	this->speed = 0;
 	train_set_tspeed(this, 0);
-	this->last_speed = 0;
 
 	train_set_lost(this);
+	train_set_tsim(this, 0);
 
-	this->t_sim = 0;
 	this->gps = gps;
+
 	this->vcmdidx = 0;
 	this->vcmdwait = 0;
+
 	this->destination = location_undef();
+
 	this->state = TRAIN_GOOD;
 
 	// @TODO: this is a hack for now, we shouldn't initialized uncalibrated trains
@@ -249,14 +252,22 @@ int train_get_speedidx(train_state *this) {
 // @TODO: the only external thing that changes a train state is the set_speed/reverse commands. we should keep a history of these commands if we want to be able to rewind the simulation.
 void train_set_speed(train_state *this, int speed, int t) {
 	ASSERT(TRAIN_GOOD_SPEED(speed), "bad speed %d", speed);
+
 	train_update_simulation(this, t);
+
 	this->last_speed = this->speed;
 	this->speed = speed;
 	train_set_tspeed(this, t);
+
 	this->v_i = train_get_velocity(this);
 	this->v_f = train_get_cruising_velocity(this);
+
 	this->a_i10k = this->a10k;
 	this->ma10k = train_accel10k(&this->cal, this->v_i, this->v_f);
+}
+
+void train_set_frontloc(train_state *this, location *loc_front) {
+	this->loc_front = *loc_front;
 }
 
 void train_get_frontloc(train_state *this, location *rv_loc_front) {
@@ -279,7 +290,9 @@ void train_set_lost(train_state *this) {
 }
 
 int train_is_lost(train_state *this) {
-	return location_isundef(&this->loc_front);
+	location loc_front;
+	train_get_frontloc(this, &loc_front);
+	return location_isundef(&loc_front);
 }
 
 train_direction train_get_dir(train_state *this) {
@@ -307,8 +320,11 @@ void train_reverse_dir(train_state *this) {
 void train_on_reverse(train_state *this, int t) {
 	train_update_simulation(this, t);
 	train_reverse_dir(this);
-	location_reverse(&this->loc_front);
-	location_add(&this->loc_front, fixed_new(train_get_length(this)));
+	location loc_front;
+	train_get_frontloc(this, &loc_front);
+	location_reverse(&loc_front);
+	location_add(&loc_front, fixed_new(train_get_length(this)));
+	train_set_frontloc(this, &loc_front);
 }
 
 int train_get_tspeed(train_state *this) {
@@ -426,9 +442,9 @@ static void train_update_pos(train_state *this, int t_f) {
 		fixed atov = fixed_div(atov10k, fixed_new(10000));
 		fixed atov2 = fixed_mul(atov, atov);
 		fixed atov3 = fixed_mul(atov2, atov);
-		fixed A = fixed_mul(fixed_new(3), atov2);
-		fixed B = fixed_mul(fixed_new(-2), atov3);
-		this->v = fixed_add(this->v_i, fixed_mul(dv, fixed_add(A, B)));
+		fixed B = fixed_mul(fixed_new(3), atov2);
+		fixed C = fixed_mul(fixed_new(-2), atov3);
+		this->v = fixed_add(this->v_i, fixed_mul(dv, fixed_add(B, C)));
 	} else {
 		this->v = this->v_f;
 		this->a10k = fixed_new(0);
@@ -436,7 +452,10 @@ static void train_update_pos(train_state *this, int t_f) {
 	fixed fdt = fixed_new(t_f - this->t_sim);
 	if (!train_is_lost(this) && train_is_moving(this)) {
 		fixed dx = fixed_mul(this->v, fdt);
-		location_add(&this->loc_front, dx);
+		location loc_front;
+		train_get_frontloc(this, &loc_front);
+		location_add(&loc_front, dx);
+		train_set_frontloc(this, &loc_front);
 	}
 	this->t_sim = t_f;
 }

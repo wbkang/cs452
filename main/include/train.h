@@ -92,7 +92,7 @@ struct train_state {
 	location destination;
 	struct path *path;
 	struct reservation_req *reservation;
-	enum {TRAIN_GOOD, TRAIN_BAD} state;
+	enum {TRAIN_GOOD, TRAIN_BAD} state; // @TODO: lol wut, this is utter shit
 };
 
 static inline int train_switchi2no(int i) {
@@ -169,7 +169,7 @@ static inline void train_stop(int tid) {
  * Train object
  */
 
-int train_init_cal(int train_no, train_cal *cal);
+int train_init_cal(train_cal *cal, int train_no);
 void train_init(train_state *this, int no, struct gps *gps);
 fixed train_get_velocity(train_state *this);
 fixed train_get_cruising_velocity(train_state *this);
@@ -179,6 +179,7 @@ int train_get_stopdist(train_state *this);
 int train_get_speed(train_state *this);
 int train_get_speedidx(train_state *this);
 void train_set_speed(train_state *this, int speed, int t);
+void train_set_frontloc(train_state *this, location *loc_front);
 void train_get_frontloc(train_state *this, location *loc);
 void train_set_pickuploc(train_state *this, location *loc_pickup);
 void train_get_pickuploc(train_state *this, location *loc);
