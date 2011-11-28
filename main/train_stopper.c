@@ -8,13 +8,13 @@
 #define DEFAULT_SEARCH_DEPTH 10
 
 struct {
-	train_state *train;
+	train *train;
 	location loc_dest;
 } ts_state;
 
 // @TODO: logging should be handled better
 static void ontick(void* s) {
-	train_state *train = ts_state.train;
+	train *train = ts_state.train;
 	if (train_is_lost(train)) return;
 
 	location loc_train = train_get_frontloc(train);

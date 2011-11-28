@@ -24,10 +24,11 @@ location location_fromnode(track_node *node, int edge_idx) {
 			location_reverse(&rv);
 			return rv;
 		}
-		default:
-			ASSERT(0, "node type %d is not handled", node->type);
-			return location_undef(); // unreachable
+		case NODE_NONE:
+			break;
 	}
+	ASSERT(0, "node type %d is not handled", node->type);
+	return location_undef(); // unreachable
 }
 
 location location_undef() {

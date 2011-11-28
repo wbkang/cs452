@@ -169,7 +169,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 	}
 }
 
-void train_init(train_state *this, int no, struct gps *gps) {
+void train_init(train *this, int no, struct gps *gps) {
 	this->calibrated = train_init_cal(&this->cal, no);
 
 	this->no = no;
@@ -221,36 +221,36 @@ void train_init(train_state *this, int no, struct gps *gps) {
 	}
 }
 
-fixed train_get_velocity(train_state *this) {
+fixed train_get_velocity(train *this) {
 	return this->v;
 }
 
-fixed train_get_cruising_velocity(train_state *this) {
+fixed train_get_cruising_velocity(train *this) {
 	int speed_idx = train_get_speedidx(this);
 	return this->cal.v_avg[speed_idx];
 }
 
-int train_is_moving(train_state *this) {
-	return fixed_sgn(this->v) >= 0;
+int train_is_moving(train *this) {
+	return fixed_sgn(train_get_velocity(this)) >= 0;
 }
 
-int train_get_stopdist(train_state *this) {
+int train_get_stopdist(train *this) {
 	fixed v = train_get_velocity(this);
 	int dist = fixed_int(fixed_add(fixed_mul(this->cal.stopm, v), this->cal.stopb));
 	if (dist < 0) return 0;
 	return dist;
 }
 
-int train_get_speed(train_state *this) {
+int train_get_speed(train *this) {
 	return this->speed;
 }
 
-int train_get_speedidx(train_state *this) {
-	return train_speed2speedidx(this->last_speed, this->speed);
+int train_get_speedidx(train *this) {
+	return train_speed2speedidx(this->last_speed, train_get_speed(this));
 }
 
-// @TODO: the only external thing that changes a train state is the set_speed/reverse commands. we should keep a history of these commands if we want to be able to rewind the simulation.
-void train_set_speed(train_state *this, int speed, int t) {
+// @TODO: the only external thing that changes a train state is the set_speed/reverse commands. we should keep a history of these to rewind the simulation
+void train_set_speed(train *this, int speed, int t) {
 	ASSERT(TRAIN_GOOD_SPEED(speed), "bad speed %d", speed);
 
 	train_update_simulation(this, t);
@@ -266,45 +266,45 @@ void train_set_speed(train_state *this, int speed, int t) {
 	this->ma10k = train_accel10k(&this->cal, this->v_i, this->v_f);
 }
 
-void train_set_frontloc(train_state *this, location *loc_front) {
+void train_set_frontloc(train *this, location *loc_front) {
 	this->loc_front = *loc_front;
 }
 
-location train_get_frontloc(train_state *this) {
+location train_get_frontloc(train *this) {
 	return this->loc_front;
 }
 
-void train_set_pickuploc(train_state *this, location *loc_pickup) {
+void train_set_pickuploc(train *this, location *loc_pickup) {
 	location new_loc_front = *loc_pickup;
 	location_add(&new_loc_front, fixed_new(train_get_pickup2frontdist(this)));
 	train_set_frontloc(this, &new_loc_front);
 }
 
-location train_get_pickuploc(train_state *this) {
+location train_get_pickuploc(train *this) {
 	location rv = train_get_frontloc(this);
 	location_add(&rv, fixed_new(-train_get_pickup2frontdist(this)));
 	return rv;
 }
 
-void train_set_lost(train_state *this) {
+void train_set_lost(train *this) {
 	location undef = location_undef();
 	train_set_pickuploc(this, &undef);
 }
 
-int train_is_lost(train_state *this) {
+int train_is_lost(train *this) {
 	location loc_front = train_get_frontloc(this);
 	return location_isundef(&loc_front);
 }
 
-train_direction train_get_dir(train_state *this) {
+train_direction train_get_dir(train *this) {
 	return this->dir;
 }
 
-void train_set_dir(train_state *this, train_direction dir) {
+void train_set_dir(train *this, train_direction dir) {
 	this->dir = dir;
 }
 
-void train_reverse_dir(train_state *this) {
+void train_reverse_dir(train *this) {
 	switch (train_get_dir(this)) {
 		case TRAIN_FORWARD:
 			train_set_dir(this, TRAIN_BACKWARD);
@@ -318,7 +318,7 @@ void train_reverse_dir(train_state *this) {
 	}
 }
 
-void train_on_reverse(train_state *this, int t) {
+void train_on_reverse(train *this, int t) {
 	train_update_simulation(this, t);
 	train_reverse_dir(this);
 	location loc_front = train_get_frontloc(this);
@@ -327,32 +327,32 @@ void train_on_reverse(train_state *this, int t) {
 	train_set_frontloc(this, &loc_front);
 }
 
-int train_get_tspeed(train_state *this) {
+int train_get_tspeed(train *this) {
 	return this->t_speed;
 }
 
-void train_set_tspeed(train_state *this, int t_speed) {
+void train_set_tspeed(train *this, int t_speed) {
 	this->t_speed = t_speed;
 }
 
-int train_get_tsim(train_state *this) {
+int train_get_tsim(train *this) {
 	return this->t_sim;
 }
 
-void train_set_tsim(train_state *this, int t_sim) {
+void train_set_tsim(train *this, int t_sim) {
 	this->t_sim = t_sim;
 }
 
-int train_get_length(train_state *this) {
+int train_get_length(train *this) {
 	train_cal *cal = &this->cal;
 	return cal->dist2nose + cal->len_pickup + cal->dist2tail;
 }
 
-int train_get_poserr(train_state *this) {
+int train_get_poserr(train *this) {
 	return 300;
 }
 
-int train_get_pickup2frontdist(train_state *this) {
+int train_get_pickup2frontdist(train *this) {
 	switch (train_get_dir(this)) {
 		case TRAIN_FORWARD:
 			return this->cal.dist2nose;
@@ -366,7 +366,7 @@ int train_get_pickup2frontdist(train_state *this) {
 
 // simulate the distance the train would travel from t_i to t_f
 // assuming t_i <= t_f and that t_i is relatively close to the current time
-fixed train_simulate_dx(train_state *this, int t_i, int t_f) {
+fixed train_simulate_dx(train *this, int t_i, int t_f) {
 	fixed v = train_get_velocity(this); // @TODO: don't assume current velocity
 	if (fixed_sgn(v) > 0) {
 		fixed dt = fixed_new(TICK2MS(t_f - t_i));
@@ -379,7 +379,7 @@ fixed train_simulate_dx(train_state *this, int t_i, int t_f) {
 // limiting the scope of this function makes it MUCH easier to code. right now the purpose is to see where the train was at time t_i. this time is guaranteed to be near a sensor hit so there are no issues with track switch state.
 // the assumption is that the switches along the path of the train did not change configuration during t_i and t_sim
 // @TODO: make less assumptions about the state of the track, perhaps store the locations generated by every train_update_simulation and linearly interpolate between the closes two locations to the given t_i
-location train_get_pickuploc_hist(train_state *this, int t_i) {
+location train_get_pickuploc_hist(train *this, int t_i) {
 	int t_f = train_get_tsim(this);
 	ASSERT(t_i <= t_f, "asking for non-historic data");
 	fixed dx = train_simulate_dx(this, t_i, t_f);
@@ -403,7 +403,7 @@ fixed train_accel10k(train_cal *cal, fixed v_i, fixed v_f) {
 #define TRAIN_SIM_DT (1 << TRAIN_SIM_DT_EXP)
 
 // @TODO: figure this out better
-// static void train_update_accel(train_state *this, int t_f) {
+// static void train_update_accel(train *this, int t_f) {
 // 	fixed t = fixed_new(t_f - this->t_speed);
 // 	fixed dv10k = fixed_sub(this->v_f10k, this->v_i10k);
 // 	fixed matov = fixed_div(fixed_mul(this->ma10k, t), dv10k);
@@ -412,11 +412,11 @@ fixed train_accel10k(train_cal *cal, fixed v_i, fixed v_f) {
 // 	this->a10k = fixed_add(this->a_i10k, da10k);
 // }
 
-// static void train_update_vel(train_state *this, int t_f) {
+// static void train_update_vel(train *this, int t_f) {
 // 	fixed diff = fixed_sub(this->v10k, this->v_f10k);
 // 	if (fixed_cmp(fixed_abs(diff), fixed_new(10)) > 0) {
 // 		train_update_accel(this, t_f);
-// 		fixed dt = fixed_new(t_f - this->t_sim);
+// 		fixed dt = fixed_new(t_f - train_get_tsim(this));
 // 		this->v10k = fixed_add(this->v10k, fixed_mul(this->a10k, dt));
 // 	} else {
 // 		this->v10k = this->v_f10k;
@@ -424,17 +424,17 @@ fixed train_accel10k(train_cal *cal, fixed v_i, fixed v_f) {
 // 	}
 // }
 
-// static void train_update_pos(train_state *this, int t_f) {
+// static void train_update_pos(train *this, int t_f) {
 // 	train_update_vel(this, t_f);
 // 	if (!train_is_lost(this) && train_is_moving(this)) {
-// 		fixed dt = fixed_new(t_f - this->t_sim);
+// 		fixed dt = fixed_new(t_f - train_get_tsim(this));
 // 		fixed dx = fixed_div(fixed_mul(this->v10k, dt), fixed_new(10000));
 // 		location_add(&this->loc, dx);
 // 	}
-// 	this->t_sim = t_f;
+// 	train_set_tsim(this, t_f);
 // }
 
-static void train_update_pos(train_state *this, int t_f) {
+static void train_update_pos(train *this, int t_f) {
 	fixed const margin = fixed_div(fixed_new(1), fixed_new(10000));
 	if (fixed_cmp(fixed_abs(fixed_sub(this->v, this->v_f)), margin) > 0) {
 		fixed dv = fixed_sub(this->v_f, this->v_i);
@@ -450,17 +450,17 @@ static void train_update_pos(train_state *this, int t_f) {
 		this->v = this->v_f;
 		this->a10k = fixed_new(0);
 	}
-	fixed fdt = fixed_new(t_f - this->t_sim);
+	fixed fdt = fixed_new(t_f - train_get_tsim(this));
 	if (!train_is_lost(this) && train_is_moving(this)) {
 		fixed dx = fixed_mul(this->v, fdt);
 		location loc_front = train_get_frontloc(this);
 		location_add(&loc_front, dx);
 		train_set_frontloc(this, &loc_front);
 	}
-	this->t_sim = t_f;
+	train_set_tsim(this, t_f);
 }
 
-void train_update_simulation(train_state *this, int t_f) {
+void train_update_simulation(train *this, int t_f) {
 	int t_i = train_get_tsim(this);
 	for (int t = t_i; t <= t_f; t++) {
 		train_update_pos(this, t);
@@ -470,7 +470,7 @@ void train_update_simulation(train_state *this, int t_f) {
 	// }
 }
 
-void train_set_dest(train_state *this, location *dest) {
+void train_set_dest(train *this, location *dest) {
 	this->destination = *dest;
 	this->vcmdidx = 0;
 	this->vcmdslen = 0;
@@ -479,7 +479,7 @@ void train_set_dest(train_state *this, location *dest) {
 #define RESERVE_BEHIND 0
 #define RESERVE_AHEAD 200
 
-static int train_update_reservations(train_state *this, logdisplay *log) {
+static int train_update_reservations(train *this, logdisplay *log) {
 	if (train_is_lost(this)) {
 		reservation_free(this->reservation, this->no);
 		return FALSE;
@@ -510,7 +510,7 @@ static int train_update_reservations(train_state *this, logdisplay *log) {
 	return TRUE;
 }
 
-void train_ontick(train_state *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick) {
+void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick) {
 	int reserved = train_update_reservations(this, log);
 
 	if (train_is_lost(this)) {
@@ -674,7 +674,7 @@ void train_ontick(train_state *this, int tid_traincmdbuf, lookup *nodemap, logdi
 		// location nowhere = location_undef();
 		// train_set_dest(this, &nowhere);
 
-		if (fixed_sgn(train_get_velocity(this)) == 0) { // ensure the train stopped
+		if (!train_is_moving(this)) { // ensure the train stopped
 			int time = Time(WhoIs(NAME_TIMESERVER));
 			char m = 'A' + (time % 5);
 			int id = 1 + (time % 16);
@@ -686,7 +686,7 @@ void train_ontick(train_state *this, int tid_traincmdbuf, lookup *nodemap, logdi
 	}
 }
 
-int train_get_reverse_cost(train_state *train, int dist, track_node *node) {
+int train_get_reverse_cost(train *train, int dist, track_node *node) {
 	int safe_len = train_get_length(train) + train_get_poserr(train);
 
 	track_edge *edges[MAX_PATH];

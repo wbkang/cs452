@@ -7,7 +7,7 @@
 
 static struct {
 	enum { IDLE, ORIENTING } state;
-	train_state *train;
+	train *train;
 	track_node *front;
 	track_node *back;
 } cl_state;
@@ -32,7 +32,7 @@ static void handle_sensor_response(void* s) {
 	track_node *sensor = state->cur_sensor;
 	ASSERTNOTNULL(sensor);
 
-	train_state *train = cl_state.train;
+	train *train = cl_state.train;
 
 	switch (cl_state.state) {
 		case IDLE:
