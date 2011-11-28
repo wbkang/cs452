@@ -275,12 +275,13 @@ location train_get_frontloc(train_state *this) {
 }
 
 void train_set_pickuploc(train_state *this, location *loc_pickup) {
-	this->loc_front = *loc_pickup;
-	location_add(&this->loc_front, fixed_new(train_get_pickup2frontdist(this)));
+	location new_loc_front = *loc_pickup;
+	location_add(&new_loc_front, fixed_new(train_get_pickup2frontdist(this)));
+	train_set_frontloc(this, &new_loc_front);
 }
 
 location train_get_pickuploc(train_state *this) {
-	location rv = this->loc_front;
+	location rv = train_get_frontloc(this);
 	location_add(&rv, fixed_new(-train_get_pickup2frontdist(this)));
 	return rv;
 }

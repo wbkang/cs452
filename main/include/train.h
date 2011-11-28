@@ -23,8 +23,6 @@
 #define TRAIN_GO 0x60
 #define TRAIN_STOP 0x61
 
-// train track data
-
 #define TRAIN_MIN_SPEED 0
 #define TRAIN_MAX_SPEED 14
 #define TRAIN_GOOD_SPEED(x) (TRAIN_MIN_SPEED <= (x) && (x) <= TRAIN_MAX_SPEED)
@@ -43,6 +41,7 @@
 #define TRAIN_NUM_MODULES 5
 #define TRAIN_NUM_SENSORS 16
 #define TRAIN_NUM_SWITCHADDR 22
+
 #define TRAIN_MAX_VCMD 40
 
 typedef enum {
@@ -65,8 +64,10 @@ struct train_cal {
 
 typedef struct train_state train_state;
 struct train_state {
-	train_cal cal;
 	int calibrated; // @TODO: hack, dont initialize uncalibrated trains..
+
+	train_cal cal;
+
 	int no;
 	train_direction dir;
 	fixed v;

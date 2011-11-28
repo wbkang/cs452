@@ -33,7 +33,8 @@ engineer *engineer_new(char track_name) {
 	gps *gps = gps_new(this->track_nodes_arr);
 	// initialize train descriptors
 	TRAIN_FOREACH(train_no) {
-		train_init(&this->train[train_no], train_no, gps);
+		train_state *train = engineer_get_train(this, train_no);
+		train_init(train, train_no, gps);
 	}
 
 	this->con = console_new(COM2);
@@ -48,7 +49,7 @@ engineer *engineer_new(char track_name) {
 void engineer_destroy(engineer *this) {
 	TRAIN_FOREACH(train_no) {
 		train_state *train = &this->train[train_no];
-		if (train_get_speed(train) > 0) {
+		if (train_is_moving(train)) {
 			engineer_set_speed(this, train_no, 0);
 		}
 	}
@@ -62,28 +63,24 @@ train_state *engineer_get_train(engineer *this, int train_no) {
 }
 
 void engineer_on_set_speed(engineer *this, int train_no, int speed, int t) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_state *train = &this->train[train_no];
+	train_state *train = engineer_get_train(this, train_no);
 	if (!train->calibrated) return;
 	train_set_speed(train, speed, t);
 }
 
 void engineer_set_speed(engineer *this, int train_no, int speed) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
 	train_speed(train_no, speed, this->tid_traincmdbuf);
 }
 
 void engineer_on_reverse(engineer *this, int train_no, int t) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_state *train = &this->train[train_no];
+	train_state *train = engineer_get_train(this, train_no);
 	if (!train->calibrated) return;
-	train_on_reverse(&this->train[train_no], t);
+	train_on_reverse(train, t);
 }
 
 // @TODO: this is a tricky thing because it's technically a small path involving 3 commands and 2 delays. this needs to be rethought in the context of a path finder.
 void engineer_reverse(engineer *this, int train_no) {
-	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_state *train = &this->train[train_no];
+	train_state *train = engineer_get_train(this, train_no);
 
 	int speed = train_get_speed(train);
 	// int dstop = train_get_stopdist(train);
@@ -164,8 +161,8 @@ void engineer_train_on_loc(engineer *this, train_state *train, location *new_loc
 }
 
 train_state *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, int t_loc) {
-	train_state *closest_train = NULL;
 	int closest_dist = infinity;
+	train_state *closest_train = NULL;
 
 	TRAIN_FOREACH(train_no) {
 		train_state *train = &this->train[train_no];
