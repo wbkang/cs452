@@ -25,7 +25,6 @@ static inline int kernel_send(int tid);
 static inline void kernel_receive();
 static inline int kernel_reply(int tid);
 static inline int kernel_awaitevent(int irq);
-static void handle_abort() __attribute__ ((interrupt ("ABORT")));
 static inline void handle_swi(register_set *reg);
 static inline void handle_hwi(int isr, int isr2);
 static inline void kernel_irq(int vic, int irq);
@@ -39,9 +38,9 @@ static void install_interrupt_handlers() {
 	old_und_vector = READ_INTERRUPT_HANDLER(UND_VECTOR);
 	INSTALL_INTERRUPT_HANDLER(SWI_VECTOR, asm_handle_swi);
 	INSTALL_INTERRUPT_HANDLER(HWI_VECTOR, asm_handle_swi);
-	INSTALL_INTERRUPT_HANDLER(PFABT_VECTOR, handle_abort);
-	INSTALL_INTERRUPT_HANDLER(DTABT_VECTOR, handle_abort);
-	INSTALL_INTERRUPT_HANDLER(UND_VECTOR, handle_abort);
+	INSTALL_INTERRUPT_HANDLER(PFABT_VECTOR, asm_handle_abort);
+	INSTALL_INTERRUPT_HANDLER(DTABT_VECTOR, asm_handle_dabort);
+	INSTALL_INTERRUPT_HANDLER(UND_VECTOR, asm_handle_abort);
 	VMEM(VIC1 + PROTECTION_OFFSET) = 0;
 	VMEM(VIC1 + INTSELECT_OFFSET) = 0;
 	VMEM(VIC1 + INTENCLR_OFFSET) = ~0;
@@ -65,34 +64,26 @@ static void uninstall_interrupt_handlers() {
 	mem_dcache_flush();
 }
 
-static void handle_abort() {
-	int sp = 0x2000000;
-	WRITE_REGISTER(sp);
-	int fp;
-	READ_REGISTER(fp);
+void handle_abort(int fp, int dabort) {
 	scheduler_running()->registers.r[REG_FP] = fp;
-//	td_print_crash_dump();
-	int cpsr;
-	READ_CPSR(cpsr);
-	cpsr &= 0x1f;
+	bwprintf(1, "Current tid: %d. fp:%x\n", scheduler_running()->id, fp);
 
-	int lr; READ_REGISTER(lr);
-	lr -= 4;
-	bwprintf(1, "possible undefined instruction %x at %x\n", VMEM(lr), lr);
+	volatile int lr; READ_REGISTER(lr);
+	bwprintf(1, "possible undefined instruction %x at %x (this is the banked lr)\n", VMEM(lr), lr);
 
-	unsigned int faulttype;
+	volatile unsigned int faulttype;
 	__asm volatile ("mrc p15, 0, %[ft], c5, c0, 0\n\t" : [ft] "=r" (faulttype));
 	faulttype &= 0xf;
 
-	unsigned int faultdomain;
+	volatile unsigned int faultdomain;
 	__asm volatile ("mrc p15, 0, %[fd], c5, c0, 0\n\t" : [fd] "=r" (faultdomain));
 	faultdomain >>= 4;
 	faultdomain &= 0xf;
 
-	unsigned int datafaultaddr;
+	volatile unsigned int datafaultaddr;
 	__asm volatile ("mrc p15, 0, %[dfa], c6, c0, 0\n\t" : [dfa] "=r" (datafaultaddr));
 
-	char *faultname = "unknown";
+	char *faultname = "wtf";
 
 	if ((faulttype >> 2) == 0) {
 		faultname = "alignment";
@@ -109,8 +100,24 @@ static void handle_abort() {
 	// @TODO: why does faultdomain sometimes return defaultaddr? wtf
 	bwprintf(1, "possible faulttype: %s (%d), faultdomain: %d, datafaultaddr: %x\n",
 			faultname, faulttype, faultdomain, datafaultaddr);
-	bwprintf(1, "cpsr: %d (%x)", cpsr, cpsr);
 
+	volatile int cpsr;
+	READ_CPSR(cpsr);
+	cpsr &= 0x1f;
+
+	char *cpsrstr;
+	switch(cpsr) {
+		case 19: cpsrstr = "svc mode!?"; break;
+		case 23:
+			if (dabort) cpsrstr = "data abort mode caused by lr - 8";
+			else cpsrstr = "prefetch abort mode caused by lr - 4"; break;
+		case 27: cpsrstr = "undefined instruction"; break;
+		default: cpsrstr = "wtf"; break;
+	}
+
+	bwprintf(1, "cpsr: %d (%x) interpretation: %s\n", cpsr, cpsr, cpsrstr);
+
+	td_print_crash_dump();
 	for (;;);
 }
 
@@ -354,7 +361,7 @@ static inline int kernel_awaitevent(int eventid) {
 			irq = INT_UART2;
 			break;
 		default: // unreachable
-			ERROR("bad event id: %d", eventid);
+			ASSERT(0, "bad event id: %d", eventid);
 			vic = -1;
 			irq = -1;
 			break;
