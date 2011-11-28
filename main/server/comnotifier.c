@@ -15,7 +15,7 @@ void comnotifier() {
 	Reply(tid, NULL, 0);
 
 	msg_comin msg;
-	msg.type = COM_IN;
+	msg.type = MSG_COM_IN;
 	msg.channel = args.channel;
 
 	for (;;) {
