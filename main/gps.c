@@ -95,8 +95,7 @@ static int gps_collapsereverse(track_node *startnode, track_node **path, int pat
 }
 
 void gps_findpath(gps *this, train_state *train, location *dest, int maxlen, trainvcmd *rv_vcmd, int *rv_len, logdisplay *log) {
-	location trainloc;
-	train_get_frontloc(train, &trainloc);
+	location trainloc = train_get_frontloc(train);
 
 	track_node *src = trainloc.edge->dest;
 	track_node **path = train->path->nodes;

@@ -145,8 +145,7 @@ void engineer_train_on_loc(engineer *this, train_state *train, location *new_loc
 
 	train_update_simulation(train, now);
 
-	location old_loc_pickup;
-	train_get_pickuploc(train, &old_loc_pickup);
+	location old_loc_pickup = train_get_pickuploc(train);
 
 	fixed dx_lag = train_simulate_dx(train, t_loc, now);
 	location_add(new_loc_pickup, dx_lag);
@@ -174,11 +173,8 @@ train_state *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pic
 		if (!train_is_moving(train)) continue;
 		if (train_is_lost(train)) continue;
 
-		location cur_loc_pickup;
-		train_get_pickuploc(train, &cur_loc_pickup);
-
-		location old_loc_pickup;
-		train_get_pickuploc_hist(train, t_loc, &old_loc_pickup);
+		location cur_loc_pickup = train_get_pickuploc(train);
+		location old_loc_pickup = train_get_pickuploc_hist(train, t_loc);
 
 		// @TODO: since we have a max range we should short circuit
 		int dist = location_dist_min(&old_loc_pickup, attr_loc_pickup);

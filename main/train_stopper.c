@@ -17,11 +17,8 @@ static void ontick(void* s) {
 	train_state *train = ts_state.train;
 	if (train_is_lost(train)) return;
 
-	location loc_train;
-	train_get_frontloc(train, &loc_train);
-
+	location loc_train = train_get_frontloc(train);
 	location *loc_dest = &ts_state.loc_dest;
-
 	int stop_dist = train_get_stopdist(train);
 
 	if (location_dist_dir(&loc_train, loc_dest) > stop_dist) return;
