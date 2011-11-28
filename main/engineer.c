@@ -139,7 +139,7 @@ void engineer_train_on_loc(engineer *this, train *train, location *new_loc_picku
 	logdisplay_printf(this->log,
 		"pred: %L, attrib: %L (%dmm)",
 		&old_loc_pickup,
-		&new_loc_pickup,
+		new_loc_pickup,
 		location_dist_min(&old_loc_pickup, new_loc_pickup)
 	);
 	logdisplay_flushline(this->log);
@@ -166,20 +166,22 @@ train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, i
 			}
 			logdisplay_printf(this->log2,
 				"testing %L vs train %d at %L (was at %L), distance: %dmm",
-				&attr_loc_pickup,
+				attr_loc_pickup,
 				train->no,
 				&cur_loc_pickup,
 				&old_loc_pickup,
 				dist
 			);
+			logdisplay_flushline(this->log2);
 		} else {
 			logdisplay_printf(this->log2,
 				"testing %L vs train %d at %L (was at %L), no path found",
-				&attr_loc_pickup,
+				attr_loc_pickup,
 				train->no,
 				&cur_loc_pickup,
 				&old_loc_pickup
 			);
+			logdisplay_flushline(this->log2);
 		}
 	}
 
@@ -192,8 +194,10 @@ train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, i
 
 		if (rv) {
 			logdisplay_printf(this->log2,
-				"can't attribute %L, multiple moving lost trains",
-				&attr_loc_pickup
+				"can't attribute %L, train %d and train %d are moving and lost",
+				attr_loc_pickup,
+				train->no,
+				rv->no
 			);
 			logdisplay_flushline(this->log2);
 			return NULL;
@@ -208,11 +212,11 @@ train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, i
 void engineer_onloc(engineer *this, location *loc, int t_loc) {
 	train *train = engineer_attribute_pickuploc(this, loc, t_loc);
 	if (train) {
-		logdisplay_printf(this->log2, "attributing %L to train %d", &loc, train->no);
+		logdisplay_printf(this->log2, "attributing %L to train %d", loc, train->no);
 		logdisplay_flushline(this->log2);
 		engineer_train_on_loc(this, train, loc, t_loc);
 	} else {
-		logdisplay_printf(this->log2, "spurious location %L", &loc);
+		logdisplay_printf(this->log2, "spurious location %L", loc);
 		logdisplay_flushline(this->log2);
 	}
 }

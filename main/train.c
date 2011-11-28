@@ -228,7 +228,7 @@ fixed train_get_cruising_velocity(train *this) {
 }
 
 int train_is_moving(train *this) {
-	return fixed_sgn(train_get_velocity(this)) >= 0;
+	return fixed_sgn(train_get_velocity(this)) > 0;
 }
 
 int train_get_stopdist(train *this) {

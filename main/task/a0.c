@@ -370,7 +370,6 @@ static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *lo
 		"train %d at %L heading %s at %dmm/s (%dmm/s^2 -> %dmm/s^2) to %L",
 		train_no,
 		&loc,
-		fixed_int(loc.offset),
 		direction_str,
 		fixed_int(fixed_mul(train_get_velocity(train), fixed_new(1000))),
 		fixed_int(fixed_mul(train->a_i10k, fixed_new(10))),
