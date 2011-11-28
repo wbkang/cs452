@@ -165,7 +165,7 @@ void engineer_train_on_loc(engineer *this, train_state *train, location *new_loc
 
 train_state *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, int t_loc) {
 	train_state *closest_train = NULL;
-	int closest_dist = -1;
+	int closest_dist = infinity;
 
 	TRAIN_FOREACH(train_no) {
 		train_state *train = &this->train[train_no];
@@ -180,9 +180,9 @@ train_state *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pic
 		int dist = location_dist_min(&old_loc_pickup, attr_loc_pickup);
 
 		if (dist >= 0) {
-			if (!closest_train || dist < closest_dist) {
-				closest_train = train;
+			if (dist < closest_dist) {
 				closest_dist = dist;
+				closest_train = train;
 			}
 			logdisplay_printf(this->log2,
 				"testing %L vs train %d at %L (was at %L), distance: %dmm",

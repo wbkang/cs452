@@ -100,7 +100,7 @@ void gps_findpath(gps *this, train_state *train, location *dest, int maxlen, tra
 	track_node *src = trainloc.edge->dest;
 	track_node **path = train->path->nodes;
 	int *pathlen = &train->path->pathlen;
-	// TODO now using arbitrary reverse distance
+
 	dijkstra(this->track_node, this->heap_dijkstra, src, dest->edge->src, path, pathlen, train);
 
 	// char buf[100];

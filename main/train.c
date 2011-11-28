@@ -505,6 +505,7 @@ static int train_update_reservations(train_state *this, logdisplay *log) {
 	reservation_free(this->reservation, this->no);
 	reservation_path(&req, this->no);
 	*this->reservation = req;
+
 	return TRUE;
 }
 
@@ -685,12 +686,12 @@ void train_ontick(train_state *this, int tid_traincmdbuf, lookup *nodemap, logdi
 }
 
 int train_get_reverse_cost(train_state *train, int dist, track_node *node) {
-	int reserve_dist = train_get_length(train) + train_get_poserr(train);
+	int safe_len = train_get_length(train) + train_get_poserr(train);
 
 	track_edge *edges[MAX_PATH];
 	int num_edges = 0;
 
-	if (!track_walk(node->reverse, reserve_dist, MAX_PATH, edges, &num_edges)) {
+	if (!track_walk(node->reverse, safe_len, MAX_PATH, edges, &num_edges)) {
 		return infinity; // not enough room to reverse
 	}
 
