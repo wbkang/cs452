@@ -10,29 +10,26 @@
 engineer *engineer_new(char track_name) {
 	engineer *this = malloc(sizeof(engineer));
 
-	// initialize helper tasks
 	this->tid_traincmdbuf = traincmdbuffer_new();
 
-	// start
 	train_go(this->tid_traincmdbuf);
 
-	// initialize track object
-	this->track_nodes_arr = malloc(sizeof(track_node) * TRACK_MAX);
+	track_node *nodes = malloc(sizeof(track_node) * TRACK_MAX);
+
 	switch (track_name) {
 		case 'a':
-			this->track_nodes = init_tracka(this->track_nodes_arr);
+			this->track_nodes = init_tracka(nodes);
 			break;
 		case 'b':
-			this->track_nodes = init_trackb(this->track_nodes_arr);
+			this->track_nodes = init_trackb(nodes);
 			break;
 		default:
 			ASSERT(0, "bad track name");
 			break;
 	}
 
-	this->gps = gps_new(this->track_nodes_arr);
+	this->gps = gps_new(nodes);
 
-	// initialize train descriptors
 	TRAIN_FOREACH(train_no) {
 		train_init(engineer_get_train(this, train_no), train_no);
 	}
@@ -48,7 +45,7 @@ engineer *engineer_new(char track_name) {
 
 void engineer_destroy(engineer *this) {
 	TRAIN_FOREACH(train_no) {
-		train *train = &this->train[train_no];
+		train *train = engineer_get_train(this, train_no);
 		if (train_is_moving(train)) {
 			engineer_set_speed(this, train_no, 0);
 		}
@@ -81,7 +78,6 @@ void engineer_on_reverse(engineer *this, int train_no, int t) {
 // @TODO: this is a tricky thing because it's technically a small path involving 3 commands and 2 delays. this needs to be rethought in the context of a path finder.
 void engineer_reverse(engineer *this, int train_no) {
 	train *train = engineer_get_train(this, train_no);
-
 	int speed = train_get_speed(train);
 	// int dstop = train_get_stopdist(train);
 	// fixed v = train_get_velocity(train);
@@ -116,10 +112,6 @@ track_node *engineer_get_tracknode(engineer *this, char *type, int id) {
 	}
 	ASSERT(rv, "rv is null, type: %s, id: %d", type, id);
 	return rv;
-}
-
-track_node *engineer_get_track(engineer *this) {
-	return this->track_nodes_arr;
 }
 
 void engineer_on_set_switch(engineer *this, int id, int pos, int t) {
