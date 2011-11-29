@@ -693,12 +693,12 @@ void a0() {
 	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
 	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
 	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
-	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 70, ROUNDROBIN, "a0log");
+	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
 	state.timedisplay = timedisplay_new(state.con, 1, 9);
-	state.trainloc1 = logstrip_new(state.con, 2, 56);
-	state.trainloc1r = logstrip_new(state.con, 3, 56);
-	state.trainloc2 = logstrip_new(state.con, 4, 56);
-	state.trainloc2r = logstrip_new(state.con, 5, 56);
+	state.trainloc1 = logstrip_new(state.con, 2, 56 + 2);
+	state.trainloc1r = logstrip_new(state.con, 3, 56 + 2);
+	state.trainloc2 = logstrip_new(state.con, 4, 56 + 2);
+	state.trainloc2r = logstrip_new(state.con, 5, 56 + 2);
 
 	// sensor bus
 	state.sensor_bus = dumbbus_new();

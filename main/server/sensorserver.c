@@ -45,7 +45,6 @@ static void handle_comin(state *this, char msg[]) {
 		this->i_mod++;
 		if (this->i_mod == TRAIN_NUM_MODULES) {
 			this->i_mod = 0;
-			Delay(1000, WhoIs(NAME_TIMESERVER));
 			train_querysenmods(TRAIN_NUM_MODULES, this->tid_traincmdbuf);
 		}
 	}
