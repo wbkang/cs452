@@ -60,6 +60,8 @@ static void handle_traincmdmsgreceipt(state *this, char msg[]) {
 }
 
 void sensorserver() {
+	publisher_sub(WhoIs(NAME_TRAINCMDPUB), MyTid());
+
 	// init com1 notifier
 	int tid_com1buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
 	comnotifier_new(tid_com1buffer, 9, COM2, WhoIs(NAME_IOSERVER_COM1));
@@ -80,8 +82,6 @@ void sensorserver() {
 
 	int size_msg = max(sizeof(msg_comin), sizeof(traincmd));
 	void* msg = malloc(size_msg);
-
-	publisher_sub(WhoIs(NAME_TRAINCMDPUB), MyTid());
 
 	train_querysenmods(TRAIN_NUM_MODULES, this.tid_traincmdbuf); // initial query
 

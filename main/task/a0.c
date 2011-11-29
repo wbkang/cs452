@@ -683,8 +683,8 @@ void a0() {
 	a0state state;
 	state.tid_time = WhoIs(NAME_TIMESERVER);
 
-	publisher_new(NAME_TRAINCMDPUB, PRIORITY_TRAINCMDPUB, sizeof(traincmd_receipt));
-	publisher_sub(WhoIs(NAME_TRAINCMDPUB), mytid); // WhoIs blocks
+	int tid_traincmdpub = publisher_new(NAME_TRAINCMDPUB, PRIORITY_TRAINCMDPUB, sizeof(traincmd_receipt));
+	publisher_sub(tid_traincmdpub, mytid);
 
 	// ui
 	state.con = console_new(COM2);
