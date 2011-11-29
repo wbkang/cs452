@@ -6,20 +6,25 @@
 #include <server/publisher.h>
 #include <server/switchcmdrunner.h>
 #include <server/buffertask.h>
+#include <server/courier.h>
 
 void traincmdrunner() {
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	int tid_time = WhoIs(NAME_TIMESERVER);
 	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
+	courier_new(PRIORITY_TRAINCMDRUNNER, tid_traincmdbuf, MyTid(), sizeof(traincmd));
 	int tid_traincmdpub = WhoIs(NAME_TRAINCMDPUB);
-	int tid_switchcmdrunner = switchcmdrunner_new(NULL);
+	int tid_switchcmdrunner = switchcmdrunner_new(NAME_SWITCHCMDRUNNER);
 
 	traincmd_receipt rcpt;
 	rcpt.type = MSG_TRAINCMDRECEIPT;
 	traincmd *cmd = &rcpt.cmd;
 
 	for (;;) {
-		traincmdbuffer_get(tid_traincmdbuf, cmd);
+		int tid;
+		int len = Receive(&tid, cmd, sizeof(traincmd));
+		Reply(tid, NULL, 0);
+		ASSERT(len == sizeof(traincmd), "bad data");
 		switch (cmd->name) {
 			case SPEED: {
 				char train = cmd->arg1;
@@ -33,7 +38,7 @@ void traincmdrunner() {
 				char train = cmd->arg1;
 				Putc(COM1, TRAIN_REVERSE, tid_com1);
 				Putc(COM1, train, tid_com1);
-				// Delay(TRAIN_PAUSE_AFTER_REVERSE, tid_time); // @TODO: why?
+				Delay(TRAIN_PAUSE_AFTER_REVERSE, tid_time); // @TODO: why?
 				break;
 			}
 			case REVERSE_UI: {
@@ -41,7 +46,7 @@ void traincmdrunner() {
 				char train = cmd->arg1;
 				Putc(COM1, TRAIN_REVERSE, tid_com1);
 				Putc(COM1, train, tid_com1);
-				// Delay(TRAIN_PAUSE_AFTER_REVERSE, tid_time); // @TODO: why?
+				Delay(TRAIN_PAUSE_AFTER_REVERSE, tid_time); // @TODO: why?
 				break;
 			}
 			case SWITCH: {
@@ -66,7 +71,7 @@ void traincmdrunner() {
 				Putc(COM1, TRAIN_STOP, tid_com1);
 				break;
 			default:
-				ERROR("bad train cmd: %d", cmd->name);
+				ASSERT(0, "bad train cmd: %d", cmd->name);
 				break;
 		}
 		Flush(tid_com1);
