@@ -235,11 +235,13 @@ static inline void handle_putc(ioserver_state *state, int tid, char c) {
 }
 
 static inline void handle_putstr(ioserver_state *state, int tid, char const *str) {
-	for (char const *p = str; *p; *p++) {
-		buffer_put(state->output, p, sizeof(char));
-	}
-	if (state->tx_empty && state->cts && *str) {
-		txchar(state);
+	if (*str) {
+		for (char const *p = str; *p; *p++) {
+			buffer_put(state->output, p, sizeof(char));
+		}
+		if (state->tx_empty && state->cts) {
+			txchar(state);
+		}
 	}
 	ReplyInt(tid, 0);
 }

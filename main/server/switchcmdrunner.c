@@ -44,10 +44,10 @@ void switchcmdrunner() {
 }
 
 int switchcmdrunner_new(char *name) {
-	int tid_buffer = buffertask_new(name, PRIORITY_SWITCHCMDRUNNER, sizeof(traincmd));
-	if (tid_buffer < 0) return tid_buffer;
 	int tid = Create(PRIORITY_SWITCHCMDRUNNER, switchcmdrunner);
 	if (tid < 0) return tid;
+	int tid_buffer = buffertask_new(name, PRIORITY_SWITCHCMDRUNNER, sizeof(traincmd));
+	if (tid_buffer < 0) return tid_buffer;
 	int tid_courier = courier_new(PRIORITY_SWITCHCMDRUNNER, tid_buffer, tid, sizeof(traincmd));
 	if (tid_courier < 0) return tid_courier;
 	return tid_buffer;
