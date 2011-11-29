@@ -76,20 +76,12 @@ static void ui_sensor(a0state *state, char module, int id, int senstate) {
 	track_template_updatesensor(state->template, module, id, 0);
 }
 
-
-static void ui_speed(a0state *state, int train, int speed, int t) {
-	logdisplay_printf(state->log, "[%7d] set speed of train %d to %d", t, train, speed);
-	logdisplay_flushline(state->log);
-}
-
 static void ui_reverse(a0state *state, int train, int t) {
 	logdisplay_printf(state->log, "[%7d] reversed train %d", t, train);
 	logdisplay_flushline(state->log);
 }
 
 static void ui_switch(a0state *state, char no, char pos, int t) {
-	// logdisplay_printf(state->log, "[%7d] switched switch %d to %c", t, no, pos);
-	// logdisplay_flushline(state->log);
 	track_template_updateswitch(state->template, no, pos);
 	console_flush(state->con);
 }
@@ -638,7 +630,6 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 			case SPEED: {
 				int train_no = cmd->arg1;
 				int speed = cmd->arg2;
-				ui_speed(state, train_no, speed, t);
 				logdisplay_printf(state->log, "[%7d] set speed of train %d to %d, lag %dms", t, train_no, speed, t - cmd->timestamp);
 				logdisplay_flushline(state->log);
 				engineer_on_set_speed(eng, train_no, speed, t);
