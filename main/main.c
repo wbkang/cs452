@@ -7,15 +7,12 @@
 void kerneltest_run(); // from kerneltest.c
 
 int main(int argc, char *argv[]) {
-	// this is just to get bwio working.
 	uart_fifo(COM1, OFF);
 	uart_speed(COM1, 2400);
 	uart_stopbits(COM1, 2);
 	uart_databits(COM1, 8);
 	uart_parity(COM1, OFF);
-	// init COM2
 	uart_fifo(COM2, OFF);
-
 
 	test_run();
 	kerneltest_run();

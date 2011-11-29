@@ -19,7 +19,7 @@
 #define OUTPUT_BUFFER_SIZE (1 << 13)
 #define REQUEST_STR_SIZE OUTPUT_BUFFER_SIZE
 #define INPUT_BLOCKED_QUEUE_SIZE 1
-#define FLUSH_BLOCKED_QUEUE_SIZE 3
+#define FLUSH_BLOCKED_QUEUE_SIZE 8
 #define FLUSH_GARBAGE_TIMEOUT MS2TICK(500)
 
 typedef struct {
@@ -211,7 +211,7 @@ static inline void txchar(ioserver_state *state) {
 	if (buffer_empty(state->output)) {
 		while (UNLIKELY(!queue_empty(state->flush_blocked))) {
 			int tid = (int) queue_get(state->flush_blocked);
-			Reply(tid, NULL, 0);
+			ReplyInt(tid, 0);
 		}
 	}
 }
@@ -246,7 +246,7 @@ static inline void handle_putstr(ioserver_state *state, int tid, char const *str
 
 static inline void handle_flush(ioserver_state *state, int tid) {
 	if (buffer_empty(state->output)) {
-		Reply(tid, NULL, 0);
+		ReplyInt(tid, 0);
 	} else {
 		queue_put(state->flush_blocked, (void*) tid);
 	}
@@ -311,5 +311,5 @@ int Putstr(int channel, char const *str, int tid) {
 int Flush(int tid) {
 	ioserver_req req;
 	req.no = FLUSH;
-	return ioserver_send(tid, &req, sizeof(req));
+	return ioserver_send(tid, &req, sizeof(ioserver_req));
 }

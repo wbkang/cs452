@@ -691,5 +691,5 @@ int train_get_reverse_cost(train *train, int dist, track_node *node) {
 		if (edge->src->type == NODE_BRANCH) return infinity; // too close to a branch
 	}
 
-	return train_get_stopdist(train);
+	return safe_len;
 }
