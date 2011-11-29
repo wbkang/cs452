@@ -2,8 +2,8 @@
 #include <memory.h>
 
 static char const * task_state_name[] = {
-		"FREE", "NEW", "READY", "RUNNING", "RETIRED",
-		"WAITING4SEND", "WAITING4RECEIVE", "WAITING4REPLY", "WAITING4EVENT"
+	"FREE", "NEW", "READY", "RUNNING", "RETIRED",
+	"WAITING4SEND", "WAITING4RECEIVE", "WAITING4REPLY", "WAITING4EVENT"
 };
 
 static struct _tag_task_descriptor_list {
@@ -54,7 +54,8 @@ inline int td_index(int tid) {
 }
 
 inline int td_impossible(int tid) {
-	return tid < 0 || td_index(tid) >= task_descriptors.size;
+	int i = td_index(tid);
+	return i < 0 || i >= task_descriptors.size;
 }
 
 inline int td_list_empty(task_descriptor *td) {

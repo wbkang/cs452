@@ -91,11 +91,11 @@ void engineer_reverse(engineer *this, int train_no) {
 }
 
 void engineer_set_track(engineer *this, int s[], int ns, int c[], int nc) {
-	while (ns--) {
-		engineer_set_switch(this, *s++, 's');
+	for (int i = 0; i < ns; i++) {
+		engineer_set_switch(this, s[i], 's');
 	}
-	while (nc--) {
-		engineer_set_switch(this, *c++, 'c');
+	for (int i = 0; i < nc; i++) {
+		engineer_set_switch(this, c[i], 'c');
 	}
 }
 

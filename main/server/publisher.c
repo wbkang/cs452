@@ -31,7 +31,7 @@ static void handle_pub(publisher_state *state, void* packet, int size) {
 
 static void handle_sub(publisher_state *state, void* packet) {
 	ASSERT(state->num_clients + 1 < NUM_SUBSCRIBERS, "too many subscribers");
-	// ASSERT(item_size == sizeof(msg_sub), "bad subscription message");
+
 	msg_sub *msg = packet;
 	int tid = msg->tid;
 
@@ -54,36 +54,23 @@ void publisher() {
 	state.priority = args.priority;
 	state.num_clients = 0;
 
-	const int const packet_size = min(sizeof(msg_header), state.item_size);
+	const int const packet_size = max(sizeof(msg_header), state.item_size);
 	void* packet = malloc(packet_size);
-
-	// logdisplay *log = logdisplay_new(console_new(COM2), MyTid() * 2, 56, 8, 100, ROUNDROBIN, "publisher log");
 
 	for (;;) {
 		int tid;
-		// logdisplay_printf(log, "receiving...");
-		// logdisplay_flushline(log);
 		int size = Receive(&tid, packet, packet_size);
 		Reply(tid, NULL, 0);
 		ASSERT(size >= sizeof(msg_header), "bad packet");
 		msg_header *header = (msg_header*) packet;
 		switch (header->type) {
 			case MSG_SUB:
-				// logdisplay_printf(
-				// 	log,
-				// 	"subscribing task %d via courier %d",
-				// 	((msg_sub*) packet)->tid,
-				// 	tid
-				// );
-				// logdisplay_flushline(log);
 				handle_sub(&state, packet);
 				break;
 			case MSG_REQ:
 				ASSERT(0, "this is something I cant pass along");
 				break;
 			default:
-				// logdisplay_printf(log, "publishing msg type %d", header->type);
-				// logdisplay_flushline(log);
 				handle_pub(&state, packet, size);
 				break;
 		}
@@ -112,7 +99,7 @@ int publisher_pub(int tid, void* item, int item_size) {
 
 int publisher_sub(int tid_publisher, int tid) {
 	ASSERT(tid_publisher >= 0, "invalid publisher");
-	ASSERT(tid >= 0, "i dont even know wtf this is...");
+	ASSERT(tid >= 0, "bad tid");
 	msg_sub packet;
 	packet.type = MSG_SUB;
 	packet.tid = tid;
