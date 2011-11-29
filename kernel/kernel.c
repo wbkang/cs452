@@ -276,6 +276,7 @@ static inline void transfer_msg(task_descriptor *sender, task_descriptor *receiv
 	// set up lengths
 	int sender_msglen = SENDER_MSGLEN(sender_r[3]);
 	int receiver_msglen = receiver_r[2];
+	// ASSERT(receiver_msglen >= sender_msglen, "sending msg too big");
 	int len = min(sender_msglen, receiver_msglen);
 	// set up message buffers
 	void* sender_msg = (void*) sender_r[1];
@@ -294,6 +295,7 @@ static inline void transfer_reply(task_descriptor *sender, task_descriptor *rece
 	// set up lengths
 	int sender_replylen = SENDER_REPLYLEN(sender_r[3]);
 	int receiver_replylen = receiver_r[2];
+	// ASSERT(sender_replylen >= receiver_replylen, "reply msg too big");
 	int len = min(sender_replylen, receiver_replylen);
 	// set up message buffers
 	void* sender_reply = (void*) sender_r[2];
