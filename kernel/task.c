@@ -37,7 +37,7 @@ static int td_find_send_target(task_descriptor *td) {
 }
 
 void td_print_crash_dump() {
-	bwprintf(1, "\x1B[2J"); // clear console
+//	bwprintf(1, "\x1B[2J"); // clear console
 	int tdsize = get_td_list_size();
 
 	for (int i = 0; i < tdsize; i++) {
