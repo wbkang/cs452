@@ -1,5 +1,7 @@
 #include <task.h>
 #include <memory.h>
+#include <stdio.h>
+#include <nameserver.h>
 
 static char const * task_state_name[] = {
 	"FREE", "NEW", "READY", "RUNNING", "RETIRED",
@@ -18,13 +20,41 @@ uint get_td_list_size() {
 	return task_descriptors.size;
 }
 
+static int td_find_send_target(task_descriptor *td) {
+	ASSERTNOTNULL(td);
+	ASSERT(td->state == TD_STATE_WAITING4RECEIVE, "task %d in a non-rcv-blocked state: %d", td->id, td->state);
+
+	task_descriptor *sender = td;
+	task_descriptor *cur_td = sender->_next;
+
+	while (cur_td != sender) {
+		if (cur_td->state != TD_STATE_WAITING4RECEIVE) {
+			return cur_td->id;
+		}
+	}
+
+	return -1; // not found!! this should be unreachable
+}
+
 void td_print_crash_dump() {
+	bwprintf(1, "\x1B[2J"); // clear console
 	int tdsize = get_td_list_size();
 
 	for (int i = 0; i < tdsize; i++) {
 		task_descriptor *td = task_descriptors.td + i;
 		if (td->state != TD_STATE_FREE && td->state != TD_STATE_RETIRED) {
-			bwprintf(1, "Task %d (priority %d, state: %s): \t", td->id, td->priority, task_state_name[td->state]);
+			char waitinfostr[100];
+			if (td->state == TD_STATE_WAITING4RECEIVE) {
+				sprintf(waitinfostr, ", sending to: %d", td_find_send_target(td));
+			} else {
+				waitinfostr[0] = '\0';
+			}
+
+			char *taskname = nameserver_get_name(td->id);
+			if (!taskname) taskname = "{noname}";
+
+			bwprintf(1, "Task %d %s (p:%d, %s%s): ",
+					td->id, taskname, td->priority, task_state_name[td->state], waitinfostr);
 			print_stack_trace(td->registers.r[REG_FP], 0);
 			bwprintf(1, "\n");
 		}

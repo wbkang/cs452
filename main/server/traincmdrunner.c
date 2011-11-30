@@ -11,10 +11,11 @@
 void traincmdrunner() {
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	int tid_time = WhoIs(NAME_TIMESERVER);
+	RegisterAs(NAME_TRAINCMDRUNNER);
 	int tid_traincmdbuf = WhoIs(NAME_TRAINCMDBUFFER);
-	courier_new(PRIORITY_TRAINCMDRUNNER, tid_traincmdbuf, MyTid(), sizeof(traincmd));
+	courier_new(PRIORITY_TRAINCMDRUNNER, tid_traincmdbuf, MyTid(), sizeof(traincmd), NULL);
 	int tid_traincmdpub = WhoIs(NAME_TRAINCMDPUB);
-	int tid_switchcmdrunner = switchcmdrunner_new(NAME_SWITCHCMDRUNNER);
+	int tid_switchcmdrunner = switchcmdrunner_new();
 
 	traincmd_receipt rcpt;
 	rcpt.type = MSG_TRAINCMDRECEIPT;

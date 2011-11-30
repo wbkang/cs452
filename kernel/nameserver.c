@@ -81,8 +81,10 @@ static int handle_whois(nameserver_state *state, int tid, char *name) {
 	return 0;
 }
 
+static nameserver_state *cur_state;
 void nameserver() {
 	nameserver_state state;
+	cur_state = &state; // for debugging
 	state.nametidmap = lookup_new(NUM_NAMES, name_hash, NULL);
 	state.num_blocked = 0;
 
@@ -130,4 +132,18 @@ int RegisterAs(char *name) {
 
 int WhoIs(char *name) {
 	return nameserver_send(NAMESERVER_WHOIS, name);
+}
+
+
+// should run absolutely positively only during crash
+char* nameserver_get_name(int tid) {
+	DEFINE_NAME_ALLNAMES(debug_names, debug_names_len);
+	lookup *nametidmap = cur_state->nametidmap;
+	for (int i = 0; i < debug_names_len; i++) {
+		int tidfound = (int)lookup_get(nametidmap, debug_names[i][1]);
+		if (tidfound == tid) {
+			return debug_names[i][0] + 5;
+		}
+	}
+	return NULL;
 }

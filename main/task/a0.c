@@ -735,19 +735,19 @@ void a0() {
 
 	int tid_com2buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
 	comnotifier_new(tid_com2buffer, 9, COM2, state.con->tid_console);
-	courier_new(9, tid_com2buffer, mytid, sizeof(msg_comin));
+	courier_new(9, tid_com2buffer, mytid, sizeof(msg_comin), NULL);
 
 	int tid_refreshbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_refreshbuffer, 9, MS2TICK(100));
-	state.tid_refresh = courier_new(9, tid_refreshbuffer, mytid, sizeof(msg_time));
+	state.tid_refresh = courier_new(9, tid_refreshbuffer, mytid, sizeof(msg_time), NULL);
 
 	int tid_printlocbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_printlocbuffer, 9, MS2TICK(200));
-	state.tid_printloc = courier_new(9, tid_printlocbuffer, mytid, sizeof(msg_time));
+	state.tid_printloc = courier_new(9, tid_printlocbuffer, mytid, sizeof(msg_time), NULL);
 
 	int tid_simstepbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(20));
-	state.tid_simstep = courier_new(9, tid_simstepbuffer, mytid, sizeof(msg_time));
+	state.tid_simstep = courier_new(9, tid_simstepbuffer, mytid, sizeof(msg_time), NULL);
 
 	void *msg = malloc(LEN_MSG);
 
