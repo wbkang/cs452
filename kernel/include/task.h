@@ -33,20 +33,24 @@ typedef struct _tag_task_descriptor {
 	uint priority;
 	register_set registers;
 	memptr heap;
-	struct _tag_task_descriptor *_prev;
+	struct _tag_task_descriptor *_prev; // sibling queue
 	struct _tag_task_descriptor *_next;
+	struct _tag_task_descriptor *_tail_child; // children queue
+	struct _tag_task_descriptor *_head_child;
 	int last_receiver;
 } task_descriptor;
 
 void td_init();
 uint get_td_list_size();
-inline int td_index(int tid);
-inline int td_impossible(int tid);
-inline int td_list_empty(task_descriptor *td);
-inline void td_list_push(task_descriptor *head, task_descriptor *td);
-inline task_descriptor *td_list_pop(task_descriptor *head);
-inline task_descriptor *td_new();
+int td_index(int tid);
+int td_impossible(int tid);
+void td_clear_siblings(task_descriptor *td);
+void td_clear_children(task_descriptor *td);
+int td_has_children(task_descriptor *td);
+void td_push_child(task_descriptor *td, task_descriptor *child);
+task_descriptor *td_shift_child(task_descriptor *td);
+task_descriptor *td_new();
 void td_free(task_descriptor *td);
-inline task_descriptor *td_find(uint id);
+task_descriptor *td_find(uint id);
 void reginfo(register_set *reg);
 void td_print_crash_dump();

@@ -62,8 +62,8 @@ inline void scheduler_triggerevent(int irq) {
 }
 
 inline void scheduler_freeme() {
-	while (!td_list_empty(running)) { // clearout receive blocked tasks
-		task_descriptor *sender = td_list_pop(running);
+	while (td_has_children(running)) { // clearout receive blocked tasks
+		task_descriptor *sender = td_shift_child(running);
 		sender->registers.r[0] = -2;
 		scheduler_ready(sender);
 	}
