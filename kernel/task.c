@@ -46,6 +46,8 @@ void td_print_crash_dump() {
 			char waitinfostr[100];
 			if (td->state == TD_STATE_WAITING4RECEIVE) {
 				sprintf(waitinfostr, ", sending to: %d", td_find_send_target(td));
+			} if (td->state == TD_STATE_WAITING4REPLY) {
+				sprintf(waitinfostr, ", last_receiver: %d", td->last_receiver);
 			} else {
 				waitinfostr[0] = '\0';
 			}
@@ -74,6 +76,7 @@ void td_init(uint task_list_size) {
 		td->state = TD_STATE_FREE;
 		td->registers.r[REG_FP] = 0;
 		td_list_push(head_free, td);
+		td->last_receiver = -1;
 	}
 
 	PRINT("task_list_size: %d", get_td_list_size());

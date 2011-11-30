@@ -35,6 +35,7 @@ typedef struct _tag_task_descriptor {
 	memptr heap;
 	struct _tag_task_descriptor *_prev;
 	struct _tag_task_descriptor *_next;
+	int last_receiver;
 } task_descriptor;
 
 void td_init();
