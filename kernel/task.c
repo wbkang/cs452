@@ -43,15 +43,13 @@ void td_print_crash_dump() {
 	for (int i = 0; i < tdsize; i++) {
 		task_descriptor *td = task_descriptors.td + i;
 		if (td->state != TD_STATE_FREE && td->state != TD_STATE_RETIRED) {
-			char waitinfostr[100];
+			char waitinfostr[100] = { '\0' };
 			if (td->state == TD_STATE_WAITING4RECEIVE) {
 				sprintf(waitinfostr, ", sending to: %d", td_find_send_target(td));
-			} if (td->state == TD_STATE_WAITING4REPLY) {
-				sprintf(waitinfostr, ", last_receiver: %d", td->last_receiver);
-			} else {
-				waitinfostr[0] = '\0';
 			}
-
+			if (td->state == TD_STATE_WAITING4REPLY) {
+				sprintf(waitinfostr, ", last_receiver: %d", td->last_receiver);
+			}
 			char *taskname = nameserver_get_name(td->id);
 			if (!taskname) taskname = "{noname}";
 
