@@ -323,10 +323,10 @@ static inline int kernel_send(int tid) {
 
 static inline void kernel_receive() {
 	task_descriptor *receiver = scheduler_running();
-	if (td_list_empty(receiver)) {
-		scheduler_wait4send(receiver);
+	if (td_has_children(receiver)) {
+		transfer_msg(td_shift_child(receiver), receiver);
 	} else {
-		transfer_msg(td_list_pop(receiver), receiver);
+		scheduler_wait4send(receiver);
 	}
 }
 
