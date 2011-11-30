@@ -283,7 +283,7 @@ static inline void transfer_msg(task_descriptor *sender, task_descriptor *receiv
 	void* receiver_msg = (void*) receiver_r[1];
 	memcpy(receiver_msg, sender_msg, len);
 	// make sender wait for reply
-	scheduler_wait4reply(sender);
+	scheduler_wait4reply(sender, receiver->id);
 	// make receiver ready to run
 	receiver_r[0] = len; // receiver rv
 	scheduler_ready(receiver);

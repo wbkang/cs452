@@ -23,6 +23,7 @@ static inline void scheduler_wait4receive(task_descriptor *receiver, task_descri
 	td_list_push(receiver, sender);
 }
 
-static inline void scheduler_wait4reply(task_descriptor *sender) {
+static inline void scheduler_wait4reply(task_descriptor *sender, int last_receiver) {
 	sender->state = TD_STATE_WAITING4REPLY;
+	sender->last_receiver = last_receiver;
 }
