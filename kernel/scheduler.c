@@ -35,6 +35,7 @@ inline task_descriptor *scheduler_get() {
 }
 
 inline void scheduler_ready(task_descriptor *td) {
+	ASSERT(td->state != TD_STATE_READY, "tid%d state already ready", td->id);
 	td->state = TD_STATE_READY;
 	priorityq_put(ready_queue, td, td->priority);
 }

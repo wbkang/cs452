@@ -22,3 +22,4 @@
 #define NAMESERVER_ERROR_BADNAME -6
 
 void nameserver();
+char* nameserver_get_name(int tid); // should run absolutely positively only during crash

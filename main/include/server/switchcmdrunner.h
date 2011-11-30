@@ -2,4 +2,4 @@
 
 void switchcmdrunner();
 
-int switchcmdrunner_new(char *name);
+int switchcmdrunner_new();

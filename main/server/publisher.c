@@ -37,7 +37,7 @@ static void handle_sub(publisher_state *state, void* packet) {
 
 	int tid_buffer = buffertask_new(NULL, state->priority, state->item_size);
 	ASSERT(tid_buffer >= 0, "unable to create a new buffer task");
-	int tid_courier = courier_new(state->priority, tid_buffer, tid, state->item_size);
+	int tid_courier = courier_new(state->priority, tid_buffer, tid, state->item_size, NULL);
 	ASSERT(tid_courier >= 0, "unable to create a new courier");
 
 	state->tid_to[state->num_clients++] = tid_buffer;
@@ -87,7 +87,7 @@ int publisher_new(char *name, int priority, int item_size) {
 	args.priority = priority;
 	int n = Send(tid_publisher, &args, sizeof(args), NULL, 0);
 	if (n < 0) return n;
-	int tid_courier = courier_new(priority, tid_buffer, tid_publisher, item_size);
+	int tid_courier = courier_new(priority, tid_buffer, tid_publisher, item_size, NULL);
 	if (tid_courier < 0) return tid_courier;
 	return tid_buffer;
 }

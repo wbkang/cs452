@@ -7,6 +7,7 @@
 #include <server/courier.h>
 
 void switchcmdrunner() {
+	RegisterAs(NAME_SWITCHCMDRUNNER_S);
 	int tid_com1 = WhoIs(NAME_IOSERVER_COM1);
 	int tid_time = WhoIs(NAME_TIMESERVER);
 	int tid_traincmdpub = WhoIs(NAME_TRAINCMDPUB);
@@ -18,7 +19,8 @@ void switchcmdrunner() {
 	for (;;) {
 		int tid;
 		int len = Receive(&tid, cmd, sizeof(traincmd));
-		Reply(tid, NULL, 0);
+		int replyresult = Reply(tid, NULL, 0);
+		ASSERT(replyresult >= 0, "replyresult: %d", replyresult);
 		ASSERT(len == sizeof(traincmd), "bad data");
 		switch (cmd->name) {
 			case SWITCH: {
@@ -43,12 +45,12 @@ void switchcmdrunner() {
 	}
 }
 
-int switchcmdrunner_new(char *name) {
-	int tid = Create(PRIORITY_SWITCHCMDRUNNER, switchcmdrunner);
-	if (tid < 0) return tid;
-	int tid_buffer = buffertask_new(name, PRIORITY_SWITCHCMDRUNNER, sizeof(traincmd));
+int switchcmdrunner_new() {
+	int tid_runner = Create(PRIORITY_SWITCHCMDRUNNER, switchcmdrunner);
+	if (tid_runner < 0) return tid_runner;
+	int tid_buffer = buffertask_new(NAME_SWITCHCMDRUNNER, PRIORITY_SWITCHCMDRUNNER, sizeof(traincmd));
 	if (tid_buffer < 0) return tid_buffer;
-	int tid_courier = courier_new(PRIORITY_SWITCHCMDRUNNER, tid_buffer, tid, sizeof(traincmd));
+	int tid_courier = courier_new(PRIORITY_SWITCHCMDRUNNER, tid_buffer, tid_runner, sizeof(traincmd), NAME_SWITCHCMDRUNNER_C);
 	if (tid_courier < 0) return tid_courier;
 	return tid_buffer;
 }

@@ -60,12 +60,13 @@ static void handle_traincmdmsgreceipt(state *this, char msg[]) {
 }
 
 void sensorserver() {
+	RegisterAs(NAME_SENSORSERVER);
 	publisher_sub(WhoIs(NAME_TRAINCMDPUB), MyTid());
 
 	// init com1 notifier
 	int tid_com1buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
 	comnotifier_new(tid_com1buffer, 9, COM2, WhoIs(NAME_IOSERVER_COM1));
-	courier_new(9, tid_com1buffer, MyTid(), sizeof(msg_comin));
+	courier_new(9, tid_com1buffer, MyTid(), sizeof(msg_comin), NULL);
 
 	// init state
 	state this;
