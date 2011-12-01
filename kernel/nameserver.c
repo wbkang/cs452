@@ -134,16 +134,13 @@ int WhoIs(char *name) {
 	return nameserver_send(NAMESERVER_WHOIS, name);
 }
 
-
 // should run absolutely positively only during crash
 char* nameserver_get_name(int tid) {
 	DEFINE_NAME_ALLNAMES(debug_names, debug_names_len);
 	lookup *nametidmap = cur_state->nametidmap;
 	for (int i = 0; i < debug_names_len; i++) {
-		int tidfound = (int)lookup_get(nametidmap, debug_names[i][1]);
-		if (tidfound == tid) {
-			return debug_names[i][0] + 5;
-		}
+		int tidfound = (int) lookup_get(nametidmap, debug_names[i][1]);
+		if (tidfound == tid) return debug_names[i][0] + 5;
 	}
 	return NULL;
 }

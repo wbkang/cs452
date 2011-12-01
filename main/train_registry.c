@@ -13,8 +13,7 @@ trainreg *trainreg_new() {
 
 int trainreg_add(trainreg *this, int train_no) {
 	ASSERT(TRAIN_GOODNO(train_no), "bad train_no (%d)", train_no);
-	train_init(&this->trains[train_no], train_no);
-	return TRUE;
+	return train_init(&this->trains[train_no], train_no);
 }
 
 train *trainreg_get(trainreg *this, int train_no) {

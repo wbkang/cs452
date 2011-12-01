@@ -169,7 +169,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 	}
 }
 
-void train_init(train *this, int no) {
+int train_init(train *this, int no) {
 	this->calibrated = train_init_cal(&this->cal, no);
 
 	this->no = no;
@@ -216,6 +216,8 @@ void train_init(train *this, int no) {
 
 		this->path = NULL;
 	}
+
+	return this->calibrated;
 }
 
 fixed train_get_velocity(train *this) {

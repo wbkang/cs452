@@ -22,9 +22,11 @@ track_edge *track_next_edge(track_node *node) {
 			if (dir == 0 || dir == 1) return &node->edge[dir];
 			return NULL; // unknown branch position
 		}
-		default:
-			return NULL; // unkown node type
+		case NODE_NONE:
+		case NODE_EXIT:
+			return NULL;
 	}
+	return NULL;
 }
 
 track_node *track_next_node(track_node *node) {

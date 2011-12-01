@@ -148,7 +148,7 @@ int location_tostring(location *this, char *buf) {
 	char * const origbuf = buf;
 	int errno = location_isinvalid(this);
 	if (errno) {
-		buf += sprintf(buf, "(invalid %d)", errno);
+		buf += sprintf(buf, "(invalid: %d)", errno);
 	} else if (location_isundef(this)) {
 		buf += sprintf(buf, "(undefined)");
 	} else if (fixed_sgn(this->offset) == 0) {
@@ -157,12 +157,10 @@ int location_tostring(location *this, char *buf) {
 	} else {
 		ASSERTNOTNULL(this->edge->src);
 		ASSERTNOTNULL(this->edge->dest);
-		buf += sprintf(buf,
-			"(%s-%s+%dmm)",
-			this->edge->src->name,
-			this->edge->dest->name,
-			fixed_int(this->offset)
-		);
+		buf += sprintf(buf, "%s+%dmm", this->edge->src->name, fixed_int(this->offset));
+		if (this->edge->src->type == NODE_BRANCH) {
+			buf += sprintf(buf, "->%s", this->edge->dest->name);
+		}
 	}
 	return buf - origbuf;
 }

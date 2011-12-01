@@ -173,7 +173,7 @@ static inline void train_stop(int tid) {
  */
 
 int train_init_cal(train_cal *cal, int train_no);
-void train_init(train *this, int no);
+int train_init(train *this, int no);
 fixed train_get_velocity(train *this);
 fixed train_get_cruising_velocity(train *this);
 int train_is_moving(train *this);
