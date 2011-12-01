@@ -4,6 +4,7 @@
 #include <train_calibrator.h>
 #include <gps.h>
 #include <util.h>
+#include <engineer.h>
 
 static struct {
 	enum { IDLE, ORIENTING } state;
@@ -12,22 +13,23 @@ static struct {
 	track_node *back;
 } cl_state;
 
-static void handle_sensor_response(void* s);
+static void handle_sensor_response();
 
 void calibrator_init() {
 	cl_state.state = IDLE;
 }
 
-static void calibrator_quit(a0state *state) {
+static void calibrator_quit() {
+	glob *state = get_glob();
 	engineer *eng = state->eng;
 	engineer_set_speed(eng, cl_state.train->no, 0);
 	dumbbus_unregister(state->sensor_bus, &handle_sensor_response);
 	calibrator_init();
-	logstrip_printf(state->cmdlog, "quitting calibrating train %d", cl_state.train->no);
+	logstrip_printf(get_glob()->cmdlog, "quitting calibrating train %d", cl_state.train->no);
 }
 
-static void handle_sensor_response(void* s) {
-	a0state *state = s;
+static void handle_sensor_response() {
+	glob *state = get_glob();
 
 	track_node *sensor = state->cur_sensor;
 	ASSERTNOTNULL(sensor);
@@ -60,7 +62,8 @@ static void handle_sensor_response(void* s) {
 	}
 }
 
-void calibrate_train(a0state *state, int train_no, char sig1mod, int sig1id) {
+void calibrate_train(int train_no, char sig1mod, int sig1id) {
+	glob *state = get_glob();
 	engineer *eng = state->eng;
 
 	if (cl_state.state != IDLE) {

@@ -13,7 +13,7 @@ struct {
 } ts_state;
 
 // @TODO: logging should be handled better
-static void ontick(void* s) {
+static void ontick() {
 	train *train = ts_state.train;
 	if (train_is_lost(train)) return;
 
@@ -23,15 +23,15 @@ static void ontick(void* s) {
 
 	if (location_dist_dir(&loc_train, loc_dest) > stop_dist) return;
 
-	a0state *state = s;
+	glob *state = get_glob();
 	engineer_set_speed(state->eng, train->no, 0);
 	dumbbus_unregister(state->simbus, ontick);
 	logstrip_printf(state->cmdlog, "stopping train %d", train->no);
 }
 
 // over must be in mm
-void train_stopper_setup(a0state *state, int train_no, char *type, int id, int over) {
-	ASSERTNOTNULL(state);
+void train_stopper_setup(int train_no, char *type, int id, int over) {
+	glob *state = get_glob();
 	engineer *eng = state->eng;
 	ASSERTNOTNULL(type);
 	ASSERT(over >= 0, "dist negative: %d", over);
