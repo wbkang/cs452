@@ -1,18 +1,17 @@
 #pragma once
 
-#include <track_node.h>
-#include <util.h>
 #include <console.h>
-#include <dumbbus.h>
-#include <lookup.h>
+#include <ui/logdisplay.h>
 #include <ui/logstrip.h>
 #include <ui/cmdline.h>
-#include <ui/logdisplay.h>
+#include <dumbbus.h>
 #include <ui/timedisplay.h>
 #include <ui/a0_track_template.h>
 #include <engineer.h>
+#include <track_node.h>
 
-typedef struct {
+typedef struct glob glob;
+struct glob {
 	// server ids
 	int tid_time;
 	console *con;
@@ -41,8 +40,8 @@ typedef struct {
 	int tid_refresh;
 	int tid_simstep;
 	int tid_printloc;
-} a0state;
+};
+
+glob* get_glob();
 
 void a0();
-
-void ui_set_track(a0state *state, int s[], int ns, int c[], int nc);

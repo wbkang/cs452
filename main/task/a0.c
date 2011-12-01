@@ -21,11 +21,20 @@
 #include <server/buffertask.h>
 #include <server/courier.h>
 #include <server/publisher.h>
+#include <track_node.h>
+#include <util.h>
+#include <engineer.h>
 
 #define LEN_MSG (64 * 4)
 
 #define CONSOLE_DUMP_LINE (CONSOLE_CMD_LINE + 4)
 #define CONSOLE_DUMP_COL 1
+
+glob *state;
+
+glob *get_glob() {
+	return state;
+}
 
 /*
  * UI
@@ -35,21 +44,24 @@
 static char hist_mod[LEN_SENSOR_HIST];
 static int hist_id[LEN_SENSOR_HIST];
 
-static void ui_init(a0state *state) {
+static void ui_init() {
 	// init sensor hist
 	for (int i = 0; i < LEN_SENSOR_HIST; i++) {
 		hist_mod[i] = 0;
 		hist_id[i] = 0;
 	}
+	glob *state = get_glob();
 	cmdline_clear(state->cmdline);
 }
 
-static void ui_time(void* s) {
-	a0state *state = s;
+static void ui_time() {
+	glob *state = get_glob();
 	timedisplay_update(state->timedisplay, state->timestamp);
 }
 
-static void ui_sensor(a0state *state, char module, int id, int senstate) {
+static void ui_sensor(char module, int id, int senstate) {
+	glob *state = get_glob();
+
 	if (senstate == OFF) return;
 	for (int i = LEN_SENSOR_HIST - 1; i > 0; i--) {
 		hist_mod[i] = hist_mod[i - 1];
@@ -76,17 +88,20 @@ static void ui_sensor(a0state *state, char module, int id, int senstate) {
 	track_template_updatesensor(state->template, module, id, 0);
 }
 
-static void ui_reverse(a0state *state, int train, int t) {
+static void ui_reverse(int train, int t) {
+	glob *state = get_glob();
 	logdisplay_printf(state->log, "[%7d] reversed train %d", t, train);
 	logdisplay_flushline(state->log);
 }
 
-static void ui_switch(a0state *state, char no, char pos, int t) {
+static void ui_switch(char no, char pos, int t) {
+	glob *state = get_glob();
 	track_template_updateswitch(state->template, no, pos);
 	console_flush(state->con);
 }
 
-static void ui_quit(a0state *state) {
+static void ui_quit() {
+	glob *state = get_glob();
 	logstrip_printf(state->cmdlog, "quitting...");
 	console_move(state->con, CONSOLE_CMD_LINE + 1, 1);
 	console_flush(state->con);
@@ -97,7 +112,8 @@ static void ui_quit(a0state *state) {
  * Server
  */
 
-static track ask_track(a0state *state) {
+static track ask_track() {
+	glob *state = get_glob();
 	for (;;) {
 		console_clear(state->con);
 		console_move(state->con, 1, 1);
@@ -136,8 +152,8 @@ static void init_csdstate() {
 	csdstate.speed = 6;
 }
 
-static void calib_stopdist(void* s) {
-	a0state *state = s;
+static void calib_stopdist() {
+	glob *state = get_glob();
 	engineer *eng = state->eng;
 	train *train = engineer_get_train(eng, 39);
 	track_node *cur_sensor = state->cur_sensor;
@@ -208,7 +224,8 @@ static void init_jerk() {
 	j.state = 0;
 }
 
-static void jerk(a0state *state, track_node *sensor, int timestamp) {
+static void jerk(track_node *sensor, int timestamp) {
+	glob *state = get_glob();
 	engineer *eng = state->eng;
 	track_node *last_sensor = j.last_sensor;
 	int dx = track_distance(last_sensor, sensor);
@@ -276,8 +293,8 @@ static void init_v_avg() {
 	app_v_avg_state.dt = 0;
 }
 
-static void get_v_avg(void* s) {
-	a0state *state = s;
+static void get_v_avg() {
+	glob *state = get_glob();
 	engineer *eng = state->eng;
 	train *train = engineer_get_train(eng, 39);
 
@@ -313,12 +330,13 @@ static void get_v_avg(void* s) {
 	logdisplay_flushline(state->log);
 }
 
-static void handle_sensor(a0state *state, char rawmsg[]) {
+static void handle_sensor(char rawmsg[]) {
+	glob *state = get_glob();
 	engineer *eng = state->eng;
 	msg_sensor *m = (msg_sensor*) rawmsg;
 
 	engineer_onsensor(eng, rawmsg);
-	ui_sensor(state, m->module[0], m->id, m->state);
+	ui_sensor(m->module[0], m->id, m->state);
 
 	// logdisplay_printf(
 	// 	state->log,
@@ -379,14 +397,15 @@ static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *lo
 	logstrip_printf(log2, msg);
 }
 
-static void printloc(void* s) {
-	a0state *state = s;
+static void printloc() {
+	glob *state = get_glob();
 	engineer *eng = state->eng;
 	printstuff(eng, 37, state->trainloc1, state->trainloc1r);
 	printstuff(eng, 38, state->trainloc2, state->trainloc2r);
 }
 
-static void handle_setup_demotrack(a0state *state) {
+static void handle_setup_demotrack() {
+	glob *state = get_glob();
 	engineer *eng = state->eng;
 	int s[] = {6, 9, 10, 14, 15, 16,};
 	int c[] = {1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 17, 18, 153, 154, 155, 156};
@@ -395,7 +414,8 @@ static void handle_setup_demotrack(a0state *state) {
 	engineer_set_track(eng, s, ns, c, nc);
 }
 
-static void handle_train_switch_all(a0state *state, char pos) {
+static void handle_train_switch_all(char pos) {
+	glob *state = get_glob();
 	engineer *eng = state->eng;
 	int all[] = {
 		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
@@ -409,7 +429,8 @@ static void handle_train_switch_all(a0state *state, char pos) {
 	}
 }
 
-static void handle_set_dest(a0state *state, int train_no, char *type, int id, int dist_cm) {
+static void handle_set_dest(int train_no, char *type, int id, int dist_cm) {
+	glob *state = get_glob();
 	train *train = engineer_get_train(state->eng, train_no);
 	track_node *destnode = engineer_get_tracknode(state->eng, type, id);
 	location dest =	location_fromnode(destnode, 0);
@@ -420,8 +441,8 @@ static void handle_set_dest(a0state *state, int train_no, char *type, int id, in
 	logstrip_printf(state->cmdlog, "Set train %d to go to %s", train_no, destname);
 }
 
-static void tick_engineer(void* s) {
-	a0state *state = s;
+static void tick_engineer() {
+	glob *state = get_glob();
 	engineer_ontick(state->eng);
 }
 
@@ -438,8 +459,8 @@ static void tick_engineer(void* s) {
 	} \
 }
 
-static void handle_command(void* s, char *cmd, int size) {
-	a0state *state = s;
+static void handle_command(char *cmd, int size) {
+	glob *state = get_glob();
 	engineer *eng = state->eng;
 	int quit = FALSE;
 	char *errmsg = NULL;
@@ -464,7 +485,7 @@ static void handle_command(void* s, char *cmd, int size) {
 			int sig1id = strgetui(&c);
 			ENFORCE(sig1id >= 1 && sig1id <= 16, "bad start sensor id");
 			ACCEPT('\0');
-			calibrate_train(state, train, sig1mod, sig1id);
+			calibrate_train(train, sig1mod, sig1id);
 			break;
 		}
 		case 'd': {
@@ -492,7 +513,7 @@ static void handle_command(void* s, char *cmd, int size) {
 					dist_cm = 0;
 				}
 				ACCEPT('\0');
-				handle_set_dest(state, train, type, id, dist_cm);
+				handle_set_dest(train, type, id, dist_cm);
 			} else {
 				goto badcmd;
 			}
@@ -543,7 +564,7 @@ static void handle_command(void* s, char *cmd, int size) {
 				ACCEPT(' ');
 				int dist_cm = strgetui(&c);
 				ACCEPT('\0');
-				train_stopper_setup(state, train, type, id, 10 * dist_cm);
+				train_stopper_setup(train, type, id, 10 * dist_cm);
 			} else if (*c == 'w') { // set switch position (sw #+ [cCsS])
 				ACCEPT('w');
 				ACCEPT(' ');
@@ -559,7 +580,7 @@ static void handle_command(void* s, char *cmd, int size) {
 				if (!track_switchpos_isgood(pos)) goto badcmd;
 				ACCEPT('\0');
 				if (id == '*') {
-					handle_train_switch_all(state, pos);
+					handle_train_switch_all(pos);
 				} else {
 					engineer_set_switch(eng, id, pos);
 				}
@@ -596,7 +617,8 @@ static void handle_command(void* s, char *cmd, int size) {
 
 }
 
-static void handle_comin(a0state *state, char msg[]) {
+static void handle_comin(char msg[]) {
+	glob *state = get_glob();
 	msg_comin *comin = (msg_comin*) msg;
 	ASSERT(comin->channel == COM2, "no handler for channel %d", comin->channel);
 	if (comin->c == '=') {
@@ -607,7 +629,8 @@ static void handle_comin(a0state *state, char msg[]) {
 	cmdline_handleinput(state->cmdline, comin->c);
 }
 
-static void handle_time(a0state *state, char msg[], int tid) {
+static void handle_time(char msg[], int tid) {
+	glob *state = get_glob();
 	msg_time *time = (msg_time*) msg;
 	state->timestamp = time->timestamp;
 	if (tid == state->tid_refresh) {
@@ -621,7 +644,8 @@ static void handle_time(a0state *state, char msg[], int tid) {
 	}
 }
 
-static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
+static void handle_traincmdmsgreceipt(char msg[]) {
+	glob *state = get_glob();
 	engineer *eng = state->eng;
 	traincmd_receipt *rcpt = (traincmd_receipt*) msg;
 	traincmd *cmd = &rcpt->cmd;
@@ -638,7 +662,7 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 			case REVERSE:
 			case REVERSE_UI: {
 				int train_no = cmd->arg1;
-				ui_reverse(state, train_no, t);
+				ui_reverse(train_no, t);
 				engineer_on_reverse(eng, train_no, t);
 				break;
 			}
@@ -646,7 +670,7 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 				char no = cmd->arg1;
 				char pos = cmd->arg2;
 				engineer_on_set_switch(eng, no, pos, t);
-				ui_switch(state, no, pos, t);
+				ui_switch(no, pos, t);
 				logdisplay_printf(state->log, "[%7d] switched switch %d to %c, lag %dms", t, no, pos, t - cmd->timestamp);
 				logdisplay_flushline(state->log);
 				break;
@@ -679,54 +703,53 @@ static void handle_traincmdmsgreceipt(a0state *state, char msg[]) {
 
 void a0() {
 	int mytid = MyTid();
-
-	a0state state;
-	state.tid_time = WhoIs(NAME_TIMESERVER);
+	state = malloc(sizeof(glob));
+	state->tid_time = WhoIs(NAME_TIMESERVER);
 
 	int tid_traincmdpub = publisher_new(NAME_TRAINCMDPUB, PRIORITY_TRAINCMDPUB, sizeof(traincmd_receipt));
 	publisher_sub(tid_traincmdpub, mytid);
 
 	// ui
-	state.con = console_new(COM2);
+	state->con = console_new(COM2);
 	track track = ask_track(&state);
-	state.template = track_template_new(state.con, track);
-	state.cmdlog = logstrip_new(state.con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
-	state.cmdline = cmdline_new(state.con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command, &state);
-	state.sensorlog = logstrip_new(state.con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
-	state.log = logdisplay_new(state.con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
-	state.timedisplay = timedisplay_new(state.con, 1, 9);
-	state.trainloc1 = logstrip_new(state.con, 2, 56 + 2);
-	state.trainloc1r = logstrip_new(state.con, 3, 56 + 2);
-	state.trainloc2 = logstrip_new(state.con, 4, 56 + 2);
-	state.trainloc2r = logstrip_new(state.con, 5, 56 + 2);
+	state->template = track_template_new(state->con, track);
+	state->cmdlog = logstrip_new(state->con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
+	state->cmdline = cmdline_new(state->con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command);
+	state->sensorlog = logstrip_new(state->con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
+	state->log = logdisplay_new(state->con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
+	state->timedisplay = timedisplay_new(state->con, 1, 9);
+	state->trainloc1 = logstrip_new(state->con, 2, 56 + 2);
+	state->trainloc1r = logstrip_new(state->con, 3, 56 + 2);
+	state->trainloc2 = logstrip_new(state->con, 4, 56 + 2);
+	state->trainloc2r = logstrip_new(state->con, 5, 56 + 2);
 
 	// sensor bus
-	state.sensor_bus = dumbbus_new();
+	state->sensor_bus = dumbbus_new();
 	// init_jerk();
-	// dumbbus_register(state.sensor_bus, &jerk);
+	// dumbbus_register(state->sensor_bus, &jerk);
 	// init_csdstate();
-	// dumbbus_register(state.sensor_bus, &calib_stopdist);
+	// dumbbus_register(state->sensor_bus, &calib_stopdist);
 	// init_v_avg();
-	// dumbbus_register(state.sensor_bus, &get_v_avg);
+	// dumbbus_register(state->sensor_bus, &get_v_avg);
 
 	// time bus
-	state.bus10hz = dumbbus_new();
-	dumbbus_register(state.bus10hz, &ui_time);
-	state.printlocbus = dumbbus_new();
-	dumbbus_register(state.printlocbus, &printloc);
+	state->bus10hz = dumbbus_new();
+	dumbbus_register(state->bus10hz, &ui_time);
+	state->printlocbus = dumbbus_new();
+	dumbbus_register(state->printlocbus, &printloc);
 
-	state.simbus = dumbbus_new();
-	dumbbus_register(state.simbus, &tick_engineer);
+	state->simbus = dumbbus_new();
+	dumbbus_register(state->simbus, &tick_engineer);
 
-	state.eng = engineer_new(track == TRACK_A ? 'a' : 'b');
+	state->eng = engineer_new(track == TRACK_A ? 'a' : 'b');
 
-	state.last_sensor = NULL;
+	state->last_sensor = NULL;
 
 	calibrator_init();
 
-//	int tid_uibuffer = buffertask_new(NULL, PRIORITY_UISERVER, 512); // TODO hardcorded item size
-//	int tid_uiserver = Create(PRIORITY_UISERVER, uiserver);
-//	courier_new(PRIORITY_UISERVER, tid_uibuffer, tid_uiserver);
+	//	int tid_uibuffer = buffertask_new(NULL, PRIORITY_UISERVER, 512); // TODO hardcorded item size
+	//	int tid_uiserver = Create(PRIORITY_UISERVER, uiserver);
+	//	courier_new(PRIORITY_UISERVER, tid_uibuffer, tid_uiserver);
 
 	ui_init(&state);
 
@@ -734,20 +757,20 @@ void a0() {
 	publisher_sub(WhoIs(NAME_SENSORPUB), mytid);
 
 	int tid_com2buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
-	comnotifier_new(tid_com2buffer, 9, COM2, state.con->tid_console);
+	comnotifier_new(tid_com2buffer, 9, COM2, state->con->tid_console);
 	courier_new(9, tid_com2buffer, mytid, sizeof(msg_comin), NULL);
 
 	int tid_refreshbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_refreshbuffer, 9, MS2TICK(100));
-	state.tid_refresh = courier_new(9, tid_refreshbuffer, mytid, sizeof(msg_time), NULL);
+	state->tid_refresh = courier_new(9, tid_refreshbuffer, mytid, sizeof(msg_time), NULL);
 
 	int tid_printlocbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_printlocbuffer, 9, MS2TICK(200));
-	state.tid_printloc = courier_new(9, tid_printlocbuffer, mytid, sizeof(msg_time), NULL);
+	state->tid_printloc = courier_new(9, tid_printlocbuffer, mytid, sizeof(msg_time), NULL);
 
 	int tid_simstepbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(20));
-	state.tid_simstep = courier_new(9, tid_simstepbuffer, mytid, sizeof(msg_time), NULL);
+	state->tid_simstep = courier_new(9, tid_simstepbuffer, mytid, sizeof(msg_time), NULL);
 
 	void *msg = malloc(LEN_MSG);
 
@@ -761,24 +784,24 @@ void a0() {
 		msg_header *header = (msg_header*) msg;
 		switch (header->type) {
 			case MSG_SENSOR:
-				handle_sensor(&state, msg);
+				handle_sensor(msg);
 				break;
 			case MSG_COM_IN:
-				handle_comin(&state, msg);
+				handle_comin(msg);
 				break;
 			case MSG_TIME:
-				handle_time(&state, msg, tid);
+				handle_time(msg, tid);
 				break;
 			case MSG_TRAINCMDRECEIPT:
-				handle_traincmdmsgreceipt(&state, msg);
+				handle_traincmdmsgreceipt(msg);
 				break;
 			default:
 				logdisplay_printf(
-					state.log,
+					state->log,
 					"unhandled message %d",
 					header->type
 				);
-				logdisplay_flushline(state.log);
+				logdisplay_flushline(state->log);
 				break;
 		}
 	}

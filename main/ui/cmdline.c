@@ -15,14 +15,13 @@ static void cmdline_movecursor(cmdline *this) {
 	console_flush(this->con);
 }
 
-cmdline *cmdline_new(console *con, int line, int col, cmdprocessor cmdproc, void *state) {
+cmdline *cmdline_new(console *con, int line, int col, cmdprocessor cmdproc) {
 	cmdline *this = malloc(sizeof(cmdline));
 	this->con = con;
 	this->line = line;
 	this->col = col;
 	this->cmdidx = 0;
 	this->cmdprocessor = cmdproc;
-	this->cmdprocstate = state;
 	cmdline_movecursor(this);
 	return this;
 }
@@ -46,7 +45,7 @@ void cmdline_handleinput(cmdline *this, char c) {
 			break;
 		case '\r':
 			this->cmdbuf[--this->cmdidx] = '\0';
-			this->cmdprocessor(this->cmdprocstate, this->cmdbuf, this->cmdidx);
+			this->cmdprocessor(this->cmdbuf, this->cmdidx);
 			break;
 		default:
 			cmdline_putc(this, c);
