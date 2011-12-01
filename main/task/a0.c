@@ -440,8 +440,7 @@ static void handle_set_dest(int train_no, char *type, int id, int dist_cm) {
 }
 
 static void tick_engineer() {
-	a0state *state = get_state();
-	engineer_ontick(state->eng);
+	engineer_ontick(get_state()->eng);
 }
 
 #define ACCEPT(a) { \
@@ -460,7 +459,6 @@ static void tick_engineer() {
 static void handle_command(char *cmd, int size) {
 	a0state *state = get_state();
 	engineer *eng = state->eng;
-	int quit = FALSE;
 	char *errmsg = NULL;
 	char *c = cmd;
 	cmdline_clear(state->cmdline);
@@ -496,11 +494,11 @@ static void handle_command(char *cmd, int size) {
 				ACCEPT('o');
 				ACCEPT(' ');
 				int train = strgetui(&c);
-				if (!train_goodtrain(train)) goto badcmd;
+				ENFORCE(train_goodtrain(train), "bad train");
 				ACCEPT(' ');
 				char type[4];
 				uint len = strgetw(c, type, 4);
-				if (len == 0) goto badcmd;
+				ENFORCE(len == 0, "bad location");
 				c += len;
 				int id = strgetui(&c);
 				int dist_cm;
@@ -524,7 +522,7 @@ static void handle_command(char *cmd, int size) {
 			ENFORCE(train_goodtrain(train), "bad train");
 			ACCEPT(' ');
 			int speed = strgetui(&c);
-			if (!train_goodspeed(speed)) goto badcmd;
+			ENFORCE(train_goodspeed(speed), "bad speed");
 			ACCEPT('\0');
 			engineer_set_speed(eng, train, speed);
 			break;
@@ -552,7 +550,7 @@ static void handle_command(char *cmd, int size) {
 				ACCEPT('t');
 				ACCEPT(' ');
 				int train = strgetui(&c);
-				if (!train_goodtrain(train)) goto badcmd;
+				ENFORCE(train_goodtrain(train), "bad train");
 				ACCEPT(' ');
 				char type[4];
 				uint len = strgetw(c, type, 4);
@@ -571,11 +569,11 @@ static void handle_command(char *cmd, int size) {
 					id = *c++;
 				} else {
 					id = strgetui(&c);
-					if (!train_goodswitch(id)) goto badcmd;
+					ENFORCE(train_goodswitch(id), "bad switch");
 				}
 				ACCEPT(' ');
 				char pos = *c++;
-				if (!track_switchpos_isgood(pos)) goto badcmd;
+				ENFORCE(track_switchpos_isgood(pos), "bad switch position");
 				ACCEPT('\0');
 				if (id == '*') {
 					handle_train_switch_all(pos);
@@ -589,17 +587,13 @@ static void handle_command(char *cmd, int size) {
 		}
 		case 'q': { // quit kernel
 			ACCEPT('\0');
-			quit = TRUE;
+			a0_destroy();
 			break;
 		}
 		default: {
 			goto badcmd;
 			break;
 		}
-	}
-
-	if (quit) {
-		a0_destroy();
 	}
 
 	return;

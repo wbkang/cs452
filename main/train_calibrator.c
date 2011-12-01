@@ -25,7 +25,7 @@ static void calibrator_quit() {
 	engineer_set_speed(eng, cl_state.train->no, 0);
 	dumbbus_unregister(state->sensor_bus, &handle_sensor_response);
 	calibrator_init();
-	logstrip_printf(get_state()->cmdlog, "quitting calibrating train %d", cl_state.train->no);
+	logstrip_printf(get_state()->cmdlog, "done calibrating train %d", cl_state.train->no);
 }
 
 static void handle_sensor_response() {
