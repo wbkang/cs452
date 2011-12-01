@@ -33,7 +33,7 @@ static inline int nameserver_validname(char *name) {
 }
 
 static int name_hash(void* nameptr) {
-	char *name = (char*) nameptr;
+	char *name = nameptr;
 	if (!nameserver_validname(nameptr)) return -1;
 	return name[0] * NUM_ASCII_PRINTABLE + name[1] - (NUM_ASCII_PRINTABLE + 1) * ASCII_PRINTABLE_START;
 }

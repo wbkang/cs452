@@ -62,7 +62,7 @@ void publisher() {
 		int size = Receive(&tid, packet, packet_size);
 		Reply(tid, NULL, 0);
 		ASSERT(size >= sizeof(msg_header), "bad packet");
-		msg_header *header = (msg_header*) packet;
+		msg_header *header = packet;
 		switch (header->type) {
 			case MSG_SUB:
 				handle_sub(&state, packet);

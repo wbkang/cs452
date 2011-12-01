@@ -73,8 +73,8 @@ char* strncpy(char *dest, const char *src, uint count) {
 
 int memcmp(const void *p1, const void *p2, uint count) {
 	int cmp = 0;
-	char* ptr1 = (char*)p1;
-	char* ptr2 = (char*)p2;
+	char* ptr1 = (char*) p1;
+	char* ptr2 = (char*) p2;
 
 	while (count --> 0 && cmp == 0) {
 		cmp = *(ptr1++) - *(ptr2++);

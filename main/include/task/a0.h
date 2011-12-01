@@ -45,3 +45,4 @@ struct glob {
 glob* get_glob();
 
 void a0();
+void a0_destroy();
