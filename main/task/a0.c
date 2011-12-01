@@ -26,7 +26,6 @@
 #include <engineer.h>
 
 #define LEN_MSG (64 * 4)
-
 #define CONSOLE_DUMP_LINE (CONSOLE_CMD_LINE + 4)
 #define CONSOLE_DUMP_COL 1
 
@@ -330,28 +329,27 @@ static void get_v_avg() {
 	logdisplay_flushline(state->log);
 }
 
-static void handle_sensor(char rawmsg[]) {
+static void handle_sensor(msg_sensor *msg) {
 	glob *state = get_glob();
 	engineer *eng = state->eng;
-	msg_sensor *m = (msg_sensor*) rawmsg;
 
-	engineer_onsensor(eng, rawmsg);
-	ui_sensor(m->module[0], m->id, m->state);
+	engineer_onsensor(eng, msg);
+	ui_sensor(msg->module[0], msg->id, msg->state);
 
 	// logdisplay_printf(
 	// 	state->log,
 	// 	"[%7d] %s%d %s",
-	// 	m->timestamp, m->module, m->id, m->state == ON ? "on" : "off"
+	// 	msg->timestamp, msg->module, msg->id, msg->state == ON ? "on" : "off"
 	// );
 	// logdisplay_flushline(state->log);
 
-	if (m->state == OFF) return;
-	track_node *sensor = engineer_get_tracknode(eng, m->module, m->id);
+	if (msg->state == OFF) return;
+	track_node *sensor = engineer_get_tracknode(eng, msg->module, msg->id);
 
 	state->last_sensor = state->cur_sensor;
 	state->cur_sensor = sensor;
 
-	// jerk(state, sensor, m->timestamp); (THIS CODE HANGS THE CODE)
+	// jerk(state, sensor, m->timestamp);
 	dumbbus_dispatch(state->sensor_bus, state);
 }
 
@@ -601,10 +599,7 @@ static void handle_command(char *cmd, int size) {
 	}
 
 	if (quit) {
-		// @TODO: pull this out with a "finally"
-		engineer_destroy(eng);
-		ui_quit(state);
-		ExitKernel(0);
+		a0_destroy();
 	}
 
 	return;
@@ -617,9 +612,8 @@ static void handle_command(char *cmd, int size) {
 
 }
 
-static void handle_comin(char msg[]) {
+static void handle_comin(msg_comin *comin) {
 	glob *state = get_glob();
-	msg_comin *comin = (msg_comin*) msg;
 	ASSERT(comin->channel == COM2, "no handler for channel %d", comin->channel);
 	if (comin->c == '=') {
 		logdisplay_printf(state->log, "[%7d]", Time(state->tid_time));
@@ -629,9 +623,8 @@ static void handle_comin(char msg[]) {
 	cmdline_handleinput(state->cmdline, comin->c);
 }
 
-static void handle_time(char msg[], int tid) {
+static void handle_time(msg_time *time, int tid) {
 	glob *state = get_glob();
-	msg_time *time = (msg_time*) msg;
 	state->timestamp = time->timestamp;
 	if (tid == state->tid_refresh) {
 		dumbbus_dispatch(state->bus10hz, state);
@@ -644,10 +637,9 @@ static void handle_time(char msg[], int tid) {
 	}
 }
 
-static void handle_traincmdmsgreceipt(char msg[]) {
+static void handle_traincmdmsgreceipt(traincmd_receipt *rcpt) {
 	glob *state = get_glob();
 	engineer *eng = state->eng;
-	traincmd_receipt *rcpt = (traincmd_receipt*) msg;
 	traincmd *cmd = &rcpt->cmd;
 	int t = rcpt->timestamp;
 		switch (cmd->name) {
@@ -701,6 +693,13 @@ static void handle_traincmdmsgreceipt(char msg[]) {
 		}
 }
 
+void a0_destroy() {
+	glob *state = get_glob();
+	engineer_destroy(state->eng);
+	ui_quit(state);
+	ExitKernel(0);
+}
+
 void a0() {
 	int mytid = MyTid();
 	state = malloc(sizeof(glob));
@@ -725,8 +724,6 @@ void a0() {
 
 	// sensor bus
 	state->sensor_bus = dumbbus_new();
-	// init_jerk();
-	// dumbbus_register(state->sensor_bus, &jerk);
 	// init_csdstate();
 	// dumbbus_register(state->sensor_bus, &calib_stopdist);
 	// init_v_avg();

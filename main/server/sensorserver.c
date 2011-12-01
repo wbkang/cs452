@@ -20,8 +20,8 @@ typedef struct {
 	msg_sensor msg;
 } state;
 
-static void handle_comin(state *this, char msg[]) {
-	msg_comin *comin = (msg_comin*) msg;
+static void handle_comin(state *this, void* msg) {
+	msg_comin *comin = msg;
 	if (this->i_byte == 0) {
 		this->i_byte = 1;
 		this->high_byte = comin->c;
@@ -50,8 +50,8 @@ static void handle_comin(state *this, char msg[]) {
 	}
 }
 
-static void handle_traincmdmsgreceipt(state *this, char msg[]) {
-	traincmd_receipt *rcpt = (traincmd_receipt*) msg;
+static void handle_traincmdmsgreceipt(state *this, void* msg) {
+	traincmd_receipt *rcpt = msg;
 	traincmd *cmd = &rcpt->cmd;
 	if (cmd->name == QUERY) {
 		this->msg.timestamp = (this->t + rcpt->timestamp) >> 1;
@@ -90,7 +90,7 @@ void sensorserver() {
 		int tid;
 		Receive(&tid, msg, size_msg);
 		Reply(tid, NULL, 0);
-		msg_header *header = (msg_header*) msg;
+		msg_header *header = msg;
 		switch (header->type) {
 			case MSG_COM_IN:
 				handle_comin(&this, msg);

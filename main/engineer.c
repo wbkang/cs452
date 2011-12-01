@@ -221,9 +221,8 @@ void engineer_onloc(engineer *this, location *loc, int t_loc) {
 	}
 }
 
-void engineer_onsensor(engineer *this, char data[]) {
+void engineer_onsensor(engineer *this, msg_sensor *msg) {
 	engineer_ontick(this);
-	msg_sensor *msg = (msg_sensor*) data;
 	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
 	location loc_sensor = location_fromnode(sensor, DIR_AHEAD);
 	if (msg->state == OFF) {

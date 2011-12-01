@@ -36,5 +36,5 @@ void engineer_set_switch(engineer *this, int id, int pos);
 void engineer_train_on_loc(engineer *this, train *train, location *loc_new, int t_loc);
 train *engineer_attribute_pickuploc(engineer *this, location *loc, int t_loc);
 void engineer_onloc(engineer *this, location *loc, int t_loc);
-void engineer_onsensor(engineer *this, char data[]);
+void engineer_onsensor(engineer *this, msg_sensor *msg);
 void engineer_ontick(engineer *this);
