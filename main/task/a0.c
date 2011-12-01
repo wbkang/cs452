@@ -331,9 +331,8 @@ static void get_v_avg() {
 
 static void handle_sensor(msg_sensor *msg) {
 	a0state *state = get_state();
-	engineer *eng = state->eng;
 
-	engineer_onsensor(eng, msg);
+	engineer_onsensor(state->eng, msg);
 	ui_sensor(msg->module[0], msg->id, msg->state);
 
 	// logdisplay_printf(
@@ -344,7 +343,7 @@ static void handle_sensor(msg_sensor *msg) {
 	// logdisplay_flushline(state->log);
 
 	if (msg->state == OFF) return;
-	track_node *sensor = engineer_get_tracknode(eng, msg->module, msg->id);
+	track_node *sensor = engineer_get_tracknode(state->eng, msg->module, msg->id);
 
 	state->last_sensor = state->cur_sensor;
 	state->cur_sensor = sensor;
@@ -355,10 +354,8 @@ static void handle_sensor(msg_sensor *msg) {
 
 static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *log2) {
 	train *train = engineer_get_train(eng, train_no);
-
 	location loc = train_get_frontloc(train);
 
-	// print
 	char *direction_str;
 	switch (train_get_dir(train)) {
 		case TRAIN_FORWARD:
@@ -397,15 +394,13 @@ static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *lo
 
 static void printloc() {
 	a0state *state = get_state();
-	engineer *eng = state->eng;
-	printstuff(eng, 37, state->trainloc1, state->trainloc1r);
-	printstuff(eng, 38, state->trainloc2, state->trainloc2r);
+	printstuff(state->eng, 37, state->trainloc1, state->trainloc1r);
+	printstuff(state->eng, 38, state->trainloc2, state->trainloc2r);
 }
 
 static void handle_setup_demotrack() {
-	a0state *state = get_state();
-	engineer *eng = state->eng;
-	int s[] = {6, 9, 10, 14, 15, 16,};
+	engineer *eng = get_state()->eng;
+	int s[] = {6, 9, 10, 14, 15, 16};
 	int c[] = {1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 17, 18, 153, 154, 155, 156};
 	int ns = sizeof(s) / sizeof(int);
 	int nc = sizeof(c) / sizeof(int);
@@ -413,8 +408,7 @@ static void handle_setup_demotrack() {
 }
 
 static void handle_train_switch_all(char pos) {
-	a0state *state = get_state();
-	engineer *eng = state->eng;
+	engineer *eng = get_state()->eng;
 	int all[] = {
 		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
 		17, 18, 153, 154, 155, 156
@@ -498,7 +492,7 @@ static void handle_command(char *cmd, int size) {
 				ACCEPT(' ');
 				char type[4];
 				uint len = strgetw(c, type, 4);
-				ENFORCE(len == 0, "bad location");
+				ENFORCE(len > 0, "bad location");
 				c += len;
 				int id = strgetui(&c);
 				int dist_cm;

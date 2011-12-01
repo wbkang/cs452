@@ -59,8 +59,8 @@ struct train_cal {
 	fixed v_avg[TRAIN_NUM_SPEED_IDX];
 	fixed ai_avg10k;
 	fixed ad_avg10k;
-	fixed a_m10k;
-	fixed a_b10k;
+	fixed st_m;
+	fixed st_b;
 };
 
 typedef struct train train;
@@ -74,10 +74,11 @@ struct train {
 	fixed v;
 	fixed v_i;
 	fixed v_f;
+
 	fixed a10k;
 	fixed a_i10k;
 
-	fixed ma10k;
+	fixed st;
 
 	int speed;
 	int t_speed;
@@ -206,4 +207,4 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, logdisplay 
 int train_get_reverse_cost(train *this, int dist, track_node *node);
 int train_get_train_length(train *this);
 
-fixed train_accel10k(train_cal *cal, fixed v_i, fixed v_f);
+fixed train_st(train_cal *cal, fixed v_i, fixed v_f);
