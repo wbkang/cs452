@@ -33,8 +33,7 @@ typedef struct _tag_task_descriptor {
 	uint priority;
 	register_set registers;
 	memptr heap;
-	struct _tag_task_descriptor *_prev; // sibling queue
-	struct _tag_task_descriptor *_next;
+	struct _tag_task_descriptor *_prev; // sibling list
 	struct _tag_task_descriptor *_tail_child; // children queue
 	struct _tag_task_descriptor *_head_child;
 	int last_receiver;
