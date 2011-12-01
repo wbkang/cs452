@@ -29,9 +29,9 @@
 #define CONSOLE_DUMP_LINE (CONSOLE_CMD_LINE + 4)
 #define CONSOLE_DUMP_COL 1
 
-glob *state;
+a0state *state;
 
-glob *get_glob() {
+a0state *get_state() {
 	return state;
 }
 
@@ -49,17 +49,17 @@ static void ui_init() {
 		hist_mod[i] = 0;
 		hist_id[i] = 0;
 	}
-	glob *state = get_glob();
+	a0state *state = get_state();
 	cmdline_clear(state->cmdline);
 }
 
 static void ui_time() {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	timedisplay_update(state->timedisplay, state->timestamp);
 }
 
 static void ui_sensor(char module, int id, int senstate) {
-	glob *state = get_glob();
+	a0state *state = get_state();
 
 	if (senstate == OFF) return;
 	for (int i = LEN_SENSOR_HIST - 1; i > 0; i--) {
@@ -88,19 +88,19 @@ static void ui_sensor(char module, int id, int senstate) {
 }
 
 static void ui_reverse(int train, int t) {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	logdisplay_printf(state->log, "[%7d] reversed train %d", t, train);
 	logdisplay_flushline(state->log);
 }
 
 static void ui_switch(char no, char pos, int t) {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	track_template_updateswitch(state->template, no, pos);
 	console_flush(state->con);
 }
 
 static void ui_quit() {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	logstrip_printf(state->cmdlog, "quitting...");
 	console_move(state->con, CONSOLE_CMD_LINE + 1, 1);
 	console_flush(state->con);
@@ -112,7 +112,7 @@ static void ui_quit() {
  */
 
 static track ask_track() {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	for (;;) {
 		console_clear(state->con);
 		console_move(state->con, 1, 1);
@@ -152,7 +152,7 @@ static void init_csdstate() {
 }
 
 static void calib_stopdist() {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer *eng = state->eng;
 	train *train = engineer_get_train(eng, 39);
 	track_node *cur_sensor = state->cur_sensor;
@@ -224,7 +224,7 @@ static void init_jerk() {
 }
 
 static void jerk(track_node *sensor, int timestamp) {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer *eng = state->eng;
 	track_node *last_sensor = j.last_sensor;
 	int dx = track_distance(last_sensor, sensor);
@@ -293,7 +293,7 @@ static void init_v_avg() {
 }
 
 static void get_v_avg() {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer *eng = state->eng;
 	train *train = engineer_get_train(eng, 39);
 
@@ -330,7 +330,7 @@ static void get_v_avg() {
 }
 
 static void handle_sensor(msg_sensor *msg) {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer *eng = state->eng;
 
 	engineer_onsensor(eng, msg);
@@ -396,14 +396,14 @@ static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *lo
 }
 
 static void printloc() {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer *eng = state->eng;
 	printstuff(eng, 37, state->trainloc1, state->trainloc1r);
 	printstuff(eng, 38, state->trainloc2, state->trainloc2r);
 }
 
 static void handle_setup_demotrack() {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer *eng = state->eng;
 	int s[] = {6, 9, 10, 14, 15, 16,};
 	int c[] = {1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 17, 18, 153, 154, 155, 156};
@@ -413,7 +413,7 @@ static void handle_setup_demotrack() {
 }
 
 static void handle_train_switch_all(char pos) {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer *eng = state->eng;
 	int all[] = {
 		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
@@ -428,19 +428,19 @@ static void handle_train_switch_all(char pos) {
 }
 
 static void handle_set_dest(int train_no, char *type, int id, int dist_cm) {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	train *train = engineer_get_train(state->eng, train_no);
-	track_node *destnode = engineer_get_tracknode(state->eng, type, id);
-	location dest =	location_fromnode(destnode, 0);
-	location_add(&dest, fixed_new(dist_cm * 10));
-	train_set_dest(train, &dest);
-	char destname[100];
-	location_tostring(&dest, destname);
-	logstrip_printf(state->cmdlog, "Set train %d to go to %s", train_no, destname);
+	track_node *node_dest = engineer_get_tracknode(state->eng, type, id);
+	location loc_dest =	location_fromnode(node_dest, 0);
+	location_add(&loc_dest, fixed_new(dist_cm * 10));
+	train_set_dest(train, &loc_dest);
+	char name_dest[32];
+	location_tostring(&loc_dest, name_dest);
+	logstrip_printf(state->cmdlog, "Set train %d to go to %s", train_no, name_dest);
 }
 
 static void tick_engineer() {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer_ontick(state->eng);
 }
 
@@ -458,7 +458,7 @@ static void tick_engineer() {
 }
 
 static void handle_command(char *cmd, int size) {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer *eng = state->eng;
 	int quit = FALSE;
 	char *errmsg = NULL;
@@ -603,6 +603,7 @@ static void handle_command(char *cmd, int size) {
 	}
 
 	return;
+
 	badcmd:
 	if (errmsg) {
 		logstrip_printf(state->cmdlog, "bad command: \"%s\", %s", cmd, errmsg);
@@ -613,7 +614,7 @@ static void handle_command(char *cmd, int size) {
 }
 
 static void handle_comin(msg_comin *comin) {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	ASSERT(comin->channel == COM2, "no handler for channel %d", comin->channel);
 	if (comin->c == '=') {
 		logdisplay_printf(state->log, "[%7d]", Time(state->tid_time));
@@ -624,7 +625,7 @@ static void handle_comin(msg_comin *comin) {
 }
 
 static void handle_time(msg_time *time, int tid) {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	state->timestamp = time->timestamp;
 	if (tid == state->tid_refresh) {
 		dumbbus_dispatch(state->bus10hz, state);
@@ -638,7 +639,7 @@ static void handle_time(msg_time *time, int tid) {
 }
 
 static void handle_traincmdmsgreceipt(traincmd_receipt *rcpt) {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer *eng = state->eng;
 	traincmd *cmd = &rcpt->cmd;
 	int t = rcpt->timestamp;
@@ -694,7 +695,7 @@ static void handle_traincmdmsgreceipt(traincmd_receipt *rcpt) {
 }
 
 void a0_destroy() {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer_destroy(state->eng);
 	ui_quit(state);
 	ExitKernel(0);
@@ -702,7 +703,7 @@ void a0_destroy() {
 
 void a0() {
 	int mytid = MyTid();
-	state = malloc(sizeof(glob));
+	state = malloc(sizeof(a0state));
 	state->tid_time = WhoIs(NAME_TIMESERVER);
 
 	int tid_traincmdpub = publisher_new(NAME_TRAINCMDPUB, PRIORITY_TRAINCMDPUB, sizeof(traincmd_receipt));

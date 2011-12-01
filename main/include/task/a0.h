@@ -10,8 +10,8 @@
 #include <engineer.h>
 #include <track_node.h>
 
-typedef struct glob glob;
-struct glob {
+typedef struct a0state a0state;
+struct a0state {
 	// server ids
 	int tid_time;
 	console *con;
@@ -42,7 +42,7 @@ struct glob {
 	int tid_printloc;
 };
 
-glob* get_glob();
+a0state* get_state();
 
 void a0();
 void a0_destroy();
