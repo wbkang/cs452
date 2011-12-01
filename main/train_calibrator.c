@@ -20,16 +20,16 @@ void calibrator_init() {
 }
 
 static void calibrator_quit() {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer *eng = state->eng;
 	engineer_set_speed(eng, cl_state.train->no, 0);
 	dumbbus_unregister(state->sensor_bus, &handle_sensor_response);
 	calibrator_init();
-	logstrip_printf(get_glob()->cmdlog, "quitting calibrating train %d", cl_state.train->no);
+	logstrip_printf(get_state()->cmdlog, "quitting calibrating train %d", cl_state.train->no);
 }
 
 static void handle_sensor_response() {
-	glob *state = get_glob();
+	a0state *state = get_state();
 
 	track_node *sensor = state->cur_sensor;
 	ASSERTNOTNULL(sensor);
@@ -63,7 +63,7 @@ static void handle_sensor_response() {
 }
 
 void calibrate_train(int train_no, char sig1mod, int sig1id) {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer *eng = state->eng;
 
 	if (cl_state.state != IDLE) {

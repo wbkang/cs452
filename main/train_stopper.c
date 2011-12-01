@@ -23,7 +23,7 @@ static void ontick() {
 
 	if (location_dist_dir(&loc_train, loc_dest) > stop_dist) return;
 
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer_set_speed(state->eng, train->no, 0);
 	dumbbus_unregister(state->simbus, ontick);
 	logstrip_printf(state->cmdlog, "stopping train %d", train->no);
@@ -31,7 +31,7 @@ static void ontick() {
 
 // over must be in mm
 void train_stopper_setup(int train_no, char *type, int id, int over) {
-	glob *state = get_glob();
+	a0state *state = get_state();
 	engineer *eng = state->eng;
 	ASSERTNOTNULL(type);
 	ASSERT(over >= 0, "dist negative: %d", over);
