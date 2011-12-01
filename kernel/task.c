@@ -76,7 +76,6 @@ int td_impossible(int tid) {
 
 void td_clear_siblings(task_descriptor *td) {
 	td->_prev = NULL;
-	td->_next = NULL;
 }
 
 void td_clear_children(task_descriptor *td) {
@@ -92,7 +91,6 @@ void td_push_child(task_descriptor *td, task_descriptor *child) {
 	if (td_has_children(td)) {
 		task_descriptor *tail = td->_tail_child;
 		tail->_prev = child;
-		child->_next = tail;
 		child->_prev = NULL;
 		td->_tail_child = child;
 	} else {
@@ -105,12 +103,10 @@ void td_push_child(task_descriptor *td, task_descriptor *child) {
 task_descriptor *td_shift_child(task_descriptor *td) {
 	ASSERT(td_has_children(td), "no children");
 	task_descriptor *child = td->_head_child;
-	if (child == td->_tail_child) {
-		td_clear_children(td);
+	if (child->_prev) {
+		td->_head_child = child->_prev;
 	} else {
-		task_descriptor *new_head = child->_prev;
-		new_head->_next = NULL;
-		td->_head_child = new_head;
+		td_clear_children(td);
 	}
 	td_clear_siblings(child);
 	return child;
