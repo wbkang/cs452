@@ -55,8 +55,8 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->ai_avg10k = fixed_div(fixed_new(16363), fixed_new(10000));
 			cal->ad_avg10k = fixed_div(fixed_new(-16363), fixed_new(10000));
 
-			cal->a_m10k = fixed_div(fixed_new(-2448), fixed_new(10000));
-			cal->a_b10k = fixed_div(fixed_new(17159), fixed_new(10000));
+			cal->st_m = fixed_div(fixed_new(63816), fixed_new(10));
+			cal->st_b = fixed_div(fixed_new(-47183), fixed_new(1000));
 
 			return TRUE;
 		}
@@ -107,8 +107,8 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->ai_avg10k = fixed_div(fixed_new(30577), fixed_new(10000));
 			cal->ad_avg10k = fixed_div(fixed_new(-30577), fixed_new(10000));
 
-			cal->a_m10k = fixed_div(fixed_new(41155), fixed_new(10000));
-			cal->a_b10k = fixed_div(fixed_new(4520), fixed_new(10000));
+			cal->st_m = fixed_div(fixed_new(87145), fixed_new(100));
+			cal->st_b = fixed_div(fixed_new(15422), fixed_new(10));
 
 			return TRUE;
 		}
@@ -181,7 +181,7 @@ int train_init(train *this, int no) {
 
 	this->a10k = fixed_new(0);
 	this->a_i10k = fixed_new(0);
-	this->ma10k = fixed_new(0);
+	this->st = fixed_new(0);
 
 	this->last_speed = 0;
 	this->speed = 0;
@@ -234,10 +234,17 @@ int train_is_moving(train *this) {
 }
 
 int train_get_stopdist(train *this) {
-	fixed v = train_get_velocity(this);
-	int dist = fixed_int(fixed_add(fixed_mul(this->cal.stopm, v), this->cal.stopb));
-	if (dist < 0) return 0;
-	return dist;
+	// if (fixed_cmp(this->v_f, this->v_f) == 0) {
+	// 	fixed v = train_get_velocity(this);
+	// 	int dist = fixed_int(fixed_add(fixed_mul(this->cal.stopm, v), this->cal.stopb));
+	// 	if (dist < 0) return 0;
+	// 	return dist;
+	// } else {
+	// 	fixed st = train_st(&this->cal, this->v, fixed_new(0));
+	// 	return fixed_div(fixed_mul(this->v, st), fixed_new(2));
+	// }
+	fixed st = train_st(&this->cal, this->v, fixed_new(0));
+	return fixed_int(fixed_div(fixed_mul(this->v, st), fixed_new(2)));
 }
 
 int train_get_speed(train *this) {
@@ -262,7 +269,8 @@ void train_set_speed(train *this, int speed, int t) {
 	this->v_f = train_get_cruising_velocity(this);
 
 	this->a_i10k = this->a10k;
-	this->ma10k = train_accel10k(&this->cal, this->v_i, this->v_f);
+
+	this->st = train_st(&this->cal, this->v_i, this->v_f);
 }
 
 void train_set_frontloc(train *this, location *loc_front) {
@@ -383,14 +391,8 @@ fixed train_simulate_dx(train *this, int t_i, int t_f) {
 	}
 }
 
-fixed train_accel10k(train_cal *cal, fixed v_i, fixed v_f) {
-	fixed a10k = fixed_mul(cal->a_m10k, fixed_sub(v_f, v_i));
-	if (fixed_cmp(v_i, v_f) < 0) {
-		a10k = fixed_add(a10k, cal->a_b10k);
-	} else {
-		a10k = fixed_sub(a10k, cal->a_b10k);
-	}
-	return a10k;
+fixed train_st(train_cal *cal, fixed v_i, fixed v_f) {
+	return fixed_add(fixed_mul(cal->st_m, fixed_abs(fixed_sub(v_f, v_i))), cal->st_b);
 }
 
 // @TODO: figure this out better
@@ -426,17 +428,28 @@ fixed train_accel10k(train_cal *cal, fixed v_i, fixed v_f) {
 // }
 
 static void train_update_pos(train *this, int t_f) {
-	fixed const margin = fixed_div(fixed_new(1), fixed_new(10000));
+	fixed const n10k = fixed_new(10000);
+	fixed const margin = fixed_div(fixed_new(1), n10k);
 	if (fixed_cmp(fixed_abs(fixed_sub(this->v, this->v_f)), margin) > 0) {
 		fixed dv = fixed_sub(this->v_f, this->v_i);
 		fixed t = fixed_new(t_f - train_get_tspeed(this));
-		fixed atov10k = fixed_div(fixed_mul(this->ma10k, t), dv);
-		fixed atov = fixed_div(atov10k, fixed_new(10000));
-		fixed atov2 = fixed_mul(atov, atov);
-		fixed atov3 = fixed_mul(atov2, atov);
-		fixed B = fixed_mul(fixed_new(3), atov2);
-		fixed C = fixed_mul(fixed_new(-2), atov3);
-		this->v = fixed_add(this->v_i, fixed_mul(dv, fixed_add(B, C)));
+		fixed tau = fixed_div(t, this->st);
+		fixed tau2 = fixed_mul(tau, tau);
+
+		this->v = fixed_add(this->v_i,
+					fixed_add(fixed_div(fixed_mul(this->a_i10k, t), n10k),
+						fixed_mul(dv,
+							fixed_mul(tau2,
+								fixed_sub(fixed_new(3),
+									fixed_mul(fixed_new(2), tau))))));
+
+		// this->a10k = fixed_add(this->a_i10k,
+		// 				fixed_mul(
+		// 					fixed_new(6 * 10000),
+		// 						fixed_mul(fixed_div(dv, this->st),
+		// 							fixed_mul(tau,
+		// 								fixed_sub(
+		// 									fixed_new(1), tau)))));
 	} else {
 		this->v = this->v_f;
 		this->a10k = fixed_new(0);
