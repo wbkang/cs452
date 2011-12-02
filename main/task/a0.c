@@ -383,19 +383,21 @@ static void printstuff(engineer *eng, int train_no, logstrip *train1info[]) {
 	);
 
 	char msg[512];
-	char *b = msg;
+	char *b;
+
+	b = msg;
 	b += sprintf(b, "\tres:");
 	for (int i = 0; i < train->reservation->len; i++) {
-		location L = location_fromedge(train->reservation->edges[i]);
-		b += sprintf(b, " %L", &L);
+		track_edge *edge = train->reservation->edges[i];
+		b += sprintf(b, " %s-%s", edge->src->name, edge->dest->name);
 	}
 	logstrip_printf(train1info[1], msg);
 
 	b = msg;
 	b += sprintf(b, "\talt:");
 	for (int i = 0; i < train->reservation_alt->len; i++) {
-		location L = location_fromedge(train->reservation_alt->edges[i]);
-		b += sprintf(b, " %L", &L);
+		track_edge *edge = train->reservation->edges[i];
+		b += sprintf(b, " %s-%s", edge->src->name, edge->dest->name);
 	}
 	logstrip_printf(train1info[2], msg);
 }
