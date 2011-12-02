@@ -57,8 +57,6 @@ struct train_cal {
 	fixed stopm;
 	fixed stopb;
 	fixed v_avg[TRAIN_NUM_SPEED_IDX];
-	fixed ai_avg10k;
-	fixed ad_avg10k;
 	fixed st_m;
 	fixed st_b;
 };
