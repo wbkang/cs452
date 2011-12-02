@@ -6,12 +6,7 @@
 
 logstrip *logstrip_new(int line, int col, int width) {
 	logstrip *this = malloc(sizeof(logstrip));
-	int tid_ui = WhoIs(NAME_UISERVER);
-	this->tid_ui = tid_ui;
-	this->id_ui = uiserver_register(tid_ui);
-	if (width == -1) {
-		width = DEFAULT_LOGSTRIP_WIDTH;
-	}
+	this->id_ui = uiserver_register();
 	this->width = width;
 	this->line = line;
 	this->col = col;

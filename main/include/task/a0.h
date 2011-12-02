@@ -15,7 +15,7 @@ struct a0state {
 	// server ids
 	int tid_time;
 	int tid_ui;
-	int id_ui;
+	ui_id id_ui;
 	console *con;
 	// ui
 	logdisplay *log;

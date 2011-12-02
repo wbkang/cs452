@@ -587,7 +587,7 @@ static void handle_command(char *cmd, int size) {
 		}
 		case 'z': {
 			ACCEPT('\0');
-			uiserver_force_refresh(state->tid_ui);
+			uiserver_force_refresh(state->id_ui);
 			break;
 		}
 		default: {
@@ -704,15 +704,15 @@ void a0() {
 	publisher_sub(tid_traincmdpub, mytid);
 
 	// ui
+	uiserver_new();
 	state->con = console_new(COM2);
-	state->tid_ui = uiserver_new();
-	state->id_ui = uiserver_register(state->tid_ui);
+	state->id_ui = uiserver_register();
 	track track = ask_track(&state);
 	state->template = track_template_new(state->con, track);
 	state->cmdlog = logstrip_new(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, -1);
 	state->cmdline = cmdline_new(state->con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command);
 	state->sensorlog = logstrip_new(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, -1);
-	state->log = logdisplay_new(state->con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
+	state->log = logdisplay_new(CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
 	state->timedisplay = timedisplay_new(1, 1);
 	state->trainloc1 = logstrip_new(2, 56 + 2, -1);
 	state->trainloc1r = logstrip_new(3, 56 + 2, -1);
@@ -736,11 +736,9 @@ void a0() {
 	dumbbus_register(state->simbus, &tick_engineer);
 
 	state->eng = engineer_new(track == TRACK_A ? 'a' : 'b');
-
 	state->last_sensor = NULL;
 
 	calibrator_init();
-
 
 	ui_init(&state);
 
@@ -770,8 +768,9 @@ void a0() {
 	for (;;) {
 		int tid;
 		int rcvlen = Receive(&tid, msg, LEN_MSG);
-		Reply(tid, NULL, 0);
-		ASSERT(rcvlen >= sizeof(msg_header), "bad data");
+		ASSERT(rcvlen >= sizeof(msg_header), "bad data rcvlen:%d from %d", rcvlen, tid);
+		int rplylen = Reply(tid, NULL, 0);
+		ASSERT(rplylen >= 0, "reply failed to %d", tid);
 		msg_header *header = (msg_header*) msg;
 		switch (header->type) {
 			case MSG_SENSOR:
@@ -787,12 +786,7 @@ void a0() {
 				handle_traincmdmsgreceipt(msg);
 				break;
 			default:
-				logdisplay_printf(
-					state->log,
-					"unhandled message %d",
-					header->type
-				);
-				logdisplay_flushline(state->log);
+				ASSERT(0, "unhandled message %d from %d", header->type, tid);
 				break;
 		}
 	}

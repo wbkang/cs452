@@ -1,10 +1,10 @@
 #pragma once
+#include <server/uiserver.h>
 
 typedef struct timedisplay timedisplay;
 
 struct timedisplay {
-	int tid_ui;
-	int id_ui;
+	ui_id id_ui;
 	int line, col;
 };
 

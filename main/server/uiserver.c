@@ -8,13 +8,10 @@
 #include <util.h>
 #include <string.h>
 
-#define CONSOLE_DUMP_LINE (CONSOLE_CMD_LINE + 4)
-#define CONSOLE_DUMP_COL 1
-
 #define MAX_UICLIENTS 300
 
 #define SCREEN_WIDTH 140
-#define SCREEN_HEIGHT 40
+#define SCREEN_HEIGHT 50
 
 #define SCREEN_TO_LOC(line, col) ((line - 1) * SCREEN_WIDTH + (col - 1))
 #define SCREEN_LOC_LINE(loc) ((loc / SCREEN_WIDTH) + 1)
@@ -141,7 +138,7 @@ static void handle_uiout(uiserver_state *state, msg_ui *uimsg) {
 	ui_context *ctx = state->context[id];
 	int curloc = SCREEN_TO_LOC(ctx->line, ctx->col);
 
-	for (int i = 0; i < uimsg->strlen; i++) {
+	for (int i = 0; i < uimsg->strlen && curloc < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
 		if (SCREEN_LOC_LINE(curloc) != ctx->line) {
 			break; // linewrap disabled
 		}
@@ -154,8 +151,10 @@ static void handle_uiout(uiserver_state *state, msg_ui *uimsg) {
 		cell->c = newchar;
 		cell->effectflag = neweffect;
 		cell->color = newcolor;
-
 	}
+
+	ctx->line = SCREEN_LOC_LINE(curloc);
+	ctx->col = SCREEN_LOC_COL(curloc);
 }
 
 static void handle_force_refresh(uiserver_state *state) {
@@ -184,21 +183,25 @@ static void handle_uimsg(uiserver_state *state, void* msg) {
 		}
 		case UIMSG_EFFECT: {
 			int id = uimsg->id;
+			ASSERT(id < state->client_count, "invalid id: %d, clientcount:%d", id, state->client_count);
 			state->context[id]->effectflag = uimsg->flag;
 			state->context[id]->color = uimsg->fgcolor;
 			break;
 		}
 		case UIMSG_MOVE: {
 			int id = uimsg->id;
+			ASSERT(id < state->client_count, "invalid id: %d, clientcount:%d", id, state->client_count);
 			state->context[id]->line = uimsg->line;
 			state->context[id]->col = uimsg->col;
 			break;
 		}
 		case UIMSG_OUT: {
+			ASSERT(uimsg->id < state->client_count, "invalid id: %d, clientcount:%d", uimsg->id, state->client_count);
 			handle_uiout(state, uimsg);
 			break;
 		}
 		case UIMSG_FORCE_REFRESH: {
+			ASSERT(uimsg->id < state->client_count, "invalid id: %d, clientcount:%d", uimsg->id, state->client_count);
 			handle_force_refresh(state);
 			break;
 		}
@@ -218,66 +221,70 @@ int uiserver_new() {
 	return tid_buf;
 }
 
-int uiserver_register(int tid) {
+ui_id uiserver_register() {
 	msg_ui uimsg;
 	uimsg.type = MSG_UI;
 	uimsg.uimsg = UIMSG_REGISTER;
 	uimsg.id = MyTid();
+	int tid = WhoIs(NAME_UISERVER);
 	int rv = Send(tid, &uimsg, sizeof(uimsg), NULL, 0);
-	ASSERT(rv >= 0, "send failed");
+	ASSERT(rv >= 0, "send failed: rv:%d", rv);
 	int tid_recv;
 	int id;
 	rv = Receive(&tid_recv, &id, sizeof(id));
-	ASSERT(rv >= 0, "receive failed");
+	ASSERT(rv == sizeof(id), "receive failed: rv:%d", rv);
 	rv = Reply(tid_recv, NULL, 0);
 	ASSERT(rv >= 0, "reply failed");
-	return id;
+	ui_id result;
+	result.tid = tid;
+	result.id = id;
+	return result;
 }
 
 
-void uiserver_effect(int tid, int id, int flag, int color) {
+void uiserver_effect(ui_id id, int flag, int color) {
 	msg_ui uimsg;
 	uimsg.type = MSG_UI;
 	uimsg.uimsg = UIMSG_EFFECT;
-	uimsg.id = id;
-	uimsg.fgcolor = flag;
+	uimsg.id = id.id;
+	uimsg.flag = flag;
 	uimsg.fgcolor = color;
 
-	int rv = Send(tid, &uimsg, sizeof(uimsg), NULL, 0);
+	int rv = Send(id.tid, &uimsg, sizeof(uimsg), NULL, 0);
 	ASSERT(rv >= 0, "send failed");
 }
 
-void uiserver_out(int tid, int id, char *out) {
+void uiserver_out(ui_id id, char *out) {
 	int len = strlen(out);
 	char msg[sizeof(msg_ui) + len + 1];
 	msg_ui *uimsg = (msg_ui*) msg;
 	uimsg->type = MSG_UI;
 	uimsg->uimsg = UIMSG_OUT;
-	uimsg->id = id;
+	uimsg->id = id.id;
 	strcpy(uimsg->str, out);
 	uimsg->strlen = len;
 
-	int rv = Send(tid, uimsg, sizeof(msg), NULL, 0);
+	int rv = Send(id.tid, uimsg, sizeof(msg), NULL, 0);
 	ASSERT(rv >= 0, "send failed");
 }
 
-void uiserver_move(int tid, int id, int line, int col) {
+void uiserver_move(ui_id id, int line, int col) {
 	msg_ui uimsg;
 	uimsg.type = MSG_UI;
 	uimsg.uimsg = UIMSG_MOVE;
-	uimsg.id = id;
+	uimsg.id = id.id;
 	uimsg.line = line;
 	uimsg.col = col;
 
-	int rv = Send(tid, &uimsg, sizeof(uimsg), NULL, 0);
+	int rv = Send(id.tid, &uimsg, sizeof(uimsg), NULL, 0);
 	ASSERT(rv >= 0, "send failed");
 }
 
-void uiserver_force_refresh(int tid) {
+void uiserver_force_refresh(ui_id id) {
 	msg_ui uimsg;
 	uimsg.type = MSG_UI;
 	uimsg.uimsg = UIMSG_FORCE_REFRESH;
 
-	int rv = Send(tid, &uimsg, sizeof(uimsg), NULL, 0);
+	int rv = Send(id.tid, &uimsg, sizeof(uimsg), NULL, 0);
 	ASSERT(rv >= 0, "send failed");
 }

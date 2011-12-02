@@ -2,19 +2,24 @@
 
 #include <util.h>
 
+typedef struct ui_id {
+	int tid;
+	int id;
+} ui_id;
+
 void uiserver();
 int uiserver_new();
-int uiserver_register(int tid);
-void uiserver_effect(int tid, int id, int flag, int color);
-void uiserver_out(int tid, int id, char *out);
-void uiserver_move(int tid, int id, int line, int col);
-void uiserver_force_refresh(int tid);
+ui_id uiserver_register();
+void uiserver_effect(ui_id id, int flag, int color);
+void uiserver_out(ui_id id, char *out);
+void uiserver_move(ui_id id, int line, int col);
+void uiserver_force_refresh(ui_id id);
 
-#define uiserver_printf(tid, id, ...) { \
+#define uiserver_printf(id, ...) { \
 	char buf[1024]; \
 	ASSERT(MEMCHECK(), "shit!"); \
 	sprintf(buf, __VA_ARGS__); \
-	uiserver_out(tid, id, buf); \
+	uiserver_out(id, buf); \
 }
 
 #define UIEFFECT_BRIGHT (1 << 0)
