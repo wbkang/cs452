@@ -386,38 +386,6 @@ fixed train_st(train_cal *cal, fixed v_i, fixed v_f) {
 	return fixed_add(fixed_mul(cal->st_m, fixed_abs(fixed_sub(v_f, v_i))), cal->st_b);
 }
 
-// @TODO: figure this out better
-// static void train_update_accel(train *this, int t_f) {
-// 	fixed t = fixed_new(t_f - train_get_tspeed(this));
-// 	fixed dv10k = fixed_sub(this->v_f10k, this->v_i10k);
-// 	fixed matov = fixed_div(fixed_mul(this->ma10k, t), dv10k);
-// 	fixed dif = fixed_sub(fixed_new(1), matov);
-// 	fixed da10k = fixed_mul(fixed_mul(fixed_new(6), this->ma10k), fixed_mul(matov, dif));
-// 	this->a10k = fixed_add(this->a_i10k, da10k);
-// }
-
-// static void train_update_vel(train *this, int t_f) {
-// 	fixed diff = fixed_sub(this->v10k, this->v_f10k);
-// 	if (fixed_cmp(fixed_abs(diff), fixed_new(10)) > 0) {
-// 		train_update_accel(this, t_f);
-// 		fixed dt = fixed_new(t_f - train_get_tsim(this));
-// 		this->v10k = fixed_add(this->v10k, fixed_mul(this->a10k, dt));
-// 	} else {
-// 		this->v10k = this->v_f10k;
-// 		this->a10k = fixed_new(0);
-// 	}
-// }
-
-// static void train_update_pos(train *this, int t_f) {
-// 	train_update_vel(this, t_f);
-// 	if (!train_is_lost(this) && train_is_moving(this)) {
-// 		fixed dt = fixed_new(t_f - train_get_tsim(this));
-// 		fixed dx = fixed_div(fixed_mul(this->v10k, dt), fixed_new(10000));
-// 		location_add(&this->loc, dx);
-// 	}
-// 	train_set_tsim(this, t_f);
-// }
-
 static void train_update_pos(train *this, int t_f) {
 	fixed const n10k = fixed_new(10000);
 	fixed const margin = fixed_div(fixed_new(1), n10k);
@@ -428,11 +396,10 @@ static void train_update_pos(train *this, int t_f) {
 		fixed tau2 = fixed_mul(tau, tau);
 
 		this->v = fixed_add(this->v_i,
-					fixed_add(fixed_div(fixed_mul(this->a_i10k, t), n10k),
-						fixed_mul(dv,
-							fixed_mul(tau2,
-								fixed_sub(fixed_new(3),
-									fixed_mul(fixed_new(2), tau))))));
+					fixed_mul(dv,
+						fixed_mul(tau2,
+							fixed_sub(fixed_new(3),
+								fixed_mul(fixed_new(2), tau)))));
 
 		// this->a10k = fixed_add(this->a_i10k,
 		// 				fixed_mul(
@@ -460,9 +427,6 @@ void train_update_simulation(train *this, int t_f) {
 	for (int t = t_i; t <= t_f; t++) {
 		train_update_pos(this, t);
 	}
-	// if ((t_f - t_i) & 1) {
-	// 	train_update_pos(this, t_f);
-	// }
 }
 
 void train_set_dest(train *this, location *dest) {
