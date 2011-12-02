@@ -31,6 +31,8 @@
 #define NAME_SENSORPUB "09"
 #define NAME_SENSORSERVER "10"
 #define NAME_UISERVER "11"
+#define NAME_UISERVER_S "12"
+#define NAME_UISERVER_C "13"
 
 // for debugging.
 #define NAME_STRARR(x) { #x, x }
@@ -48,6 +50,8 @@
 	NAME_STRARR(NAME_SENSORPUB), \
 	NAME_STRARR(NAME_SENSORSERVER), \
 	NAME_STRARR(NAME_UISERVER), \
+	NAME_STRARR(NAME_UISERVER_S), \
+	NAME_STRARR(NAME_UISERVER_C), \
 	}; \
 	static int len = sizeof(x) / sizeof(char*) / 2;
 

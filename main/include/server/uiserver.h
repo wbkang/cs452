@@ -1,21 +1,20 @@
 #pragma once
 
-#include <constants.h>
-#include <syscall.h>
-#include <ui/logdisplay.h>
-
-#define UI_A0LOG 0
-#define UI_TRAINLOCLOG 1
-#define UI_TRAINATTRLOG 2
-#define UI_ENG_TRIPLOG 3
-#define NUM_LOGS 4 // keep this in sync
+#include <util.h>
 
 void uiserver();
-void uiserver_log(int logid, char *str, int tid_ui);
-
-
-#define uiserver_logprintf(logid, ...) { \
-	char __logbuf[MAX_LOG_COL]; \
-	sprintf(__logbuf, __VA_ARGS__); \
-    uiserver_log(logid, __logbuf, WhoIs(NAME_SENSORPUB)); \
+int uiserver_new();
+int uiserver_register(int tid);
+void uiserver_effect(int tid, int id, int flag, int color);
+void uiserver_out(int tid, int id, char *out);
+void uiserver_move(int tid, int id, int line, int col);
+#define uiserver_printf(tid, id, ...) { \
+	char buf[1024]; \
+	ASSERT(MEMCHECK(), "shit!"); \
+	sprintf(buf, __VA_ARGS__); \
+	uiserver_out(tid, id, buf); \
 }
+
+#define UIEFFECT_BRIGHT (1 << 0)
+#define UIEFFECT_UNDERSCORE (1 << 1)
+#define UIEFFECT_FGCOLOR (1 << 2)

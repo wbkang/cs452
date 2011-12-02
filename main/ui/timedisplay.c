@@ -1,18 +1,20 @@
 #include <ui/timedisplay.h>
 #include <syscall.h>
 #include <uconst.h>
+#include <server/uiserver.h>
 
-timedisplay *timedisplay_new(console *con, int line, int col) {
-	timedisplay *td = malloc(sizeof(timedisplay));
-	td->con = con;
-	td->line = line;
-	td->col = col;
-	return td;
+timedisplay *timedisplay_new(int line, int col) {
+	timedisplay *time = malloc(sizeof(timedisplay));
+	int tid_ui = WhoIs(NAME_UISERVER);
+	time->tid_ui = tid_ui;
+	time->id_ui = uiserver_register(tid_ui);
+	time->line = line;
+	time->col = col;
+	return time;
 }
 
 void timedisplay_update(timedisplay* time, int ticks) {
-	console_move(time->con, time->line, time->col);
+	uiserver_move(time->tid_ui, time->id_ui, time->line, time->col);
 	int ms = TICK2MS(ticks);
-	console_printf(time->con, "%d.%d%-10s", ms / 1000, (ms / 100) % 10, "s");
-	console_flush(time->con);
+	uiserver_printf(time->tid_ui, time->id_ui, "%d.%d%-10s", ms / 1000, (ms / 100) % 10, "s")
 }
