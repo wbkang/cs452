@@ -14,6 +14,8 @@ typedef struct a0state a0state;
 struct a0state {
 	// server ids
 	int tid_time;
+	int tid_ui;
+	int id_ui;
 	console *con;
 	// ui
 	logdisplay *log;

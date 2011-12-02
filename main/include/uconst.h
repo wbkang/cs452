@@ -95,14 +95,18 @@ typedef struct {
 	location location;
 } trainvcmd;
 
-typedef enum {
-	UIMSG_LOG
+typedef enum uimsgtype {
+	UIMSG_REGISTER,	UIMSG_EFFECT, UIMSG_OUT, UIMSG_MOVE
 } uimsgtype;
 
 typedef struct {
 	msgtype type;
-	uimsgtype uitype;
+	uimsgtype uimsg;
 	int id;
+	char flag;
+	char fgcolor;
+	int line;
+	int col;
 	int strlen;
 	char str[];
 } msg_ui;
