@@ -704,15 +704,15 @@ void a0() {
 	state->id_ui = uiserver_register(state->tid_ui);
 	track track = ask_track(&state);
 	state->template = track_template_new(state->con, track);
-	state->cmdlog = logstrip_new(state->con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
+	state->cmdlog = logstrip_new(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, -1);
 	state->cmdline = cmdline_new(state->con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command);
-	state->sensorlog = logstrip_new(state->con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
+	state->sensorlog = logstrip_new(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, -1);
 	state->log = logdisplay_new(state->con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
 	state->timedisplay = timedisplay_new(1, 9);
-	state->trainloc1 = logstrip_new(state->con, 2, 56 + 2);
-	state->trainloc1r = logstrip_new(state->con, 3, 56 + 2);
-	state->trainloc2 = logstrip_new(state->con, 4, 56 + 2);
-	state->trainloc2r = logstrip_new(state->con, 5, 56 + 2);
+	state->trainloc1 = logstrip_new(2, 56 + 2, -1);
+	state->trainloc1r = logstrip_new(3, 56 + 2, -1);
+	state->trainloc2 = logstrip_new(4, 56 + 2, -1);
+	state->trainloc2r = logstrip_new(5, 56 + 2, -1);
 
 	// sensor bus
 	state->sensor_bus = dumbbus_new();

@@ -26,7 +26,7 @@ static inline void tx(buffertask_state *state, int tid) {
 }
 
 static inline void handle_put(buffertask_state *state, int tid, void* item, int item_size) {
-	ASSERT(!buffer_full(state->items), "buffer full");
+	ASSERT(!buffer_full(state->items), "buffer full. tid:%s", tid);
 	ASSERT(item_size <= state->item_size, "item size too big %d", item_size);
 	Reply(tid, NULL, 0);
 	buffer_put(state->items, item, item_size);
