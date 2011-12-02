@@ -585,6 +585,11 @@ static void handle_command(char *cmd, int size) {
 			a0_destroy();
 			break;
 		}
+		case 'z': {
+			ACCEPT('\0');
+			uiserver_force_refresh(state->tid_ui);
+			break;
+		}
 		default: {
 			goto badcmd;
 			break;
@@ -708,7 +713,7 @@ void a0() {
 	state->cmdline = cmdline_new(state->con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command);
 	state->sensorlog = logstrip_new(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, -1);
 	state->log = logdisplay_new(state->con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
-	state->timedisplay = timedisplay_new(1, 9);
+	state->timedisplay = timedisplay_new(1, 1);
 	state->trainloc1 = logstrip_new(2, 56 + 2, -1);
 	state->trainloc1r = logstrip_new(3, 56 + 2, -1);
 	state->trainloc2 = logstrip_new(4, 56 + 2, -1);

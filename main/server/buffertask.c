@@ -9,7 +9,7 @@
 #define SIZE_NAME 4
 
 typedef struct _tag_buffertask_args {
-	int item_size;
+	int max_item_size;
 	char name[];
 } buffertask_args;
 
@@ -26,7 +26,7 @@ static inline void tx(buffertask_state *state, int tid) {
 }
 
 static inline void handle_put(buffertask_state *state, int tid, void* item, int item_size) {
-	ASSERT(!buffer_full(state->items), "buffer full. tid:%s", tid);
+	ASSERT(!buffer_full(state->items), "buffer full. tid:%d", tid);
 	ASSERT(item_size <= state->item_size, "item size too big %d", item_size);
 	Reply(tid, NULL, 0);
 	buffer_put(state->items, item, item_size);
@@ -59,9 +59,9 @@ void buffertask() {
 
 	// init state
 	buffertask_state state;
-	state.item_size = args->item_size;
+	state.item_size = args->max_item_size;
 	// @TODO: O M F G
-	state.items = buffer_new(((STACK_SIZE / 2) / args->item_size), args->item_size);
+	state.items = buffer_new(((STACK_SIZE / 2) / args->max_item_size), args->max_item_size);
 	state.get_blocked = queue_new(NUM_BLOCKED);
 
 	const int size_packet = max(sizeof(msg_header), state.item_size);
@@ -88,7 +88,7 @@ void buffertask() {
  * API
  */
 
-int buffertask_new(char *name, int priority, int item_size) {
+int buffertask_new(char *name, int priority, int max_item_size) {
 	int tid = Create(priority, buffertask);
 	if (tid < 0) return tid;
 	int namesize = 1 + (name ? strlen(name) : 0);
@@ -96,7 +96,7 @@ int buffertask_new(char *name, int priority, int item_size) {
 	int size = sizeof(buffertask_args) + sizeof(char) * namesize;
 	char mem[size];
 	buffertask_args *args = (void*) mem;
-	args->item_size = item_size;
+	args->max_item_size = max_item_size;
 	if (name) {
 		strcpy(args->name, name);
 	} else {
