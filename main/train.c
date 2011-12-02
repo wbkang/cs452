@@ -52,9 +52,6 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = fixed_div(fixed_new(dx), fixed_new(dt));
 			}
 
-			cal->ai_avg10k = fixed_div(fixed_new(16363), fixed_new(10000));
-			cal->ad_avg10k = fixed_div(fixed_new(-16363), fixed_new(10000));
-
 			cal->st_m = fixed_div(fixed_new(63816), fixed_new(10));
 			cal->st_b = fixed_div(fixed_new(-47183), fixed_new(1000));
 
@@ -104,65 +101,59 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = fixed_div(fixed_new(dx), fixed_new(dt));
 			}
 
-			cal->ai_avg10k = fixed_div(fixed_new(30577), fixed_new(10000));
-			cal->ad_avg10k = fixed_div(fixed_new(-30577), fixed_new(10000));
-
 			cal->st_m = fixed_div(fixed_new(87145), fixed_new(100));
 			cal->st_b = fixed_div(fixed_new(15422), fixed_new(10));
 
 			return TRUE;
 		}
 		case 39: {
-			// cal->stopm = fixed_div(fixed_new(118403), fixed_new(100));
-			// cal->stopb = fixed_div(fixed_new(-93842), fixed_new(1000));
+			cal->stopm = fixed_div(fixed_new(13865), fixed_new(10));
+			cal->stopb = fixed_div(fixed_new(-68665), fixed_new(1000));
 			cal->len_pickup = 50;
 			cal->dist2nose = 24;
 			cal->dist2tail = 143;
 
-			// int data[] = {
-			// 	0, 1,
-			// 	445, 103217,
-			// 	3213, 38768,
-			// 	4630, 32945,
-			// 	7050, 36503,
-			// 	8661, 35831,
-			// 	11691, 40407,
-			// 	10639, 31140,
-			// 	12611, 32524,
-			// 	14656, 33872,
-			// 	12611, 26533,
-			// 	21271, 40711,
-			// 	18230, 32337,
-			// 	19619, 32578,
-			// 	36037, 58152,
-			// 	445, 103217,
-			// 	1410, 25227,
-			// 	3850, 35460,
-			// 	10539, 64302,
-			// 	7091, 32959,
-			// 	11412, 42560,
-			// 	12028, 38705,
-			// 	19340, 52800,
-			// 	19661, 47915,
-			// 	14166, 31185,
-			// 	23150, 46491,
-			// 	21564, 39870,
-			// 	25735, 44219
-			// };
+			 int data[] = {
+					 0, 	1,
+					 791, 	78393,
+					 2510, 	34398,
+					 4757, 	37633,
+					 6982, 	39301,
+					 8734, 	37224,
+					 6509, 	22603,
+					 7694, 	22102,
+					 16481, 	42221,
+					 15437, 	35441,
+					 11279, 	23860,
+					 15062, 	28433,
+					 10558, 	18291,
+					 39277, 	63136,
+					 16803, 	27068,
+					 599, 	60079,
+					 1466, 	20227,
+					 3676, 	28987,
+					 13885, 	78019,
+					 6522, 	27782,
+					 16481, 	57568,
+					 18332, 	52594,
+					 8135, 	21220,
+					 12515, 	28530,
+					 19804, 	42189,
+					 14271, 	27137,
+					 20784, 	36490,
+					 36677, 	59104
+			 };
 
-			// TRAIN_FOREACH_SPEEDIDX(i) {
-			// 	int dx = data[i * 2];
-			// 	int dt = data[i * 2 + 1];
-			// 	cal->v_avg[i] = fixed_div(fixed_new(dx), fixed_new(dt));
-			// }
+			 TRAIN_FOREACH_SPEEDIDX(i) {
+			 	int dx = data[i * 2];
+			 	int dt = data[i * 2 + 1];
+			 	cal->v_avg[i] = fixed_div(fixed_new(dx), fixed_new(dt));
+			 }
 
-			// cal->ai_avg10k = fixed_div(fixed_new(30577), fixed_new(10000));
-			// cal->ad_avg10k = fixed_div(fixed_new(-30577), fixed_new(10000));
+			 cal->st_m = fixed_div(fixed_new(73303), fixed_new(100));
+			 cal->st_b = fixed_div(fixed_new(21302), fixed_new(10));
 
-			// cal->a_m10k = fixed_div(fixed_new(41155), fixed_new(10000));
-			// cal->a_b10k = fixed_div(fixed_new(4520), fixed_new(10000));
-
-			return FALSE;
+			return TRUE;
 		}
 		default:
 			return FALSE;
