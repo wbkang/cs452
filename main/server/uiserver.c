@@ -13,11 +13,11 @@
 
 #define MAX_UICLIENTS 300
 
-#define SCREEN_WIDTH 100
+#define SCREEN_WIDTH 140
 #define SCREEN_HEIGHT 40
 
 #define SCREEN_TO_LOC(line, col) ((line - 1) * SCREEN_WIDTH + (col - 1))
-#define SCREEN_LOC_LINE(loc) ((loc / SCREEN_WIDTH))
+#define SCREEN_LOC_LINE(loc) ((loc / SCREEN_WIDTH) + 1)
 #define SCREEN_LOC_COL(loc) ((loc % SCREEN_WIDTH) + 1)
 
 typedef struct ui_context {
@@ -40,6 +40,7 @@ struct uiserver_state {
 	int client_count;
 	ui_context *context[MAX_UICLIENTS];
 	ui_cellinfo screen[SCREEN_HEIGHT * SCREEN_WIDTH];
+	char changed;
 };
 
 static void handle_uimsg(uiserver_state *state, void* msg);
@@ -53,9 +54,10 @@ void uiserver() {
 	int tid_time = timenotifier_new(MyTid(), PRIORITY_UISERVER, MS2TICK(100)); // 60fps
 	ASSERT(tid_time >= 0, "failed to create timenotifier");
 	state.client_count = 0;
+	state.changed = FALSE;
 
 	for (int i = 0; i < SCREEN_HEIGHT * SCREEN_WIDTH; i++) {
-		state.screen[i].c = 0;
+		state.screen[i].c = ' ';
 		state.screen[i].color = 0;
 		state.screen[i].effectflag = 0;
 		state.screen[i].changed = FALSE;
@@ -126,13 +128,14 @@ static void handle_cellout(uiserver_state *state, ui_cellinfo *lastoutcell, ui_c
 static void handle_refresh(uiserver_state *state) {
 	ui_cellinfo *lastoutcell = NULL;
 	console_cursor_save(state->con);
-	for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
+	for (int i = 0; state->changed && i <  SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
 		ui_cellinfo *cell = &state->screen[i];
 		if (cell->changed) {
 			handle_cellout(state, lastoutcell, cell);
 			lastoutcell = cell;
 		}
 	}
+	state->changed = FALSE;
 	console_cursor_unsave(state->con);
 	console_flush(state->con);
 }
@@ -143,11 +146,19 @@ static void handle_uiout(uiserver_state *state, msg_ui *uimsg) {
 	int curloc = SCREEN_TO_LOC(ctx->line, ctx->col);
 
 	for (int i = 0; i < uimsg->strlen; i++) {
+		if (SCREEN_LOC_LINE(curloc) != ctx->line) {
+			break; // linewrap disabled
+		}
 		ui_cellinfo *cell = &state->screen[curloc++];
-		cell->c = uimsg->str[i];
-		cell->effectflag = ctx->effectflag;
-		cell->color = ctx->color;
-		cell->changed = TRUE;
+		char newchar = uimsg->str[i];
+		char neweffect = ctx->effectflag;
+		char newcolor= ctx->color;
+		cell->changed = cell->c != newchar || cell->effectflag != neweffect || cell->color != newcolor;
+		state->changed |= cell->changed;
+		cell->c = newchar;
+		cell->effectflag = neweffect;
+		cell->color = newcolor;
+
 	}
 }
 

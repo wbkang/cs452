@@ -1,17 +1,23 @@
 #pragma once
 
 #include <console.h>
+#include <server/uiserver.h>
+#include <string.h>
 
 typedef struct {
-	console *con;
+	int tid_ui;
+	int id_ui;
+	int width;
 	int line, col;
 } logstrip;
 
-logstrip *logstrip_new(console *con, int line, int col);
+logstrip *logstrip_new(int line, int col, int width);
 
 #define logstrip_printf(this, ...) { \
-	console_move((this)->con, (this)->line, (this)->col); \
-	console_erase_eol((this)->con); \
-	console_printf((this)->con, __VA_ARGS__); \
-	console_flush((this)->con); \
+	char __fmt[10], __pbuf[256], __buf[256]; ASSERT(MEMCHECK(), "stack overflow"); \
+	sprintf(__fmt, "%%-%ds", (this)->width); \
+	sprintf(__buf, __VA_ARGS__); \
+	sprintf(__pbuf, __fmt, __buf); \
+	uiserver_move((this)->tid_ui, (this)->id_ui, (this)->line, (this)->col); \
+	uiserver_out((this)->tid_ui, (this)->id_ui, __pbuf); \
 }
