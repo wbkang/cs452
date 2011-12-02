@@ -31,7 +31,7 @@ static inline void mark_free(track_edge *e, int train_no) {
 	e->reverse->owner = TRAIN_UNOCCUPIED;
 }
 
-int reservation_checkpath(reservation_req *req, int train_no) {
+static int reservation_checkpath(reservation_req *req, int train_no) {
 	ASSERTNOTNULL(req);
 	for (int i = 0; i < req->len; i++) {
 		if (!can_occupy(req->edges[i], train_no)) return FALSE;
@@ -39,17 +39,25 @@ int reservation_checkpath(reservation_req *req, int train_no) {
 	return TRUE;
 }
 
-void reservation_path(reservation_req *req, int train_no) {
+static void reservation_path(reservation_req *req, int train_no) {
 	ASSERTNOTNULL(req);
 	for (int i = 0; i < req->len; i++) {
 		mark_occupied(req->edges[i], train_no);
 	}
 }
 
-void reservation_free(reservation_req *req, int train_no) {
+static void reservation_free(reservation_req *req, int train_no) {
 	ASSERTNOTNULL(req);
 	for (int i = 0; i < req->len; i++) {
 		mark_free(req->edges[i], train_no);
 	}
 	req->len = 0;
+}
+
+int reservation_replace(reservation_req *req_old, reservation_req *req_new, int train_no) {
+	if (!reservation_checkpath(req_new, train_no)) return FALSE;
+	reservation_free(req_old, train_no);
+	reservation_path(req_new, train_no);
+	*req_old = *req_new;
+	return TRUE;
 }

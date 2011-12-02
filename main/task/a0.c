@@ -352,7 +352,7 @@ static void handle_sensor(msg_sensor *msg) {
 	dumbbus_dispatch(state->sensor_bus, state);
 }
 
-static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *log2) {
+static void printstuff(engineer *eng, int train_no, logstrip *train1info[]) {
 	train *train = engineer_get_train(eng, train_no);
 	location loc = train_get_frontloc(train);
 
@@ -371,7 +371,7 @@ static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *lo
 
 	location dest = train->destination;
 
-	logstrip_printf(log1,
+	logstrip_printf(train1info[0],
 		"train %d at %L heading %s at %dmm/s (%dmm/s^2 -> %dmm/s^2) to %L",
 		train_no,
 		&loc,
@@ -384,18 +384,26 @@ static void printstuff(engineer *eng, int train_no, logstrip *log1, logstrip *lo
 
 	char msg[512];
 	char *b = msg;
-	b += sprintf(b, "\treserving:");
+	b += sprintf(b, "\tres:");
 	for (int i = 0; i < train->reservation->len; i++) {
 		location L = location_fromedge(train->reservation->edges[i]);
 		b += sprintf(b, " %L", &L);
 	}
-	logstrip_printf(log2, msg);
+	logstrip_printf(train1info[1], msg);
+
+	b = msg;
+	b += sprintf(b, "\talt:");
+	for (int i = 0; i < train->reservation_alt->len; i++) {
+		location L = location_fromedge(train->reservation_alt->edges[i]);
+		b += sprintf(b, " %L", &L);
+	}
+	logstrip_printf(train1info[2], msg);
 }
 
 static void printloc() {
 	a0state *state = get_state();
-	printstuff(state->eng, 37, state->trainloc1, state->trainloc1r);
-	printstuff(state->eng, 38, state->trainloc2, state->trainloc2r);
+	printstuff(state->eng, 37, state->train1info);
+	printstuff(state->eng, 38, state->train2info);
 }
 
 static void handle_setup_demotrack() {
@@ -706,10 +714,12 @@ void a0() {
 	state->sensorlog = logstrip_new(state->con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
 	state->log = logdisplay_new(state->con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
 	state->timedisplay = timedisplay_new(state->con, 1, 9);
-	state->trainloc1 = logstrip_new(state->con, 2, 56 + 2);
-	state->trainloc1r = logstrip_new(state->con, 3, 56 + 2);
-	state->trainloc2 = logstrip_new(state->con, 4, 56 + 2);
-	state->trainloc2r = logstrip_new(state->con, 5, 56 + 2);
+	state->train1info[0] = logstrip_new(state->con, 2, 56 + 2);
+	state->train1info[1] = logstrip_new(state->con, 3, 56 + 2);
+	state->train1info[2] = logstrip_new(state->con, 4, 56 + 2);
+	state->train2info[0] = logstrip_new(state->con, 5, 56 + 2);
+	state->train2info[1] = logstrip_new(state->con, 6, 56 + 2);
+	state->train2info[2] = logstrip_new(state->con, 7, 56 + 2);
 
 	// sensor bus
 	state->sensor_bus = dumbbus_new();
@@ -767,7 +777,7 @@ void a0() {
 		int rcvlen = Receive(&tid, msg, LEN_MSG);
 		Reply(tid, NULL, 0);
 		ASSERT(rcvlen >= sizeof(msg_header), "bad data");
-		msg_header *header = (msg_header*) msg;
+		msg_header *header = msg;
 		switch (header->type) {
 			case MSG_SENSOR:
 				handle_sensor(msg);
