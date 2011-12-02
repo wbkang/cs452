@@ -6,7 +6,7 @@
 
 typedef struct {
 	int tid_ui;
-	int id_ui;
+	ui_id id_ui;
 	int width;
 	int line, col;
 } logstrip;
@@ -18,6 +18,6 @@ logstrip *logstrip_new(int line, int col, int width);
 	sprintf(__fmt, "%%-%ds", (this)->width); \
 	sprintf(__buf, __VA_ARGS__); \
 	sprintf(__pbuf, __fmt, __buf); \
-	uiserver_move((this)->tid_ui, (this)->id_ui, (this)->line, (this)->col); \
-	uiserver_out((this)->tid_ui, (this)->id_ui, __pbuf); \
+	uiserver_move((this)->id_ui, (this)->line, (this)->col); \
+	uiserver_out((this)->id_ui, __pbuf); \
 }
