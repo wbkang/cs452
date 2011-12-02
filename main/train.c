@@ -51,8 +51,10 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = fixed_div(fixed_new(dx), fixed_new(dt));
 			}
 
-			cal->st_m = fixed_div(fixed_new(63816), fixed_new(10));
-			cal->st_b = fixed_div(fixed_new(-47183), fixed_new(1000));
+			cal->st_a = fixed_div(fixed_new(120976), fixed_new(10));
+			cal->st_b = fixed_div(fixed_new(-128025), fixed_new(10));
+			cal->st_c = fixed_div(fixed_new(96020), fixed_new(10));
+			cal->st_d = fixed_div(fixed_new(-25067), fixed_new(100000));
 
 			return TRUE;
 		}
@@ -100,8 +102,10 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = fixed_div(fixed_new(dx), fixed_new(dt));
 			}
 
-			cal->st_m = fixed_div(fixed_new(87145), fixed_new(100));
-			cal->st_b = fixed_div(fixed_new(15422), fixed_new(10));
+			cal->st_a = fixed_div(fixed_new(89494), fixed_new(10));
+			cal->st_b = fixed_new(-15587);
+			cal->st_c = fixed_div(fixed_new(95533), fixed_new(10));
+			cal->st_d = fixed_div(fixed_new(4743), fixed_new(100000));
 
 			return TRUE;
 		}
@@ -149,8 +153,10 @@ int train_init_cal(train_cal *cal, int train_no) {
 			 	cal->v_avg[i] = fixed_div(fixed_new(dx), fixed_new(dt));
 			 }
 
-			 cal->st_m = fixed_div(fixed_new(73303), fixed_new(100));
-			 cal->st_b = fixed_div(fixed_new(21302), fixed_new(10));
+			cal->st_a = fixed_new(26221);
+			cal->st_b = fixed_new(-35414);
+			cal->st_c = fixed_new(16080);
+			cal->st_d = fixed_div(fixed_new(74408), fixed_new(100000));
 
 			return TRUE;
 		}
@@ -385,7 +391,17 @@ fixed train_simulate_dx(train *this, int t_i, int t_f) {
 }
 
 fixed train_st(train_cal *cal, fixed v_i, fixed v_f) {
-	return fixed_add(fixed_mul(cal->st_m, fixed_abs(fixed_sub(v_f, v_i))), cal->st_b);
+	fixed a = cal->st_a;
+	fixed b = cal->st_b;
+	fixed c = cal->st_c;
+	fixed d = cal->st_d;
+	fixed dv = fixed_abs(fixed_sub(v_f, v_i));
+
+	fixed A = fixed_mul(dv, fixed_mul(dv, fixed_mul(dv, a)));
+	fixed B = fixed_mul(dv, fixed_mul(dv, b));
+	fixed C = fixed_mul(dv, c);
+
+	return fixed_add(A, fixed_add(B, fixed_add(C, d)));
 }
 
 static void train_update_pos(train *this, int t_f) {
