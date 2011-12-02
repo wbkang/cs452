@@ -30,6 +30,7 @@
 #define NAME_SWITCHCMDRUNNER_C "08" // courier
 #define NAME_SENSORPUB "09"
 #define NAME_SENSORSERVER "10"
+#define NAME_UISERVER "11"
 
 // for debugging.
 #define NAME_STRARR(x) { #x, x }
@@ -46,6 +47,7 @@
 	NAME_STRARR(NAME_SWITCHCMDRUNNER_C), \
 	NAME_STRARR(NAME_SENSORPUB), \
 	NAME_STRARR(NAME_SENSORSERVER), \
+	NAME_STRARR(NAME_UISERVER), \
 	}; \
 	static int len = sizeof(x) / sizeof(char*) / 2;
 
@@ -65,6 +67,7 @@
 #define PRIORITY_TRAINCMDPUB (MAX_PRIORITY - 1)
 #define PRIORITY_SWITCHCMDRUNNER (MAX_PRIORITY - 1)
 #define PRIORITY_SENSORPUB (MAX_PRIORITY - 1)
+#define PRIORITY_UISERVER MIN_PRIORITY
 
 /*
  * Memory constants.

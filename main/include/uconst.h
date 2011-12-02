@@ -95,6 +95,18 @@ typedef struct {
 	location location;
 } trainvcmd;
 
+typedef enum {
+	UIMSG_LOG
+} uimsgtype;
+
+typedef struct {
+	msgtype type;
+	uimsgtype uitype;
+	int id;
+	int strlen;
+	char str[];
+} msg_ui;
+
 static inline int msg_tostring(void* msg, char buf[]) {
 	char *b = buf;
 	msg_header *header = msg;
