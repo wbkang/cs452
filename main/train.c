@@ -5,7 +5,6 @@
 #include <ui/logdisplay.h>
 #include <constants.h>
 
-// @TODO: remember the average velocity per edge as opposed to per track (very hard)
 int train_init_cal(train_cal *cal, int train_no) {
 	switch (train_no) {
 		case 37: {
@@ -191,6 +190,9 @@ int train_init(train *this, int no) {
 	if (this->calibrated) {
 		this->reservation = malloc(sizeof(reservation_req));
 		this->reservation->len = 0;
+
+		this->reservation_alt = malloc(sizeof(reservation_req));
+		this->reservation_alt->len = 0;
 
 		this->vcmds = malloc(sizeof(trainvcmd) * TRAIN_MAX_VCMD);
 		this->vcmdslen = 0;
@@ -439,17 +441,17 @@ void train_set_dest(train *this, location *dest) {
 #define RESERVE_AHEAD 200
 
 static int train_update_reservations(train *this, logdisplay *log) {
+	reservation_req *req = this->reservation_alt;
+	req->len = 0;
+
 	if (train_is_lost(this)) {
-		reservation_free(this->reservation, this->no);
+		reservation_replace(this->reservation, req, this->no);
 		return FALSE;
 	}
 
 	location loc_train = train_get_frontloc(this);
 
-	reservation_req req;
-	req.len = 0;
-
-	req.edges[req.len++] = loc_train.edge;
+	req->edges[req->len++] = loc_train.edge;
 
 	int toprevnode = fixed_int(loc_train.offset);
 	int behind = RESERVE_BEHIND + train_get_length(this) - toprevnode;
@@ -457,16 +459,11 @@ static int train_update_reservations(train *this, logdisplay *log) {
 	int tonextnode = loc_train.edge->dist - toprevnode;
 	int ahead = RESERVE_AHEAD + (12 * train_get_stopdist(this)) / 10 - tonextnode;
 
-	if (!track_walk(loc_train.edge->dest, ahead, MAX_PATH, req.edges, &req.len)) return FALSE;
-	if (!track_walk(loc_train.edge->src->reverse, behind, MAX_PATH, req.edges, &req.len)) return FALSE;
+	if (!track_walk(loc_train.edge->dest, ahead, MAX_PATH, req->edges, &req->len)) return FALSE;
 
-	if (!reservation_checkpath(&req, this->no)) return FALSE;
+	if (!track_walk(loc_train.edge->src->reverse, behind, MAX_PATH, req->edges, &req->len)) return FALSE;
 
-	reservation_free(this->reservation, this->no);
-	reservation_path(&req, this->no);
-	*this->reservation = req;
-
-	return TRUE;
+	return reservation_replace(this->reservation, req, this->no);
 }
 
 void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick, struct gps *gps) {

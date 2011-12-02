@@ -83,6 +83,7 @@ struct train {
 	int last_speed;
 	location loc_front;
 	int t_sim;
+
 	// vcmd stuff
 	int vcmdidx;
 	trainvcmd *vcmds;
@@ -92,6 +93,7 @@ struct train {
 	location destination;
 	struct path *path;
 	struct reservation_req *reservation;
+	struct reservation_req *reservation_alt;
 	enum {TRAIN_GOOD, TRAIN_BAD} state; // @TODO: lol wut, this is utter shit
 };
 

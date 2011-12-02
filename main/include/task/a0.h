@@ -19,10 +19,8 @@ struct a0state {
 	logdisplay *log;
 	logstrip *cmdlog;
 	logstrip *sensorlog;
-	logstrip *trainloc1;
-	logstrip *trainloc1r;
-	logstrip *trainloc2;
-	logstrip *trainloc2r;
+	logstrip *train1info[3];
+	logstrip *train2info[3];
 	cmdline *cmdline;
 	dumbbus *sensor_bus;
 	dumbbus *bus10hz;
