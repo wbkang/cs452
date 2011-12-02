@@ -46,12 +46,13 @@ struct uiserver_state {
 static void handle_uimsg(uiserver_state *state, void* msg);
 static void handle_uiout(uiserver_state *state, msg_ui *uimsg);
 static void handle_refresh(uiserver_state *state);
+static void handle_force_refresh(uiserver_state *state);
 
 void uiserver() {
 	RegisterAs(NAME_UISERVER_S);
 	uiserver_state state;
 	state.con = console_new(COM2);
-	int tid_time = timenotifier_new(MyTid(), PRIORITY_UISERVER, MS2TICK(100)); // 60fps
+	int tid_time = timenotifier_new(MyTid(), PRIORITY_UISERVER, MS2TICK(17)); // 60fps
 	ASSERT(tid_time >= 0, "failed to create timenotifier");
 	state.client_count = 0;
 	state.changed = FALSE;
@@ -63,7 +64,7 @@ void uiserver() {
 		state.screen[i].changed = FALSE;
 	}
 
-	const int size_packet = min(STACK_SIZE / 2, MAX_MSG_SIZE);
+	const int size_packet = MAX_MSG_SIZE / 2;
 	void* packet = malloc(size_packet);
 
 	for (;;) {
@@ -91,43 +92,38 @@ static void handle_cellout(uiserver_state *state, ui_cellinfo *lastoutcell, ui_c
 	int diffeffect = lastoutcell == NULL
 			|| cell->color != lastoutcell->color
 			|| cell->effectflag != lastoutcell->effectflag;
-	int diffcontent = lastoutcell == NULL
-			|| cell->c != lastoutcell->c;
+	int cellidx = cell - state->screen;
+	int relocate = SCREEN_LOC_COL(cellidx) == 1
+			|| lastoutcell == NULL
+			|| (cell - lastoutcell) != 1;
 
-	if (diffcontent || diffeffect) {
-		int cellidx = cell - state->screen;
-		int relocate = SCREEN_LOC_COL(cellidx) == 1
-				|| lastoutcell == NULL
-				|| (cell - lastoutcell) != 1;
-
-		if (diffeffect) {
-			console_effect_reset(state->con);
-
-			if (cell->effectflag & UIEFFECT_BRIGHT) {
-				console_effect(state->con, EFFECT_BRIGHT);
-			}
-			if (cell->effectflag & UIEFFECT_UNDERSCORE) {
-				console_effect(state->con, EFFECT_UNDERSCORE);
-			}
-			if (cell->effectflag & UIEFFECT_FGCOLOR) {
-				console_effect(state->con, cell->color);
-			}
-		}
-
-		if (relocate) {
-			console_move(state->con, SCREEN_LOC_LINE(cellidx), SCREEN_LOC_COL(cellidx));
-		}
-//		bwprintf(1, "%c", cell->c);
-		console_printf(state->con, "%c", cell->c);
-//		console_flush(state->con);
-
-		cell->changed = FALSE;
+	if (relocate) {
+		console_flush(state->con);
+		console_flushcom(state->con);
+		console_move(state->con, SCREEN_LOC_LINE(cellidx), SCREEN_LOC_COL(cellidx));
 	}
+
+	if (diffeffect) {
+		console_effect_reset(state->con);
+
+		if (cell->effectflag & UIEFFECT_BRIGHT) {
+			console_effect(state->con, EFFECT_BRIGHT);
+		}
+		if (cell->effectflag & UIEFFECT_UNDERSCORE) {
+			console_effect(state->con, EFFECT_UNDERSCORE);
+		}
+		if (cell->effectflag & UIEFFECT_FGCOLOR) {
+			console_effect(state->con, cell->color);
+		}
+	}
+
+	console_printf(state->con, "%c", cell->c);
+
+	cell->changed = FALSE;
 }
 
 static void handle_refresh(uiserver_state *state) {
 	ui_cellinfo *lastoutcell = NULL;
-	console_cursor_save(state->con);
 	for (int i = 0; state->changed && i <  SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
 		ui_cellinfo *cell = &state->screen[i];
 		if (cell->changed) {
@@ -136,8 +132,8 @@ static void handle_refresh(uiserver_state *state) {
 		}
 	}
 	state->changed = FALSE;
-	console_cursor_unsave(state->con);
 	console_flush(state->con);
+	console_flushcom(state->con);
 }
 
 static void handle_uiout(uiserver_state *state, msg_ui *uimsg) {
@@ -152,14 +148,22 @@ static void handle_uiout(uiserver_state *state, msg_ui *uimsg) {
 		ui_cellinfo *cell = &state->screen[curloc++];
 		char newchar = uimsg->str[i];
 		char neweffect = ctx->effectflag;
-		char newcolor= ctx->color;
-		cell->changed = cell->c != newchar || cell->effectflag != neweffect || cell->color != newcolor;
+		char newcolor = ctx->color;
+		cell->changed |= (cell->c != newchar) || (cell->effectflag != neweffect) || (cell->color != newcolor);
 		state->changed |= cell->changed;
 		cell->c = newchar;
 		cell->effectflag = neweffect;
 		cell->color = newcolor;
 
 	}
+}
+
+static void handle_force_refresh(uiserver_state *state) {
+	for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
+		ui_cellinfo *cell = &state->screen[i];
+		cell->changed = TRUE;
+	}
+	state->changed = TRUE;
 }
 
 static void handle_uimsg(uiserver_state *state, void* msg) {
@@ -194,6 +198,10 @@ static void handle_uimsg(uiserver_state *state, void* msg) {
 			handle_uiout(state, uimsg);
 			break;
 		}
+		case UIMSG_FORCE_REFRESH: {
+			handle_force_refresh(state);
+			break;
+		}
 		default:
 			ASSERT(0, "unknown uimsg type: %d", uimsg->uimsg);
 			return; // unreachable
@@ -201,12 +209,12 @@ static void handle_uimsg(uiserver_state *state, void* msg) {
 }
 
 int uiserver_new() {
-	const int msgsize = MAX_MSG_SIZE / 10; // TODO sketchy
+	const int maxmsgsize = sizeof(msg_ui) + SCREEN_WIDTH + 1;
 	int tid_server = Create(PRIORITY_UISERVER, uiserver);
 	ASSERT(tid_server >= 0, "failed to create ui server");
-	int tid_buf = buffertask_new(NAME_UISERVER, PRIORITY_UISERVER, msgsize);
+	int tid_buf = buffertask_new(NAME_UISERVER, PRIORITY_UISERVER, maxmsgsize);
 	ASSERT(tid_buf >= 0, "failed to create ui buffer");
-	courier_new(PRIORITY_UISERVER, tid_buf, tid_server, msgsize, NAME_UISERVER_C);
+	courier_new(PRIORITY_UISERVER, tid_buf, tid_server, maxmsgsize, NAME_UISERVER_C);
 	return tid_buf;
 }
 
@@ -260,6 +268,15 @@ void uiserver_move(int tid, int id, int line, int col) {
 	uimsg.id = id;
 	uimsg.line = line;
 	uimsg.col = col;
+
+	int rv = Send(tid, &uimsg, sizeof(uimsg), NULL, 0);
+	ASSERT(rv >= 0, "send failed");
+}
+
+void uiserver_force_refresh(int tid) {
+	msg_ui uimsg;
+	uimsg.type = MSG_UI;
+	uimsg.uimsg = UIMSG_FORCE_REFRESH;
 
 	int rv = Send(tid, &uimsg, sizeof(uimsg), NULL, 0);
 	ASSERT(rv >= 0, "send failed");

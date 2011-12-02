@@ -16,5 +16,5 @@ timedisplay *timedisplay_new(int line, int col) {
 void timedisplay_update(timedisplay* time, int ticks) {
 	uiserver_move(time->tid_ui, time->id_ui, time->line, time->col);
 	int ms = TICK2MS(ticks);
-	uiserver_printf(time->tid_ui, time->id_ui, "%d.%d%-10s", ms / 1000, (ms / 100) % 10, "s")
+	uiserver_printf(time->tid_ui, time->id_ui, "Uptime: %d.%ds", ms / 1000, (ms / 100) % 10)
 }
