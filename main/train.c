@@ -7,6 +7,112 @@
 
 int train_init_cal(train_cal *cal, int train_no) {
 	switch (train_no) {
+		case 21: {
+			cal->stopm = 1620.85475;
+			cal->stopb = 153.7681768;
+			cal->len_pickup = 50;
+			cal->dist2nose = 22;
+			cal->dist2tail = 120;
+
+			int data[] = {
+				0,		1,
+				410,	57679,
+				410,	33976,
+				410,	13428,
+				3302,	36355,
+				1970,	20232,
+				410,	3788,
+				1141,	9107,
+				3651,	24828,
+				6123,	35245,
+				3977,	19243,
+				5923,	26703,
+				8348,	31389,
+				8470,	26969,
+				10113,	28414,
+				410,	57679,
+				410,	33976,
+				410,	13551,
+				410,	8516,
+				1181,	16967,
+				5923,	62009,
+				5453,	43420,
+				5801,	39413,
+				7690,	43076,
+				5356,	26508,
+				16496,	78202,
+				11270,	43373,
+				13090,	42845,
+			};
+
+			TRAIN_FOREACH_SPEEDIDX(i) {
+				float dx = data[i * 2];
+				float dt = data[i * 2 + 1];
+				cal->v_avg[i] = dx / dt;
+			}
+
+			// TODO these values are invalid because i dont know how to get them.
+			cal->st_order = 1;
+			cal->st[0] = -16.8209;
+			cal->st[1] = 6319.19;
+
+			cal->st_mul = 1;
+
+			return TRUE;
+		}
+		case 35: {
+			cal->stopm = 2012.356051;
+			cal->stopb = -219.3890214;
+			cal->len_pickup = 50;
+			cal->dist2nose = 22;
+			cal->dist2tail = 120;
+
+			int data[] = {
+				0,		1,
+				599,	57161,
+				1820,	50056,
+				2201,	33563,
+				2448,	25694,
+				5143,	37170,
+				4158,	22807,
+				5687,	29132,
+				6967,	29462,
+				10113,	30261,
+				12451,	30343,
+				13290,	27007,
+				11724,	19785,
+				18098,	27217,
+				25942,	39056,
+				485,	69964,
+				405,	17513,
+				2210,	45922,
+				1044,	12090,
+				3591,	28816,
+				5738,	35583,
+				6383,	31905,
+				10880,	45810,
+				12519,	41563,
+				11044,	30398,
+				23186,	49515,
+				7749,	14587,
+				12061,	19369,
+			};
+
+			TRAIN_FOREACH_SPEEDIDX(i) {
+				float dx = data[i * 2];
+				float dt = data[i * 2 + 1];
+				cal->v_avg[i] = dx / dt;
+			}
+
+			// TODO these values are invalid because i dont know how to get them.
+			cal->st_order = 1;
+			cal->st[0] = -16.8209;
+			cal->st[1] = 6319.19;
+
+			cal->st_mul = 1;
+
+			return TRUE;
+		}
 		case 37: {
 			cal->stopm = 2747.7;
 			cal->stopb = -552.48;
@@ -110,7 +216,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->st[3] = 97199.5;
 			cal->st[4] = -58996.2;
 
-			cal->st_mul = 1;
+			cal->st_mul = 1.0;
 
 			return TRUE;
 		}
