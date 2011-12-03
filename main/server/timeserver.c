@@ -21,7 +21,7 @@ typedef struct _tag_timeserver_state {
 
 static inline void timeserver_do_tick(timeserver_state *state, int tid_notifier) {
 	VMEM(TIMER1_BASE + CLR_OFFSET) = 1; // clear interrupt source
-	ReplyInt(tid_notifier, 0); // unblock notifier
+	Reply(tid_notifier, NULL, 0); // unblock notifier
 	state->time++;
 	while (!heap_empty(state->tasks) && heap_peekkey(state->tasks) <= state->time) {
 		int tid = (int) heap_min_extract(state->tasks);

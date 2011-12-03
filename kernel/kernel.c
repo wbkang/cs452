@@ -269,6 +269,7 @@ static inline int kernel_myparenttid() {
 }
 
 static inline void transfer_msg(task_descriptor *sender, task_descriptor *receiver) {
+	ASSERT(sender->id != receiver->id, "wtf srr tx to itself tid: %d", sender->id);
 	int *sender_r = sender->registers.r;
 	int *receiver_r = receiver->registers.r;
 	// put sender id into the int pointed to by a1 of Receive()
@@ -276,7 +277,8 @@ static inline void transfer_msg(task_descriptor *sender, task_descriptor *receiv
 	// set up lengths
 	int sender_msglen = SENDER_MSGLEN(sender_r[3]);
 	int receiver_msglen = receiver_r[2];
-	// ASSERT(receiver_msglen >= sender_msglen, "sending msg too big");
+	ASSERT(receiver_msglen >= sender_msglen, "sending msg too big sid:%d, size:%d, rid:%d, size:%d",
+			sender->id, sender_msglen, receiver->id, receiver_msglen);
 	int len = min(sender_msglen, receiver_msglen);
 	// set up message buffers
 	void* sender_msg = (void*) sender_r[1];
@@ -295,7 +297,8 @@ static inline void transfer_reply(task_descriptor *sender, task_descriptor *rece
 	// set up lengths
 	int sender_replylen = SENDER_REPLYLEN(sender_r[3]);
 	int receiver_replylen = receiver_r[2];
-	// ASSERT(sender_replylen >= receiver_replylen, "reply msg too big");
+	ASSERT(sender_replylen >= receiver_replylen, "reply msg too big. sid: %d, srl:%d, rid:%d, rrl:%d",
+			sender->id, sender_replylen, receiver->id, receiver_replylen);
 	int len = min(sender_replylen, receiver_replylen);
 	// set up message buffers
 	void* sender_reply = (void*) sender_r[2];
@@ -313,6 +316,7 @@ static inline int kernel_send(int tid) {
 	task_descriptor *receiver = td_find(tid);
 	if (UNLIKELY(!receiver)) return -2;
 	task_descriptor *sender = scheduler_running();
+	ASSERT(receiver != sender, "you can't send a message to yourself: %d", receiver->id);
 	if (receiver->state == TD_STATE_WAITING4SEND) {
 		transfer_msg(sender, receiver);
 	} else {
@@ -324,6 +328,11 @@ static inline int kernel_send(int tid) {
 static inline void kernel_receive() {
 	task_descriptor *receiver = scheduler_running();
 	if (td_has_children(receiver)) {
+		task_descriptor *child = receiver->_head_child;
+		while(child) {
+			ASSERT(child->id != receiver->id, "receiver %d a child of itself.");
+			child = child->_next;
+		}
 		transfer_msg(td_shift_child(receiver), receiver);
 	} else {
 		scheduler_wait4send(receiver);

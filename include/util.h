@@ -38,6 +38,7 @@ typedef char *va_list;
 #define INT_MAX 0x7fffffff
 #define infinity INT_MAX
 #define MEMCHECK() malloc(0)
+#define HEAP_REMAINING(var) { int sp; READ_REGISTER(sp); var = sp - (int)malloc(0); }
 
 #define PUTS(...) { \
 	char PAVEL[512]; \
@@ -123,17 +124,18 @@ void die();
 #define READ_CPSR(var) __asm("mrs %[mode], cpsr" "\n\t"	"and %[mode], %[mode], #0x1f" "\n\t" : [mode] "=r" (var))
 void Exit();
 int main();
+void CrashDump();
 void dump_registers(int r0, int r1, int r2, int r3);
 void print_stack_trace(uint fp, int clearscreen);
-
+void td_print_crash_dump();
 int MyTid();
 
 #if ASSERT_ENABLED
 #define ASSERT(X, ...) { \
 	if (UNLIKELY(!(X))) { /*__asm("swi 12\n\t");*/ \
-		int tid = MyTid(); \
 		VMEM(VIC1 + INTENCLR_OFFSET) = ~0; \
 		VMEM(VIC2 + INTENCLR_OFFSET) = ~0; \
+		int cpsr; READ_CPSR(cpsr); int inusermode = ((cpsr & 0x1f) == 0x10); int tid = inusermode ? MyTid() : -1; \
 		bwprintf(0, "%c", 0x61); \
 		int fp, lr, pc; READ_REGISTER(fp); READ_REGISTER(lr); READ_REGISTER(pc); \
 		bwprintf(1, "\x1B[1;1H" "\x1B[1K"); \
@@ -141,6 +143,7 @@ int MyTid();
 		bwprintf(1, "[%s] ", __func__); \
 		bwprintf(1, __VA_ARGS__); \
 		bwprintf(1, "\n"); \
+		if (inusermode) { __asm("swi 12\n\t");} else { td_print_crash_dump(); } \
 		bwprintf(1, "\x1B[1K"); \
 		print_stack_trace(fp, 0); \
 		die(); \
