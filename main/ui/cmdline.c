@@ -22,7 +22,7 @@ cmdline *cmdline_new(int line, int col, cmdprocessor cmdproc) {
 	return this;
 }
 
-void cmdline_handleinput(cmdline *this, char c) {
+void cmdline_handleinput(cmdline *this, char c, void* that) {
 	if (this->cmdidx + 2 == LEN_CMD && c != '\b' && c != '\r') {
 		cmdline_movecursor(this);
 		return; // full, ignore
@@ -41,7 +41,7 @@ void cmdline_handleinput(cmdline *this, char c) {
 			break;
 		case '\r':
 			this->cmdbuf[--this->cmdidx] = '\0';
-			this->cmdprocessor(this->cmdbuf, this->cmdidx);
+			this->cmdprocessor(that, this->cmdbuf, this->cmdidx);
 			break;
 		default:
 			cmdline_putc(this, c);

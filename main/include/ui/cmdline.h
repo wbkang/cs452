@@ -4,7 +4,7 @@
 
 #define LEN_CMD 32
 
-typedef void (*cmdprocessor)(char *buf, int len);
+typedef void (*cmdprocessor)(void *this, char *buf, int len);
 
 typedef struct {
 	ui_id id_ui;
@@ -15,5 +15,5 @@ typedef struct {
 } cmdline;
 
 cmdline *cmdline_new(int line, int col, cmdprocessor cmdproc);
-void cmdline_handleinput(cmdline *this, char c);
+void cmdline_handleinput(cmdline *this, char c, void* that);
 void cmdline_clear(cmdline *this);

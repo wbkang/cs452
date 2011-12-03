@@ -6,12 +6,10 @@
 #include <server/publisher.h>
 #include <gps.h>
 
-engineer *engineer_new(char track_name) {
+engineer *engineer_new(char track_name, a0ui *a0ui) {
 	engineer *this = malloc(sizeof(engineer));
 
-	this->log = logdisplay_new(8, 56, 8, 100, ROUNDROBIN, "train location log");
-	this->log2 = logdisplay_new(8 + 9, 56, 8, 100, ROUNDROBIN, "location attribution log");
-	this->triplog = logdisplay_new(8 + 9 + 9, 56, 8, 100, ROUNDROBIN, "engineer triplog");
+	this->a0ui = a0ui;
 
 	this->tid_traincmdbuf = traincmdbuffer_new();
 
@@ -124,13 +122,12 @@ void engineer_train_on_loc(engineer *this, train *train, location *new_loc_picku
 	location_add(new_loc_pickup, dx_lag);
 	train_set_pickuploc(train, new_loc_pickup);
 
-	logdisplay_printf(this->log,
+	a0ui_on_train_location_logf(this->a0ui,
 		"pred: %L, attrib: %L (%dmm)",
 		&old_loc_pickup,
 		new_loc_pickup,
 		location_dist_min(&old_loc_pickup, new_loc_pickup)
 	);
-	logdisplay_flushline(this->log);
 }
 
 train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, int t_loc) {
@@ -152,7 +149,7 @@ train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, i
 				closest_dist = dist;
 				closest_train = train;
 			}
-			logdisplay_printf(this->log2,
+			a0ui_on_location_attr_logf(this->a0ui,
 				"testing %L vs train %d at %L (was at %L), distance: %dmm",
 				attr_loc_pickup,
 				train->no,
@@ -160,16 +157,14 @@ train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, i
 				&old_loc_pickup,
 				dist
 			);
-			logdisplay_flushline(this->log2);
 		} else {
-			logdisplay_printf(this->log2,
+			a0ui_on_location_attr_logf(this->a0ui,
 				"testing %L vs train %d at %L (was at %L), no path",
 				attr_loc_pickup,
 				train->no,
 				&cur_loc_pickup,
 				&old_loc_pickup
 			);
-			logdisplay_flushline(this->log2);
 		}
 	}
 
@@ -181,13 +176,12 @@ train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, i
 		if (!train_is_lost(train)) continue;
 
 		if (rv) {
-			logdisplay_printf(this->log2,
+			a0ui_on_location_attr_logf(this->a0ui,
 				"can't attribute %L, train %d and train %d are moving and lost",
 				attr_loc_pickup,
 				train->no,
 				rv->no
 			);
-			logdisplay_flushline(this->log2);
 			return NULL;
 		}
 
@@ -200,17 +194,16 @@ train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, i
 void engineer_onloc(engineer *this, location *loc, int t_loc) {
 	train *train = engineer_attribute_pickuploc(this, loc, t_loc);
 	if (train) {
-		logdisplay_printf(this->log2, "attributing %L to train %d", loc, train->no);
-		logdisplay_flushline(this->log2);
+		a0ui_on_location_attr_logf(this->a0ui, "attributing %L to train %d", loc, train->no);
+		a0ui_on_location_attr(this->a0ui, loc->edge->src, train->no);
 		engineer_train_on_loc(this, train, loc, t_loc);
 	} else {
-		logdisplay_printf(this->log2, "spurious location %L", loc);
-		logdisplay_flushline(this->log2);
+		a0ui_on_location_attr_logf(this->a0ui, "spurious location %L", loc);
 	}
 }
 
 void engineer_onsensor(engineer *this, msg_sensor *msg) {
-	engineer_ontick(this);
+	engineer_ontick(this, NULL);
 	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
 	location loc_sensor = location_fromnode(sensor, DIR_AHEAD);
 	if (msg->state == OFF) {
@@ -221,10 +214,13 @@ void engineer_onsensor(engineer *this, msg_sensor *msg) {
 	engineer_onloc(this, &loc_sensor, msg->timestamp);
 }
 
-void engineer_ontick(engineer *this) {
+void engineer_ontick(void *vthis, void* unused) {
+	(void)unused;
+	engineer *this = vthis;
 	int t = Time(this->tid_time);
 	trainreg_foreach(this->trainreg, train) {
 		train_update_simulation(train, t);
-		train_ontick(train, this->tid_traincmdbuf, this->track_nodes, this->triplog, t, this->gps);
+		train_ontick(train, this->tid_traincmdbuf, this->track_nodes, this->a0ui, t, this->gps);
+		a0ui_on_train_location(this->a0ui, train);
 	}
 }

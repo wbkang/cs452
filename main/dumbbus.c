@@ -23,8 +23,8 @@ void dumbbus_unregister(dumbbus *this, subscriber s) {
 	ASSERT(0, "couldn't find the subscriber %x", s);
 }
 
-void dumbbus_dispatch(dumbbus *this, void* data) {
+void dumbbus_dispatch(dumbbus *this, void* that, void* data) {
 	for (int i = 0; i < this->size; i++) {
-		this->subscribers[i](data);
+		this->subscribers[i](that, data);
 	}
 }

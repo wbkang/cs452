@@ -2,7 +2,7 @@
 
 #define NUM_SUBSCRIBERS 10
 
-typedef void (*subscriber)(void*);
+typedef void (*subscriber)(void* this, void* data);
 typedef struct dumbbus dumbbus;
 
 struct dumbbus {
@@ -13,4 +13,4 @@ struct dumbbus {
 dumbbus *dumbbus_new();
 void dumbbus_register(dumbbus *this, subscriber s);
 void dumbbus_unregister(dumbbus *this, subscriber s);
-void dumbbus_dispatch(dumbbus *this, void*);
+void dumbbus_dispatch(dumbbus *this, void* that, void *data);

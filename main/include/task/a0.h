@@ -7,6 +7,7 @@
 #include <dumbbus.h>
 #include <ui/timedisplay.h>
 #include <ui/a0_track_template.h>
+#include <ui/a0ui.h>
 #include <engineer.h>
 #include <track_node.h>
 
@@ -16,18 +17,10 @@ struct a0state {
 	int tid_time;
 	ui_id id_ui;
 	// ui
-	logdisplay *log;
-	logstrip *cmdlog;
-	logstrip *sensorlog;
-	logstrip *train1info[3];
-	logstrip *train2info[3];
-	cmdline *cmdline;
+	a0ui *a0ui;
 	dumbbus *sensor_bus;
-	dumbbus *bus10hz;
-	dumbbus *simbus;
-	dumbbus *printlocbus;
-	timedisplay *timedisplay;
-	track_template *template;
+	dumbbus *bus10hz; // a0ui, time in ticks
+	dumbbus *simbus; // engineer, a0state
 	int timestamp;
 	// train data
 	engineer *eng;

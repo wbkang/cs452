@@ -24,6 +24,8 @@ cat > $TEMPLATE <<EOF
 #define CONSOLE_SENSOR_COL 17
 #define CONSOLE_SENSOR_LINE 6
 
+#define MAX_TRAINCOUNT 5
+
 typedef enum { TRACK_A, TRACK_B } track;
 
 typedef struct {
@@ -46,13 +48,13 @@ struct track_template {
 	track track_config;
 	switch_pic_info const *switch_pic_info_table;
 	sensor_pic_info sensor_pic_info_table[TRAIN_NUM_MODULES][TRAIN_NUM_SENSORS];
-	int mod_hist_idx;
-	struct {
+	int mod_hist_idx[MAX_TRAINCOUNT];
+	struct mod_hist_info {
 		char mod; int id;
-	} mod_hist[];
+	} mod_hist[][MAX_TRAINCOUNT];
 };
 
-track_template *track_template_new(track t);
+track_template *track_template_new(char track);
 void track_template_updateswitch(track_template *tt, char no, char pos);
 void track_template_updatesensor(track_template *tt, char module, int id, int train);
 EOF

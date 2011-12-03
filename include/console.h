@@ -12,17 +12,19 @@
 #define CONSOLE_SAVECURSOR "\x1B[s"
 #define CONSOLE_UNSAVECURSOR "\x1B[u"
 
-#define EFFECT_RESET 0
-#define EFFECT_REVERSE 7
-#define EFFECT_FG_BLUE 34
 #define EFFECT_FG_BLACK 30
 #define EFFECT_FG_RED 31
+#define EFFECT_FG_GREEN 32
+#define EFFECT_FG_YELLOW 33
+#define EFFECT_FG_BLUE 34
+#define EFFECT_FG_CYAN 36
+#define EFFECT_FG_MAGENTA 35
+#define EFFECT_FG_WHITE 37
+
+#define EFFECT_RESET 0
+#define EFFECT_REVERSE 7
 #define EFFECT_BRIGHT 1
 #define EFFECT_UNDERSCORE 4
-#define EFFECT_FG_CYAN 36
-#define EFFECT_FG_YELLOW 33
-#define EFFECT_FG_GREEN 32
-#define EFFECT_FG_WHITE 37
 
 typedef struct console console;
 

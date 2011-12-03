@@ -264,15 +264,18 @@ static void print_track_picture(char const *picture) {
 	} while(more);
 }
 
-track_template *track_template_new(track t) {
-	track_template *tt = malloc(sizeof(*tt) + MOD_HIST_LEN * sizeof(tt->mod_hist[0]));
+track_template *track_template_new(char tr) {
+	track_template *tt = malloc(sizeof(*tt) + MAX_TRAINCOUNT * MOD_HIST_LEN * sizeof(tt->mod_hist[0]));
+	track t = (tr == 'a') ? TRACK_A : TRACK_B;
 	tt->id_ui = uiserver_register();
 	tt->track_config = t;
-	for (int i = 0; i < MOD_HIST_LEN; i++) {
-		tt->mod_hist[i].mod = 0;
-		tt->mod_hist[i].id = 0;
+	for (int train = 0; train < 5; train++) {
+		tt->mod_hist_idx[train] = 0;
+		for (int i = 0; i < MOD_HIST_LEN; i++) {
+			tt->mod_hist[train][i].mod = 0;
+			tt->mod_hist[train][i].id = 0;
+		}
 	}
-	tt->mod_hist_idx = 0;
 
 	for (int i = 0; i < TRAIN_NUM_MODULES; i++) {
 		for (int j = 0; j < TRAIN_NUM_SENSORS; j++) {
@@ -318,18 +321,23 @@ void track_template_updateswitch(track_template *tt, char no, char pos) {
 	uiserver_effect(tt->id_ui, 0, 0);
 }
 
-void track_template_updatesensor(track_template *tt, char module, int id, int train) {
-	(void) train; // for future use
 
-	tt->mod_hist[tt->mod_hist_idx].mod = module;
-	tt->mod_hist[tt->mod_hist_idx].id = id;
-	tt->mod_hist_idx++;
-	tt->mod_hist_idx %= MOD_HIST_LEN;
 
-	for (int i = 0, curidx = tt->mod_hist_idx - 1; i < MOD_HIST_LEN; i++, curidx--) {
+void track_template_updatesensor(track_template *tt, char module, int id, int trainidx) {
+	const int base_color[5] = { EFFECT_FG_CYAN, EFFECT_FG_MAGENTA, EFFECT_FG_GREEN, EFFECT_FG_RED, EFFECT_FG_YELLOW };
+	trainidx %= 5;
+
+	int *mod_hist_idx = &tt->mod_hist_idx[trainidx];
+	struct mod_hist_info *mod_hist_infos = tt->mod_hist[trainidx];
+	mod_hist_infos[*mod_hist_idx].mod = module;
+	mod_hist_infos[*mod_hist_idx].id = id;
+	(*mod_hist_idx)++;
+	*mod_hist_idx %= MOD_HIST_LEN;
+
+	for (int i = 0, curidx = *mod_hist_idx - 1; i < MOD_HIST_LEN; i++, curidx--) {
 		if (curidx < 0) curidx = MOD_HIST_LEN - 1;
-		if (tt->mod_hist[curidx].mod == 0) break;
-		sensor_pic_info *spinfo = get_sensor_pic_info(tt, tt->mod_hist[curidx].mod, tt->mod_hist[curidx].id);
+		if (mod_hist_infos[curidx].mod == 0) break;
+		sensor_pic_info *spinfo = get_sensor_pic_info(tt, mod_hist_infos[curidx].mod, mod_hist_infos[curidx].id);
 
 		if (spinfo->dir != UNKNOWN) {
 			uiserver_move(tt->id_ui, spinfo->row, spinfo->col);
@@ -340,7 +348,7 @@ void track_template_updatesensor(track_template *tt, char module, int id, int tr
 					effect |= UIEFFECT_BRIGHT;
 				case 1:
 					effect |= UIEFFECT_FGCOLOR;
-					color = EFFECT_FG_CYAN;
+					color = base_color[trainidx];
 					break;
 				default:
 					effect |= UIEFFECT_FGCOLOR;
