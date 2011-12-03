@@ -81,7 +81,7 @@ static inline void gps_get_rev_stoploc(train *train, track_node *node, location 
 	if (node->type == NODE_MERGE) {
 		ASSERT(0, "invalid path, yo");
 		int len = train_get_length(train) + train_get_poserr(train);
-		location_add(rv_loc, fixed_new(len));
+		location_add(rv_loc, len);
 	}
 }
 
@@ -320,110 +320,3 @@ int vcmd2str(char *buf, trainvcmd *vcmd) {
 	buf += sprintf(buf, "]");
 	return buf - origbuf;
 }
-
-//void gps_test(gps *this, engineer *eng) {
-//	{
-//		track_node *c14 = &this->track_node[45];
-//		track_node *mr11 = &this->track_node[101];
-//		location start = location_fromnode(c14, 0);
-//		location end = location_fromnode(mr11, 0);
-//
-//		track_edge *path[] = {0};
-//		fixed result = gps_distace(&start, &end, path, 0);
-//		ASSERT(fixed_cmp(fixed_new(66), result) == 0, "66 == %F", result);
-//	}
-//	{
-//		track_node *c14 = &this->track_node[45];
-//		track_node *a15 = &this->track_node[14];
-//
-//		ASSERT((int)c14 % 4 == 0, "c14 unaligned");
-//		ASSERT((int)a15 % 4 == 0, "a15 unaligned");
-//		location start = location_fromnode(c14, 0);
-//		location end = location_fromnode(a15, 0);
-//
-//
-//		track_edge *path[] = {
-//				&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT],
-//				&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT].dest->edge[DIR_CURVED],
-//				&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT].dest->edge[DIR_CURVED].dest->edge[DIR_STRAIGHT],
-//		};
-//
-//		// c14 BR11 	66
-//		// BR11 BR12 	190
-//		// BR12 BR4		188
-//		// BR4 A15		262
-//
-//		fixed result = gps_distace(&start, &end, path, 3);
-//		ASSERT(fixed_cmp(result,fixed_new(706)) == 0, "706 == %F", result);
-//	}
-//	{
-//		track_node *c14 = &this->track_node[45];
-//		track_node *a15 = &this->track_node[14];
-//
-//		ASSERT((int)c14 % 4 == 0, "c14 unaligned");
-//		ASSERT((int)a15 % 4 == 0, "a15 unaligned");
-//		location start = location_fromnode(c14, 0);
-//		location_add(&start, fixed_new(20));
-//		location end = location_fromnode(a15, 0);
-//		location_add(&end, fixed_new(40));
-//
-//		track_edge *path[] = {
-//				&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT],
-//				&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT].dest->edge[DIR_CURVED],
-//				&c14->edge[DIR_STRAIGHT].dest->edge[DIR_STRAIGHT].dest->edge[DIR_CURVED].dest->edge[DIR_STRAIGHT],
-//		};
-//
-//		// c14 BR11 	66
-//		// BR11 BR12 	190
-//		// BR12 BR4		188
-//		// BR4 A15		262
-//
-//		fixed result = gps_distace(&start, &end, path, 3);
-//		ASSERT(fixed_cmp(result,fixed_new(726)) == 0, "726 == %F", result);
-//	}
-//	{
-//		track_node *c14 = &this->track_node[45];
-//		track_node *a15 = &this->track_node[14];
-//		track_edge *rv[100];
-//		int cnt;
-//		dijkstra(this->track_node, this->heap_dijkstra, c14, a15, rv, &cnt);
-//		ASSERT(cnt == 4, "cnt != 4. %d", cnt);
-//	}
-//	{
-//		track_node *c14 = &this->track_node[45];
-//		track_node *c10 = &this->track_node[41];
-//		track_edge *rv[100];
-//		int cnt;
-//		dijkstra(this->track_node, this->heap_dijkstra, c14, c10, rv, &cnt);
-//
-////			PRINT("LEN: %d", cnt);
-////			for ( int i = 0 ; i < cnt; i++) {
-////				PRINT("PATH: %s->%s", PREV_NODE(rv[i])->name, rv[i]->dest->name);
-////			}
-//		ASSERT(cnt == 6, "cnt != 6! %d", cnt);
-//	}
-//	{
-//		train *train = &eng->train[38];
-//
-//		track_node *c14 = &eng->track_nodes_arr[45];
-//		track_node *c10 = &eng->track_nodes_arr[41];
-//		location dest;
-//		dest = location_fromedge(c10, 0);
-//
-//
-//		trainvcmd vcmds[100];
-//		int rv_len;
-//		gps_findpath(this, train, &dest, 100, vcmds, &rv_len);
-//
-////		PRINT("rv_len:%d", rv_len);
-////
-////		for (int i = 0; i < rv_len; i++) {
-////			trainvcmd *vcmd = &vcmds[i];
-////			char buf[1000];
-////			vcmd2str(buf, vcmd);
-//////			PRINT("%d:%s", i, buf);
-//////			logdisplay_flushline(eng->log);
-////		}
-//	}
-////	ExitKernel(0);
-//}

@@ -1,13 +1,12 @@
 #pragma once
 
 #include <track_node.h>
-#include <fixed.h>
 
 typedef struct location location;
 
 struct location {
 	track_edge *edge;
-	fixed offset;
+	float offset;
 };
 
 location location_fromedge(track_edge *edge);
@@ -18,7 +17,7 @@ int location_isinvalid(location *this);
 int location_dist_dir(location *A, location *B);
 int location_dist_min(location *A, location *B);
 // int location_dist_abs(location *A, location *B);
-int location_add(location *this, fixed dx);
+int location_add(location *this, float dx);
 int location_reverse(location *this);
 void location_tonextnode(location *this);
 int location_tostring(location *this, char *buf);

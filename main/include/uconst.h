@@ -1,6 +1,7 @@
 #pragma once
 
 #include <location.h>
+#include <stdio.h>
 
 #define MSPERTICK 1
 #define MS2TICK(x) ((x) / MSPERTICK)

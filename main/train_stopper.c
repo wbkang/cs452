@@ -3,7 +3,6 @@
 #include <engineer.h>
 #include <dumbbus.h>
 #include <lookup.h>
-#include <fixed.h>
 
 #define DEFAULT_SEARCH_DEPTH 10
 
@@ -44,7 +43,7 @@ void train_stopper_setup(int train_no, char *type, int id, int over) {
 
 	ts_state.train = engineer_get_train(eng, train_no);
 	ts_state.loc_dest = location_fromnode(loc_dest, 0);
-	location_add(&ts_state.loc_dest, fixed_new(over));
+	location_add(&ts_state.loc_dest, over);
 
 	if (location_isundef(&ts_state.loc_dest)) {
 		logstrip_printf(state->cmdlog,

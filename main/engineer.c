@@ -1,7 +1,6 @@
 #include <engineer.h>
 #include <syscall.h>
 #include <server/traincmdbuffer.h>
-#include <fixed.h>
 #include <track_data.h>
 #include <uconst.h>
 #include <server/publisher.h>
@@ -75,18 +74,8 @@ void engineer_on_reverse(engineer *this, int train_no, int t) {
 void engineer_reverse(engineer *this, int train_no) {
 	train *train = engineer_get_train(this, train_no);
 	int speed = train_get_speed(train);
-	// int dstop = train_get_stopdist(train);
-	// fixed v = train_get_velocity(train);
 	engineer_set_speed(this, train_no, 0);
-	// if (fixed_sgn(v) > 0) {
-	// 	fixed stoptime = fixed_div(fixed_mul(fixed_new(2), dstop), v);
-	// 	stoptime = fixed_add(stoptime, fixed_new(MS2TICK(500)));
-	// 	traincmdbuffer_put(this->tid_traincmdbuf, PAUSE, fixed_int(stoptime), NULL);
-	// 	traincmdbuffer_put(this->tid_traincmdbuf, REVERSE, train_no, NULL);
-	// 	traincmdbuffer_put(this->tid_traincmdbuf, PAUSE, TRAIN_PAUSE_AFTER_REVERSE, NULL);
-	// } else {
 	train_reverse(train_no, this->tid_traincmdbuf); // regular safe pause
-	// }
 	engineer_set_speed(this, train_no, speed);
 }
 
@@ -132,7 +121,7 @@ void engineer_train_on_loc(engineer *this, train *train, location *new_loc_picku
 
 	location old_loc_pickup = train_get_pickuploc(train);
 
-	fixed dx_lag = train_simulate_dx(train, t_loc, now);
+	float dx_lag = train_simulate_dx(train, t_loc, now);
 	location_add(new_loc_pickup, dx_lag);
 	train_set_pickuploc(train, new_loc_pickup);
 
@@ -227,7 +216,7 @@ void engineer_onsensor(engineer *this, msg_sensor *msg) {
 	location loc_sensor = location_fromnode(sensor, DIR_AHEAD);
 	if (msg->state == OFF) {
 		return; // @TODO: removing this reduces simulation accuracy, why?
-		fixed len_pickup = fixed_new(50); // @TODO: don't hardcode, even though so easy
+		int len_pickup = 50; // @TODO: don't hardcode, even though so easy
 		location_add(&loc_sensor, len_pickup);
 	}
 	engineer_onloc(this, &loc_sensor, msg->timestamp);

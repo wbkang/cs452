@@ -3,7 +3,6 @@
 #include <track_node.h>
 #include <train.h>
 #include <lookup.h>
-#include <fixed.h>
 #include <location.h>
 #include <console.h> // @TODO: replace for a ui task
 #include <ui/logdisplay.h> // @TODO: replace for a ui task

@@ -1,5 +1,7 @@
 #include <stdio.h>
-#include <fixed.h>
+#include <util.h>
+
+uint strlen(char const *str);
 
 static void uint2str(uint num, uint base, char *bf) {
 	int n = 0;
@@ -137,10 +139,14 @@ static inline int format(char *buf, char const *fmt, va_list va) {
 					*buf++ = 'x';
 					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
-				case 'F':
-					fixed_print(bf, va_arg(va, fixed));
+				case 'f': { // @TODO: print floats properly
+					int2str(va_arg(va, float) * 1000, bf);
+					int i = strlen(bf);
+					bf[i] = 'f';
+					bf[i + 1] = '\0';
 					buf += putw(buf, width, fillchar, bf, left_align);
 					break;
+				}
 				case 'L': {
 					location *loc = va_arg(va, location*);
 					// ASSERTNOTNULL(loc);
