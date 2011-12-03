@@ -713,12 +713,12 @@ void a0() {
 	state->sensorlog = logstrip_new(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, 100);
 	state->log = logdisplay_new(CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
 	state->timedisplay = timedisplay_new(1, 1);
-        state->train1info[0] = logstrip_new(2, 56 + 2);
-	state->train1info[1] = logstrip_new(3, 56 + 2);
-	state->train1info[2] = logstrip_new(4, 56 + 2);
-	state->train2info[0] = logstrip_new(5, 56 + 2);
-	state->train2info[1] = logstrip_new(6, 56 + 2);
-	state->train2info[2] = logstrip_new(7, 56 + 2);
+	state->train1info[0] = logstrip_new(2, 56 + 2, 100);
+	state->train1info[1] = logstrip_new(3, 56 + 2, 100);
+	state->train1info[2] = logstrip_new(4, 56 + 2, 100);
+	state->train2info[0] = logstrip_new(5, 56 + 2, 100);
+	state->train2info[1] = logstrip_new(6, 56 + 2, 100);
+	state->train2info[2] = logstrip_new(7, 56 + 2, 100);
 
 
 	// sensor bus
@@ -770,8 +770,6 @@ void a0() {
 	for (;;) {
 		int tid;
 		int rcvlen = Receive(&tid, msg, LEN_MSG);
-		ASSERT(rcvlen >= sizeof(msg_header), "bad data rcvlen:%d from %d", rcvlen, tid);
-		int rplylen = Reply(tid, NULL, 0);
 		ASSERT(rcvlen >= sizeof(msg_header), "bad data rcvlen:%d from %d", rcvlen, tid);
 		int rplylen = Reply(tid, NULL, 0);
 		ASSERT(rplylen >= 0, "reply failed to %d", tid);

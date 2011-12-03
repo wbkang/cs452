@@ -8,7 +8,7 @@
 #define ROUND_ROBIN_PREFIX "> "
 
 static void logdisplay_put_title(logdisplay* this) {
-	uiserver_move(this->id_ui, this->line, this->col);
+	uiserver_move(this->id_ui, this->line - 1, this->col);
 	uiserver_effect(this->id_ui, UIEFFECT_BRIGHT, 0);
 	char fmt[10];
 	sprintf(fmt, "%%-%ds", this->totalcols);
