@@ -51,10 +51,9 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = fixed_div(fixed_new(dx), fixed_new(dt));
 			}
 
-			cal->st_a = fixed_div(fixed_new(120976), fixed_new(10));
-			cal->st_b = fixed_div(fixed_new(-128025), fixed_new(10));
-			cal->st_c = fixed_div(fixed_new(96020), fixed_new(10));
-			cal->st_d = fixed_div(fixed_new(-25067), fixed_new(100000));
+			cal->st_order = 1;
+			cal->st[0] = fixed_div(fixed_new(-16821), fixed_new(1000));
+			cal->st[1] = fixed_div(fixed_new(63192), fixed_new(10));
 
 			return TRUE;
 		}
@@ -102,10 +101,12 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = fixed_div(fixed_new(dx), fixed_new(dt));
 			}
 
-			cal->st_a = fixed_div(fixed_new(89494), fixed_new(10));
-			cal->st_b = fixed_new(-15587);
-			cal->st_c = fixed_div(fixed_new(95533), fixed_new(10));
-			cal->st_d = fixed_div(fixed_new(4743), fixed_new(100000));
+			cal->st_order = 4;
+			cal->st[0] = fixed_div(fixed_new(16277), fixed_new(100000));
+			cal->st[1] = fixed_new(16475);
+			cal->st[2] = fixed_new(-58818);
+			cal->st[3] = fixed_new(97200);
+			cal->st[4] = fixed_new(-58996);
 
 			return TRUE;
 		}
@@ -147,16 +148,17 @@ int train_init_cal(train_cal *cal, int train_no) {
 				36677,	59104
 			};
 
-			 TRAIN_FOREACH_SPEEDIDX(i) {
-			 	int dx = data[i * 2];
-			 	int dt = data[i * 2 + 1];
-			 	cal->v_avg[i] = fixed_div(fixed_new(dx), fixed_new(dt));
-			 }
+			TRAIN_FOREACH_SPEEDIDX(i) {
+				int dx = data[i * 2];
+				int dt = data[i * 2 + 1];
+				cal->v_avg[i] = fixed_div(fixed_new(dx), fixed_new(dt));
+			}
 
-			cal->st_a = fixed_new(26221);
-			cal->st_b = fixed_new(-35414);
-			cal->st_c = fixed_new(16080);
-			cal->st_d = fixed_div(fixed_new(74408), fixed_new(100000));
+			cal->st_order = 3;
+			cal->st[0] = fixed_div(fixed_new(74408), fixed_new(100000));
+			cal->st[1] = fixed_new(16080);
+			cal->st[2] = fixed_new(-35414);
+			cal->st[3] = fixed_new(26221);
 
 			return TRUE;
 		}
@@ -393,11 +395,16 @@ fixed train_simulate_dx(train *this, int t_i, int t_f) {
 fixed train_st(train_cal *cal, fixed v_i, fixed v_f) {
 	fixed dv = fixed_abs(fixed_sub(v_f, v_i));
 
-	fixed A = fixed_mul(dv, fixed_mul(dv, fixed_mul(dv, cal->st_a)));
-	fixed B = fixed_mul(dv, fixed_mul(dv, cal->st_b));
-	fixed C = fixed_mul(dv, cal->st_c);
+	fixed rv = fixed_new(0);
+	for (int i = 0; i <= cal->st_order; i++) {
+		fixed tmp = cal->st[i];
+		for (int j = 0; j < i; j++) {
+			tmp = fixed_mul(tmp, dv);
+		}
+		rv = fixed_add(rv, tmp);
+	}
 
-	return fixed_add(A, fixed_add(B, fixed_add(C, cal->st_d)));
+	return rv;
 }
 
 static void train_update_pos(train *this, int t_f) {
@@ -450,7 +457,7 @@ void train_set_dest(train *this, location *dest) {
 }
 
 #define RESERVE_BEHIND 0
-#define RESERVE_AHEAD 200
+#define RESERVE_AHEAD 100
 
 static int train_update_reservations(train *this, logdisplay *log) {
 	reservation_req *req = this->reservation_alt;
@@ -469,7 +476,7 @@ static int train_update_reservations(train *this, logdisplay *log) {
 	int behind = RESERVE_BEHIND + train_get_length(this) - toprevnode;
 
 	int tonextnode = loc_train.edge->dist - toprevnode;
-	int ahead = RESERVE_AHEAD + (12 * train_get_stopdist(this)) / 10 - tonextnode;
+	int ahead = RESERVE_AHEAD + train_get_stopdist(this) - tonextnode;
 
 	if (!track_walk(loc_train.edge->dest, ahead, MAX_PATH, req->edges, &req->len)) return FALSE;
 
@@ -670,5 +677,5 @@ int train_get_reverse_cost(train *train, int dist, track_node *node) {
 		if (edge->src->type == NODE_BRANCH) return infinity; // too close to a branch
 	}
 
-	return safe_len;
+	return 2 * safe_len - train_get_length(train);
 }

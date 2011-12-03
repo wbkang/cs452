@@ -73,12 +73,12 @@ typedef struct {
 } msg_sub;
 
 typedef enum {
-	VCMD_SETSPEED = 89,
-	VCMD_SETREVERSE = 97,
-	VCMD_SETSWITCH = 101,
-	VCMD_WAITFORMS = 103,
-	VCMD_WAITFORLOC = 107,
-	VCMD_STOP = 109
+	VCMD_SETSPEED,
+	VCMD_SETREVERSE,
+	VCMD_SETSWITCH,
+	VCMD_WAITFORMS,
+	VCMD_WAITFORLOC,
+	VCMD_STOP
 } trainvcmdname;
 
 typedef struct {

@@ -12,7 +12,6 @@
 #define REVERSE_TIMEOUT 4000
 #define STOP_TIMEOUT 6000
 
-// static fixed gps_distance(location *start, location *end, track_node **path, int pathlen);
 static char const *vcmdnames[] = {
 	"SETSPEED", "SETREVERSE", "SETSWITCH", "WAITFORMS", "WAITFORLOC", "STOP"
 };
@@ -290,34 +289,6 @@ void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, tra
 		*rv_len_nodes = 0;
 	}
 }
-
-// static fixed gps_distance(location *start, location *end, track_node **path, int pathlen) {
-// 	ASSERT((int) path & 3 == 0, "path unaligned");
-// 	ASSERT((int) start & 3 == 0, "start unaligned");
-// 	ASSERT((int) end & 3 == 0, "end unaligned");
-// 	fixed total = fixed_new(0);
-// 	ASSERT(start->edge->dist > 0, "start->edge->dist %d", start->edge->dist);
-// 	total = fixed_add(total, fixed_sub(fixed_new(start->edge->dist), start->offset));
-// 	total = fixed_add(total, end->offset);
-// 	int cnt = 0;
-// 	char startbuf[100], endbuf[100];
-// 	location_tostring(start, startbuf);
-// 	location_tostring(end, endbuf);
-
-// 	if (pathlen > 0) {
-// 		track_node *curnode = path[cnt];
-// 		while (curnode != end->edge->src) {
-// 			track_edge * const curedge = track_get_edge(curnode, path[cnt+1]);
-// 			ASSERT(curedge || curnode->reverse == path[cnt+1], "wtf");
-// 			if (curedge) { // this is a non reverse segment
-// 				total = fixed_add(total, fixed_new(curedge->dist));
-// 			}
-// 			curnode = path[++cnt];
-// 		}
-// 	}
-
-// 	return total;
-// }
 
 int vcmd2str(char *buf, trainvcmd *vcmd) {
 	char * const origbuf = buf;
