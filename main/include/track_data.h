@@ -6,7 +6,7 @@
 #include <lookup.h>
 
 // The track initialization functions expect an array of this size.
-#define TRACK_MAX 144
+#define TRACK_MAX 204
 
 int sensor_mapper(void* key);
 lookup* init_tracka(track_node *track);
