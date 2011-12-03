@@ -1,5 +1,6 @@
 #include <syscall.h>
 #include <ui/logdisplay.h>
+#include <server/uiserver.h>
 #include <stdio.h>
 #include <string.h>
 #include <console.h>
@@ -7,18 +8,17 @@
 #define ROUND_ROBIN_PREFIX "> "
 
 static void logdisplay_put_title(logdisplay* this) {
-	console_move(this->con, this->line, this->col);
-	console_effect(this->con, EFFECT_UNDERSCORE);
+	uiserver_move(this->id_ui, this->line - 1, this->col);
+	uiserver_effect(this->id_ui, UIEFFECT_BRIGHT, 0);
 	char fmt[10];
 	sprintf(fmt, "%%-%ds", this->totalcols);
-	console_printf(this->con, fmt, this->title);
-	console_effect_reset(this->con);
-	console_flush(this->con);
+	uiserver_printf(this->id_ui, fmt, this->title);
+	uiserver_effect(this->id_ui, 0, 0);
 }
 
-logdisplay *logdisplay_new(console *con, int line, int col, int totallines, int totalcols, int rotation, char *title) {
+logdisplay *logdisplay_new(int line, int col, int totallines, int totalcols, int rotation, char *title) {
 	logdisplay *this = malloc(sizeof(logdisplay) + sizeof(char*) * totallines);
-	this->con = con;
+	this->id_ui = uiserver_register();
 	this->line = line + 1; // for the title
 	this->col = col;
 	this->totallines = totallines - 1; // for the title
@@ -57,23 +57,21 @@ void logdisplay_flushline(logdisplay *this) {
 	char fmtbuf[10];
 	if (this->rotation == ROUNDROBIN) {
 		int last_line = (this->totallines + this->curline - 1) % this->totallines;
-		console_move(this->con, this->line + last_line, this->col);
-		console_printf(this->con, " ", this->buf[last_line]);
-		console_move(this->con, this->line + this->curline, this->col);
+		uiserver_move(this->id_ui, this->line + last_line, this->col);
+		uiserver_printf(this->id_ui, " ", this->buf[last_line]);
+		uiserver_move(this->id_ui, this->line + this->curline, this->col);
 		sprintf(fmtbuf, ROUND_ROBIN_PREFIX "%%-%ds", this->totalcols);
-		console_printf(this->con, fmtbuf, this->buf[this->curline]);
-		console_flush(this->con);
+		uiserver_printf(this->id_ui, fmtbuf, this->buf[this->curline]);
 		this->curline++;
 		this->curline = this->curline % this->totallines;
 	} else if (this->rotation == SCROLLING) {
 		sprintf(fmtbuf, "%%-%ds", this->totalcols);
 		for (int i = 0, cl = this->topline % this->totallines; i < this->totallines; i++) {
-			console_move(this->con, this->line + i, this->col);
-			console_printf(this->con, fmtbuf, this->buf[cl]);
+			uiserver_move(this->id_ui, this->line + i, this->col);
+			uiserver_printf(this->id_ui, fmtbuf, this->buf[cl]);
 			cl++;
 			cl = cl % this->totallines;
 		}
-		console_flush(this->con);
 
 		this->curline++;
 		this->curline = this->curline % this->totallines;
