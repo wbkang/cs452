@@ -2,8 +2,8 @@
 #include <gps.h>
 #include <lookup.h>
 #include <string.h>
-#include <ui/logdisplay.h>
 #include <constants.h>
+#include <ui/a0ui.h>
 
 int train_init_cal(train_cal *cal, int train_no) {
 	switch (train_no) {
@@ -266,7 +266,9 @@ void train_set_speed(train *this, int speed, int t) {
 	this->a_i = this->a;
 	// a_f = 0
 
-	this->st = train_st(&this->cal, this->v_i, this->v_f);
+	if (this->calibrated) {
+		this->st = train_st(&this->cal, this->v_i, this->v_f);
+	}
 }
 
 void train_set_frontloc(train *this, location *loc_front) {
@@ -442,7 +444,7 @@ void train_set_dest(train *this, location *dest) {
 #define RESERVE_BEHIND 0
 #define RESERVE_AHEAD 100
 
-static int train_update_reservations(train *this, logdisplay *log) {
+static int train_update_reservations(train *this) {
 	reservation_req *req = this->reservation_alt;
 	req->len = 0;
 
@@ -468,8 +470,8 @@ static int train_update_reservations(train *this, logdisplay *log) {
 	return reservation_replace(this->reservation, req, this->no);
 }
 
-void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick, struct gps *gps) {
-	int reserved = train_update_reservations(this, log);
+void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui, int tick, struct gps *gps) {
+	int reserved = train_update_reservations(this);
 
 	if (train_is_lost(this)) {
 		if (this->vcmdslen > 0) {
@@ -487,7 +489,7 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, logdisplay 
 		// char buf[100];
 		// location_tostring(&this->destination, buf);
 
-		gps_findpath(gps, this, &this->destination, TRAIN_MAX_VCMD, this->vcmds, &this->vcmdslen, log);
+		gps_findpath(gps, this, &this->destination, TRAIN_MAX_VCMD, this->vcmds, &this->vcmdslen, a0ui);
 		this->last_run_vcmd = NULL;
 
 		// if (this->vcmdslen == 0) {
@@ -531,8 +533,7 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, logdisplay 
 		vcmd2str(vcmdname, curvcmd);
 
 		if (curvcmd != this->last_run_vcmd) {
-			logdisplay_printf(log, "[%2d] examining %s", this->vcmdidx, vcmdname);
-			logdisplay_flushline(log);
+			a0ui_on_trip_logf(a0ui, "[%2d] examining %s", this->vcmdidx, vcmdname);
 		}
 		this->last_run_vcmd = curvcmd;
 
@@ -540,8 +541,7 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, logdisplay 
 		char buf[100];
 		vcmd2str(buf, curvcmd);
 		if (train_is_lost(this)) {
-			logdisplay_printf(log, "[%2d] i lost the location of train %d. cancel the trip.");
-			logdisplay_flushline(log);
+			a0ui_on_trip_logf(a0ui, "[%2d] i lost the location of train %d. cancel the trip.");
 			location nowhere = location_undef();
 			train_set_dest(this, &nowhere);
 		}
@@ -596,12 +596,9 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, logdisplay 
 					char buf[100], buf2[100];
 					location_tostring(&curloc, buf);
 					location_tostring(&waitloc, buf2);
-					logdisplay_printf(log, "curloc: %s", buf);
-					logdisplay_flushline(log);
-					logdisplay_printf(log, "waitloc: %s", buf2);
-					logdisplay_flushline(log);
-					logdisplay_printf(log, "dist: %dmm, stopdist: %dmm", dist, stopdist);
-					logdisplay_flushline(log);
+					a0ui_on_trip_logf(a0ui, "curloc: %s", buf);
+					a0ui_on_trip_logf(a0ui, "waitloc: %s", buf2);
+					a0ui_on_trip_logf(a0ui, "dist: %dmm, stopdist: %dmm", dist, stopdist);
 					train_speed(this->no, 0, tid_traincmdbuf);
 					this->vcmdidx++;
 					continue;
@@ -613,8 +610,7 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, logdisplay 
 					this->vcmdwait = tick + MS2TICK(curvcmd->data.timeout);
 				}
 				if (this->vcmdwait <= tick) {
-					logdisplay_printf(log, "done waiting, vcmdwait: %d, t/o: %d, tick: %d", this->vcmdwait, MS2TICK(curvcmd->data.timeout), tick);
-					logdisplay_flushline(log);
+					a0ui_on_trip_logf(a0ui, "done waiting, vcmdwait: %d, t/o: %d, tick: %d", this->vcmdwait, MS2TICK(curvcmd->data.timeout), tick);
 					this->vcmdwait = 0;
 					this->vcmdidx++;
 					continue;

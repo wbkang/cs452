@@ -10,11 +10,7 @@
 #include <server/comnotifier.h>
 #include <server/timenotifier.h>
 #include <task/a0.h>
-#include <ui/a0_track_template.h>
-#include <ui/logstrip.h>
-#include <ui/cmdline.h>
-#include <ui/logdisplay.h>
-#include <ui/timedisplay.h>
+#include <ui/a0ui.h>
 #include <train_calibrator.h>
 #include <train_stopper.h>
 #include <server/buffertask.h>
@@ -25,86 +21,20 @@
 #include <util.h>
 #include <engineer.h>
 
-#define LEN_MSG (64 * 4)
-#define CONSOLE_DUMP_LINE (CONSOLE_CMD_LINE + 4)
-#define CONSOLE_DUMP_COL 1
-
 a0state *state;
 
 a0state *get_state() {
 	return state;
 }
 
-/*
- * UI
- */
+#define LEN_MSG (64 * 4)
 
-#define LEN_SENSOR_HIST 8
-static char hist_mod[LEN_SENSOR_HIST];
-static int hist_id[LEN_SENSOR_HIST];
-
-static void ui_init() {
-	// init sensor hist
-	for (int i = 0; i < LEN_SENSOR_HIST; i++) {
-		hist_mod[i] = 0;
-		hist_id[i] = 0;
-	}
-	a0state *state = get_state();
-	cmdline_clear(state->cmdline);
-}
-
-static void ui_time() {
-	a0state *state = get_state();
-	timedisplay_update(state->timedisplay, state->timestamp);
-}
-
-static void ui_sensor(char module, int id, int senstate) {
-	a0state *state = get_state();
-
-	if (senstate == OFF) return;
-	for (int i = LEN_SENSOR_HIST - 1; i > 0; i--) {
-		hist_mod[i] = hist_mod[i - 1];
-		hist_id[i] = hist_id[i - 1];
-	}
-	hist_mod[0] = module;
-	hist_id[0] = id;
-
-	int max_hist_idx = 0;
-	char buf[1024], *p = buf;
-	for (int i = 0; (i < LEN_SENSOR_HIST) && hist_mod[i]; i++) {
-		p += sprintf(p, "%c%d, ", hist_mod[i], hist_id[i]);
-		if (i == LEN_SENSOR_HIST) {
-			p += sprintf(p, "...");
-		}
-		max_hist_idx = i;
-	}
-	logstrip_printf(state->sensorlog, buf);
-	track_template_updatesensor(state->template, module, id, 0);
-}
-
-static void ui_reverse(int train, int t) {
-	a0state *state = get_state();
-	logdisplay_printf(state->log, "[%7d] reversed train %d", t, train);
-	logdisplay_flushline(state->log);
-}
-
-static void ui_switch(char no, char pos, int t) {
-	a0state *state = get_state();
-	track_template_updateswitch(state->template, no, pos);
-}
-
-static void ui_quit() {
-	a0state *state = get_state();
-	logstrip_printf(state->cmdlog, "quitting...");
-	uiserver_movecursor(state->id_ui, CONSOLE_CMD_LINE + 1, 1);
-	uiserver_force_refresh(state->id_ui);
-}
 
 /*
  * Server
  */
 
-static track ask_track() {
+static char ask_track() {
 	a0state *state = get_state();
 	uiserver_force_refresh(state->id_ui);
 	for (;;) {
@@ -113,9 +43,8 @@ static track ask_track() {
 		char c = Getc(COM2, WhoIs(NAME_IOSERVER_COM2));
 		switch (c) {
 			case 'a':
-				return TRACK_A;
 			case 'b':
-				return TRACK_B;
+				return c;
 			default:
 				uiserver_move(state->id_ui, 1, 1);
 				uiserver_printf(state->id_ui, "%-100s", "fail");
@@ -167,12 +96,11 @@ static void calib_stopdist() {
 			break;
 		case STOP_STOPPING:
 			if (cur_sensor == e8) {
-				logdisplay_printf(
-					state->log,
+				a0ui_on_logf(
+					state->a0ui,
 					"testing speed idx %d",
 					train_get_speedidx(train)
 				);
-				logdisplay_flushline(state->log);
 				engineer_set_speed(eng, train->no, 0);
 				engineer_set_switch(eng, 11, 's');
 				Delay(STOP_PAUSE, eng->tid_time);
@@ -226,20 +154,20 @@ static void jerk(track_node *sensor, int timestamp) {
 
 	switch (j.state) {
 		case 0: // get to v_i
-			logstrip_printf(state->cmdlog, "getting to v_i");
+			a0ui_on_cmdlog(state->a0ui, "getting to v_i");
 			engineer_set_speed(eng, 38, 8);
 			j.state = 1;
 			j.count = 0;
 			break;
 		case 1: // stabilize v_i
-			logstrip_printf(state->cmdlog, "stabilizing v_i");
+			a0ui_on_cmdlog(state->a0ui, "stabilizing v_i");
 			j.count++;
 			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
 				j.state = 2;
 			}
 			break;
 		case 2: // get to v_f
-			logstrip_printf(state->cmdlog, "getting to v_f");
+			a0ui_on_cmdlog(state->a0ui, "getting to v_f");
 			engineer_set_speed(eng, 38, 12);
 			j.state = 3;
 			j.count = 0;
@@ -250,21 +178,20 @@ static void jerk(track_node *sensor, int timestamp) {
 			j.start = sensor;
 			break;
 		case 3: // stabilize v_f
-			logstrip_printf(state->cmdlog, "stabilizing v_f");
+			a0ui_on_cmdlog(state->a0ui, "stabilizing v_f");
 			j.dx += dx;
 			j.dt += dt;
 			j.count++;
 			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
 				// "dx/dt = %d/%d from %s to %s, v_i = %d/%d, v_f = %d/%d"
-				logdisplay_printf(
-					state->log,
+				a0ui_on_logf(
+					state->a0ui,
 					"%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d",
 					j.start->name, sensor->name,
 					j.dx, j.dt,
 					j.v_i_x, j.v_i_t,
 					dx, dt
 				);
-				logdisplay_flushline(state->log);
 				j.state = 0;
 			}
 			break;
@@ -284,10 +211,11 @@ static void init_v_avg() {
 	app_v_avg_state.dt = 0;
 }
 
-static void get_v_avg() {
-	a0state *state = get_state();
+static void get_v_avg(void *vstate, void* unused) {
+	(void*)unused;
+	a0state *state = vstate;
 	engineer *eng = state->eng;
-	train *train = engineer_get_train(eng, 39);
+	train *train = engineer_get_train(eng, 35);
 
 	track_node *last_sensor = app_v_avg_state.last_sensor;
 	app_v_avg_state.last_sensor = state->cur_sensor;
@@ -307,8 +235,8 @@ static void get_v_avg() {
 	app_v_avg_state.dx += dx;
 	app_v_avg_state.dt += dt;
 
-	logdisplay_printf(
-		state->log,
+	a0ui_on_logf(
+		state->a0ui,
 		"[%7d] %s to %s is {%d} %d / %d (%f) [%d / %d (%f)]",
 		t_sensor,
 		last_sensor->name, sensor->name,
@@ -318,14 +246,13 @@ static void get_v_avg() {
 		dx, dt,
 		((float) dx) / dt
 	);
-	logdisplay_flushline(state->log);
 }
 
 static void handle_sensor(msg_sensor *msg) {
 	a0state *state = get_state();
 
 	engineer_onsensor(state->eng, msg);
-	ui_sensor(msg->module[0], msg->id, msg->state);
+	a0ui_on_sensor(state->a0ui, msg->module[0], msg->id, msg->state);
 
 	// logdisplay_printf(
 	// 	state->log,
@@ -341,63 +268,7 @@ static void handle_sensor(msg_sensor *msg) {
 	state->cur_sensor = sensor;
 
 	// jerk(state, sensor, m->timestamp);
-	dumbbus_dispatch(state->sensor_bus, state);
-}
-
-static void printstuff(engineer *eng, int train_no, logstrip *train1info[]) {
-	train *train = engineer_get_train(eng, train_no);
-	location loc = train_get_frontloc(train);
-
-	char *direction_str;
-	switch (train_get_dir(train)) {
-		case TRAIN_FORWARD:
-			direction_str = ">";
-			break;
-		case TRAIN_BACKWARD:
-			direction_str = "<";
-			break;
-		default:
-			direction_str = "?";
-			break;
-	}
-
-	location dest = train->destination;
-
-	logstrip_printf(train1info[0],
-		"train %d at %L heading %s at %dmm/s (%dmm/s^2 -> %dmm/s^2) to %L",
-		train_no,
-		&loc,
-		direction_str,
-		(int) (train_get_velocity(train) * 1000),
-		(int) (train->a_i * 1000 * 1000),
-		(int) (train->a * 1000 * 1000),
-		&dest
-	);
-
-	char msg[512];
-	char *b;
-
-	b = msg;
-	b += sprintf(b, "\tres:");
-	for (int i = 0; i < train->reservation->len; i++) {
-		track_edge *edge = train->reservation->edges[i];
-		b += sprintf(b, " %s-%s", edge->src->name, edge->dest->name);
-	}
-	logstrip_printf(train1info[1], msg);
-
-	b = msg;
-	b += sprintf(b, "\talt:");
-	for (int i = 0; i < train->reservation_alt->len; i++) {
-		track_edge *edge = train->reservation->edges[i];
-		b += sprintf(b, " %s-%s", edge->src->name, edge->dest->name);
-	}
-	logstrip_printf(train1info[2], msg);
-}
-
-static void printloc() {
-	a0state *state = get_state();
-	printstuff(state->eng, 37, state->train1info);
-	printstuff(state->eng, 38, state->train2info);
+	dumbbus_dispatch(state->sensor_bus, state, NULL);
 }
 
 static void handle_setup_demotrack() {
@@ -432,12 +303,42 @@ static void handle_set_dest(int train_no, char *type, int id, int dist_cm) {
 	train_set_dest(train, &loc_dest);
 	char name_dest[32];
 	location_tostring(&loc_dest, name_dest);
-	logstrip_printf(state->cmdlog, "Set train %d to go to %s", train_no, name_dest);
+	a0ui_on_cmdlogf(state->a0ui, "Set train %d to go to %s", train_no, name_dest);
 }
 
-static void tick_engineer() {
-	engineer_ontick(get_state()->eng);
+// over must be in mm
+static void handle_train_stopper_setup(int train_no, char *type, int id, int over) {
+	a0state *state = get_state();
+	engineer *eng = state->eng;
+	ASSERTNOTNULL(type);
+	ASSERT(over >= 0, "dist negative: %d", over);
+
+	track_node *loc_dest = engineer_get_tracknode(eng, type, id);
+	if (!loc_dest) {
+		a0ui_on_cmdlogf(state->a0ui, "Sorry. Landmark %s%d does not exist.", type, id);
+		return;
+	}
+
+	location dest = location_fromnode(loc_dest, 0);
+	location_add(&dest, over);
+	if (location_isundef(&dest)) {
+		a0ui_on_cmdlogf(state->a0ui,
+			"Sorry. Location %s+%dmm is invalid.",
+			loc_dest->name,
+			over
+		);
+		return;
+	}
+
+	train_stopper_setup(state->simbus, engineer_get_train(eng, train_no), &dest);
+	a0ui_on_cmdlogf(state->a0ui,
+		"working on stopping train %d at %s+%dmm",
+		train_no,
+		loc_dest->name,
+		over
+	);
 }
+
 
 #define ACCEPT(a) { \
 	if (*c++ != a) { \
@@ -452,12 +353,13 @@ static void tick_engineer() {
 	} \
 }
 
-static void handle_command(char *cmd, int size) {
-	a0state *state = get_state();
+
+static void handle_command(void* vthis, char *cmd, int size) {
+	a0state *state = vthis;
 	engineer *eng = state->eng;
 	char *errmsg = NULL;
 	char *c = cmd;
-	cmdline_clear(state->cmdline);
+	a0ui_on_cmdreset(state->a0ui);
 
 	if (!size) goto badcmd;
 
@@ -556,7 +458,7 @@ static void handle_command(char *cmd, int size) {
 				ACCEPT(' ');
 				int dist_cm = strgetui(&c);
 				ACCEPT('\0');
-				train_stopper_setup(train, type, id, 10 * dist_cm);
+				handle_train_stopper_setup(train, type, id, 10 * dist_cm);
 			} else if (*c == 'w') { // set switch position (sw #+ [cCsS])
 				ACCEPT('w');
 				ACCEPT(' ');
@@ -601,9 +503,9 @@ static void handle_command(char *cmd, int size) {
 
 	badcmd:
 	if (errmsg) {
-		logstrip_printf(state->cmdlog, "bad command: \"%s\", %s", cmd, errmsg);
+		a0ui_on_cmdlogf(state->a0ui, "bad command: \"%s\", %s", cmd, errmsg);
 	} else {
-		logstrip_printf(state->cmdlog, "bad command: \"%s\"", cmd);
+		a0ui_on_cmdlogf(state->a0ui, "bad command: \"%s\"", cmd);
 	}
 
 }
@@ -612,22 +514,18 @@ static void handle_comin(msg_comin *comin) {
 	a0state *state = get_state();
 	ASSERT(comin->channel == COM2, "no handler for channel %d", comin->channel);
 	if (comin->c == '=') {
-		logdisplay_printf(state->log, "[%7d]", Time(state->tid_time));
-		logdisplay_flushline(state->log);
+		a0ui_on_cmdlogf(state->a0ui, "[%7d]", Time(state->tid_time));
 		return;
 	}
-	cmdline_handleinput(state->cmdline, comin->c);
+	a0ui_on_key_input(state->a0ui, comin->c, state);
 }
 
 static void handle_time(msg_time *time, int tid) {
 	a0state *state = get_state();
-	state->timestamp = time->timestamp;
 	if (tid == state->tid_refresh) {
-		dumbbus_dispatch(state->bus10hz, state);
+		dumbbus_dispatch(state->bus10hz, state->a0ui, (void*)time->timestamp);
 	} else if (tid == state->tid_simstep) {
-		dumbbus_dispatch(state->simbus, state);
-	} else if (tid == state->tid_printloc) {
-		dumbbus_dispatch(state->printlocbus, state);
+		dumbbus_dispatch(state->simbus, state->eng, state);
 	} else {
 		ASSERT(0, "time message from unknown task");
 	}
@@ -642,15 +540,14 @@ static void handle_traincmdmsgreceipt(traincmd_receipt *rcpt) {
 			case SPEED: {
 				int train_no = cmd->arg1;
 				int speed = cmd->arg2;
-				logdisplay_printf(state->log, "[%7d] set speed of train %d to %d, lag %dms", t, train_no, speed, t - cmd->timestamp);
-				logdisplay_flushline(state->log);
+				a0ui_on_logf(state->a0ui, "[%7d] set speed of train %d to %d, lag %dms", t, train_no, speed, t - cmd->timestamp);
 				engineer_on_set_speed(eng, train_no, speed, t);
 				break;
 			}
 			case REVERSE:
 			case REVERSE_UI: {
 				int train_no = cmd->arg1;
-				ui_reverse(train_no, t);
+				a0ui_on_reverse(state->a0ui, train_no, t);
 				engineer_on_reverse(eng, train_no, t);
 				break;
 			}
@@ -658,9 +555,8 @@ static void handle_traincmdmsgreceipt(traincmd_receipt *rcpt) {
 				char no = cmd->arg1;
 				char pos = cmd->arg2;
 				engineer_on_set_switch(eng, no, pos, t);
-				ui_switch(no, pos, t);
-				logdisplay_printf(state->log, "[%7d] switched switch %d to %c, lag %dms", t, no, pos, t - cmd->timestamp);
-				logdisplay_flushline(state->log);
+				a0ui_on_switch(state->a0ui, no, pos, t);
+				a0ui_on_logf(state->a0ui, "[%7d] switched switch %d to %c, lag %dms", t, no, pos, t - cmd->timestamp);
 				break;
 			}
 			case SOLENOID: {
@@ -692,7 +588,7 @@ static void handle_traincmdmsgreceipt(traincmd_receipt *rcpt) {
 void a0_destroy() {
 	a0state *state = get_state();
 	engineer_destroy(state->eng);
-	ui_quit(state);
+	a0ui_on_quit(state->a0ui);
 	ExitKernel(0);
 }
 
@@ -707,43 +603,25 @@ void a0() {
 	// ui
 	uiserver_new();
 	state->id_ui = uiserver_register();
-	track track = ask_track(&state);
-	state->template = track_template_new(track);
-	state->cmdlog = logstrip_new(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, 100);
-	state->cmdline = cmdline_new(CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command);
-	state->sensorlog = logstrip_new(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, 100);
-	state->log = logdisplay_new(CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
-	state->timedisplay = timedisplay_new(1, 1);
-	state->train1info[0] = logstrip_new(2, 56 + 2, 100);
-	state->train1info[1] = logstrip_new(3, 56 + 2, 100);
-	state->train1info[2] = logstrip_new(4, 56 + 2, 100);
-	state->train2info[0] = logstrip_new(5, 56 + 2, 100);
-	state->train2info[1] = logstrip_new(6, 56 + 2, 100);
-	state->train2info[2] = logstrip_new(7, 56 + 2, 100);
-
-
+	char track = ask_track(&state);
+	state->a0ui = a0ui_new(handle_command, track);
 	// sensor bus
 	state->sensor_bus = dumbbus_new();
 	// init_csdstate();
 	// dumbbus_register(state->sensor_bus, &calib_stopdist);
-	// init_v_avg();
-	// dumbbus_register(state->sensor_bus, &get_v_avg);
+	 init_v_avg();
+	 dumbbus_register(state->sensor_bus, &get_v_avg);
 
 	// time bus
 	state->bus10hz = dumbbus_new();
-	dumbbus_register(state->bus10hz, &ui_time);
-	state->printlocbus = dumbbus_new();
-	dumbbus_register(state->printlocbus, &printloc);
-
+	dumbbus_register(state->bus10hz, a0ui_on_time);
 	state->simbus = dumbbus_new();
-	dumbbus_register(state->simbus, &tick_engineer);
+	dumbbus_register(state->simbus, engineer_ontick);
 
-	state->eng = engineer_new(track == TRACK_A ? 'a' : 'b');
+	state->eng = engineer_new(track, state->a0ui);
 	state->last_sensor = NULL;
 
 	calibrator_init();
-
-	ui_init(&state);
 
 	sensorserver_new();
 	publisher_sub(WhoIs(NAME_SENSORPUB), mytid);
@@ -755,10 +633,6 @@ void a0() {
 	int tid_refreshbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_refreshbuffer, 9, MS2TICK(100));
 	state->tid_refresh = courier_new(9, tid_refreshbuffer, mytid, sizeof(msg_time), NULL);
-
-	int tid_printlocbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
-	timenotifier_new(tid_printlocbuffer, 9, MS2TICK(20));
-	state->tid_printloc = courier_new(9, tid_printlocbuffer, mytid, sizeof(msg_time), NULL);
 
 	int tid_simstepbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(20));

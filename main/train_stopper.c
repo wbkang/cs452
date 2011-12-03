@@ -11,8 +11,15 @@ struct {
 	location loc_dest;
 } ts_state;
 
+void train_stopper_setup(dumbbus *simbus, train *train, location *dest) {
+	ts_state.train = train;
+	ts_state.loc_dest = *dest;
+	dumbbus_register(simbus, train_stopper_on_tick);
+}
+
 // @TODO: logging should be handled better
-static void ontick() {
+void train_stopper_on_tick(void *vengineer, void *va0) {
+	a0state *a0state = va0;
 	train *train = ts_state.train;
 	if (train_is_lost(train)) return;
 
@@ -22,43 +29,8 @@ static void ontick() {
 
 	if (location_dist_dir(&loc_train, loc_dest) > stop_dist) return;
 
-	a0state *state = get_state();
-	engineer_set_speed(state->eng, train->no, 0);
-	dumbbus_unregister(state->simbus, ontick);
-	logstrip_printf(state->cmdlog, "stopping train %d", train->no);
+	engineer_set_speed(a0state->eng, train->no, 0);
+	dumbbus_unregister(a0state->simbus, train_stopper_on_tick);
+	a0ui_on_cmdlogf(a0state->a0ui, "stopping train %d", train->no);
 }
 
-// over must be in mm
-void train_stopper_setup(int train_no, char *type, int id, int over) {
-	a0state *state = get_state();
-	engineer *eng = state->eng;
-	ASSERTNOTNULL(type);
-	ASSERT(over >= 0, "dist negative: %d", over);
-
-	track_node *loc_dest = engineer_get_tracknode(eng, type, id);
-	if (!loc_dest) {
-		logstrip_printf(state->cmdlog, "Sorry. Landmark %s%d does not exist.", type, id);
-		return;
-	}
-
-	ts_state.train = engineer_get_train(eng, train_no);
-	ts_state.loc_dest = location_fromnode(loc_dest, 0);
-	location_add(&ts_state.loc_dest, over);
-
-	if (location_isundef(&ts_state.loc_dest)) {
-		logstrip_printf(state->cmdlog,
-			"Sorry. Location %s+%dmm is invalid.",
-			loc_dest->name,
-			over
-		);
-		return;
-	}
-
-	dumbbus_register(state->simbus, ontick);
-	logstrip_printf(state->cmdlog,
-		"working on stopping train %d at %s+%dmm",
-		train_no,
-		loc_dest->name,
-		over
-	);
-}

@@ -11,8 +11,6 @@ void uiserver();
 void uidrawserver();
 int uiserver_new();
 ui_id uiserver_register();
-ui_id uiserver_register_blocking();
-ui_id uiserver_register_with_tid(int tid);
 
 void uiserver_effect(ui_id id, int flag, int color);
 void uiserver_out(ui_id id, char *out);

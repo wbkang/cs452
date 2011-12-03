@@ -8,7 +8,7 @@
 #include <track_reservation.h>
 #include <lookup.h>
 #include <server/traincmdbuffer.h>
-#include <ui/logdisplay.h>
+#include <ui/a0ui.h>
 #include <gps.h>
 
 // train controller commands
@@ -203,7 +203,7 @@ int train_get_pickup2frontdist(train *this);
 float train_simulate_dx(train *this, int t_i, int t_f);
 void train_update_simulation(train *this, int t_f);
 void train_set_dest(train *this, location *dest);
-void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick, struct gps *gps);
+void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui, int tick, struct gps *gps);
 int train_get_reverse_cost(train *this, int dist, track_node *node);
 int train_get_train_length(train *this);
 

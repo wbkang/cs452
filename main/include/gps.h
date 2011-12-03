@@ -4,7 +4,7 @@
 #include <location.h>
 #include <heap.h>
 #include <track_node.h>
-#include <ui/logdisplay.h>
+#include <ui/a0ui.h>
 
 struct train;
 
@@ -28,6 +28,6 @@ void gps_findpath(gps *this,
 		int maxlen,
 		trainvcmd *rv_vcmd,
 		int *rv_len,
-		logdisplay *log);
+		a0ui *a0ui);
 //void gps_test(gps *this, engineer *eng);
 int vcmd2str(char *buf, trainvcmd *vcmd);
