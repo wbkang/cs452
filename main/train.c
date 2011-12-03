@@ -55,6 +55,8 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->st[0] = -16.8209;
 			cal->st[1] = 6319.19;
 
+			cal->st_mul = 1;
+
 			return TRUE;
 		}
 		case 38: {
@@ -108,6 +110,8 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->st[3] = 97199.5;
 			cal->st[4] = -58996.2;
 
+			cal->st_mul = 1;
+
 			return TRUE;
 		}
 		case 39: {
@@ -160,6 +164,8 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->st[2] = -35413.6;
 			cal->st[3] = 26220.9;
 
+			cal->st_mul = 1;
+
 			return TRUE;
 		}
 		default:
@@ -177,8 +183,8 @@ int train_init(train *this, int no) {
 	this->v_i = 0;
 	this->v_f = 0;
 
-	this->a10k = 0;
-	this->a_i10k = 0;
+	this->a = 0;
+	this->a_i = 0;
 	this->st = 0;
 
 	this->last_speed = 0;
@@ -237,15 +243,11 @@ int train_is_moving(train *this) {
 int train_get_stopdist(train *this) {
 	// if (this->v == this->v_f) {
 	// 	float v = train_get_velocity(this);
-	// 	int dist = fixed_mul(this->cal.stopm * v) + this->cal.stopb);
-	// 	if (dist < 0) return 0;
-	// 	return dist;
-	// } else {
-	// 	float st = train_st(&this->cal, this->v, 0);
-	// 	return this->v * st / 2;
+	// 	int dist = this->cal.stopm * v + this->cal.stopb;
+	// 	return max(0, dist);
 	// }
 	float st = train_st(&this->cal, this->v, 0);
-	return st * this->v / 2;
+	return (this->v / 2) * st + (this->a / 2) * st * st;
 }
 
 int train_get_speed(train *this) {
@@ -269,7 +271,8 @@ void train_set_speed(train *this, int speed, int t) {
 	this->v_i = train_get_velocity(this);
 	this->v_f = train_get_cruising_velocity(this);
 
-	this->a_i10k = this->a10k;
+	this->a_i = this->a;
+	// a_f = 0
 
 	this->st = train_st(&this->cal, this->v_i, this->v_f);
 }
@@ -393,31 +396,36 @@ float train_simulate_dx(train *this, int t_i, int t_f) {
 }
 
 float train_st(train_cal *cal, float v_i, float v_f) {
-	float dv = fabs(v_f - v_i);
-
 	float rv = 0;
-	for (int i = 0; i <= cal->st_order; i++) {
-		float tmp = cal->st[i];
-		for (int j = 0; j < i; j++) {
-			tmp *= dv;
-		}
-		rv += tmp;
+
+	float dv = fabs(v_f - v_i);
+	float dvn = 1; // dv^n
+
+	for (int n = 0; n <= cal->st_order; n++) {
+		rv += cal->st[n] * dvn;
+		dvn *= dv;
+	}
+
+	if (v_i < v_f) {
+		rv *= cal->st_mul;
 	}
 
 	return rv;
 }
 
-static void train_update_pos(train *this, int t_f) {
-	float const margin = 0.0001;
+static void train_update_state(train *this, int t_f) {
+	float const margin = 0.001;
 	if (fabs(this->v - this->v_f) > margin) {
 		float dv = this->v_f - this->v_i;
+		float dt = this->st;
 		float t = t_f - train_get_tspeed(this);
-		float tau = t / this->st;
+		float tau = t / dt;
 		float tau2 = tau * tau;
 		this->v = this->v_i + dv * tau2 * (3 - 2 * tau);
+		this->a = this->a_i + 6 * (dv / dt) * tau * (1 - tau);
 	} else {
 		this->v = this->v_f;
-		this->a10k = 0;
+		this->a = 0;
 	}
 	float fdt = t_f - train_get_tsim(this);
 	if (!train_is_lost(this) && train_is_moving(this)) {
@@ -432,7 +440,7 @@ static void train_update_pos(train *this, int t_f) {
 void train_update_simulation(train *this, int t_f) {
 	int t_i = train_get_tsim(this);
 	for (int t = t_i; t <= t_f; t++) {
-		train_update_pos(this, t);
+		train_update_state(this, t);
 	}
 }
 

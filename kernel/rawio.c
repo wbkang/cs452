@@ -76,7 +76,7 @@ static char bwa2i(char ch, char **src, int base, int *nump) { // only for bwform
 void bwformat(int channel, char *fmt, va_list va) {
 	ASSERT((uint)va < 0x2000000, "va misaligned: %x", va);
 	CHECK_COM(channel);
-	char bf[32 + 1];
+	char bf[64];
 	char ch, lz;
 	int w;
 	while ((ch = *(fmt++))) {
