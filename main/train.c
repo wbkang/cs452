@@ -403,15 +403,27 @@ float train_st(train_cal *cal, float v_i, float v_f) {
 }
 
 static void train_update_state(train *this, int t_f) {
-	float const margin = 0.001;
+	const float const margin = 0.001;
 	if (fabs(this->v - this->v_f) > margin) {
 		float dv = this->v_f - this->v_i;
 		float dt = this->st;
 		float t = t_f - train_get_tspeed(this);
 		float tau = t / dt;
 		float tau2 = tau * tau;
-		this->v = this->v_i + dv * tau2 * (3 - 2 * tau);
-		this->a = this->a_i + 6 * (dv / dt) * tau * (1 - tau);
+		float tau3 = tau * tau2;
+		// float tau4 = tau * tau3;
+
+		// a_i=a_f=0
+		// this->v = this->v_i + dv * (3 - 2 * tau) * tau * tau;
+		// this->a = this->a_i + 6 * (dv / dt) * tau * (1 - tau);
+
+		// j_i=j_f=0
+		this->v = this->v_i + dv * (10 - 15 * tau + 6 * tau2) * tau3;
+		this->a = this->a_i + 30 * (dv / dt) * fpow(tau * (1 - tau), 2);
+
+		// s_i=s_f=0
+		// this->v = this->v_i + dv * (35 - 84 * tau + 70 * tau2 - 20 * tau3) * tau4;
+		// this->a = this->a_i + 140 * (dv / dt) * fpow(tau * (1 - tau), 3);
 	} else {
 		this->v = this->v_f;
 		this->a = 0;
