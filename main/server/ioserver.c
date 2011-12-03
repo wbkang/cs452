@@ -273,7 +273,7 @@ int ioserver_create(int channel, int fifo, int speed, int stopbits, int databits
 	args.stopbits = stopbits;
 	args.databits = databits;
 	args.parity = parity;
-	int tid = Create(PRIORITY_IOSERVER, &ioserver);
+	int tid = Create(PRIORITY_IOSERVER, ioserver);
 	if (tid < 0) return tid;
 	int rv;
 	int len = Send(tid, &args, sizeof args, &rv, sizeof rv);

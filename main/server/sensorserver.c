@@ -81,7 +81,7 @@ void sensorserver() {
 	this.msg.type = MSG_SENSOR;
 	this.msg.module[1] = '\0';
 
-	int size_msg = max(sizeof(msg_comin), sizeof(traincmd));
+	int size_msg = max(sizeof(msg_comin), sizeof(traincmd_receipt));
 	void* msg = malloc(size_msg);
 
 	train_querysenmods(TRAIN_NUM_MODULES, this.tid_traincmdbuf); // initial query
@@ -99,6 +99,7 @@ void sensorserver() {
 				handle_traincmdmsgreceipt(&this, msg);
 				break;
 			default:
+				ASSERT(0, "sensorserver unknown msg type:%d tid:%d", header->type, tid);
 				break;
 		}
 	}

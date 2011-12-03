@@ -21,7 +21,7 @@ typedef struct _tag_timeserver_state {
 
 static inline void timeserver_do_tick(timeserver_state *state, int tid_notifier) {
 	VMEM(TIMER1_BASE + CLR_OFFSET) = 1; // clear interrupt source
-	ReplyInt(tid_notifier, 0); // unblock notifier
+	Reply(tid_notifier, NULL, 0); // unblock notifier
 	state->time++;
 	while (!heap_empty(state->tasks) && heap_peekkey(state->tasks) <= state->time) {
 		int tid = (int) heap_min_extract(state->tasks);
@@ -70,18 +70,18 @@ void timeserver() {
 			timeserver_do_tick(&state, tid);
 		} else if (msglen == sizeof(req)) {
 			switch (req.no) {
-				case TIMESERVER_TIME:
-					timeserver_do_time(&state, tid);
-					break;
-				case TIMESERVER_DELAYUNTIL:
-					timeserver_do_delayuntil(&state, tid, req.ticks);
-					break;
-				case TIMESERVER_DELAY:
-					timeserver_do_delay(&state, tid, req.ticks);
-					break;
-				default:
-					ASSERT(FALSE, "bad reqno");
-					ReplyInt(tid, TIMESERVER_ERROR_BADREQNO);
+			case TIMESERVER_TIME:
+				timeserver_do_time(&state, tid);
+				break;
+			case TIMESERVER_DELAYUNTIL:
+				timeserver_do_delayuntil(&state, tid, req.ticks);
+				break;
+			case TIMESERVER_DELAY:
+				timeserver_do_delay(&state, tid, req.ticks);
+				break;
+			default:
+				ASSERT(FALSE, "bad reqno");
+				ReplyInt(tid, TIMESERVER_ERROR_BADREQNO);
 			}
 		} else {
 			ASSERT(FALSE, "bad data");
@@ -93,7 +93,8 @@ void timeserver() {
 static inline int timeserver_send(timeserver_req *req, int server) {
 	int rv;
 	int len = Send(server, req, sizeof(timeserver_req), &rv, sizeof rv);
-	if (len != sizeof rv) return TIMESERVER_ERROR_BADDATA;
+	if (len != sizeof rv)
+		return TIMESERVER_ERROR_BADDATA;
 	return rv;
 }
 

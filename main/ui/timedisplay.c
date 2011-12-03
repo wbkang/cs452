@@ -1,18 +1,16 @@
 #include <ui/timedisplay.h>
 #include <syscall.h>
 #include <uconst.h>
+#include <server/uiserver.h>
+#include <ui/logstrip.h>
 
-timedisplay *timedisplay_new(console *con, int line, int col) {
-	timedisplay *td = malloc(sizeof(timedisplay));
-	td->con = con;
-	td->line = line;
-	td->col = col;
-	return td;
+timedisplay *timedisplay_new(int line, int col) {
+	timedisplay *time = malloc(sizeof(timedisplay));
+	time->logstrip = logstrip_new(line, col, 20);
+	return time;
 }
 
 void timedisplay_update(timedisplay* time, int ticks) {
-	console_move(time->con, time->line, time->col);
 	int ms = TICK2MS(ticks);
-	console_printf(time->con, "%d.%d%-10s", ms / 1000, (ms / 100) % 10, "s");
-	console_flush(time->con);
+	logstrip_printf(time->logstrip, "Uptime: %d.%ds", ms / 1000, (ms / 100) % 10)
 }
