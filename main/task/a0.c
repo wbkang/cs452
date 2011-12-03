@@ -215,7 +215,7 @@ static void get_v_avg(void *vstate, void* unused) {
 	(void*)unused;
 	a0state *state = vstate;
 	engineer *eng = state->eng;
-	train *train = engineer_get_train(eng, 35);
+	train *train = engineer_get_train(eng, 21);
 
 	track_node *last_sensor = app_v_avg_state.last_sensor;
 	app_v_avg_state.last_sensor = state->cur_sensor;
