@@ -227,7 +227,7 @@ static void print_track_picture(char const *picture) {
 	int color = 0;
 	int line = 1;
 
-	ui_id id_ui = uiserver_register_blocking();
+	ui_id id_ui = uiserver_register();
 	uiserver_move(id_ui, 1, 1);
 
 	do {

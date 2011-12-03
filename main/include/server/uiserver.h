@@ -8,6 +8,7 @@ typedef struct ui_id {
 } ui_id;
 
 void uiserver();
+void uidrawserver();
 int uiserver_new();
 ui_id uiserver_register();
 ui_id uiserver_register_blocking();

@@ -27,5 +27,5 @@ void task1() {
 //		prog = find_func_addr(buf);
 //	} while (prog == NULL);
 	prog = a0;
-	Create(MIN_PRIORITY + 1, prog);
+	Create(PRIORITY_APP, prog);
 }
