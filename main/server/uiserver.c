@@ -47,7 +47,7 @@ static void handle_refresh(uiserver_state *state);
 static void handle_force_refresh(uiserver_state *state);
 
 void uiserver() {
-	RegisterAs(NAME_UISERVER_S);
+	RegisterAs(NAME_UISERVER);
 	uiserver_state state;
 	state.con = console_new(COM2);
 	int tid_time = timenotifier_new(MyTid(), PRIORITY_UISERVER, MS2TICK(17)); // 60fps
@@ -131,7 +131,6 @@ static void handle_refresh(uiserver_state *state) {
 	}
 	state->changed = FALSE;
 	console_flush(state->con);
-	console_flushcom(state->con);
 }
 
 static void handle_uiout(uiserver_state *state, msg_ui *uimsg) {
@@ -232,16 +231,12 @@ static void handle_uimsg(uiserver_state *state, void* msg) {
 }
 
 int uiserver_new() {
-	int tid_server = Create(PRIORITY_UISERVER, uiserver);
-	ASSERT(tid_server >= 0, "failed to create ui server");
-	int tid_buf = buffertask_new(NAME_UISERVER, PRIORITY_UISERVER, MAX_UIMSGSIZE);
-	ASSERT(tid_buf >= 0, "failed to create ui buffer");
-	courier_new(PRIORITY_UISERVER, tid_buf, tid_server, MAX_UIMSGSIZE, NAME_UISERVER_C);
-	return tid_buf;
+	return Create(PRIORITY_UISERVER, uiserver);
 }
 
-ui_id uiserver_register_with_tid(int tid) {
+ui_id uiserver_register() {
 	msg_ui uimsg;
+	int tid = WhoIs(NAME_UISERVER);
 	uimsg.type = MSG_UI;
 	uimsg.uimsg = UIMSG_REGISTER;
 	uimsg.id = MyTid();
@@ -257,14 +252,6 @@ ui_id uiserver_register_with_tid(int tid) {
 	result.tid = tid;
 	result.id = id;
 	return result;
-}
-
-ui_id uiserver_register_blocking() {
-	return uiserver_register_with_tid(WhoIs(NAME_UISERVER_S));
-}
-
-ui_id uiserver_register() {
-	return uiserver_register_with_tid(WhoIs(NAME_UISERVER));
 }
 
 
