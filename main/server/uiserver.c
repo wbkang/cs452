@@ -216,7 +216,6 @@ static void handle_uimsg(uiserver_state *state, void* msg) {
 			break;
 		}
 		case UIMSG_FORCE_REFRESH: {
-			ASSERT(uimsg->id < state->client_count, "invalid id: %d, clientcount:%d", uimsg->id, state->client_count);
 			handle_force_refresh(state);
 			break;
 		}
@@ -236,12 +235,11 @@ int uiserver_new() {
 	return tid_buf;
 }
 
-ui_id uiserver_register() {
+ui_id uiserver_register_with_tid(int tid) {
 	msg_ui uimsg;
 	uimsg.type = MSG_UI;
 	uimsg.uimsg = UIMSG_REGISTER;
 	uimsg.id = MyTid();
-	int tid = WhoIs(NAME_UISERVER);
 	int rv = Send(tid, &uimsg, sizeof(uimsg), NULL, 0);
 	ASSERT(rv >= 0, "send failed: rv:%d", rv);
 	int tid_recv;
@@ -254,6 +252,14 @@ ui_id uiserver_register() {
 	result.tid = tid;
 	result.id = id;
 	return result;
+}
+
+ui_id uiserver_register_blocking() {
+	return uiserver_register_with_tid(WhoIs(NAME_UISERVER_S));
+}
+
+ui_id uiserver_register() {
+	return uiserver_register_with_tid(WhoIs(NAME_UISERVER));
 }
 
 
@@ -315,3 +321,5 @@ void uiserver_force_refresh(ui_id id) {
 	int rv = Send(id.tid, &uimsg, sizeof(uimsg), NULL, 0);
 	ASSERT(rv >= 0, "send failed");
 }
+
+

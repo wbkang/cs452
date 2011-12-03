@@ -10,6 +10,9 @@ typedef struct ui_id {
 void uiserver();
 int uiserver_new();
 ui_id uiserver_register();
+ui_id uiserver_register_blocking();
+ui_id uiserver_register_with_tid(int tid);
+
 void uiserver_effect(ui_id id, int flag, int color);
 void uiserver_out(ui_id id, char *out);
 void uiserver_move(ui_id id, int line, int col);
@@ -17,10 +20,10 @@ void uiserver_movecursor(ui_id id, int line, int col);
 void uiserver_force_refresh(ui_id id);
 
 #define uiserver_printf(id, ...) { \
-	char buf[1024]; \
+	char __buf[1024]; \
 	ASSERT(MEMCHECK(), "shit!"); \
-	sprintf(buf, __VA_ARGS__); \
-	uiserver_out(id, buf); \
+	sprintf(__buf, __VA_ARGS__); \
+	uiserver_out(id, __buf); \
 }
 
 #define UIEFFECT_BRIGHT (1 << 0)
