@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <console.h>
 #include <lookup.h>
-#include <fixed.h>
 #include <dumbbus.h>
 #include <server/sensorserver.h>
 #include <server/comnotifier.h>
@@ -317,14 +316,14 @@ static void get_v_avg() {
 
 	logdisplay_printf(
 		state->log,
-		"[%7d] %s to %s is {%d} %d / %d (%F) [%d / %d (%F)]",
+		"[%7d] %s to %s is {%d} %d / %d (%f) [%d / %d (%f)]",
 		t_sensor,
 		last_sensor->name, sensor->name,
 		train_get_speedidx(train),
 		app_v_avg_state.dx, app_v_avg_state.dt,
-		fixed_div(fixed_new(10000 * app_v_avg_state.dx / app_v_avg_state.dt), fixed_new(10000)),
+		((float) app_v_avg_state.dx) / app_v_avg_state.dt,
 		dx, dt,
-		fixed_div(fixed_new(10000 * dx / dt), fixed_new(10000))
+		((float) dx) / dt
 	);
 	logdisplay_flushline(state->log);
 }
@@ -376,9 +375,9 @@ static void printstuff(engineer *eng, int train_no, logstrip *train1info[]) {
 		train_no,
 		&loc,
 		direction_str,
-		fixed_int(fixed_mul(train_get_velocity(train), fixed_new(1000))),
-		fixed_int(fixed_mul(train->a_i10k, fixed_new(10))),
-		fixed_int(fixed_mul(train->a10k, fixed_new(10))),
+		(int) (train_get_velocity(train) * 1000),
+		(int) train->a_i10k / 10,
+		(int) train->a10k / 10,
 		&dest
 	);
 
@@ -436,7 +435,7 @@ static void handle_set_dest(int train_no, char *type, int id, int dist_cm) {
 	train *train = engineer_get_train(state->eng, train_no);
 	track_node *node_dest = engineer_get_tracknode(state->eng, type, id);
 	location loc_dest =	location_fromnode(node_dest, 0);
-	location_add(&loc_dest, fixed_new(dist_cm * 10));
+	location_add(&loc_dest, dist_cm * 10);
 	train_set_dest(train, &loc_dest);
 	char name_dest[32];
 	location_tostring(&loc_dest, name_dest);

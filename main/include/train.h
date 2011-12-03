@@ -1,6 +1,5 @@
 #pragma once
 
-#include <fixed.h>
 #include <syscall.h>
 #include <hardware.h>
 #include <uconst.h>
@@ -54,11 +53,11 @@ struct train_cal {
 	int len_pickup;
 	int dist2nose;
 	int dist2tail;
-	fixed stopm;
-	fixed stopb;
-	fixed v_avg[TRAIN_NUM_SPEED_IDX];
+	float stopm;
+	float stopb;
+	float v_avg[TRAIN_NUM_SPEED_IDX];
 	int st_order;
-	fixed st[5];
+	float st[5];
 };
 
 typedef struct train train;
@@ -69,14 +68,14 @@ struct train {
 
 	int no;
 	train_direction dir;
-	fixed v;
-	fixed v_i;
-	fixed v_f;
+	float v;
+	float v_i;
+	float v_f;
 
-	fixed a10k;
-	fixed a_i10k;
+	float a10k;
+	float a_i10k;
 
-	fixed st;
+	float st;
 
 	int speed;
 	int t_speed;
@@ -175,8 +174,8 @@ static inline void train_stop(int tid) {
 
 int train_init_cal(train_cal *cal, int train_no);
 int train_init(train *this, int no);
-fixed train_get_velocity(train *this);
-fixed train_get_cruising_velocity(train *this);
+float train_get_velocity(train *this);
+float train_get_cruising_velocity(train *this);
 int train_is_moving(train *this);
 int train_get_stopdist4speedidx(train *this, int speed_idx);
 int train_get_stopdist(train *this);
@@ -200,11 +199,11 @@ void train_set_tsim(train *this, int t_sim);
 int train_get_length(train *this);
 int train_get_poserr(train *this);
 int train_get_pickup2frontdist(train *this);
-fixed train_simulate_dx(train *this, int t_i, int t_f);
+float train_simulate_dx(train *this, int t_i, int t_f);
 void train_update_simulation(train *this, int t_f);
 void train_set_dest(train *this, location *dest);
 void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, logdisplay *log, int tick, struct gps *gps);
 int train_get_reverse_cost(train *this, int dist, track_node *node);
 int train_get_train_length(train *this);
 
-fixed train_st(train_cal *cal, fixed v_i, fixed v_f);
+float train_st(train_cal *cal, float v_i, float v_f);
