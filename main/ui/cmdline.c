@@ -1,23 +1,19 @@
 #include <ui/cmdline.h>
 #include <syscall.h>
+#include <server/uiserver.h>
 
 #define cmdline_putc(this, c) {\
-	console_move((this)->con, (this)->line, (this)->col + (this)->cmdidx); \
-	console_printf((this)->con, "%c", c); \
-	console_flush((this)->con); \
+	uiserver_move((this)->id_ui, (this)->line, (this)->col + (this)->cmdidx); \
+	uiserver_printf((this)->id_ui, "%c", c); \
 }
 
 static void cmdline_movecursor(cmdline *this) {
-	console_flush(this->con);
-	console_cursor_unsave(this->con);
-	console_move(this->con, this->line, this->col + this->cmdidx + 1);
-	console_cursor_save(this->con);
-	console_flush(this->con);
+	uiserver_movecursor(this->id_ui, this->line, this->col + this->cmdidx + 1);
 }
 
-cmdline *cmdline_new(console *con, int line, int col, cmdprocessor cmdproc) {
+cmdline *cmdline_new(int line, int col, cmdprocessor cmdproc) {
 	cmdline *this = malloc(sizeof(cmdline));
-	this->con = con;
+	this->id_ui = uiserver_register();
 	this->line = line;
 	this->col = col;
 	this->cmdidx = 0;
@@ -57,7 +53,8 @@ void cmdline_handleinput(cmdline *this, char c) {
 
 void cmdline_clear(cmdline *this) {
 	this->cmdidx = 0;
-	console_move(this->con, this->line, this->col);
-	console_erase_eol(this->con);
-	console_flush(this->con);
+	char fmt[10];
+	sprintf(fmt, "%%%ds", LEN_CMD);
+	uiserver_move(this->id_ui, this->line, this->col);
+	uiserver_printf(this->id_ui, fmt, "");
 }

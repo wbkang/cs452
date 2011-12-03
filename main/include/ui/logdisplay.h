@@ -1,10 +1,12 @@
 #pragma once
 #include <console.h>
 #include <stdio.h>
+#include <server/uiserver.h>
 
 #define MAX_LOG_COL 256
 
 typedef struct {
+	ui_id id_ui;
 	int line, col;
 	int totallines;
 	int totalcols;
@@ -12,12 +14,11 @@ typedef struct {
 	int curcol;
 	int topline;
 	enum { ROUNDROBIN, SCROLLING } rotation;
-	struct console *con;
 	char *title;
 	char *buf[];
 } logdisplay;
 
-logdisplay *logdisplay_new(console *con, int line, int col, int totallines, int totalcols, int rotation, char *title);
+logdisplay *logdisplay_new(int line, int col, int totallines, int totalcols, int rotation, char *title);
 void logdisplay_puts(logdisplay *this, char* str);
 void logdisplay_flushline(logdisplay *this);
 

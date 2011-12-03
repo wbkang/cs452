@@ -1,12 +1,11 @@
 #pragma once
-#include <console.h>
-
+#include <server/uiserver.h>
+#include <ui/logstrip.h>
 typedef struct timedisplay timedisplay;
 
 struct timedisplay {
-	console *con;
-	int line, col;
+	logstrip* logstrip;
 };
 
-timedisplay *timedisplay_new(console *con, int line, int col);
+timedisplay *timedisplay_new(int line, int col);
 void timedisplay_update(timedisplay* time, int ticks);

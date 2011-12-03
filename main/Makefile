@@ -7,7 +7,7 @@ XCC	= $(CCDIR)/gcc
 AS	= $(CCDIR)/as
 AR	= $(CCDIR)/ar
 LD  = $(CCDIR)/ld
-CFLAGS  = -g -fno-builtin -c -fPIC -Wall -I./include -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99 -O3 -fno-omit-frame-pointer
+CFLAGS  = -g -fno-builtin -c -fPIC -Wall -I./include -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99 -O2 -fno-omit-frame-pointer
 
 # -g: include hooks for gdb
 # -c: only compile
@@ -29,7 +29,7 @@ LDFLAGS = -init main -Map main.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/g
 OBJS= main.o test.o dumbbus.o train_calibrator.o train_stopper.o \
 server/sensorserver.o server/comnotifier.o server/traincmdbuffer.o \
 server/traincmdrunner.o server/timenotifier.o server/buffertask.o \
-server/timeserver.o server/ioserver.o server/eventnotifier.o \
+server/timeserver.o server/ioserver.o server/eventnotifier.o server/uiserver.o \
 track_data.o track_node.o console.o \
 task/calib_test.o task/task1.o task/k3clients.o task/a0.o task/perfmon.o \
 ui/logstrip.o ui/cmdline.o ui/logdisplay.o ui/a0_track_template.o ui/timedisplay.o \

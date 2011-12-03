@@ -18,6 +18,7 @@
 #include <train_calibrator.h>
 #include <train_stopper.h>
 #include <server/buffertask.h>
+#include <server/uiserver.h>
 #include <server/courier.h>
 #include <server/publisher.h>
 #include <track_node.h>
@@ -68,9 +69,6 @@ static void ui_sensor(char module, int id, int senstate) {
 	hist_mod[0] = module;
 	hist_id[0] = id;
 
-	console_move(state->con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
-	console_erase_eol(state->con);
-
 	int max_hist_idx = 0;
 	char buf[1024], *p = buf;
 	for (int i = 0; (i < LEN_SENSOR_HIST) && hist_mod[i]; i++) {
@@ -81,8 +79,6 @@ static void ui_sensor(char module, int id, int senstate) {
 		max_hist_idx = i;
 	}
 	logstrip_printf(state->sensorlog, buf);
-	console_flush(state->con);
-
 	track_template_updatesensor(state->template, module, id, 0);
 }
 
@@ -95,15 +91,13 @@ static void ui_reverse(int train, int t) {
 static void ui_switch(char no, char pos, int t) {
 	a0state *state = get_state();
 	track_template_updateswitch(state->template, no, pos);
-	console_flush(state->con);
 }
 
 static void ui_quit() {
 	a0state *state = get_state();
 	logstrip_printf(state->cmdlog, "quitting...");
-	console_move(state->con, CONSOLE_CMD_LINE + 1, 1);
-	console_flush(state->con);
-	console_flushcom(state->con);
+	uiserver_movecursor(state->id_ui, CONSOLE_CMD_LINE + 1, 1);
+	uiserver_force_refresh(state->id_ui);
 }
 
 /*
@@ -113,19 +107,17 @@ static void ui_quit() {
 static track ask_track() {
 	a0state *state = get_state();
 	for (;;) {
-		console_clear(state->con);
-		console_move(state->con, 1, 1);
-		console_printf(state->con, "Track a or b?\n");
-		console_flush(state->con);
-		char c = Getc(COM2, state->con->tid_console);
+		uiserver_move(state->id_ui, 1, 1);
+		uiserver_printf(state->id_ui, "Track a or b?\n");
+		char c = Getc(COM2, WhoIs(NAME_IOSERVER_COM2));
 		switch (c) {
 			case 'a':
 				return TRACK_A;
 			case 'b':
 				return TRACK_B;
 			default:
-				console_printf(state->con, "fail\n");
-				console_flush(state->con);
+				uiserver_move(state->id_ui, 1, 1);
+				uiserver_printf(state->id_ui, "%-100s" "fail");
 				break;
 		}
 	}
@@ -593,6 +585,11 @@ static void handle_command(char *cmd, int size) {
 			a0_destroy();
 			break;
 		}
+		case 'z': {
+			ACCEPT('\0');
+			uiserver_force_refresh(state->id_ui);
+			break;
+		}
 		default: {
 			goto badcmd;
 			break;
@@ -707,20 +704,22 @@ void a0() {
 	publisher_sub(tid_traincmdpub, mytid);
 
 	// ui
-	state->con = console_new(COM2);
+	uiserver_new();
+	state->id_ui = uiserver_register();
 	track track = ask_track(&state);
-	state->template = track_template_new(state->con, track);
-	state->cmdlog = logstrip_new(state->con, CONSOLE_LOG_LINE, CONSOLE_LOG_COL);
-	state->cmdline = cmdline_new(state->con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command);
-	state->sensorlog = logstrip_new(state->con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
-	state->log = logdisplay_new(state->con, CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
-	state->timedisplay = timedisplay_new(state->con, 1, 9);
-	state->train1info[0] = logstrip_new(state->con, 2, 56 + 2);
-	state->train1info[1] = logstrip_new(state->con, 3, 56 + 2);
-	state->train1info[2] = logstrip_new(state->con, 4, 56 + 2);
-	state->train2info[0] = logstrip_new(state->con, 5, 56 + 2);
-	state->train2info[1] = logstrip_new(state->con, 6, 56 + 2);
-	state->train2info[2] = logstrip_new(state->con, 7, 56 + 2);
+	state->template = track_template_new(track);
+	state->cmdlog = logstrip_new(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, 100);
+	state->cmdline = cmdline_new(CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command);
+	state->sensorlog = logstrip_new(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, 100);
+	state->log = logdisplay_new(CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
+	state->timedisplay = timedisplay_new(1, 1);
+        state->train1info[0] = logstrip_new(2, 56 + 2);
+	state->train1info[1] = logstrip_new(3, 56 + 2);
+	state->train1info[2] = logstrip_new(4, 56 + 2);
+	state->train2info[0] = logstrip_new(5, 56 + 2);
+	state->train2info[1] = logstrip_new(6, 56 + 2);
+	state->train2info[2] = logstrip_new(7, 56 + 2);
+
 
 	// sensor bus
 	state->sensor_bus = dumbbus_new();
@@ -739,14 +738,9 @@ void a0() {
 	dumbbus_register(state->simbus, &tick_engineer);
 
 	state->eng = engineer_new(track == TRACK_A ? 'a' : 'b');
-
 	state->last_sensor = NULL;
 
 	calibrator_init();
-
-	//	int tid_uibuffer = buffertask_new(NULL, PRIORITY_UISERVER, 512); // TODO hardcorded item size
-	//	int tid_uiserver = Create(PRIORITY_UISERVER, uiserver);
-	//	courier_new(PRIORITY_UISERVER, tid_uibuffer, tid_uiserver);
 
 	ui_init(&state);
 
@@ -754,7 +748,7 @@ void a0() {
 	publisher_sub(WhoIs(NAME_SENSORPUB), mytid);
 
 	int tid_com2buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
-	comnotifier_new(tid_com2buffer, 9, COM2, state->con->tid_console);
+	comnotifier_new(tid_com2buffer, 9, COM2, WhoIs(NAME_IOSERVER_COM2));
 	courier_new(9, tid_com2buffer, mytid, sizeof(msg_comin), NULL);
 
 	int tid_refreshbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
@@ -762,7 +756,7 @@ void a0() {
 	state->tid_refresh = courier_new(9, tid_refreshbuffer, mytid, sizeof(msg_time), NULL);
 
 	int tid_printlocbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
-	timenotifier_new(tid_printlocbuffer, 9, MS2TICK(200));
+	timenotifier_new(tid_printlocbuffer, 9, MS2TICK(20));
 	state->tid_printloc = courier_new(9, tid_printlocbuffer, mytid, sizeof(msg_time), NULL);
 
 	int tid_simstepbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
@@ -776,9 +770,13 @@ void a0() {
 	for (;;) {
 		int tid;
 		int rcvlen = Receive(&tid, msg, LEN_MSG);
-		Reply(tid, NULL, 0);
-		ASSERT(rcvlen >= sizeof(msg_header), "bad data");
-		msg_header *header = msg;
+		ASSERT(rcvlen >= sizeof(msg_header), "bad data rcvlen:%d from %d", rcvlen, tid);
+		int rplylen = Reply(tid, NULL, 0);
+		ASSERT(rcvlen >= sizeof(msg_header), "bad data rcvlen:%d from %d", rcvlen, tid);
+		int rplylen = Reply(tid, NULL, 0);
+		ASSERT(rplylen >= 0, "reply failed to %d", tid);
+		msg_header *header = (msg_header*) msg;
+		
 		switch (header->type) {
 			case MSG_SENSOR:
 				handle_sensor(msg);
@@ -793,12 +791,7 @@ void a0() {
 				handle_traincmdmsgreceipt(msg);
 				break;
 			default:
-				logdisplay_printf(
-					state->log,
-					"unhandled message %d",
-					header->type
-				);
-				logdisplay_flushline(state->log);
+				ASSERT(0, "unhandled message %d from %d", header->type, tid);
 				break;
 		}
 	}
