@@ -4,7 +4,7 @@
 #include <console.h>
 #include <string.h>
 
-#define MOD_HIST_LEN 5
+#define MOD_HIST_LEN 3
 
 static sensor_pic_info *get_sensor_pic_info(track_template *tt, char mod, int id);
 
