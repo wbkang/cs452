@@ -57,10 +57,8 @@ struct train_cal {
 	fixed stopm;
 	fixed stopb;
 	fixed v_avg[TRAIN_NUM_SPEED_IDX];
-	fixed st_a;
-	fixed st_b;
-	fixed st_c;
-	fixed st_d;
+	int st_order;
+	fixed st[5];
 };
 
 typedef struct train train;
