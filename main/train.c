@@ -215,13 +215,6 @@ int train_init(train *this, int no) {
 		this->path->start = location_undef();
 		this->path->end = location_undef();
 		this->path->pathlen = 0;
-	} else {
-		this->reservation = NULL;
-
-		this->vcmds = NULL;
-		this->vcmdslen = 0;
-
-		this->path = NULL;
 	}
 
 	return this->calibrated;
@@ -232,8 +225,7 @@ float train_get_velocity(train *this) {
 }
 
 float train_get_cruising_velocity(train *this) {
-	int speed_idx = train_get_speedidx(this);
-	return this->cal.v_avg[speed_idx];
+	return this->cal.v_avg[train_get_speedidx(this)];
 }
 
 int train_is_moving(train *this) {
@@ -247,7 +239,7 @@ int train_get_stopdist(train *this) {
 	// 	return max(0, dist);
 	// }
 	float st = train_st(&this->cal, this->v, 0);
-	return (this->v / 2) * st + (this->a / 2) * st * st;
+	return (this->v / 2) * st; // + (this->a / 2) * st * st;
 }
 
 int train_get_speed(train *this) {
@@ -386,13 +378,10 @@ int train_get_pickup2frontdist(train *this) {
 // simulate the distance the train would travel from t_i to t_f
 // assuming t_i <= t_f and that t_i is relatively close to the current time
 float train_simulate_dx(train *this, int t_i, int t_f) {
+	if (!train_is_moving(this)) return 0;
 	float v = train_get_velocity(this); // @TODO: don't assume current velocity
-	if (v > 0) {
-		float dt = TICK2MS(t_f - t_i);
-		return v * dt;
-	} else {
-		return 0;
-	}
+	float dt = TICK2MS(t_f - t_i);
+	return v * dt;
 }
 
 float train_st(train_cal *cal, float v_i, float v_f) {
@@ -406,7 +395,7 @@ float train_st(train_cal *cal, float v_i, float v_f) {
 		dvn *= dv;
 	}
 
-	if (v_i < v_f) {
+	if (v_i < v_f) { // accelerating
 		rv *= cal->st_mul;
 	}
 
