@@ -129,7 +129,20 @@ class track:
 							(nd.name, dest.name))
 
 class node:
+	def init(self, i, name, nodetype, num, reverse, ahead, ahead_edge):
+		self.index = i
+		self.name = name
+		self.nodetype = nodetype
+		self.num = num
+		self.reverse = reverse
+		self.ahead = ahead
+		self.straight = None
+		self.curved = None
+		self.ahead_edge = ahead_edge
+		self.straight_edge = None
+		self.curved_edge = None
 	def __init__(self, state):
+		if not state: return
 		line = state.line()[:-1].split()
 		self.name = None
 		if len(line) != 2:
@@ -238,7 +251,12 @@ class node:
 				% (self.name, dest.name), e.y)
 
 class edge:
+	def init(self, node1, node2, dist):
+		self.node1 = node1
+		self.node2 = node2
+		self.dist = dist
 	def __init__(self, state):
+		if not state: return
 		self.y = state.y
 		line = state.line()[:-1].split()
 		self.node1 = self.node2 = ''
@@ -286,6 +304,60 @@ for fname in args:
 		tracks[tr.function] = tr
 if errors > 0:
 	exit(1)
+
+########################################################################
+#### Add v nodes
+
+slice = 250
+
+for fun in tracks:
+	n = 0
+	idx = len(tracks[fun].nodes)
+	split = True
+	while (split):
+		split = False
+		for ed in tracks[fun].edges:
+			A = ed.node1
+			Ar = A.reverse
+			B = ed.node2
+			Br = B.reverse
+			dist = ed.dist
+			if ed.dist > slice and A.ahead and Br.ahead:
+				tracks[fun].edges.remove(ed)
+
+				split = True
+				edAN = edge(None)
+				edNB = edge(None)
+				edBrNr = edge(None)
+				edNrAr = edge(None)
+
+				tracks[fun].edges.extend((edAN, edNB, edBrNr, edNrAr));
+
+				N = node(None)
+				Nr = node(None)
+
+				tracks[fun].nodes.extend((N, Nr));
+
+				A.ahead = N
+				A.ahead_edge = edAN
+				Br.ahead = Nr
+				Br.ahead_edge = edBrNr
+
+				N.init(idx, 'V%d' % (n + 1), 'sensor', n, Nr, B, edNB)
+				idx += 1
+				n += 1
+
+				Nr.init(idx, 'V%d' % (n + 1), 'sensor', n, N, Ar, edNrAr)
+				idx += 1
+				n += 1
+
+				edAN.init(A, N, dist / 2)
+				edNB.init(N, B, dist / 2)
+				edBrNr.init(Br, Nr, dist / 2)
+				edNrAr.init(Nr, Ar, dist / 2)
+
+				print(ed.node1.name, ed.node2.name, ed.dist)
+	print(n)
 
 ########################################################################
 #### Output the .h code.
@@ -365,18 +437,22 @@ int sensor_mapper(void* key) {
 				idx = 8;
 			}
 			break;
+		case 'V':
+			idx = 9;
+			break;
 		default:
 			goto badname;
 	}
 
 	if (!('0' <= *c && *c <= '9')) goto badname;
 	int n = strgetui(&c);
-	// just for branches
-	if (n >= 153 && n <= 156) {
+
+	if ((idx == 1 || idx == 8) && n >= 153 && n <= 156) { // collapse branches/merge
 		n -= (153 - 19);
 	}
-	ASSERT(1 <= n && n <= 22, "bad n: %%d, idx: %%d, name: %%s", n, idx, key);
-	idx = (22 * idx) + (n - 1);
+
+	ASSERT(1 <= n && n <= 64, "bad n: %%d, idx: %%d, name: %%s", n, idx, key);
+	idx = (64 * idx) + (n - 1);
 
 	return idx;
 
@@ -388,7 +464,7 @@ int sensor_mapper(void* key) {
 for fun in tracks:
 	fh.write('''
 lookup *%s(track_node *track) {
-	lookup *sensormap = lookup_new(22 * 9, sensor_mapper, 0);
+	lookup *sensormap = lookup_new(64 * 10, sensor_mapper, 0);
 	memset(track, 0, sizeof(track_node) * TRACK_MAX);
 ''' % fun)
 	edge_num = 0
