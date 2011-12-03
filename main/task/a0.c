@@ -376,8 +376,8 @@ static void printstuff(engineer *eng, int train_no, logstrip *train1info[]) {
 		&loc,
 		direction_str,
 		(int) (train_get_velocity(train) * 1000),
-		(int) train->a_i10k / 10,
-		(int) train->a10k / 10,
+		(int) (train->a_i * 1000),
+		(int) (train->a * 1000),
 		&dest
 	);
 

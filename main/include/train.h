@@ -56,8 +56,9 @@ struct train_cal {
 	float stopm;
 	float stopb;
 	float v_avg[TRAIN_NUM_SPEED_IDX];
-	int st_order;
-	float st[5];
+	int st_order; // order of approximation
+	float st[5]; // polynomial coefficients
+	float st_mul; // acceding vs descending multiplier
 };
 
 typedef struct train train;
@@ -72,8 +73,8 @@ struct train {
 	float v_i;
 	float v_f;
 
-	float a10k;
-	float a_i10k;
+	float a;
+	float a_i;
 
 	float st;
 
