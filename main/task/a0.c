@@ -212,7 +212,7 @@ static void init_v_avg() {
 }
 
 static void get_v_avg(void *vstate, void* unused) {
-	(void*)unused;
+	(void) unused;
 	a0state *state = vstate;
 	engineer *eng = state->eng;
 	train *train = engineer_get_train(eng, 21);

@@ -51,11 +51,12 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			// TODO these values are invalid because i dont know how to get them.
-			cal->st_order = 1;
-			cal->st[0] = -16.8209;
-			cal->st[1] = 6319.19;
-
+			cal->st_order = 4;
+			cal->st[0] = -1.02274;
+			cal->st[1] = 103842;
+			cal->st[2] = -695046;
+			cal->st[3] = 1909800;
+			cal->st[4] = -1945780;
 			cal->st_mul = 1;
 
 			return TRUE;
@@ -104,10 +105,11 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			// TODO these values are invalid because i dont know how to get them.
-			cal->st_order = 1;
-			cal->st[0] = -16.8209;
-			cal->st[1] = 6319.19;
+			cal->st_order = 3;
+			cal->st[0] = -18.9014;
+			cal->st[1] = 19159.8;
+			cal->st[2] = -47691.6;
+			cal->st[3] = 40764.8;
 
 			cal->st_mul = 1;
 
@@ -158,8 +160,8 @@ int train_init_cal(train_cal *cal, int train_no) {
 			}
 
 			cal->st_order = 1;
-			cal->st[0] = -16.8209;
-			cal->st[1] = 6319.19;
+			cal->st[0] = 49.4653;
+			cal->st[1] = 6227.4;
 
 			cal->st_mul = 1;
 
@@ -210,11 +212,11 @@ int train_init_cal(train_cal *cal, int train_no) {
 			}
 
 			cal->st_order = 4;
-			cal->st[0] = 0.162766;
-			cal->st[1] = 16474.9;
-			cal->st[2] = -58817.6;
-			cal->st[3] = 97199.5;
-			cal->st[4] = -58996.2;
+			cal->st[0] = -0.00897707;
+			cal->st[1] = 14008.5;
+			cal->st[2] = -43208.4;
+			cal->st[3] = 64574.3;
+			cal->st[4] = -36555.3;
 
 			cal->st_mul = 1.0;
 
@@ -264,11 +266,12 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->st_order = 3;
-			cal->st[0] = 0.744079;
-			cal->st[1] = 16080.2;
-			cal->st[2] = -35413.6;
-			cal->st[3] = 26220.9;
+			cal->st_order = 4;
+			cal->st[0] = -0.0580817;
+			cal->st[1] = 19572.6;
+			cal->st[2] = -59037.1;
+			cal->st[3] = 77626.7;
+			cal->st[4] = -36317.5;
 
 			cal->st_mul = 1;
 
