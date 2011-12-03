@@ -123,6 +123,8 @@ void a0ui_on_log(a0ui *this, char *msg) {
 }
 
 void a0ui_on_train_location(a0ui *this, train* train) {
+	ASSERT((int)this % 4 == 0, "a0ui unaligned");
+	ASSERT((int)train % 4 == 0, "train unaligned");
 	int idx = this->known_train_map[train->no];
 	if (idx == -1) {
 		if (train_is_lost(train)) {
