@@ -82,7 +82,7 @@ struct train {
 	int t_speed;
 	int last_speed;
 	location loc_front;
-	int t_sim;
+	float t_sim;
 
 	// vcmd stuff
 	int vcmdidx;
@@ -90,6 +90,7 @@ struct train {
 	trainvcmd *last_run_vcmd;
 	int vcmdslen;
 	int vcmdwait;
+
 	location destination;
 	struct path *path;
 	struct reservation_req *reservation;
@@ -195,8 +196,8 @@ void train_set_dir(train *this, train_direction dir);
 void train_on_reverse(train *this, int t);
 int train_get_tspeed(train *this);
 void train_set_tspeed(train *this, int t_speed);
-int train_get_tsim(train *this);
-void train_set_tsim(train *this, int t_sim);
+float train_get_tsim(train *this);
+void train_set_tsim(train *this, float t_sim);
 int train_get_length(train *this);
 int train_get_poserr(train *this);
 int train_get_pickup2frontdist(train *this);

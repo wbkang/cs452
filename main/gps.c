@@ -75,14 +75,8 @@ static inline char gps_getnextswitchpos(track_node *sw, track_edge *edgeafterbra
 	return '\0'; // unreachable
 }
 
-static inline void gps_get_rev_stoploc(train *train, track_node *node, location *rv_loc) {
-	ASSERTNOTNULL(node);
-	*rv_loc = location_fromnode(node, 0);
-	if (node->type == NODE_MERGE) {
-		ASSERT(0, "invalid path, yo");
-		int len = train_get_length(train) + train_get_poserr(train);
-		location_add(rv_loc, len);
-	}
+static inline location gps_get_rev_stoploc(train *train, track_node *node) {
+	return location_fromnode(node, 0);
 }
 
 static int gps_collapsereverse(track_node *startnode, track_node *path[], int pathlen, train *train) {
@@ -147,9 +141,8 @@ void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd
 			} else {
 				// nothing to do
 			}
-		} else if (curnode->reverse == nextnode) { // reverse plan
-			location stoploc;
-			gps_get_rev_stoploc(train, curnode, &stoploc);
+		} else if (curnode->reverse == nextnode) { // reverse
+			location stoploc = gps_get_rev_stoploc(train, curnode);
 
 			trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
 			trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
