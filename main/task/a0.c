@@ -710,7 +710,7 @@ void a0() {
 	track track = ask_track(&state);
 	state->template = track_template_new(state->con, track);
 	state->cmdlog = logstrip_new(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, -1);
-	state->cmdline = cmdline_new(state->con, CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command);
+	state->cmdline = cmdline_new(CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command);
 	state->sensorlog = logstrip_new(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, -1);
 	state->log = logdisplay_new(CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
 	state->timedisplay = timedisplay_new(1, 1);

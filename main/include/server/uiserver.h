@@ -13,6 +13,7 @@ ui_id uiserver_register();
 void uiserver_effect(ui_id id, int flag, int color);
 void uiserver_out(ui_id id, char *out);
 void uiserver_move(ui_id id, int line, int col);
+void uiserver_movecursor(ui_id id, int line, int col);
 void uiserver_force_refresh(ui_id id);
 
 #define uiserver_printf(id, ...) { \

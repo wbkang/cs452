@@ -61,7 +61,7 @@ void logdisplay_flushline(logdisplay *this) {
 		uiserver_printf(this->id_ui, " ", this->buf[last_line]);
 		uiserver_move(this->id_ui, this->line + this->curline, this->col);
 		sprintf(fmtbuf, ROUND_ROBIN_PREFIX "%%-%ds", this->totalcols);
-		uiserver_printf(this->id_ui, this->buf[this->curline]);
+		uiserver_printf(this->id_ui, fmtbuf, this->buf[this->curline]);
 		this->curline++;
 		this->curline = this->curline % this->totallines;
 	} else if (this->rotation == SCROLLING) {
