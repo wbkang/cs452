@@ -91,6 +91,14 @@ static inline float fabs(float f) {
 	return f < 0 ? -f : f;
 }
 
+static inline float fpow(float f, int n) {
+	float rv = 1;
+	while (n-- > 0) {
+		rv *= f;
+	}
+	return rv;
+}
+
 static inline int overflow(int x, int y) {
 	return (y > 0 && x > INT_MAX - y) || (y < 0 && x < INT_MIN - y);
 }
