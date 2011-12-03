@@ -5,10 +5,6 @@
 #include <uconst.h>
 #include <string.h>
 
-// @TODO: temp
-#include <console.h>
-#include <ui/logdisplay.h>
-
 #define NUM_SUBSCRIBERS 128
 
 typedef struct {

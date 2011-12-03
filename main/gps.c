@@ -198,7 +198,6 @@ static int dist_between(track_node *u, track_edge *e, track_node *v, train *trai
 }
 
 // code taken from http://en.wikipedia.org/wiki/Dijkstra's_algorithm#Algorithm
-// @TODO: keep this algorithm independent of gps, pass in whats needed as args
 void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, track_node *rv_nodes[], int *rv_len_nodes, train *train) {
 	int dist[TRACK_MAX];
 	track_node *previous[TRACK_MAX];
@@ -238,8 +237,7 @@ void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, tra
 		}
 		{
 			track_node *u_rev = u->reverse;
-			// @TODO: for now we reverse only on landmarks, so this is not possible
-			if (u_rev == dest) continue;
+			if (u_rev == dest) continue; // train teleports by trainlen, cant do this
 			int u_rev_idx = u_rev - nodes;
 			int rev_dist = train_get_reverse_cost(train, dist[uidx], u);
 			if (rev_dist == infinity) continue;

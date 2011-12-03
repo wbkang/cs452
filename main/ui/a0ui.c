@@ -21,7 +21,6 @@ struct a0ui {
 	timedisplay *timedisplay;
 	track_template *template;
 	cmdline *cmdline;
-	// for sensor history TODO kind of temporary
 	char hist_mod[LEN_SENSOR_HIST];
 	int hist_id[LEN_SENSOR_HIST];
 	// multi-train info support
@@ -30,7 +29,6 @@ struct a0ui {
 	int known_train_map[TRAIN_MAX_TRAIN_ADDR];
 	logstrip **traininfolog[MAX_KNOWN_TRAIN];
 };
-
 
 #define CONSOLE_DUMP_LINE (CONSOLE_CMD_LINE + 4)
 #define CONSOLE_DUMP_COL 1

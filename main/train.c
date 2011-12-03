@@ -58,7 +58,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->st[3] = 1909800;
 			cal->st[4] = -1945780;
 
-			cal->st_mul = 1;
+			cal->st_mul = 0.8;
 
 			return TRUE;
 		}
@@ -360,7 +360,6 @@ int train_get_speedidx(train *this) {
 	return train_speed2speedidx(this->last_speed, train_get_speed(this));
 }
 
-// @TODO: the only external thing that changes a train state is the set_speed/reverse commands. we should keep a history of these to rewind the simulation
 void train_set_speed(train *this, int speed, int t) {
 	ASSERT(TRAIN_GOOD_SPEED(speed), "bad speed %d", speed);
 
@@ -521,7 +520,7 @@ static void train_update_state(train *this, float t_f) {
 		float t = t_f - train_get_tspeed(this);
 		float tau = t / dt;
 		float tau2 = tau * tau;
-		float tau3 = tau * tau2;
+		// float tau3 = tau * tau2;
 		// float tau4 = tau * tau3;
 
 		// a_i=a_f=0
