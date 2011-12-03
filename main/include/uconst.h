@@ -96,7 +96,7 @@ typedef struct {
 } trainvcmd;
 
 typedef enum uimsgtype {
-	UIMSG_REGISTER,	UIMSG_EFFECT, UIMSG_OUT, UIMSG_MOVE, UIMSG_FORCE_REFRESH
+	UIMSG_REGISTER,	UIMSG_EFFECT, UIMSG_OUT, UIMSG_MOVE, UIMSG_FORCE_REFRESH, UIMSG_MOVECURSOR
 } uimsgtype;
 
 typedef struct {

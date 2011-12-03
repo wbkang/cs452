@@ -165,6 +165,15 @@ static void handle_force_refresh(uiserver_state *state) {
 	state->changed = TRUE;
 }
 
+static void handle_movecursor(uiserver_state *this, int line, int col) {
+	console_flush(this->con);
+	console_cursor_unsave(this->con);
+	console_move(this->con, line, col);
+	console_cursor_save(this->con);
+	console_flush(this->con);
+}
+
+
 static void handle_uimsg(uiserver_state *state, void* msg) {
 	msg_ui *uimsg = msg;
 	switch (uimsg->uimsg) {
@@ -193,6 +202,12 @@ static void handle_uimsg(uiserver_state *state, void* msg) {
 			ASSERT(id < state->client_count, "invalid id: %d, clientcount:%d", id, state->client_count);
 			state->context[id]->line = uimsg->line;
 			state->context[id]->col = uimsg->col;
+			break;
+		}
+		case UIMSG_MOVECURSOR: {
+			int id = uimsg->id;
+			ASSERT(id < state->client_count, "invalid id: %d, clientcount:%d", id, state->client_count);
+			handle_movecursor(state, uimsg->line, uimsg->col);
 			break;
 		}
 		case UIMSG_OUT: {
@@ -272,6 +287,18 @@ void uiserver_move(ui_id id, int line, int col) {
 	msg_ui uimsg;
 	uimsg.type = MSG_UI;
 	uimsg.uimsg = UIMSG_MOVE;
+	uimsg.id = id.id;
+	uimsg.line = line;
+	uimsg.col = col;
+
+	int rv = Send(id.tid, &uimsg, sizeof(uimsg), NULL, 0);
+	ASSERT(rv >= 0, "send failed");
+}
+
+void uiserver_movecursor(ui_id id, int line, int col) {
+	msg_ui uimsg;
+	uimsg.type = MSG_UI;
+	uimsg.uimsg = UIMSG_MOVECURSOR;
 	uimsg.id = id.id;
 	uimsg.line = line;
 	uimsg.col = col;
