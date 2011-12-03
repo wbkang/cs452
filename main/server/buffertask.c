@@ -60,12 +60,14 @@ void buffertask() {
 	// init state
 	buffertask_state state;
 	state.item_size = args->max_item_size;
-	// @TODO: O M F G
-	state.items = buffer_new(((STACK_SIZE / 2) / args->max_item_size), args->max_item_size);
-	state.get_blocked = queue_new(NUM_BLOCKED);
 
 	const int size_packet = max(sizeof(msg_header), state.item_size);
 	void* packet = malloc(size_packet);
+
+	int heap_remaining;
+	HEAP_REMAINING(heap_remaining);
+	state.items = buffer_new(((heap_remaining - 4096) / args->max_item_size), args->max_item_size);
+	state.get_blocked = queue_new(NUM_BLOCKED);
 
 	MEMCHECK();
 

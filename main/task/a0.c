@@ -70,9 +70,6 @@ static void ui_sensor(char module, int id, int senstate) {
 	hist_mod[0] = module;
 	hist_id[0] = id;
 
-	console_move(state->con, CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL);
-	console_erase_eol(state->con);
-
 	int max_hist_idx = 0;
 	char buf[1024], *p = buf;
 	for (int i = 0; (i < LEN_SENSOR_HIST) && hist_mod[i]; i++) {
@@ -83,8 +80,6 @@ static void ui_sensor(char module, int id, int senstate) {
 		max_hist_idx = i;
 	}
 	logstrip_printf(state->sensorlog, buf);
-	console_flush(state->con);
-
 	track_template_updatesensor(state->template, module, id, 0);
 }
 
@@ -97,15 +92,13 @@ static void ui_reverse(int train, int t) {
 static void ui_switch(char no, char pos, int t) {
 	a0state *state = get_state();
 	track_template_updateswitch(state->template, no, pos);
-	console_flush(state->con);
 }
 
 static void ui_quit() {
 	a0state *state = get_state();
 	logstrip_printf(state->cmdlog, "quitting...");
-	console_move(state->con, CONSOLE_CMD_LINE + 1, 1);
-	console_flush(state->con);
-	console_flushcom(state->con);
+	uiserver_movecursor(state->id_ui, CONSOLE_CMD_LINE + 1, 1);
+	uiserver_force_refresh(state->id_ui);
 }
 
 /*
@@ -115,19 +108,17 @@ static void ui_quit() {
 static track ask_track() {
 	a0state *state = get_state();
 	for (;;) {
-		console_clear(state->con);
-		console_move(state->con, 1, 1);
-		console_printf(state->con, "Track a or b?\n");
-		console_flush(state->con);
-		char c = Getc(COM2, state->con->tid_console);
+		uiserver_move(state->id_ui, 1, 1);
+		uiserver_printf(state->id_ui, "Track a or b?\n");
+		char c = Getc(COM2, WhoIs(NAME_IOSERVER_COM2));
 		switch (c) {
 			case 'a':
 				return TRACK_A;
 			case 'b':
 				return TRACK_B;
 			default:
-				console_printf(state->con, "fail\n");
-				console_flush(state->con);
+				uiserver_move(state->id_ui, 1, 1);
+				uiserver_printf(state->id_ui, "%-100s" "fail");
 				break;
 		}
 	}
@@ -705,19 +696,18 @@ void a0() {
 
 	// ui
 	uiserver_new();
-	state->con = console_new(COM2);
 	state->id_ui = uiserver_register();
 	track track = ask_track(&state);
-	state->template = track_template_new(state->con, track);
-	state->cmdlog = logstrip_new(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, -1);
+	state->template = track_template_new(track);
+	state->cmdlog = logstrip_new(CONSOLE_LOG_LINE, CONSOLE_LOG_COL, 100);
 	state->cmdline = cmdline_new(CONSOLE_CMD_LINE, CONSOLE_CMD_COL, handle_command);
-	state->sensorlog = logstrip_new(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, -1);
+	state->sensorlog = logstrip_new(CONSOLE_SENSOR_LINE, CONSOLE_SENSOR_COL, 100);
 	state->log = logdisplay_new(CONSOLE_DUMP_LINE, CONSOLE_DUMP_COL, 19, 55, ROUNDROBIN, "log");
 	state->timedisplay = timedisplay_new(1, 1);
-	state->trainloc1 = logstrip_new(2, 56 + 2, -1);
-	state->trainloc1r = logstrip_new(3, 56 + 2, -1);
-	state->trainloc2 = logstrip_new(4, 56 + 2, -1);
-	state->trainloc2r = logstrip_new(5, 56 + 2, -1);
+	state->trainloc1 = logstrip_new(2, 56 + 2, 100);
+	state->trainloc1r = logstrip_new(3, 56 + 2, 100);
+	state->trainloc2 = logstrip_new(4, 56 + 2, 100);
+	state->trainloc2r = logstrip_new(5, 56 + 2, 100);
 
 	// sensor bus
 	state->sensor_bus = dumbbus_new();
@@ -746,7 +736,7 @@ void a0() {
 	publisher_sub(WhoIs(NAME_SENSORPUB), mytid);
 
 	int tid_com2buffer = buffertask_new(NULL, 9, sizeof(msg_comin));
-	comnotifier_new(tid_com2buffer, 9, COM2, state->con->tid_console);
+	comnotifier_new(tid_com2buffer, 9, COM2, WhoIs(NAME_IOSERVER_COM2));
 	courier_new(9, tid_com2buffer, mytid, sizeof(msg_comin), NULL);
 
 	int tid_refreshbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
@@ -754,7 +744,7 @@ void a0() {
 	state->tid_refresh = courier_new(9, tid_refreshbuffer, mytid, sizeof(msg_time), NULL);
 
 	int tid_printlocbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
-	timenotifier_new(tid_printlocbuffer, 9, MS2TICK(200));
+	timenotifier_new(tid_printlocbuffer, 9, MS2TICK(20));
 	state->tid_printloc = courier_new(9, tid_printlocbuffer, mytid, sizeof(msg_time), NULL);
 
 	int tid_simstepbuffer = buffertask_new(NULL, 9, sizeof(msg_time));

@@ -38,6 +38,7 @@ typedef char *va_list;
 #define INT_MAX 0x7fffffff
 #define infinity INT_MAX
 #define MEMCHECK() malloc(0)
+#define HEAP_REMAINING(var) { int sp; READ_REGISTER(sp); var = sp - (int)malloc(0); }
 
 #define PUTS(...) { \
 	char PAVEL[512]; \

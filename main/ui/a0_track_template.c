@@ -2,6 +2,7 @@
 #include <train.h>
 #include <util.h>
 #include <console.h>
+#include <string.h>
 
 #define MOD_HIST_LEN 5
 
@@ -178,9 +179,95 @@ static switch_pic_info const *get_switch_pic_info(track_template *tt, int iswitc
 	return &tt->switch_pic_info_table[iswitch];
 }
 
-track_template *track_template_new(console *con, track t) {
+static int next_token(char const **picture, char *rv_buf) {
+	char const *cur = *picture;
+	for(;;) {
+		if (*cur == '\0') {
+			int len = *picture - cur + 1;
+			strncpy(rv_buf, *picture, len);
+			*picture = cur;
+			return FALSE;
+		} else if (cur == *picture) { // start of the segment
+			if (*cur == '@') {
+				char const *effectstart = cur + 1;
+				char const *effectend = effectstart + 1;
+				while (*effectend != '@') effectend++;
+				int len = effectend - effectstart;
+				strncpy(rv_buf, effectstart, len);
+				rv_buf[len] = '\0';
+				*picture = effectend + 1;
+				return TRUE;
+			} else if (*cur == '\n') {
+				rv_buf[0] = '\n';
+				rv_buf[1] = '\0';
+				*picture += 1;
+				return TRUE;
+			}
+		}
+		else if (*cur == '@' || *cur == '\n') { // end of the current segment
+			ASSERT(cur != *picture, "WTF?");
+			int len = cur - *picture;
+			strncpy(rv_buf, *picture, len);
+			rv_buf[len] = '\0';
+			*picture = cur;
+			return TRUE;
+		}
+
+		cur++;
+	}
+
+	ASSERT(0, "unreachable");
+	return 0;
+}
+
+static void print_track_picture(char const *picture) {
+	char buf[1024];
+	int more;
+	int effect = 0;
+	int color = 0;
+	int line = 1;
+
+	ui_id id_ui = uiserver_register_blocking();
+	uiserver_move(id_ui, 1, 1);
+
+
+	do {
+		more = next_token(&picture, buf);
+//		uiserver_printf(tt->id_ui, "[30%s]", buf);
+
+		if (strcmp(buf, CONSOLE_EFFECT(EFFECT_FG_BLUE)) == 0) {
+			effect |= UIEFFECT_FGCOLOR;
+			color = EFFECT_FG_BLUE;
+//			uiserver_printf(tt->id_ui, "[blue]");
+		} else if (strcmp(buf, CONSOLE_EFFECT(EFFECT_FG_YELLOW)) == 0) {
+			effect |= UIEFFECT_FGCOLOR;
+			color = EFFECT_FG_YELLOW;
+//			uiserver_printf(tt->id_ui, "[yellow]");
+		} else if (strcmp(buf, CONSOLE_EFFECT(EFFECT_FG_WHITE)) == 0) {
+			effect |= UIEFFECT_FGCOLOR;
+			color = EFFECT_FG_WHITE;
+//			uiserver_printf(tt->id_ui, "[white]");
+		} else if (strcmp(buf, CONSOLE_EFFECT(EFFECT_BRIGHT)) == 0) {
+			effect |= EFFECT_BRIGHT;
+//			uiserver_printf(tt->id_ui, "[bright]");
+		} else if (strcmp(buf, CONSOLE_EFFECT(EFFECT_RESET)) == 0) {
+			effect = 0;
+			color = 0;
+//			uiserver_printf(tt->id_ui, "[reset]");
+		} else if (strcmp(buf, "\n") == 0) {
+			line++;
+			uiserver_move(id_ui, line, 1);
+//			uiserver_printf(tt->id_ui, "[newline]");
+		} else {
+			uiserver_effect(id_ui, effect, color);
+			uiserver_printf(id_ui, buf);
+		}
+	} while(more);
+}
+
+track_template *track_template_new(track t) {
 	track_template *tt = malloc(sizeof(*tt) + MOD_HIST_LEN * sizeof(tt->mod_hist[0]));
-	tt->con = con;
+	tt->id_ui = uiserver_register();
 	tt->track_config = t;
 	for (int i = 0; i < MOD_HIST_LEN; i++) {
 		tt->mod_hist[i].mod = 0;
@@ -196,15 +283,17 @@ track_template *track_template_new(console *con, track t) {
 
 	init_sensor_pic(tt);
 
-	console_clear(con);
-	console_move(con, 1, 1);
+	uiserver_force_refresh(tt->id_ui);
+	console *con = console_new(COM2);
+
+	uiserver_move(tt->id_ui, 1, 1);
 
 	if (t == TRACK_A) {
 		tt->switch_pic_info_table = switch_pic_info_table_a;
-		console_printf(con, TRACK_TEMPLATE_A);
+		print_track_picture(TRACK_TEMPLATE_A);
 	} else if (t == TRACK_B) {
 		tt->switch_pic_info_table = switch_pic_info_table_b;
-		console_printf(con, TRACK_TEMPLATE_B);
+		print_track_picture(TRACK_TEMPLATE_B);
 	} else {
 		ASSERT(0, "unknown track %d", t);
 	}
@@ -214,31 +303,24 @@ track_template *track_template_new(console *con, track t) {
 }
 
 void track_template_updateswitch(track_template *tt, char no, char pos) {
-	console *c = tt->con;
 	int idx = train_switchno2i(no); // 0 based
 	int statusrow = 2 + idx / 6;
 	int statuscol = 14 + 5 * (idx % 6);
 	char pos_name = track_switchpos_straight(pos) ? 'S' : 'C';
+	uiserver_effect(tt->id_ui, UIEFFECT_BRIGHT | UIEFFECT_FGCOLOR, EFFECT_FG_YELLOW);
 
-	console_move(c, statusrow, statuscol);
-	console_effect(c, EFFECT_BRIGHT);
-	console_effect(c, EFFECT_FG_YELLOW);
-	console_printf(c, "%c", pos_name);
-	console_effect_reset(c);
+	uiserver_move(tt->id_ui, statusrow, statuscol);
+	uiserver_printf(tt->id_ui, "%c", pos_name);
 
 	switch_pic_info const *swinfo = get_switch_pic_info(tt, idx);
 
-	console_move(c, swinfo->row, swinfo->col);
-	console_effect(c, EFFECT_BRIGHT);
-	console_effect(c, EFFECT_FG_YELLOW);
-	console_printf(c, "%c", (pos_name == 'S') ? swinfo->straight : swinfo->curved);
-	console_effect_reset(c);
-	console_flush(c);
+	uiserver_move(tt->id_ui, swinfo->row, swinfo->col);
+	uiserver_printf(tt->id_ui, "%c", (pos_name == 'S') ? swinfo->straight : swinfo->curved);
+	uiserver_effect(tt->id_ui, 0, 0);
 }
 
 void track_template_updatesensor(track_template *tt, char module, int id, int train) {
 	(void) train; // for future use
-	console *con = tt->con;
 
 	tt->mod_hist[tt->mod_hist_idx].mod = module;
 	tt->mod_hist[tt->mod_hist_idx].id = id;
@@ -251,21 +333,25 @@ void track_template_updatesensor(track_template *tt, char module, int id, int tr
 		sensor_pic_info *spinfo = get_sensor_pic_info(tt, tt->mod_hist[curidx].mod, tt->mod_hist[curidx].id);
 
 		if (spinfo->dir != UNKNOWN) {
-			console_move(con, spinfo->row, spinfo->col);
+			uiserver_move(tt->id_ui, spinfo->row, spinfo->col);
+			int effect = 0;
+			int color = 0;
 			switch (i) {
 				case 0:
-					console_effect(con, EFFECT_BRIGHT);
+					effect |= UIEFFECT_BRIGHT;
 				case 1:
-					console_effect(con, EFFECT_FG_CYAN);
+					effect |= UIEFFECT_FGCOLOR;
+					color = EFFECT_FG_CYAN;
 					break;
 				default:
-					console_effect(con, EFFECT_FG_BLUE);
+					effect |= UIEFFECT_FGCOLOR;
+					color = EFFECT_FG_BLUE;
 					break;
 				}
 
-			console_printf(con, "%s", spinfo->dir_str);
-			console_effect_reset(con);
+			uiserver_effect(tt->id_ui, effect, color);
+			uiserver_printf(tt->id_ui, "%s", spinfo->dir_str);
+			uiserver_effect(tt->id_ui, 0, 0);
 		}
 	}
-	console_flush(con);
 }
