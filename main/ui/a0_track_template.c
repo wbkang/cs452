@@ -230,7 +230,6 @@ static void print_track_picture(char const *picture) {
 	ui_id id_ui = uiserver_register_blocking();
 	uiserver_move(id_ui, 1, 1);
 
-
 	do {
 		more = next_token(&picture, buf);
 //		uiserver_printf(tt->id_ui, "[30%s]", buf);

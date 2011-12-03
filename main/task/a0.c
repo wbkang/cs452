@@ -106,9 +106,10 @@ static void ui_quit() {
 
 static track ask_track() {
 	a0state *state = get_state();
+	uiserver_force_refresh(state->id_ui);
 	for (;;) {
 		uiserver_move(state->id_ui, 1, 1);
-		uiserver_printf(state->id_ui, "Track a or b?\n");
+		uiserver_printf(state->id_ui, "%-100s", "Track a or b?\n");
 		char c = Getc(COM2, WhoIs(NAME_IOSERVER_COM2));
 		switch (c) {
 			case 'a':
@@ -117,7 +118,7 @@ static track ask_track() {
 				return TRACK_B;
 			default:
 				uiserver_move(state->id_ui, 1, 1);
-				uiserver_printf(state->id_ui, "%-100s" "fail");
+				uiserver_printf(state->id_ui, "%-100s", "fail");
 				break;
 		}
 	}

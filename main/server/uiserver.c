@@ -8,10 +8,11 @@
 #include <util.h>
 #include <string.h>
 
-#define MAX_UICLIENTS 300
-
 #define SCREEN_WIDTH 140
 #define SCREEN_HEIGHT 50
+
+#define MAX_UICLIENTS 300
+#define MAX_UIMSGSIZE (sizeof(msg_ui) + SCREEN_WIDTH + 1)
 
 #define SCREEN_TO_LOC(line, col) ((line - 1) * SCREEN_WIDTH + (col - 1))
 #define SCREEN_LOC_LINE(loc) ((loc / SCREEN_WIDTH) + 1)
@@ -146,6 +147,10 @@ static void handle_uiout(uiserver_state *state, msg_ui *uimsg) {
 		char newchar = uimsg->str[i];
 		char neweffect = ctx->effectflag;
 		char newcolor = ctx->color;
+		if (newchar == '\t') {
+			ctx->col = min(ALIGN(ctx->col, 8), SCREEN_WIDTH + 1);
+			continue;
+		}
 		cell->changed |= (cell->c != newchar) || (cell->effectflag != neweffect) || (cell->color != newcolor);
 		state->changed |= cell->changed;
 		cell->c = newchar;
@@ -158,6 +163,7 @@ static void handle_uiout(uiserver_state *state, msg_ui *uimsg) {
 }
 
 static void handle_force_refresh(uiserver_state *state) {
+	console_clear(state->con);
 	for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
 		ui_cellinfo *cell = &state->screen[i];
 		cell->changed = TRUE;
@@ -226,12 +232,11 @@ static void handle_uimsg(uiserver_state *state, void* msg) {
 }
 
 int uiserver_new() {
-	const int maxmsgsize = sizeof(msg_ui) + SCREEN_WIDTH + 1;
 	int tid_server = Create(PRIORITY_UISERVER, uiserver);
 	ASSERT(tid_server >= 0, "failed to create ui server");
-	int tid_buf = buffertask_new(NAME_UISERVER, PRIORITY_UISERVER, maxmsgsize);
+	int tid_buf = buffertask_new(NAME_UISERVER, PRIORITY_UISERVER, MAX_UIMSGSIZE);
 	ASSERT(tid_buf >= 0, "failed to create ui buffer");
-	courier_new(PRIORITY_UISERVER, tid_buf, tid_server, maxmsgsize, NAME_UISERVER_C);
+	courier_new(PRIORITY_UISERVER, tid_buf, tid_server, MAX_UIMSGSIZE, NAME_UISERVER_C);
 	return tid_buf;
 }
 
@@ -276,14 +281,14 @@ void uiserver_effect(ui_id id, int flag, int color) {
 }
 
 void uiserver_out(ui_id id, char *out) {
-	int len = strlen(out);
-	char msg[sizeof(msg_ui) + len + 1];
+	int msg[MAX_UIMSGSIZE / sizeof(int)];
 	msg_ui *uimsg = (msg_ui*) msg;
 	uimsg->type = MSG_UI;
 	uimsg->uimsg = UIMSG_OUT;
 	uimsg->id = id.id;
-	strcpy(uimsg->str, out);
-	uimsg->strlen = len;
+	strncpy(uimsg->str, out, SCREEN_WIDTH);
+	uimsg->str[SCREEN_WIDTH] = '\0';
+	uimsg->strlen = min(SCREEN_WIDTH, strlen(out));
 
 	int rv = Send(id.tid, uimsg, sizeof(msg), NULL, 0);
 	ASSERT(rv >= 0, "send failed");

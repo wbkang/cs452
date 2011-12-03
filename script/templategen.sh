@@ -61,7 +61,7 @@ function generate() {
 	symbol=$1
 	file=$2
 
-	echo -n "#define $symbol CONSOLE_CLEAR " >> $TEMPLATE
+	echo -n "#define $symbol " >> $TEMPLATE
 	sed 's/^/\"/g' $file \
 	| sed 's/\t/    /g' \
 	| sed "s/&\([0-9][0-9]*\)/$BRIGHT$BLUE \1$RESET/g" \

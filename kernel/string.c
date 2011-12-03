@@ -66,7 +66,7 @@ char* strncpy(char *dest, const char *src, uint count) {
 	char *origdest = dest;
 	int signedcnt = (int)count;
 	ASSERT(signedcnt >= 0, "count too big: %x", count);
-	while (signedcnt-- > 0 && (*dest++ = *src++));
+	while (signedcnt-- > 0 && (*dest++ = *src++));;
 	while (signedcnt-- > 0) *dest++ = '\0';
 	return origdest;
 }
