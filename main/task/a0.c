@@ -369,8 +369,8 @@ static void printstuff(engineer *eng, int train_no, logstrip *train1info[]) {
 		&loc,
 		direction_str,
 		(int) (train_get_velocity(train) * 1000),
-		(int) (train->a_i * 1000),
-		(int) (train->a * 1000),
+		(int) (train->a_i * 1000 * 1000),
+		(int) (train->a * 1000 * 1000),
 		&dest
 	);
 
@@ -775,7 +775,7 @@ void a0() {
 		int rplylen = Reply(tid, NULL, 0);
 		ASSERT(rplylen >= 0, "reply failed to %d", tid);
 		msg_header *header = (msg_header*) msg;
-		
+
 		switch (header->type) {
 			case MSG_SENSOR:
 				handle_sensor(msg);
