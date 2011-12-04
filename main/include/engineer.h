@@ -17,6 +17,8 @@ typedef struct _tag_train_engineer {
 	gps *gps;
 } engineer;
 
+#define TRAIN_SENSORATTRIB_THRESHOLD 400
+
 engineer *engineer_new(char track_name, a0ui *a0ui);
 void engineer_destroy(engineer *this);
 train *engineer_get_train(engineer *this, int train_no);

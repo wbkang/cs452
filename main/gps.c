@@ -75,14 +75,8 @@ static inline char gps_getnextswitchpos(track_node *sw, track_edge *edgeafterbra
 	return '\0'; // unreachable
 }
 
-static inline void gps_get_rev_stoploc(train *train, track_node *node, location *rv_loc) {
-	ASSERTNOTNULL(node);
-	*rv_loc = location_fromnode(node, 0);
-	if (node->type == NODE_MERGE) {
-		ASSERT(0, "invalid path, yo");
-		int len = train_get_length(train) + train_get_poserr(train);
-		location_add(rv_loc, len);
-	}
+static inline location gps_get_rev_stoploc(train *train, track_node *node) {
+	return location_fromnode(node, 0);
 }
 
 static int gps_collapsereverse(track_node *startnode, track_node *path[], int pathlen, train *train) {
@@ -152,10 +146,8 @@ void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd
 				trainvcmd_addswitch(rv_vcmd, &cmdlen, sw->name, pos, &switchloc);
 			}
 			// nothing to do
-		} else if (curnode->reverse == nextnode) { // reverse plan
-			location stoploc;
-			gps_get_rev_stoploc(train, curnode, &stoploc);
-
+	        } else if (curnode->reverse == nextnode) { // reverse
+			location stoploc = gps_get_rev_stoploc(train, curnode);
 			trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
 			trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
 			trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
@@ -210,7 +202,6 @@ static int dist_between(track_node *u, track_edge *e, track_node *v, train *trai
 }
 
 // code taken from http://en.wikipedia.org/wiki/Dijkstra's_algorithm#Algorithm
-// @TODO: keep this algorithm independent of gps, pass in whats needed as args
 void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, track_node *rv_nodes[], int *rv_len_nodes, train *train) {
 	int dist[TRACK_MAX];
 	track_node *previous[TRACK_MAX];
@@ -250,8 +241,7 @@ void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, tra
 		}
 		{
 			track_node *u_rev = u->reverse;
-			// @TODO: for now we reverse only on landmarks, so this is not possible
-			if (u_rev == dest) continue;
+			if (u_rev == dest) continue; // train teleports by trainlen, cant do this
 			int u_rev_idx = u_rev - nodes;
 			int rev_dist = train_get_reverse_cost(train, dist[uidx], u);
 			if (rev_dist == infinity) continue;

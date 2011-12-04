@@ -609,8 +609,8 @@ void a0() {
 	state->sensor_bus = dumbbus_new();
 	// init_csdstate();
 	// dumbbus_register(state->sensor_bus, &calib_stopdist);
-	 init_v_avg();
-	 dumbbus_register(state->sensor_bus, &get_v_avg);
+	// init_v_avg();
+	// dumbbus_register(state->sensor_bus, &get_v_avg);
 
 	// time bus
 	state->bus10hz = dumbbus_new();

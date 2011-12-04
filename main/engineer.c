@@ -67,7 +67,7 @@ void engineer_on_reverse(engineer *this, int train_no, int t) {
 	train_on_reverse(train, t);
 }
 
-// @TODO: this is a tricky thing because it's technically a small path involving 3 commands and 2 delays. this needs to be rethought in the context of a path finder.
+// @TODO: this needs to generate a vcmd that cannot be interrupted
 void engineer_reverse(engineer *this, int train_no) {
 	train *train = engineer_get_train(this, train_no);
 	int speed = train_get_speed(train);
@@ -97,7 +97,7 @@ track_node *engineer_get_tracknode(engineer *this, char *type, int id) {
 }
 
 void engineer_on_set_switch(engineer *this, int id, int pos, int t) {
-	(void) t; // @TODO: perhaps save a timeline of switch states
+	(void) t;
 	track_node *br = engineer_get_tracknode(this, "BR", id);
 	int dir = POS2DIR(pos);
 	br->switch_dir = dir;
@@ -141,7 +141,6 @@ train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, i
 		location cur_loc_pickup = train_get_pickuploc(train);
 		location old_loc_pickup = train_get_pickuploc_hist(train, t_loc);
 
-		// @TODO: since we have a max range we should short circuit
 		int dist = location_dist_min(&old_loc_pickup, attr_loc_pickup);
 
 		if (dist >= 0) {
@@ -168,7 +167,7 @@ train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, i
 		}
 	}
 
-	if (closest_train && closest_dist < 400) return closest_train; // @TODO: pull out magic constant
+	if (closest_train && closest_dist < TRAIN_SENSORATTRIB_THRESHOLD) return closest_train;
 
 	train *rv = NULL;
 	trainreg_foreach(this->trainreg, train) {
@@ -206,11 +205,7 @@ void engineer_onsensor(engineer *this, msg_sensor *msg) {
 	engineer_ontick(this, NULL);
 	track_node *sensor = engineer_get_tracknode(this, msg->module, msg->id);
 	location loc_sensor = location_fromnode(sensor, DIR_AHEAD);
-	if (msg->state == OFF) {
-		return; // @TODO: removing this reduces simulation accuracy, why?
-		int len_pickup = 50; // @TODO: don't hardcode, even though so easy
-		location_add(&loc_sensor, len_pickup);
-	}
+	if (msg->state == OFF) return; // @TODO: use sensor off as well
 	engineer_onloc(this, &loc_sensor, msg->timestamp);
 }
 
