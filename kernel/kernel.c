@@ -399,8 +399,8 @@ static inline int kernel_awaitevent(int eventid) {
 void kernel_check_memory(task_descriptor *td) {
 	int sp = td->registers.r[REG_SP];
 	int fp = td->registers.r[REG_FP];
-	int lr = td->registers.r[REG_LR];
-	int pc = td->registers.r[REG_PC];
+	// int lr = td->registers.r[REG_LR];
+	// int pc = td->registers.r[REG_PC];
 
 	ASSERT(
 		sp > (uint) td->heap,
