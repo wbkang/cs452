@@ -103,10 +103,10 @@ static int gps_collapsereverse(track_node *startnode, track_node *path[], int pa
 
 			int safe_len = train_get_length(train) + poserr;
 
-			SMALLOC(track_edge*, edges, TRACK_MAX);
+			SMALLOC(track_edge*, edges, MAX_PATH_LEN);
 			int num_edges = 0;
 
-			if (!track_walk(node, safe_len, TRACK_MAX, edges, &num_edges)) return -1;
+			if (!track_walk(node, safe_len, MAX_PATH_LEN, edges, &num_edges)) return -1;
 
 			for (int i = 0; i < num_edges; i++) {
 				track_edge *edge = edges[i];
@@ -305,7 +305,7 @@ void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, tra
 		int len = 0;
 
 		while (u) {
-			ASSERT(len < TRACK_MAX, "path size too big!? %d", len);
+			ASSERT(len < MAX_PATH_LEN, "path size too big!? %d", len);
 			rv_nodes[len++] = u;
 			u = previous[uidx];
 			uidx = u - nodes;
