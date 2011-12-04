@@ -2,6 +2,7 @@
 #include <util.h>
 #include <syscall.h>
 #include <train.h>
+#include <track_data.h>
 
 // @TODO: implement sparse set to improve this
 // http://research.swtch.com/2008/03/using-uninitialized-memory-for-fun-and.html

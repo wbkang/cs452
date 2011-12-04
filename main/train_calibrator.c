@@ -29,7 +29,7 @@ static void calibrator_quit() {
 }
 
 static void handle_sensor_response(void *va0state, void* unused) {
-	(void)unused;
+	(void) unused;
 	a0state *state = va0state;
 
 	track_node *sensor = state->cur_sensor;
@@ -82,6 +82,8 @@ void calibrate_train(int train_no, char sig1mod, int sig1id) {
 	}
 
 	track_node *back = front->reverse->edge->dest;
+	track_skipvnodes(&back);
+
 	if (!back) {
 		a0ui_on_cmdlogf(state->a0ui, "no back node for start node %c%d", sig1mod, sig1id);
 		return;

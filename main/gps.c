@@ -202,6 +202,7 @@ void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, tra
 	int dist[TRACK_MAX];
 	track_node *previous[TRACK_MAX];
 	heap_clear(Q);
+	MEMCHECK();
 
 	for (int i = 0; i < TRACK_MAX; i++) {
 		track_node *node = &nodes[i];
@@ -267,7 +268,7 @@ void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, tra
 		int len = 0;
 
 		while (u) {
-			ASSERT(len < MAX_PATH, "path size too big!? %d", len);
+			ASSERT(len < TRACK_MAX, "path size too big!? %d", len);
 			rv_nodes[len++] = u;
 			u = previous[uidx];
 			uidx = u - nodes;

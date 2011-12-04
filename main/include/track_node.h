@@ -9,7 +9,6 @@ typedef enum {
 #define DIR_CURVED 1
 
 #define TRAIN_UNOCCUPIED -1
-#define MAX_PATH 160
 
 typedef struct track_node track_node;
 typedef struct track_edge track_edge;
@@ -52,3 +51,4 @@ track_node *track_next_node(track_node *node);
 int track_distance(track_node *from, track_node *to);
 int track_numedges(track_node *node);
 int track_walk(track_node *node, int dist, int maxlen, track_edge *arr[], int *len);
+int track_skipvnodes(track_node **node);

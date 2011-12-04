@@ -308,7 +308,8 @@ if errors > 0:
 ########################################################################
 #### Add v nodes
 
-slice = 250
+slice = 128 + 64
+numvnodes = []
 
 for fun in tracks:
 	n = 0
@@ -356,8 +357,12 @@ for fun in tracks:
 				edBrNr.init(Br, Nr, dist / 2)
 				edNrAr.init(Nr, Ar, dist / 2)
 
-				print(ed.node1.name, ed.node2.name, ed.dist)
-	print(n)
+				print(
+					edAN.node1.name, edAN.node2.name, edAN.dist,
+					edNB.node1.name, edNB.node2.name, edNB.dist
+				)
+	numvnodes.append(n)
+print(max(numvnodes))
 
 ########################################################################
 #### Output the .h code.
@@ -451,8 +456,8 @@ int sensor_mapper(void* key) {
 		n -= (153 - 19);
 	}
 
-	ASSERT(1 <= n && n <= 64, "bad n: %%d, idx: %%d, name: %%s", n, idx, key);
-	idx = (64 * idx) + (n - 1);
+	ASSERT(1 <= n && n <= %d, "bad n: %%d, idx: %%d, name: %%s", n, idx, key);
+	idx = (%d * idx) + (n - 1);
 
 	return idx;
 
@@ -460,13 +465,13 @@ int sensor_mapper(void* key) {
 	ERROR("bad name: %%s", key);
 	return -1;
 }
-''' % options.h)
+''' % (options.h, max(numvnodes), max(numvnodes)))
 for fun in tracks:
 	fh.write('''
 lookup *%s(track_node *track) {
-	lookup *sensormap = lookup_new(64 * 10, sensor_mapper, 0);
+	lookup *sensormap = lookup_new(%d * 10, sensor_mapper, 0);
 	memset(track, 0, sizeof(track_node) * TRACK_MAX);
-''' % fun)
+''' % (fun, max(numvnodes)))
 	edge_num = 0
 	for nd in tracks[fun].nodes:
 		idx = nd.index

@@ -152,15 +152,18 @@ int location_tostring(location *this, char *buf) {
 		buf += sprintf(buf, "(invalid: %d)", errno);
 	} else if (location_isundef(this)) {
 		buf += sprintf(buf, "(undefined)");
-	} else if (this->offset == 0) {
-		ASSERTNOTNULL(this->edge->src);
-		buf += sprintf(buf, "%s", this->edge->src->name);
 	} else {
-		ASSERTNOTNULL(this->edge->src);
-		ASSERTNOTNULL(this->edge->dest);
-		buf += sprintf(buf, "%s+%dmm", this->edge->src->name, (int) this->offset);
-		if (this->edge->src->type == NODE_BRANCH) {
-			buf += sprintf(buf, "->%s", this->edge->dest->name);
+		int dist = this->offset;
+		track_node *node = this->edge->src->reverse;
+		dist += track_skipvnodes(&node);
+		node = node->reverse;
+		if (dist == 0) {
+			buf += sprintf(buf, "%s", node->name);
+		} else {
+			buf += sprintf(buf, "%s+%dmm", node->name, dist);
+			if (node->type == NODE_BRANCH) {
+				buf += sprintf(buf, "->%s", track_next_node(node)->name);
+			}
 		}
 	}
 	return buf - origbuf;
