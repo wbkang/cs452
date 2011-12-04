@@ -53,6 +53,7 @@ int location_isinvalid(location *this) {
 	return 0;
 }
 
+// @TODO: virtually in all cases we do "if dist < limit", add a max length to short-circuit?
 int location_dist_dir(location *A, location *B) {
 	ASSERT(!location_isinvalid(A), "bad 'from' location %d", location_isinvalid(A));
 	ASSERT(!location_isinvalid(B), "bad 'to' location %d", location_isinvalid(B));

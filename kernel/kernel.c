@@ -97,7 +97,6 @@ void handle_abort(int fp, int dabort) {
 		faultname = "external abort on noncacheable";
 	}
 
-	// @TODO: why does faultdomain sometimes return defaultaddr? wtf
 	bwprintf(1, "possible faulttype: %s (%d), faultdomain: %d, datafaultaddr: %x\n",
 			faultname, faulttype, faultdomain, datafaultaddr);
 

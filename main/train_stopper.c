@@ -17,7 +17,6 @@ void train_stopper_setup(dumbbus *simbus, train *train, location *dest) {
 	dumbbus_register(simbus, train_stopper_on_tick);
 }
 
-// @TODO: logging should be handled better
 void train_stopper_on_tick(void *vengineer, void *va0) {
 	a0state *a0state = va0;
 	train *train = ts_state.train;
