@@ -188,7 +188,7 @@ void bwprintf(int channel, char *fmt, ...);
 	VMEM(VIC2 + INTENCLR_OFFSET) = __vic2; \
 }
 
-#define CHECK_COM(_c) ASSERT((_c) == COM1 ||  (_c) == COM2, "Invalid channel " #_c)
+#define CHECK_COM(_c) ASSERT((_c) == COM1 ||  (_c) == COM2, "Invalid channel %d", _c)
 
 #if __i386__
 #define ASM(X)

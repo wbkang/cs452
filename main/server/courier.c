@@ -42,7 +42,7 @@ int courier_new(int priority, int tid_from, int tid_to, int item_size, char *nam
 	if (name) {
 		strcpy(args.name, name);
 	} else {
-		name[0] = '\0';
+		args.name[0] = '\0';
 	}
 	int n = Send(tid, &args, sizeof(args), NULL, 0);
 	if (n < 0) return n;

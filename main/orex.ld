@@ -22,6 +22,8 @@ SECTIONS
 		*(.rodata.str1.4)
 		*(.glue_7)
 		*(.glue_7t)
+		libkernel.a(*data)
+		libkernel.a(*bss)
 	} >ram
 	
 	debug . :
