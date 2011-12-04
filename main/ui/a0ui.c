@@ -121,6 +121,7 @@ void a0ui_on_log(a0ui *this, char *msg) {
 }
 
 void a0ui_on_train_location(a0ui *this, train* train) {
+	const int reservatoin_print_limit = 5;
 	ASSERT((int)this % 4 == 0, "a0ui unaligned");
 	ASSERT((int)train % 4 == 0, "train unaligned");
 	int idx = this->known_train_map[train->no];
@@ -165,7 +166,7 @@ void a0ui_on_train_location(a0ui *this, train* train) {
 
 	b = msg;
 	b += sprintf(b, "\tres:");
-	for (int i = 0; i < train->reservation->len; i++) {
+	for (int i = 0; i < train->reservation->len && i < reservatoin_print_limit; i++) {
 		track_edge *edge = train->reservation->edges[i];
 		b += sprintf(b, " %s-%s", edge->src->name, edge->dest->name);
 	}
@@ -173,7 +174,7 @@ void a0ui_on_train_location(a0ui *this, train* train) {
 
 	b = msg;
 	b += sprintf(b, "\talt:");
-	for (int i = 0; i < train->reservation_alt->len; i++) {
+	for (int i = 0; i < train->reservation_alt->len && i < reservatoin_print_limit; i++) {
 		track_edge *edge = train->reservation->edges[i];
 		b += sprintf(b, " %s-%s", edge->src->name, edge->dest->name);
 	}
