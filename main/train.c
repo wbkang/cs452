@@ -51,7 +51,10 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->usepoly = FALSE;
+			cal->usepoly = TRUE;
+			cal->x0to12 = poly_new(-3.9501, -0.01, 5.115e-5, -3.907e-9, 1.038e-13, 0);
+			cal->v0to12 = poly_derive(cal->x0to12);
+			cal->a0to12 = poly_derive(cal->v0to12);
 
 			cal->st_order = 4;
 			cal->st[0] = -1.02274;
@@ -108,7 +111,10 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->usepoly = FALSE;
+			cal->usepoly = TRUE;
+			cal->x0to12 = poly_new(-0.0009, 0.134, -0.0002, 1.329e-7, -2.671e-11, 2.425e-15);
+			cal->v0to12 = poly_derive(cal->x0to12);
+			cal->a0to12 = poly_derive(cal->v0to12);
 
 			cal->st_order = 3;
 			cal->st[0] = -8.5976;
@@ -164,7 +170,10 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->usepoly = FALSE;
+			cal->usepoly = TRUE;
+			cal->x0to12 = poly_new(-0.016, 0.0292, -6.921e-5, 9.479e-8, -2.396e-11, 2.53e-15);
+			cal->v0to12 = poly_derive(cal->x0to12);
+			cal->a0to12 = poly_derive(cal->v0to12);
 
 			cal->st_order = 1;
 			cal->st[0] = 49.4653;
@@ -276,7 +285,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 			}
 
 			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(-1.2916, 0.0128, 2.062e-5, -4.875e-9, 2.764e-12, 0);
+			cal->x0to12 = poly_new(0.2876, 0.0306, -7.537e-5, 1.334e-7, -7.897e-11, 2.128e-14);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
@@ -290,6 +299,66 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->st_mul = 2.2;
 
 			return TRUE;
+		}
+		case 41: {
+			// cal->stopm = 1386.5;
+			// cal->stopb = -68.665;
+			cal->len_pickup = 50;
+			cal->dist2nose = 24;
+			cal->dist2tail = 143;
+
+			// int data[] = {
+			// 	0,		1,
+			// 	791,	78393,
+			// 	2510,	34398,
+			// 	4757,	37633,
+			// 	6982,	39301,
+			// 	8734,	37224,
+			// 	6509,	22603,
+			// 	7694,	22102,
+			// 	16481,	42221,
+			// 	15437,	35441,
+			// 	11279,	23860,
+			// 	15062,	28433,
+			// 	10558,	18291,
+			// 	39277,	63136,
+			// 	16803,	27068,
+			// 	599,	60079,
+			// 	1466,	20227,
+			// 	3676,	28987,
+			// 	13885,	78019,
+			// 	6522,	27782,
+			// 	16481,	57568,
+			// 	18332,	52594,
+			// 	8135,	21220,
+			// 	12515,	28530,
+			// 	19804,	42189,
+			// 	14271,	27137,
+			// 	20784,	36490,
+			// 	36677,	59104
+			// };
+
+			// TRAIN_FOREACH_SPEEDIDX(i) {
+			// 	float dx = data[i * 2];
+			// 	float dt = data[i * 2 + 1];
+			// 	cal->v_avg[i] = dx / dt;
+			// }
+
+			cal->usepoly = TRUE;
+			cal->x0to12 = poly_new(-1.281, 0.101, -0.0001, 8.216e-8, -1.447e-11, 1.084e-15);
+			cal->v0to12 = poly_derive(cal->x0to12);
+			cal->a0to12 = poly_derive(cal->v0to12);
+
+			// cal->st_order = 4;
+			// cal->st[0] = -0.0580817;
+			// cal->st[1] = 19572.6;
+			// cal->st[2] = -59037.1;
+			// cal->st[3] = 77626.7;
+			// cal->st[4] = -36317.5;
+
+			// cal->st_mul = 2.2;
+
+			return FALSE;
 		}
 		default:
 			return FALSE;
