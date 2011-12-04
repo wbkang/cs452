@@ -3,6 +3,7 @@
 #include <console.h>
 #include <server/uiserver.h>
 #include <string.h>
+#include <util.h>
 
 typedef struct {
 	int tid_ui;

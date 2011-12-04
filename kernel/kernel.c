@@ -229,7 +229,7 @@ int kernel_run() {
 		register_set *reg = &td->registers;
 		if (MEM_PROTECTION) mem_tlb_flush();
 		int cpsr = asm_switch_to_usermode(reg);
-		kernel_check_memory();
+		kernel_check_memory(td);
 		if ((cpsr & 0x1f) == 0x12) {
 			reg->r[REG_PC] -= 4;
 			int vic1 = VMEM(VIC1 + IRQSTATUS_OFFSET);
@@ -396,13 +396,18 @@ static inline int kernel_awaitevent(int eventid) {
 	return 0;
 }
 
-void kernel_check_memory() {
-	task_descriptor *td = scheduler_running();
+void kernel_check_memory(task_descriptor *td) {
+	int sp = td->registers.r[REG_SP];
+	int fp = td->registers.r[REG_FP];
+	int lr = td->registers.r[REG_LR];
+	int pc = td->registers.r[REG_PC];
+
 	ASSERT(
-		(uint) td->registers.r[REG_SP] > (uint) td->heap,
+		sp > (uint) td->heap,
 		"Task %d buffer overflow. heap: %x, sp: %x",
 		td->id, (uint) td->heap, (uint) td->registers.r[REG_SP]
 	);
+	ASSERT(fp < 0x2000000, "task %d fp out of range %x", fp);
 }
 
 /*
