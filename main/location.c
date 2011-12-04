@@ -133,6 +133,7 @@ int location_add(location *this, float dx) {
 }
 
 void location_tonextnode(location *this) {
+	ASSERTNOTNULL(this->edge->dest);
 	this->edge = track_next_edge(this->edge->dest);
 	this->offset = 0;
 }

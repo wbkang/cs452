@@ -40,15 +40,6 @@ typedef char *va_list;
 #define MEMCHECK() malloc(0)
 #define HEAP_REMAINING(var) { int sp; READ_REGISTER(sp); var = sp - (int)malloc(0); }
 
-#define PUTS(...) { \
-	char PAVEL[512]; \
-	sprintf(PAVEL, __VA_ARGS__); \
-	int tid_com2 = WhoIs(NAME_IOSERVER_COM2); \
-	ASSERT(tid_com2 >= 0, "bad io server"); \
-	int rv = Putstr(COM2, PAVEL, tid_com2); \
-	ASSERT(rv >= 0, "putstr error"); \
-}
-
 static inline int log2(uint n) {
 	uint l, i = 0;
 	if ((l = n >> 16)) { n = l; i |= 16; }
@@ -137,6 +128,10 @@ void dump_registers(int r0, int r1, int r2, int r3);
 void print_stack_trace(uint fp, int clearscreen);
 void td_print_crash_dump();
 int MyTid();
+
+#define SMALLOC(type, name, size) \
+	type name[size]; \
+	MEMCHECK();
 
 #if ASSERT_ENABLED
 #define ASSERT(X, ...) { \

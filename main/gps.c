@@ -76,15 +76,49 @@ static inline char gps_getnextswitchpos(track_node *sw, track_edge *edgeafterbra
 }
 
 static inline location gps_get_rev_stoploc(train *train, track_node *node) {
-	return location_fromnode(node, 0);
+	location rv = location_fromnode(node, 0);
+	location_add(&rv, -train_get_poserr(train) / 2);
+	return rv;
 }
 
 static int gps_collapsereverse(track_node *startnode, track_node *path[], int pathlen, train *train) {
-	// @TODO: this is not safe because we might be sitting on a branch, needs more thought
-	// if (pathlen == 0 || train_is_moving(train)) return -1;
-	// for (int i = 0; i < pathlen; i++) {
-	// 	if (path[i] == startnode->reverse) return i;
-	// }
+	if (pathlen == 0 || train_is_moving(train)) return -1;
+
+	int poserr = train_get_poserr(train);
+
+	location loc = train_get_frontloc(train);
+	int r = location_add(&loc, poserr / 2);
+	if (r == -2) {
+		// hit an exit, of course we have enough room
+	} else {
+		ASSERT(r == 0, "couldn't push location forward: %d", r);
+		location_tonextnode(&loc);
+		if (loc.edge->src->type == NODE_EXIT) {
+			// hit an exit
+		} else {
+			r = location_reverse(&loc);
+			ASSERT(r == 0, "couldn't reverse: %d", r);
+			track_node *node = loc.edge->src;
+			ASSERTNOTNULL(node);
+
+			int safe_len = train_get_length(train) + poserr;
+
+			SMALLOC(track_edge*, edges, TRACK_MAX);
+			int num_edges = 0;
+
+			if (!track_walk(node, safe_len, TRACK_MAX, edges, &num_edges)) return -1;
+
+			for (int i = 0; i < num_edges; i++) {
+				track_edge *edge = edges[i];
+				if (edge->src->type == NODE_BRANCH) return -1; // too close to a branch
+			}
+		}
+	}
+
+	for (int i = 0; i < pathlen; i++) {
+		if (path[i] == startnode->reverse) return i;
+	}
+
 	return -1;
 }
 
@@ -203,10 +237,9 @@ static int dist_between(track_node *u, track_edge *e, track_node *v, train *trai
 
 // code taken from http://en.wikipedia.org/wiki/Dijkstra's_algorithm#Algorithm
 void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, track_node *rv_nodes[], int *rv_len_nodes, train *train) {
-	int dist[TRACK_MAX];
-	track_node *previous[TRACK_MAX];
+	SMALLOC(int, dist, TRACK_MAX);
+	SMALLOC(track_node*, previous, TRACK_MAX);
 	heap_clear(Q);
-	MEMCHECK();
 
 	for (int i = 0; i < TRACK_MAX; i++) {
 		track_node *node = &nodes[i];
