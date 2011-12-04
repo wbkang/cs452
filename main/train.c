@@ -276,7 +276,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 			}
 
 			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(-0.8746, -0.0087, 7.688e-5, -5.264e-8, 1.884e-11, -1.861e-15);
+			cal->x0to12 = poly_new(-1.2916, 0.0128, 2.062e-5, -4.875e-9, 2.764e-12, 0);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
