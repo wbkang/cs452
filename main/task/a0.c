@@ -203,20 +203,62 @@ struct {
 	int t_last_sensor;
 	int dx;
 	int dt;
+	int saveddx[28];
+	int saveddt[28];
+	enum { V_ASCENDING, V_DESCENDING } state;
 } app_v_avg_state;
 
-static void init_v_avg() {
+static void reset_v_avg() {
 	app_v_avg_state.last_sensor = NULL;
 	app_v_avg_state.dx = 0;
 	app_v_avg_state.dt = 0;
 }
 
+static void init_v_avg() {
+	reset_v_avg();
+	state = V_ASCENDING;
+	for (int i = 0; i < 28; i++) {
+		app_v_avg_state.saveddx[i] = 0;
+		app_v_avg_state.saveddt[i] = 0;
+	}
+}
+
+static void print_v_avg() {
+	a0state *state = get_state();
+	char buf[1024], *p = buf;
+	for (int i = 0; i < 28; i++) {
+		p += sprintf(p, "%d,%d,", app_v_avg_state.saveddx[i], app_v_avg_state.saveddt[i]);
+
+		if (i % 5 == 4 || i == 27) {
+			a0ui_on_logf(state->a0ui, buf);
+			p = buf;
+		}
+	}
+}
+
+static void save_v_avg() {
+	a0state *state = get_state();
+	engineer *eng = state->eng;
+	train *train = engineer_get_train(eng, 41);
+	int speedidx = train_get_speedidx(train);
+	app_v_avg_state.saveddt[speedidx] = app_v_avg_state.dt;
+	app_v_avg_state.saveddx[speedidx] = app_v_avg_state.dx;
+	a0ui_on_logf(state->a0ui, "saved %d/%d for %d",  app_v_avg_state.dx,app_v_avg_state.dt,speedidx);
+	int speed = train_get_speed(train);
+
+	if (app_v_avg_state.state == V_ASCENDING && speed <= 13) {
+		engineer_set_speed(eng, train->no, speed + 1);
+	} else if (speed == 14) {
+		app_v_avg_state.state = V_DESCENDING;
+		engineer_set_speed(eng, train->no, speed - 1);
+	} else if (app_v_avg_state.state == V_DESCENDING) {
+		engineer_set_speed(eng, train->no, speed - 1);
+	}
+}
+
 static void get_v_avg(void *vstate, void* unused) {
 	(void) unused;
 	a0state *state = vstate;
-	engineer *eng = state->eng;
-	train *train = engineer_get_train(eng, 21);
-
 	track_node *last_sensor = app_v_avg_state.last_sensor;
 	app_v_avg_state.last_sensor = state->cur_sensor;
 	int t_last_sensor = app_v_avg_state.t_last_sensor;
@@ -235,17 +277,17 @@ static void get_v_avg(void *vstate, void* unused) {
 	app_v_avg_state.dx += dx;
 	app_v_avg_state.dt += dt;
 
-	a0ui_on_logf(
-		state->a0ui,
-		"[%7d] %s to %s is {%d} %d / %d (%f) [%d / %d (%f)]",
-		t_sensor,
-		last_sensor->name, sensor->name,
-		train_get_speedidx(train),
-		app_v_avg_state.dx, app_v_avg_state.dt,
-		((float) app_v_avg_state.dx) / app_v_avg_state.dt,
-		dx, dt,
-		((float) dx) / dt
-	);
+//	a0ui_on_logf(
+//		state->a0ui,
+//		"[%7d] %s to %s is {%d} %d / %d (%f) [%d / %d (%f)]",
+//		t_sensor,
+//		last_sensor->name, sensor->name,
+//		train_get_speedidx(train),
+//		app_v_avg_state.dx, app_v_avg_state.dt,
+//		((float) app_v_avg_state.dx) / app_v_avg_state.dt,
+//		dx, dt,
+//		((float) dx) / dt
+//	);
 }
 
 static void handle_sensor(msg_sensor *msg) {
@@ -365,7 +407,15 @@ static void handle_command(void* vthis, char *cmd, int size) {
 
 	switch (*c++) {
 		case 'v':
-			init_v_avg();
+			if ((*c) == '\0') {
+				reset_v_avg();
+			} else if ((*c) == 's') {
+				save_v_avg();
+			} else if ((*c) == 'p') {
+				print_v_avg();
+			} else {
+				goto badcmd;
+			}
 			break;
 		case 'a': {
 			ACCEPT('d');
@@ -609,8 +659,8 @@ void a0() {
 	state->sensor_bus = dumbbus_new();
 	// init_csdstate();
 	// dumbbus_register(state->sensor_bus, &calib_stopdist);
-	// init_v_avg();
-	// dumbbus_register(state->sensor_bus, &get_v_avg);
+//	init_v_avg();
+	dumbbus_register(state->sensor_bus, get_v_avg);
 
 	// time bus
 	state->bus10hz = dumbbus_new();

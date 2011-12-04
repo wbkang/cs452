@@ -12,9 +12,9 @@
 void task1() {
 	timeserver_create();
 	ioserver_create(COM1, OFF, 2400, 2, 8, OFF);
-	ioserver_create(COM2, OFF, 115200, 1, 8, OFF);
+	int tid_com2 = ioserver_create(COM2, OFF, 115200, 1, 8, OFF);
 
-	__init_funclist();
+//	__init_funclist();
 
 	func_t prog;
 //	do {
