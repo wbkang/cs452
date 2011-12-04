@@ -31,7 +31,8 @@ static inline uint heap_swap(heap *this, uint i, uint j) {
 static inline int heap_put(heap *this, void *data, int key) {
 	ASSERT(this->size < this->max_size, "full");
 	uint i = this->size;
-	this->arr[i] = (heap_item) {.key = key, .data = data};
+	this->arr[i].key = key;
+	this->arr[i].data = data;
 	this->size++;
 	return i;
 }

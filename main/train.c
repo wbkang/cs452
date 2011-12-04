@@ -274,7 +274,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->st[3] = 77626.7;
 			cal->st[4] = -36317.5;
 
-			cal->st_mul = 2;
+			cal->st_mul = 2.2;
 
 			return TRUE;
 		}
@@ -583,9 +583,9 @@ static int train_update_reservations(train *this) {
 	int tonextnode = loc_train.edge->dist - toprevnode;
 	int ahead = RESERVE_AHEAD + train_get_stopdist(this) - tonextnode;
 
-	if (!track_walk(loc_train.edge->dest, ahead, MAX_PATH, req->edges, &req->len)) return FALSE;
+	if (!track_walk(loc_train.edge->dest, ahead, TRACK_MAX, req->edges, &req->len)) return FALSE;
 
-	if (!track_walk(loc_train.edge->src->reverse, behind, MAX_PATH, req->edges, &req->len)) return FALSE;
+	if (!track_walk(loc_train.edge->src->reverse, behind, TRACK_MAX, req->edges, &req->len)) return FALSE;
 
 	return reservation_replace(this->reservation, req, this->no);
 }
@@ -763,10 +763,10 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 int train_get_reverse_cost(train *train, int dist, track_node *node) {
 	int safe_len = train_get_length(train) + train_get_poserr(train);
 
-	track_edge *edges[MAX_PATH];
+	track_edge *edges[TRACK_MAX];
 	int num_edges = 0;
 
-	if (!track_walk(node->reverse, safe_len, MAX_PATH, edges, &num_edges)) {
+	if (!track_walk(node->reverse, safe_len, TRACK_MAX, edges, &num_edges)) {
 		return infinity; // not enough room to reverse
 	}
 

@@ -90,3 +90,16 @@ int track_walk(track_node *node, int dist, int maxlen, track_edge *arr[], int *l
 
 	return TRUE;
 }
+
+int track_skipvnodes(track_node **node) {
+	if (!node) return -1; // NULL
+	int dist = 0;
+	for (;;) {
+		if (!*node) return -2; // NULL
+		if ((*node)->name[0] != 'V') return dist;
+		track_edge *edge = track_next_edge(*node);
+		dist += edge->dist;
+		*node = edge->dest;
+	}
+	return -3; // unreachable
+}

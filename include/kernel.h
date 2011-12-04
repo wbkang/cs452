@@ -7,3 +7,4 @@ int kernel_run();
 inline int kernel_createtask(int priority, func_t code);
 void kernel_idleserver();
 void handle_abort(int fp, int dabort);
+void kernel_check_memory();
