@@ -268,7 +268,7 @@ void uiserver_effect(ui_id id, int flag, int color) {
 }
 
 void uiserver_out(ui_id id, char *out) {
-	int msg[MAX_UIMSGSIZE / sizeof(int)];
+	int msg[(MAX_UIMSGSIZE / sizeof(int)) + 1];
 	msg_ui *uimsg = (msg_ui*) msg;
 	uimsg->type = MSG_UI;
 	uimsg->uimsg = UIMSG_OUT;

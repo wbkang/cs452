@@ -49,7 +49,7 @@ static void sender() {
 
 static void receiver() {
 	int tid;
-	char buf[MSG_SIZE];
+	int buf[(MSG_SIZE / sizeof(int)) + 1];
 	for (;;) {
 		Receive(&tid, buf, MSG_SIZE);
 		Reply(tid, buf, MSG_SIZE);

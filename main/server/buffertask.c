@@ -20,7 +20,7 @@ typedef struct _tag_buffertask_state {
 } buffertask_state;
 
 static inline void tx(buffertask_state *state, int tid) {
-	char item[state->item_size];
+	int item[(state->item_size / sizeof(int)) + 1];
 	buffer_get(state->items, item);
 	Reply(tid, item, state->item_size);
 }

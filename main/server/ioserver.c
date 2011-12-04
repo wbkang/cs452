@@ -292,8 +292,8 @@ int Getc(int channel, int tid) {
 int Putc(int channel, char c, int tid) {
 	(void) channel;
 	int size = sizeof(ioserver_req) + 1;
-	char mem[size];
-	ioserver_req *req = (void*) mem;
+	int mem[(size >> 2) + 1];
+	ioserver_req *req = (ioserver_req*) mem;
 	req->no = PUTC;
 	req->str[0] = c;
 	return ioserver_send(tid, req, size);
@@ -303,8 +303,8 @@ int Putstr(int channel, char const *str, int tid) {
 	(void) channel;
 	int strsize = strlen(str) + 1;
 	int size = sizeof(ioserver_req) + strsize;
-	char mem[size];
-	ioserver_req *req = (void*) mem;
+	int mem[(size >> 2) + 1];
+	ioserver_req *req = (ioserver_req*) mem;
 	req->no = PUTSTR;
 	memcpy(req->str, str, strsize);
 	return ioserver_send(tid, req, size);

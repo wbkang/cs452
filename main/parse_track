@@ -214,23 +214,23 @@ class node:
 			state.error("missing property 'reverse <NODE>'")
 		if self.nodetype in ['sensor', 'enter', 'merge']:
 			try:
-				assert self.ahead		!= None
+				assert self.ahead != None
 				assert self.straight == None
-				assert self.curved	 == None
+				assert self.curved == None
 			except AssertionError:
 				state.error("%s node expects 'ahead' edge" % self.nodetype)
 		elif self.nodetype in ['exit']:
 			try:
-				assert self.ahead		== None
+				assert self.ahead == None
 				assert self.straight == None
-				assert self.curved	 == None
+				assert self.curved == None
 			except AssertionError:
 				state.error("%s node expects NO edges" % self.nodetype)
 		elif self.nodetype in ['branch']:
 			try:
-				assert self.ahead		== None
+				assert self.ahead == None
 				assert self.straight != None
-				assert self.curved	 != None
+				assert self.curved != None
 			except AssertionError:
 				state.error("%s node expects 'straight' and 'curved' edges" \
 					% self.nodetype)
@@ -308,14 +308,14 @@ if errors > 0:
 ########################################################################
 #### Add v nodes
 
-slice = 128 + 64
+slice = 128
 numvnodes = []
 
 for fun in tracks:
 	n = 0
 	idx = len(tracks[fun].nodes)
 	split = True
-	while (split):
+	while split:
 		split = False
 		for ed in tracks[fun].edges:
 			A = ed.node1
@@ -324,43 +324,45 @@ for fun in tracks:
 			Br = B.reverse
 			dist = ed.dist
 			if ed.dist > slice and A.ahead and Br.ahead:
-				tracks[fun].edges.remove(ed)
-
 				split = True
+
+				tracks[fun].edges.remove(ed)
+				# tracks[fun].edges.remove(Br.ahead_edge)
+
 				edAN = edge(None)
 				edNB = edge(None)
-				edBrNr = edge(None)
-				edNrAr = edge(None)
+				# edBrNr = edge(None)
+				# edNrAr = edge(None)
 
-				tracks[fun].edges.extend((edAN, edNB, edBrNr, edNrAr));
+				# tracks[fun].edges.extend((edAN, edNB, edBrNr, edNrAr));
+				tracks[fun].edges.extend((edAN, edNB))
 
 				N = node(None)
 				Nr = node(None)
 
-				tracks[fun].nodes.extend((N, Nr));
+				tracks[fun].nodes.extend((N, Nr))
 
 				A.ahead = N
 				A.ahead_edge = edAN
 				Br.ahead = Nr
-				Br.ahead_edge = edBrNr
+				# Br.ahead_edge = edBrNr
+				Br.ahead_edge = edNB
 
 				N.init(idx, 'V%d' % (n + 1), 'sensor', n, Nr, B, edNB)
 				idx += 1
 				n += 1
 
-				Nr.init(idx, 'V%d' % (n + 1), 'sensor', n, N, Ar, edNrAr)
+				# Nr.init(idx, 'V%d' % (n + 1), 'sensor', n, N, Ar, edNrAr)
+				Nr.init(idx, 'V%d' % (n + 1), 'sensor', n, N, Ar, edAN)
 				idx += 1
 				n += 1
 
 				edAN.init(A, N, dist / 2)
 				edNB.init(N, B, dist / 2)
-				edBrNr.init(Br, Nr, dist / 2)
-				edNrAr.init(Nr, Ar, dist / 2)
+				# edBrNr.init(Br, Nr, dist / 2)
+				# edNrAr.init(Nr, Ar, dist / 2)
 
-				print(
-					edAN.node1.name, edAN.node2.name, edAN.dist,
-					edNB.node1.name, edNB.node2.name, edNB.dist
-				)
+				print(edAN.node1.name, edAN.node2.name, edNB.node2.name, edNB.dist)
 	numvnodes.append(n)
 print(max(numvnodes))
 

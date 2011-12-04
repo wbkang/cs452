@@ -763,7 +763,7 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 int train_get_reverse_cost(train *train, int dist, track_node *node) {
 	int safe_len = train_get_length(train) + train_get_poserr(train);
 
-	track_edge *edges[TRACK_MAX];
+	SMALLOC(track_edge*, edges, TRACK_MAX);
 	int num_edges = 0;
 
 	if (!track_walk(node->reverse, safe_len, TRACK_MAX, edges, &num_edges)) {
