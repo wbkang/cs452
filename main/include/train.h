@@ -10,6 +10,7 @@
 #include <server/traincmdbuffer.h>
 #include <ui/a0ui.h>
 #include <gps.h>
+#include <poly.h>
 
 // train controller commands
 
@@ -59,6 +60,10 @@ struct train_cal {
 	int st_order; // order of approximation
 	float st[5]; // polynomial coefficients
 	float st_mul; // acceding vs descending multiplier
+
+	poly x0to14;
+	poly v0to14;
+	poly a0to14;
 };
 
 typedef struct train train;

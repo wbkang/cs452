@@ -160,6 +160,10 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
+			cal->x0to14 = poly_new(1, 3, 3, 7, 0);
+			cal->v0to14 = poly_derive(cal->x0to14);
+			cal->a0to14 = poly_derive(cal->v0to14);
+
 			cal->st_order = 1;
 			cal->st[0] = 49.4653;
 			cal->st[1] = 6227.4;
