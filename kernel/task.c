@@ -35,8 +35,8 @@ void td_print_crash_dump() {
 			char *taskname = nameserver_get_name(td->id);
 			if (!taskname) taskname = "{noname}";
 
-			bwprintf(1, "Task %d %s (p:%d, %s%s): ",
-					td->id, taskname, td->priority, task_state_name[td->state], waitinfostr);
+			bwprintf(1, "Task %d %s (p:%d, pc:%x, %s%s): ",
+					td->id, taskname, td->priority, td->registers.r[REG_PC], task_state_name[td->state], waitinfostr);
 			print_stack_trace(td->registers.r[REG_FP], 0);
 			bwprintf(1, "\n");
 		}
