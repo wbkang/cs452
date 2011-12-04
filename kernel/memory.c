@@ -166,9 +166,10 @@ void mem_protect() {
 	}
 
 	// from where TEXT starts to the end of TEXT segment
-	// system r/o, user r/o
+	// also kernel data
+	// system r/w, user r/o
 	for (int i = kernel_code_start_idx; i <= kernel_code_end_idx; i++) {
-		mmu_set_ap(i, 0x0);
+		mmu_set_ap(i, 0x2);
 	}
 
 	// from the end of TEXT to kernel stack & DATA
@@ -177,7 +178,7 @@ void mem_protect() {
 		mmu_set_ap(i, 0x3);
 	}
 
-	// mark kernel stack & data
+	// mark kernel stack
 	// system r/w, user r/w
 	for (int i = user_mem_end_idx; i < 0x2000000 / SECTION_SIZE; i++) {
 		mmu_set_ap(i, 0x3);

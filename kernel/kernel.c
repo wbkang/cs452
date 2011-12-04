@@ -64,7 +64,14 @@ static void uninstall_interrupt_handlers() {
 	mem_dcache_flush();
 }
 
+static int kernel_ever_aborted;
+
 void handle_abort(int fp, int dabort) {
+	if (kernel_ever_aborted) {
+		bwprintf(1, "double fault!\n");
+		for(;;);
+	}
+	kernel_ever_aborted = 1;
 	scheduler_running()->registers.r[REG_FP] = fp;
 	bwprintf(1, "Current tid: %d. fp:%x\n", scheduler_running()->id, fp);
 
@@ -214,6 +221,7 @@ int kernel_run() {
 	uint kernel_start = uptime();
 	uint time_idle_start = 0;
 	uint idletime = 0;
+	kernel_ever_aborted = 0;
 	while (LIKELY(!exitkernel)) {
 		ASSERT(!scheduler_empty(), "no task to schedule");
 		task_descriptor *td = scheduler_get();
