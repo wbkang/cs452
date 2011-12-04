@@ -144,9 +144,14 @@ void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd
 				char pos = gps_getnextswitchpos(curnode, nextedge);
 				location switchloc = location_fromedge(nextedge);
 				trainvcmd_addswitch(rv_vcmd, &cmdlen, curnode->name, pos, &switchloc);
-			} else {
-				// nothing to do
 			}
+			if (nextnode->type == NODE_MERGE) {
+				track_node *sw = nextnode->reverse;
+				char pos = gps_getnextswitchpos(sw, nextedge->reverse);
+				location switchloc = location_fromedge(&nextnode->edge[0]);
+				trainvcmd_addswitch(rv_vcmd, &cmdlen, sw->name, pos, &switchloc);
+			}
+			// nothing to do
 		} else if (curnode->reverse == nextnode) { // reverse plan
 			location stoploc;
 			gps_get_rev_stoploc(train, curnode, &stoploc);
