@@ -7,17 +7,19 @@
 
 typedef struct path path;
 
+#define MAX_PATH_LEN (2 * TRACK_MAX)
+
 struct path {
 	location start;
 	location end;
 	int pathlen;
-	track_node *nodes[TRACK_MAX];
+	track_node *nodes[MAX_PATH_LEN];
 };
 
 typedef struct reservation_req reservation_req;
 
 struct reservation_req {
-	track_edge *edges[TRACK_MAX];
+	track_edge *edges[MAX_PATH_LEN];
 	int len;
 };
 
