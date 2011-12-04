@@ -74,7 +74,7 @@
  * Memory constants.
  */
 // size of user memory in bytes (64 KB) (MUST BE A POWER OF TWO)
-#define STACK_SIZE 131072
+#define STACK_SIZE 196608 //192kb
 #define MAX_MSG_SIZE 65535
 #define SECTION_SIZE 1048576 // MMU section size
 

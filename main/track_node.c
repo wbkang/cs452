@@ -83,7 +83,10 @@ int track_walk(track_node *node, int dist, int maxlen, track_edge *arr[], int *l
 
 	for (int i = 0; i < num_edges; i++) {
 		track_edge *edge = &node->edge[i];
-		ASSERT(*len < maxlen, "'arr' full, len %d max len %d", *len, maxlen);
+//		ASSERT(*len < maxlen, "'arr' full, len %d max len %d", *len, maxlen);
+		if (*len >= maxlen) {
+			return FALSE;
+		}
 		arr[(*len)++] = edge;
 		if (!track_walk(edge->dest, dist - edge->dist, maxlen, arr, len)) return FALSE;
 	}
