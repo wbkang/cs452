@@ -22,7 +22,9 @@
 #include <engineer.h>
 
 #define LEN_MSG (64 * 4)
-#define TRAINNO 21
+#define TRAINNO 39
+#define CRUISING_SPEED 6
+#define SENSOR_TRIAL 5
 
 static engineer* eng;
 static a0ui* accel_ui;
@@ -53,7 +55,7 @@ static void handle_command(void* vthis, char *cmd, int size) {
 //		char buf[1024];
 //		location_tostring(&start_loc);
 //		a0ui_on_log(accel_ui, buf);
-	engineer_set_speed(eng, TRAINNO, 12);
+	engineer_set_speed(eng, TRAINNO, CRUISING_SPEED);
 
 }
 
@@ -71,10 +73,10 @@ static void accel_on_sensor(msg_sensor *msg) {
 	int dist = location_dist_dir(&start_loc, &sensorloc);
 
 
-	if (sensor_count == 10) {
+	if (sensor_count == SENSOR_TRIAL) {
 		engineer_set_speed(eng, TRAINNO, 0);
 		char buf[1024];
-		for (int i = 0; i < 9; i++) {
+		for (int i = 0; i < SENSOR_TRIAL - 1; i++) {
 			sprintf(buf, "%d,%d,", dists[i], times[i]);
 			a0ui_on_log(accel_ui, buf);
 		}

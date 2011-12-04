@@ -9,7 +9,7 @@
 #include <string.h>
 
 #define SCREEN_WIDTH 140
-#define SCREEN_HEIGHT 50
+#define SCREEN_HEIGHT 54
 
 #define MAX_UICLIENTS 300
 #define MAX_UIMSGSIZE (sizeof(msg_ui) + SCREEN_WIDTH + 1)
