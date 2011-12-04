@@ -51,6 +51,8 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
+			cal->usepoly = FALSE;
+
 			cal->st_order = 4;
 			cal->st[0] = -1.02274;
 			cal->st[1] = 103842;
@@ -106,6 +108,8 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
+			cal->usepoly = FALSE;
+
 			cal->st_order = 3;
 			cal->st[0] = -8.5976;
 			cal->st[1] = 22379.5;
@@ -160,9 +164,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->x0to14 = poly_new(1, 3, 3, 7, 0);
-			cal->v0to14 = poly_derive(cal->x0to14);
-			cal->a0to14 = poly_derive(cal->v0to14);
+			cal->usepoly = FALSE;
 
 			cal->st_order = 1;
 			cal->st[0] = 49.4653;
@@ -215,6 +217,8 @@ int train_init_cal(train_cal *cal, int train_no) {
 				float dt = data[i * 2 + 1];
 				cal->v_avg[i] = dx / dt;
 			}
+
+			cal->usepoly = FALSE;
 
 			cal->st_order = 4;
 			cal->st[0] = -0.00897707;
@@ -270,6 +274,11 @@ int train_init_cal(train_cal *cal, int train_no) {
 				float dt = data[i * 2 + 1];
 				cal->v_avg[i] = dx / dt;
 			}
+
+			cal->usepoly = TRUE;
+			cal->x0to12 = poly_new(-0.8746, -0.0087, 7.688e-5, -5.264e-8, 1.884e-11, -1.861e-15);
+			cal->v0to12 = poly_derive(cal->x0to12);
+			cal->a0to12 = poly_derive(cal->v0to12);
 
 			cal->st_order = 4;
 			cal->st[0] = -0.0580817;
@@ -519,25 +528,35 @@ float train_st(train_cal *cal, float v_i, float v_f) {
 
 static void train_update_state(train *this, float t_f) {
 	if (fabs(this->v - this->v_f) > 0.0001) {
-		float dv = this->v_f - this->v_i;
-		float dt = this->st;
-		float t = t_f - train_get_tspeed(this);
-		float tau = t / dt;
-		float tau2 = tau * tau;
-		// float tau3 = tau * tau2;
-		// float tau4 = tau * tau3;
+		if (this->v_i < this->v_f && this->cal.usepoly) {
+			float dv = this->v_f - this->v_i;
+			float alpha = dv / this->cal.v_avg[train_speed2speedidx(0, 12)];
+			poly v = poly_scale(this->cal.v0to12, alpha);
+			float t = t_f - train_get_tspeed(this);
+			this->v = this->v_i + poly_eval(&v, t);
+			poly a = poly_derive(v);
+			this->a = this->a_i + poly_eval(&a, t);
+		} else {
+			float dv = this->v_f - this->v_i;
+			float dt = this->st;
+			float t = t_f - train_get_tspeed(this);
+			float tau = t / dt;
+			float tau2 = tau * tau;
+			// float tau3 = tau * tau2;
+			// float tau4 = tau * tau3;
 
-		// a_i=a_f=0
-		this->v = this->v_i + dv * (3 - 2 * tau) * tau2;
-		this->a = this->a_i + 6 * (dv / dt) * tau * (1 - tau);
+			// a_i=a_f=0
+			this->v = this->v_i + dv * (3 - 2 * tau) * tau2;
+			this->a = this->a_i + 6 * (dv / dt) * tau * (1 - tau);
 
-		// j_i=j_f=0
-		// this->v = this->v_i + dv * (10 - 15 * tau + 6 * tau2) * tau3;
-		// this->a = this->a_i + 30 * (dv / dt) * fpow(tau * (1 - tau), 2);
+			// j_i=j_f=0
+			// this->v = this->v_i + dv * (10 - 15 * tau + 6 * tau2) * tau3;
+			// this->a = this->a_i + 30 * (dv / dt) * fpow(tau * (1 - tau), 2);
 
-		// s_i=s_f=0
-		// this->v = this->v_i + dv * (35 - 84 * tau + 70 * tau2 - 20 * tau3) * tau4;
-		// this->a = this->a_i + 140 * (dv / dt) * fpow(tau * (1 - tau), 3);
+			// s_i=s_f=0
+			// this->v = this->v_i + dv * (35 - 84 * tau + 70 * tau2 - 20 * tau3) * tau4;
+			// this->a = this->a_i + 140 * (dv / dt) * fpow(tau * (1 - tau), 3);
+		}
 	} else {
 		this->v = this->v_f;
 		this->a = 0;
