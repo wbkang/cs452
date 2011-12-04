@@ -61,9 +61,10 @@ struct train_cal {
 	float st[5]; // polynomial coefficients
 	float st_mul; // acceding vs descending multiplier
 
-	poly x0to14;
-	poly v0to14;
-	poly a0to14;
+	int usepoly;
+	poly x0to12;
+	poly v0to12;
+	poly a0to12;
 };
 
 typedef struct train train;

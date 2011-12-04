@@ -1,7 +1,8 @@
 #include <poly.h>
+#include <util.h>
 
 // make a new polynomial p(x) = sum_{n=0}^{4} a_n * x^n
-poly poly_new(float a0, float a1, float a2, float a3, float a4) {
+poly poly_new(float a0, float a1, float a2, float a3, float a4, float a5) {
 	poly p;
 
 	p.a[0] = a0;
@@ -9,6 +10,7 @@ poly poly_new(float a0, float a1, float a2, float a3, float a4) {
 	p.a[2] = a2;
 	p.a[3] = a3;
 	p.a[4] = a4;
+	p.a[5] = a5;
 
 	for (p.order = POLY_MAX_ORDER; p.order >= 0; p.order--) {
 		if (p.a[p.order] != 0) break;
@@ -19,12 +21,14 @@ poly poly_new(float a0, float a1, float a2, float a3, float a4) {
 
 // evaluate polynomial at x
 float poly_eval(const poly const * const this, float x) {
+	ASSERTNOTNULL(this);
+
 	float rv = 0;
 	float x2n = 1; // at^n
 
 	for (int n = 0; n <= this->order; n++) {
 		rv += this->a[n] * x2n;
-		x2n *= n;
+		x2n *= x;
 	}
 
 	return rv;
