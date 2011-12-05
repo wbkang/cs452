@@ -117,15 +117,8 @@ void engineer_set_switch(engineer *this, int id, int pos) {
 
 void engineer_train_on_loc(engineer *this, train *train, location *new_loc_pickup, int t_loc) {
 	int now = Time(this->tid_time);
-
-	train_update_simulation(train, now);
-
 	location old_loc_pickup = train_get_pickuploc(train);
-
-	float dx_lag = train_simulate_dx(train, t_loc, now);
-	location_add(new_loc_pickup, dx_lag);
-	train_set_pickuploc(train, new_loc_pickup);
-
+	train_on_attrib(train, new_loc_pickup, t_loc, now);
 	a0ui_on_train_location_logf(this->a0ui,
 		"pred: %L, attrib: %L (%dmm)",
 		&old_loc_pickup,
@@ -214,7 +207,7 @@ void engineer_onsensor(engineer *this, msg_sensor *msg) {
 }
 
 void engineer_ontick(void *vthis, void* unused) {
-	(void)unused;
+	(void) unused;
 	engineer *this = vthis;
 	int t = Time(this->tid_time);
 	trainreg_foreach(this->trainreg, train) {

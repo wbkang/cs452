@@ -102,16 +102,20 @@ int location_add(location *this, float dx) {
 	if (location_isundef(this)) return -1; // incrementing undefined location
 	if (dx == 0) return 0;
 	if (dx > 0) {
+		int num_sensors = 0;
 		this->offset += dx;
 		for (;;) {
 			float len_edge = this->edge->dist;
-			if (this->offset < len_edge) return 0;
+			if (this->offset < len_edge) return num_sensors;
 			track_node *n_next = this->edge->dest;
 			ASSERTNOTNULL(n_next);
 			if (n_next->type == NODE_EXIT) {
 				*this = location_fromnode(n_next, DIR_AHEAD);
 				return -2; // dead end
 			} else {
+				if (n_next->type == NODE_SENSOR && n_next->name[0] != 'V') {
+					num_sensors += 1;
+				}
 				track_edge *next_edge = track_next_edge(n_next);
 				if (next_edge) {
 					this->edge = next_edge;
@@ -124,9 +128,9 @@ int location_add(location *this, float dx) {
 		}
 	} else {
 		location_reverse(this);
-		location_add(this, -dx);
+		int num_sensors = location_add(this, -dx);
 		location_reverse(this);
-		return 0;
+		return num_sensors;
 	}
 	*this = location_undef();
 	return -5;

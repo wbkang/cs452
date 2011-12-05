@@ -6,7 +6,7 @@ CCDIR = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin
 XCC	= $(CCDIR)/gcc
 AS	= $(CCDIR)/as
 AR	= $(CCDIR)/ar
-CFLAGS  = -ggdb -fno-builtin -c -fPIC -Wall -I./include -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99 -O2 -fno-omit-frame-pointer
+CFLAGS  = -ggdb -fno-builtin -c -fPIC -Wall -I./include -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99 -O3 -fno-omit-frame-pointer
 
 # -g: include hooks for gdb
 # -c: only compile
@@ -42,7 +42,7 @@ interrupt.o : interrupt.S
 
 %.o : %.c
 	@echo "[ASCC]\t$< -> $@"
-#	@$(XCC) $(CFLAGS) -S $<
+	@$(XCC) $(CFLAGS) -S $< 2> /dev/null 1> /dev/null
 	@$(XCC) $(CFLAGS) -o $@ $<
 
 clean:

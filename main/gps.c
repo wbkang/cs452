@@ -90,22 +90,22 @@ static int gps_collapsereverse(track_node *startnode, track_node *path[], int pa
 	if (r == -2) {
 		// hit an exit, of course we have enough room
 	} else {
-		ASSERT(r == 0, "couldn't push location forward: %d", r);
+		ASSERT(r >= 0, "couldn't push location forward: %d", r);
 		location_tonextnode(&loc);
 		if (loc.edge->src->type == NODE_EXIT) {
 			// hit an exit
 		} else {
 			r = location_reverse(&loc);
-			ASSERT(r == 0, "couldn't reverse: %d", r);
+			ASSERT(r >= 0, "couldn't reverse: %d", r);
 			track_node *node = loc.edge->src;
 			ASSERTNOTNULL(node);
 
 			int safe_len = train_get_length(train) + poserr;
 
-			SMALLOC(track_edge*, edges, TRACK_MAX);
+			SMALLOC(track_edge*, edges, TRACK_NUM_EDGES);
 			int num_edges = 0;
 
-			if (!track_walk(node, safe_len, TRACK_MAX, edges, &num_edges)) return -1;
+			if (!track_walk(node, safe_len, TRACK_NUM_EDGES, edges, &num_edges)) return -1;
 
 			for (int i = 0; i < num_edges; i++) {
 				track_edge *edge = edges[i];
@@ -306,7 +306,7 @@ void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, tra
 		int len = 0;
 
 		while (u) {
-			ASSERT(len < TRACK_MAX, "path size too big!? %d", len);
+			ASSERT(len < TRACK_NUM_EDGES, "path size too big!? %d", len);
 			rv_nodes[len++] = u;
 			u = previous[uidx];
 			uidx = u - nodes;

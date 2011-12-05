@@ -365,6 +365,7 @@ for fun in tracks:
 				print(edAN.node1.name, edAN.node2.name, edNB.node2.name, edNB.dist)
 	numvnodes.append(n)
 print(max(numvnodes))
+print(max(len(tracks[fun].edges) for fun in tracks))
 
 ########################################################################
 #### Output the .h code.
@@ -372,6 +373,7 @@ print(max(numvnodes))
 # the generated file (as opposed to in the file itself, since it will
 # be overwritten when this script is run again).
 maxidx = max([len(tracks[function].nodes) for function in tracks])
+numedges = 2 * max(len(tracks[fun].edges) for fun in tracks)
 fh = open(options.h, 'w')
 fh.write('''/* THIS FILE IS GENERATED CODE -- DO NOT EDIT */
 
@@ -382,9 +384,10 @@ fh.write('''/* THIS FILE IS GENERATED CODE -- DO NOT EDIT */
 
 // The track initialization functions expect an array of this size.
 #define TRACK_MAX %d
+#define TRACK_NUM_EDGES %d
 
 int sensor_mapper(void* key);
-''' % maxidx)
+''' % (maxidx, numedges))
 for fun in tracks:
 	fh.write("lookup* %s(track_node *track);\n" % fun)
 fh.close()
