@@ -701,7 +701,7 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 		// char buf[100];
 		// location_tostring(&this->destination, buf);
 
-		gps_findpath(gps, this, &this->destination, TRAIN_MAX_VCMD, this->vcmds, &this->vcmdslen, a0ui);
+		gps_findpath(gps, this, &this->destination, TRAIN_MAX_VCMD, this->vcmds, &this->vcmdslen);
 		this->last_run_vcmd = NULL;
 
 		// if (this->vcmdslen == 0) {
