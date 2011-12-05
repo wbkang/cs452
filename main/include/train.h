@@ -80,6 +80,8 @@ struct train {
 
 	int no;
 	train_direction dir;
+	float x;
+
 	float v;
 	float v_i;
 	float v_f;
