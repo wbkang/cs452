@@ -99,6 +99,7 @@ struct train {
 
 	track_node *last_attrib_sensor;
 	int num_missed_sensors;
+	float dist_since_last_sensor;
 
 	float t_sim;
 
