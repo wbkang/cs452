@@ -88,11 +88,15 @@ void engineer_set_track(engineer *this, int s[], int ns, int c[], int nc) {
 track_node *engineer_get_tracknode(engineer *this, char *type, int id) {
 	char name[8];
 	sprintf(name, "%s%d", type, id);
+	return engineer_get_tracknode_str(this, name);
+}
+
+track_node *engineer_get_tracknode_str(engineer *this, char *name) {
 	track_node *rv = NULL;
 	if (lookup_goodkey(this->track_nodes, name)) {
 		rv = lookup_get(this->track_nodes, name);
 	}
-	ASSERT(rv, "rv is null, type: %s, id: %d", type, id);
+	ASSERT(rv, "rv is null, name:%s", name);
 	return rv;
 }
 

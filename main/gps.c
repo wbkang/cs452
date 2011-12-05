@@ -179,7 +179,7 @@ void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd
 				trainvcmd_addswitch(rv_vcmd, &cmdlen, sw->name, pos, &switchloc);
 			}
 			// nothing to do
-	        } else if (curnode->reverse == nextnode) { // reverse
+		} else if (curnode->reverse == nextnode) { // reverse
 			location stoploc = gps_get_rev_stoploc(train, curnode);
 			trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
 			trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
@@ -213,8 +213,10 @@ void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd
 	// }
 
 //			ExitKernel(0);
-	trainvcmd_addstop(rv_vcmd, &cmdlen, dest);
-	trainvcmd_addpause(rv_vcmd, &cmdlen, STOP_TIMEOUT);
+	if (train->stopatdest) {
+		trainvcmd_addstop(rv_vcmd, &cmdlen, dest);
+		trainvcmd_addpause(rv_vcmd, &cmdlen, STOP_TIMEOUT);
+	}
 
 	*rv_len = cmdlen;
 }
@@ -272,7 +274,7 @@ void dijkstra(track_node *nodes, heap *Q, track_node *src, track_node *dest, tra
 				}
 			}
 		}
-		{
+		if (train->reversible){
 			track_node *u_rev = u->reverse;
 			if (u_rev == dest) continue; // train teleports by trainlen, cant do this
 			int u_rev_idx = u_rev - nodes;

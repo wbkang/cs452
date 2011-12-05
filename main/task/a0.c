@@ -462,10 +462,13 @@ static void handle_command(void* vthis, char *cmd, int size) {
 			} else if (*c == 'u') {
 				ACCEPT('u');
 				ACCEPT(' ');
+				int guardno = strgetui(&c);
+				ACCEPT(' ');
 				int train = strgetui(&c);
 				ACCEPT('\0');
+				ENFORCE(guardno == 1 || guardno == 2, "bad guard no");
 				ENFORCE(train_goodtrain(train), "bad train");
-				heist_init(state->heist, train, 0); // TODO
+				heist_init(state->heist, train, guardno); // TODO
 			} else {
 				goto badcmd;
 			}

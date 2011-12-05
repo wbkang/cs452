@@ -10,7 +10,6 @@
 struct heist {
 	engineer *eng;
 	a0ui *ui;
-	int initialized;
 	guard *guard1;
 	guard *guard2;
 };
@@ -21,19 +20,20 @@ heist *heist_new(engineer *eng, a0ui *ui) {
 	this->ui = ui;
 	this->guard1 = NULL;
 	this->guard2 = NULL;
-	this->initialized = FALSE;
 	return this;
 }
 
-void heist_init(heist *this, int guard1, int guard2) {
-	this->guard1 = guard_new(GUARD_1, this, this->eng, this->ui, guard1);
-//	this->guard2 = guard_new(GUARD_2, this, this->eng, this->ui, guard1);
-	this->initialized = TRUE;
+void heist_init(heist *this, int trainno, int guardno) {
+	if (guardno == 1) {
+		this->guard1 = guard_new(GUARD_1, this, this->eng, this->ui, trainno);
+	} else if (guardno == 2) {
+		this->guard2 = guard_new(GUARD_2, this, this->eng, this->ui, trainno);
+	} else {
+		ASSERT(0, "unknown guard no %d for train %d", guardno, trainno);
+	}
 }
 
 void heist_on_tick(heist *this) {
-	if (!this->initialized) return;
-
-	guard_on_tick(this->guard1);
-//	guard_on_tick(this->guard2);
+	if (this->guard1) guard_on_tick(this->guard1);
+	if (this->guard2) guard_on_tick(this->guard2);
 }
