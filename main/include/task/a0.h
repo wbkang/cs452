@@ -10,6 +10,7 @@
 #include <ui/a0ui.h>
 #include <engineer.h>
 #include <track_node.h>
+#include <project/heist.h>
 
 typedef struct a0state a0state;
 struct a0state {
@@ -31,6 +32,8 @@ struct a0state {
 	int tid_refresh;
 	int tid_simstep;
 	int tid_printloc;
+	// project
+	heist *heist;
 };
 
 a0state* get_state();

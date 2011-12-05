@@ -577,6 +577,7 @@ static void handle_time(msg_time *time, int tid) {
 		dumbbus_dispatch(state->bus10hz, state->a0ui, (void*)time->timestamp);
 	} else if (tid == state->tid_simstep) {
 		dumbbus_dispatch(state->simbus, state->eng, state);
+		heist_on_tick(state->heist);
 	} else {
 		ASSERT(0, "time message from unknown task");
 	}
@@ -671,6 +672,7 @@ void a0() {
 
 	state->eng = engineer_new(track, state->a0ui);
 	state->last_sensor = NULL;
+	state->heist = heist_new(state->eng, state->a0ui);
 
 	calibrator_init();
 
