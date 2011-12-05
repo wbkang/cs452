@@ -42,8 +42,8 @@ interrupt.o : interrupt.S
 
 %.o : %.c
 	@echo "[ASCC]\t$< -> $@"
-	@$(XCC) $(CFLAGS) -S $< 2> /dev/null 1> /dev/null
-	@$(XCC) $(CFLAGS) -o $@ $<
+	@$(XCC) $(CFLAGS) -S $< 
+	@$(XCC) $(CFLAGS) -o $@ $< 2> /dev/null 1> /dev/null
 
 clean:
 	@echo "[rm] Cleaning"
