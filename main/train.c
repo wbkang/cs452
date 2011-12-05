@@ -65,8 +65,6 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->st[3] = 1909800;
 			cal->st[4] = -1945780;
 
-			cal->st_mul = 0.8;
-
 			return TRUE;
 		}
 		case 35: {
@@ -189,8 +187,6 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->st[0] = 49.4653;
 			cal->st[1] = 6227.4;
 
-			cal->st_mul = 1;
-
 			return TRUE;
 		}
 		case 38: {
@@ -245,8 +241,6 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->st[2] = -43208.4;
 			cal->st[3] = 64574.3;
 			cal->st[4] = -36555.3;
-
-			cal->st_mul = 1.0;
 
 			return TRUE;
 		}
@@ -320,51 +314,49 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->dist2nose = 24;
 			cal->dist2tail = 143;
 
-			 int data[] = {
-			0,0,
-			404,30226,
-			485,6212,
-			599,4473,
-			4743,25616,
-			  4743,19776,
-			4299,14668,
-			3967,11197,
-			8309,20433,
-			4743,1038,
-			  5031,10073,
-			4743,8537,
-			4743,7739,
-			3967,6408,
-			9870,15918,
-			689,36048,
-			444,5540,
-			692,5232,
-			1174,6583,
-			4144,17400,
-			4339,14731,
-			3967,11137,
-			7667,19069,
-			4743,10628,
-			5127,1026,
-			5342,9501,
-			7667,12683,
-			5917,9410,
-			 };
+			int data[] = {
+				0,0,
+				404,30226,
+				485,6212,
+				599,4473,
+				4743,25616,
+				4743,19776,
+				4299,14668,
+				3967,11197,
+				8309,20433,
+				4743,1038,
+				5031,10073,
+				4743,8537,
+				4743,7739,
+				3967,6408,
+				9870,15918,
+				689,36048,
+				444,5540,
+				692,5232,
+				1174,6583,
+				4144,17400,
+				4339,14731,
+				3967,11137,
+				7667,19069,
+				4743,10628,
+				5127,1026,
+				5342,9501,
+				7667,12683,
+				5917,9410
+			};
 
-			 TRAIN_FOREACH_SPEEDIDX(i) {
-			 	float dx = data[i * 2];
-			 	float dt = data[i * 2 + 1];
-			 	cal->v_avg[i] = dx / dt;
-			 }
+			TRAIN_FOREACH_SPEEDIDX(i) {
+				float dx = data[i * 2];
+				float dt = data[i * 2 + 1];
+				cal->v_avg[i] = dx / dt;
+			}
 
 			cal->usepoly = TRUE;
 			cal->x0to12 = poly_new(13.401, -0.0889, 7.433e-5, 2.658e-10, -3.471e-13, 0);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
-			 cal->st_order = -1;
-
-			// cal->st_mul = 2.2;
+			cal->st_order = -1;
 
 			return FALSE;
 		}
@@ -639,9 +631,13 @@ static void train_update_state(train *this, float t_f) {
 			// float tau3 = tau * tau2;
 			// float tau4 = tau * tau3;
 
+			// linear acceleration
+			this->v = this->v_i + dv * tau;
+			this->a = this->a_i + dv / dt;
+
 			// a_i=a_f=0
-			this->v = this->v_i + dv * (3 - 2 * tau) * tau2;
-			this->a = this->a_i + 6 * (dv / dt) * tau * (1 - tau);
+			// this->v = this->v_i + dv * (3 - 2 * tau) * tau2;
+			// this->a = this->a_i + 6 * (dv / dt) * tau * (1 - tau);
 
 			// j_i=j_f=0
 			// this->v = this->v_i + dv * (10 - 15 * tau + 6 * tau2) * tau3;
