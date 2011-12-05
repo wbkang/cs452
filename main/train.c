@@ -58,7 +58,9 @@ int train_init_cal(train_cal *cal, int train_no) {
 
 			cal->usepoly2 = FALSE;
 
-			cal->stoptime = poly_new(-1.02274, 103842, -695046, 1.09098e6, -1.94579e6, 0);
+			cal->useacceltime = FALSE;
+
+			cal->deceltime = poly_new(-1.02274, 103842, -695046, 1.09098e6, -1.94579e6, 0);
 
 			return TRUE;
 		}
@@ -116,7 +118,9 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->v12to0 = poly_derive(cal->x12to0);
 			cal->a12to0 = poly_derive(cal->v12to0);
 
-			cal->stoptime = poly_new(-8.5976, 22379.5, -57487.1, 48854.3, 0, 0);
+			cal->useacceltime = FALSE;
+
+			cal->deceltime = poly_new(-8.5976, 22379.5, -57487.1, 48854.3, 0, 0);
 
 			return TRUE;
 		}
@@ -174,7 +178,9 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->v12to0 = poly_derive(cal->x12to0);
 			cal->a12to0 = poly_derive(cal->v12to0);
 
-			cal->stoptime = poly_new(49.4653, 6227.4, 0, 0, 0, 0);
+			cal->useacceltime = FALSE;
+
+			cal->deceltime = poly_new(49.4653, 6227.4, 0, 0, 0, 0);
 
 			return TRUE;
 		}
@@ -277,7 +283,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->usepoly = TRUE;
+			cal->usepoly = FALSE;
 			cal->x0to12 = poly_new(0, 3.8994330e-2, -2.3363269e-5, 1.5223410e-8, 0, 0);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
@@ -287,7 +293,10 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->v12to0 = poly_derive(cal->x12to0);
 			cal->a12to0 = poly_derive(cal->v12to0);
 
-			cal->stoptime = poly_new(-0.0580817, 19572.6, -59037.1, 77626.7, -36317.5, 0);
+			cal->useacceltime = TRUE;
+			cal->acceltime = poly_new(0, 16222.8, -10912.2, 0, 0, 0);
+
+			cal->deceltime = poly_new(-0.0580817, 19572.6, -59037.1, 77626.7, -36317.5, 0);
 
 			return TRUE;
 		}
@@ -340,7 +349,9 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
-			// cal->stoptime = poly_new(0, 0, 0, 0, 0);
+			cal->useacceltime = FALSE;
+
+			// cal->deceltime = poly_new(0, 0, 0, 0, 0);
 
 			return FALSE;
 		}
@@ -363,7 +374,7 @@ int train_init(train *this, int no) {
 
 	this->a = 0;
 	this->a_i = 0;
-	this->st = 0;
+	this->dt = 0;
 
 	this->last_speed = 0;
 	this->speed = 0;
@@ -420,10 +431,10 @@ int train_get_stopdist(train *this) {
 	// 	int dist = this->cal.stopm * v + this->cal.stopb;
 	// 	return max(0, dist);
 	// }
-	float st = train_st(&this->cal, this->v, 0);
-	float dist = (this->v / 2) * st; // + (this->a / 2) * st * st;
-	ASSERT(dist >= 0, "stop dist is negative, st: %dms: v: %dmm/s", (int) st, (int) (this->v * 1000));
-	ASSERT(dist < 2000, "stop dist too long, st: %dms: v: %dmm/s", (int) st, (int) (this->v * 1000));
+	float dt = train_get_dt(&this->cal, this->v, 0);
+	float dist = (this->v / 2) * dt; // + (this->a / 2) * st * st;
+	ASSERT(dist >= 0, "stop dist is negative, st: %dms: v: %dmm/s", (int) dt, (int) (this->v * 1000));
+	ASSERT(dist < 2000, "stop dist too long, st: %dms: v: %dmm/s", (int) dt, (int) (this->v * 1000));
 	return dist;
 }
 
@@ -453,7 +464,7 @@ void train_set_speed(train *this, int speed, int t) {
 	// a_f = 0
 
 	if (this->calibrated) {
-		this->st = train_st(&this->cal, this->v_i, this->v_f);
+		this->dt = train_get_dt(&this->cal, this->v_i, this->v_f);
 	}
 }
 
@@ -577,10 +588,16 @@ float train_simulate_dx(train *this, int t_i, int t_f) {
 	return v * dt;
 }
 
-float train_st(train_cal *cal, float v_i, float v_f) {
-	float st = poly_eval(&cal->stoptime, fabs(v_f - v_i));
-	ASSERT(st >= -100, "stop time is negative: %d", (int) st);
-	return fmax(0, st);
+float train_get_dt(train_cal *cal, float v_i, float v_f) {
+	float dv = fabs(v_f - v_i);
+
+	if (v_i < v_f && cal->useacceltime) {
+		return poly_eval(&cal->acceltime, dv);
+	}
+
+	float dt = poly_eval(&cal->deceltime, dv);
+	ASSERT(dt >= -100, "stop time is negative: %d", (int) dt);
+	return fmax(0, dt);
 }
 
 static void train_update_state(train *this, float t_f) {
@@ -607,7 +624,7 @@ static void train_update_state(train *this, float t_f) {
 			// this->a = this->a_i + poly_eval(&a, t);
 		} else {
 			float dv = this->v_f - this->v_i;
-			float dt = this->st;
+			float dt = this->dt;
 			float t = t_f - train_get_tspeed(this);
 			float tau = t / dt;
 			float tau2 = tau * tau;
