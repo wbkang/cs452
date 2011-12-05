@@ -20,6 +20,7 @@
 #include <track_node.h>
 #include <util.h>
 #include <engineer.h>
+#include <heist.h>
 
 a0state *state;
 
