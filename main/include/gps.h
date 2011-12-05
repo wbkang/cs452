@@ -27,7 +27,6 @@ void gps_findpath(gps *this,
 		location *dest,
 		int maxlen,
 		trainvcmd *rv_vcmd,
-		int *rv_len,
-		a0ui *a0ui);
+		int *rv_len);
 //void gps_test(gps *this, engineer *eng);
 int vcmd2str(char *buf, trainvcmd *vcmd);

@@ -6,7 +6,6 @@
 #include <engineer.h>
 #include <stdio.h>
 #include <location.h>
-#include <ui/a0ui.h>
 
 #define CRUISE_SPEED 12
 #define REVERSE_TIMEOUT 4000
@@ -122,7 +121,7 @@ static int gps_collapsereverse(track_node *startnode, track_node *path[], int pa
 	return -1;
 }
 
-void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd *rv_vcmd, int *rv_len, a0ui *a0ui) {
+void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd *rv_vcmd, int *rv_len) {
 	location trainloc = train_get_frontloc(train);
 
 	track_node *src = trainloc.edge->dest;
