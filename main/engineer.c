@@ -134,8 +134,6 @@ train *engineer_attribute_pickuploc(engineer *this, location *attr_loc_pickup, i
 	int closest_dist = infinity;
 	train *closest_train = NULL;
 
-	return trainreg_get(this->trainreg, 35);
-
 	trainreg_foreach(this->trainreg, train) {
 		if (!train_is_moving(train)) continue;
 		if (train_is_lost(train)) continue;
