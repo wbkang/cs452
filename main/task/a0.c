@@ -483,13 +483,22 @@ static void handle_command(void* vthis, char *cmd, int size) {
 			engineer_reverse(eng, train);
 			break;
 		}
-		case 'l': { // lose train (lt #+)
-			ACCEPT('t');
-			ACCEPT(' ');
-			int train_no = strgetui(&c);
-			ENFORCE(train_goodtrain(train_no), "bad train");
-			ACCEPT('\0');
-			train_set_lost(engineer_get_train(eng, train_no));
+		case 'l': {
+			if (*c == 'r') { // lose reservation (lt #+)
+				ACCEPT('r');
+				ACCEPT(' ');
+				int train_no = strgetui(&c);
+				ENFORCE(train_goodtrain(train_no), "bad train");
+				ACCEPT('\0');
+				train_giveupres(engineer_get_train(eng, train_no));
+			} else if (*c == 't') { // lose train (lt #+)
+				ACCEPT('t');
+				ACCEPT(' ');
+				int train_no = strgetui(&c);
+				ENFORCE(train_goodtrain(train_no), "bad train");
+				ACCEPT('\0');
+				train_set_lost(engineer_get_train(eng, train_no));
+			}
 			break;
 		}
 		case 's': {
@@ -684,7 +693,7 @@ void a0() {
 	state->tid_refresh = courier_new(9, tid_refreshbuffer, mytid, sizeof(msg_time), NULL);
 
 	int tid_simstepbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
-	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(15));
+	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(20));
 	state->tid_simstep = courier_new(9, tid_simstepbuffer, mytid, sizeof(msg_time), NULL);
 
 	void *msg = malloc(LEN_MSG);

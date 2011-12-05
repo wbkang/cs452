@@ -42,7 +42,7 @@ interrupt.o : interrupt.S
 
 %.o : %.c
 	@echo "[ASCC]\t$< -> $@"
-#	@$(XCC) $(CFLAGS) -S $<
+	@$(XCC) $(CFLAGS) -S $< 2> /dev/null 1> /dev/null
 	@$(XCC) $(CFLAGS) -o $@ $<
 
 clean:

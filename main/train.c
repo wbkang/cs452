@@ -369,6 +369,9 @@ int train_init(train *this, int no) {
 	this->speed = 0;
 	train_set_tspeed(this, 0);
 
+	this->last_attrib_sensor = NULL;
+	this->num_missed_sensors = 0;
+
 	train_set_lost(this);
 	train_set_tsim(this, 0);
 
@@ -487,7 +490,7 @@ location train_get_pickuploc_hist(train *this, int t_i) {
 
 void train_set_lost(train *this) {
 	location undef = location_undef();
-	train_set_pickuploc(this, &undef);
+	train_set_frontloc(this, &undef);
 }
 
 int train_is_lost(train *this) {
@@ -557,6 +560,11 @@ int train_get_pickup2frontdist(train *this) {
 			return 0;
 	}
 	return 0; // unreachable
+}
+
+void train_on_missed2manysensors(train *this) {
+	train_set_lost(this);
+	train_speed(this->no, 0, WhoIs(NAME_TRAINCMDBUFFER));
 }
 
 // simulate the distance the train would travel from t_i to t_f
@@ -629,8 +637,14 @@ static void train_update_state(train *this, float t_f) {
 	if (!train_is_lost(this) && train_is_moving(this)) {
 		float dx = this->v * fdt;
 		location loc_front = train_get_frontloc(this);
-		location_add(&loc_front, dx);
-		train_set_frontloc(this, &loc_front);
+		int num_sensors = location_add(&loc_front, dx);
+		ASSERT(num_sensors >= 0, "add failed %d", num_sensors);
+		this->num_missed_sensors += num_sensors;
+		if (this->num_missed_sensors >= MAX_NUM_MISSED_SENSORS) {
+			train_on_missed2manysensors(this);
+		} else {
+			train_set_frontloc(this, &loc_front);
+		}
 	}
 	train_set_tsim(this, t_f);
 }
@@ -642,20 +656,35 @@ void train_update_simulation(train *this, int t_f) {
 	}
 }
 
+void train_on_attrib(train *this, location *new_loc_pickup, int t_loc, int t) {
+	track_node *sensor = new_loc_pickup->edge->src;
+	ASSERTNOTNULL(sensor); // sanity check
+	this->last_attrib_sensor = sensor;
+	this->num_missed_sensors = 0;
+
+	train_update_simulation(this, t);
+	float dx_lag = train_simulate_dx(this, t_loc, t);
+	location_add(new_loc_pickup, dx_lag);
+	train_set_pickuploc(this, new_loc_pickup);
+}
+
 void train_set_dest(train *this, location *dest) {
 	this->destination = *dest;
 	this->vcmdidx = 0;
 	this->vcmdslen = 0;
 }
 
-static int train_update_reservations(train *this) {
+void train_giveupres(train *this) {
 	reservation_req *req = this->reservation_alt;
 	req->len = 0;
+	reservation_replace(this->reservation, req, this->no);
+}
 
-	if (train_is_lost(this)) {
-		reservation_replace(this->reservation, req, this->no);
-		return FALSE;
-	}
+int train_update_reservations(train *this) {
+	if (train_is_lost(this)) return FALSE;
+
+	reservation_req *req = this->reservation_alt;
+	req->len = 0;
 
 	location loc_train = train_get_frontloc(this);
 	req->edges[req->len++] = loc_train.edge;

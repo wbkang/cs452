@@ -91,13 +91,13 @@ static int gps_collapsereverse(track_node *startnode, track_node *path[], int pa
 	if (r == -2) {
 		// hit an exit, of course we have enough room
 	} else {
-		ASSERT(r == 0, "couldn't push location forward: %d", r);
+		ASSERT(r >= 0, "couldn't push location forward: %d", r);
 		location_tonextnode(&loc);
 		if (loc.edge->src->type == NODE_EXIT) {
 			// hit an exit
 		} else {
 			r = location_reverse(&loc);
-			ASSERT(r == 0, "couldn't reverse: %d", r);
+			ASSERT(r >= 0, "couldn't reverse: %d", r);
 			track_node *node = loc.edge->src;
 			ASSERTNOTNULL(node);
 
