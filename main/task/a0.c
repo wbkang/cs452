@@ -684,7 +684,7 @@ void a0() {
 	state->tid_refresh = courier_new(9, tid_refreshbuffer, mytid, sizeof(msg_time), NULL);
 
 	int tid_simstepbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
-	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(20));
+	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(15));
 	state->tid_simstep = courier_new(9, tid_simstepbuffer, mytid, sizeof(msg_time), NULL);
 
 	void *msg = malloc(LEN_MSG);
