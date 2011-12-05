@@ -459,6 +459,13 @@ static void handle_command(void* vthis, char *cmd, int size) {
 				}
 				ACCEPT('\0');
 				handle_set_dest(train, type, id, dist_cm);
+			} else if (*c == 'u') {
+				ACCEPT('u');
+				ACCEPT(' ');
+				int train = strgetui(&c);
+				ACCEPT('\0');
+				ENFORCE(train_goodtrain(train), "bad train");
+				heist_init(state->heist, train, 0); // TODO
 			} else {
 				goto badcmd;
 			}

@@ -1,8 +1,10 @@
 #pragma once
 #include <engineer.h>
 #include <ui/a0ui.h>
+#include <project/guard.h>
 
 typedef struct heist heist;
+struct guard;
 
 heist *heist_new(engineer *eng, a0ui *ui);
 void heist_init(heist *heist, int guard1, int guard2);
