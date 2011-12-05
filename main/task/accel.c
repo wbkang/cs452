@@ -143,13 +143,12 @@ static void accel_on_traincmdmsgreceipt(traincmd_receipt* msg) {
 
 void accel() {
 	int mytid = MyTid();
-	int tid_time = WhoIs(NAME_TIMESERVER);
+	WhoIs(NAME_TIMESERVER);
 	int tid_traincmdpub = publisher_new(NAME_TRAINCMDPUB, PRIORITY_TRAINCMDPUB, sizeof(traincmd_receipt));
 	publisher_sub(tid_traincmdpub, mytid);
 
 	// ui
 	uiserver_new();
-	ui_id id_ui = uiserver_register();
 	char track = 'b';
 	accel_ui = a0ui_new(handle_command, track);
 
