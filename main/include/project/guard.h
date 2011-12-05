@@ -14,12 +14,14 @@ typedef struct guard {
 	struct heist *heist;
 	guardtype type;
 	a0ui *ui;
-	int train_no;
+	train* train;
 	engineer *eng;
 	guardproc guardproc;
+	int state;
+	void *data;
 } guard;
 
 
 guard* guard_new(guardtype type, struct heist *heist, engineer *eng, a0ui *ui, int train_no);
 void guard_on_tick(guard *this);
-void guard1_on_tick(guard *this);
+void loopguard_on_tick(guard *this);

@@ -390,6 +390,8 @@ int train_init(train *this, int no) {
 	this->vcmdwait = 0;
 
 	this->destination = location_undef();
+	this->stopatdest = TRUE;
+	this->reversible = TRUE;
 
 	this->state = TRAIN_GOOD;
 
@@ -647,6 +649,10 @@ void train_update_simulation(train *this, int t_f) {
 	}
 }
 
+location train_get_dest(train *this) {
+	return this->destination;
+}
+
 void train_set_dest(train *this, location *dest) {
 	this->destination = *dest;
 	this->vcmdidx = 0;
@@ -836,19 +842,23 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 		break; // wow this is confusing.. ok
 	}
 
-	if (this->vcmdslen > 0 && this->vcmdidx == this->vcmdslen) {
-		// location nowhere = location_undef();
-		// train_set_dest(this, &nowhere);
+	location trainloc = train_get_frontloc(this);
+	int dist2dest = location_dist_min(&trainloc, &this->destination);
 
-		if (!train_is_moving(this)) { // ensure the train stopped
-			int time = Time(WhoIs(NAME_TIMESERVER));
-			char m = 'A' + (time % 5);
-			int id = 1 + (time % 16);
-			char name[16];
-			sprintf(name, "%c%d", m, id);
-			location dest = location_fromnode(lookup_get(nodemap, name), 0);
-			train_set_dest(this, &dest);
-		}
+	if (this->vcmdslen > 0 && this->vcmdidx == this->vcmdslen && dist2dest < 40) {
+		 location nowhere = location_undef();
+		 train_set_dest(this, &nowhere);
+
+		 // this is the random dest code
+//		if (!train_is_moving(this)) { // ensure the train stopped
+//			int time = Time(WhoIs(NAME_TIMESERVER));
+//			char m = 'A' + (time % 5);
+//			int id = 1 + (time % 16);
+//			char name[16];
+//			sprintf(name, "%c%d", m, id);
+//			location dest = location_fromnode(lookup_get(nodemap, name), 0);
+//			train_set_dest(this, &dest);
+//		}
 	}
 }
 
