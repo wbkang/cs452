@@ -53,17 +53,10 @@ generate_funcmap : $(OBJS)
 	@echo "[FUNCMAP] Generating funcmap..."
 	@(cd ../;sh ./generate_funcmap.sh)
 
-%.o : %.s
-	@echo "[AS]\t$< -> $@"
-	@$(AS) $(ASFLAGS) -o $@ $<
-
-#%.o : %.c
-#	@echo "[CC]\t$< -> $@"
-#	@$(XCC) $(CFLAGS) -o $@ $<
-
-%.s : %.c
-	@echo "[CC]\t$< -> $@"
-	@$(XCC) -S $(CFLAGS) -o $@ $<
+%.o : %.c
+	@echo "[ASCC]\t$< -> $@"
+	@$(XCC) $(CFLAGS) -S $<
+	@$(XCC) $(CFLAGS) -o $@ $<
 
 clean:
 	@echo "[rm]\tCleaning"

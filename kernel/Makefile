@@ -40,14 +40,10 @@ interrupt.o : interrupt.S
 	@echo "[AS]\t$< -> $@"
 	@$(AS) $(ASFLAGS) -o $@ $<
 
-%.o : %.s
-	@echo "[AS]\t$< -> $@"
-	@$(AS) $(ASFLAGS) -o $@ $<
-
-%.s : %.c
-	@echo "[CC]\t$< -> $@"
-	@$(XCC) -S $(CFLAGS)  $<
-
+%.o : %.c
+	@echo "[ASCC]\t$< -> $@"
+	@$(XCC) $(CFLAGS) -S $<
+	@$(XCC) $(CFLAGS) -o $@ $<
 
 clean:
 	@echo "[rm] Cleaning"
