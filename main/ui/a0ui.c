@@ -149,7 +149,7 @@ void a0ui_on_train_location(a0ui *this, train* train) {
 	location dest = train->destination;
 
 	logstrip_printf(this->traininfolog[idx][0], // (%dmm/s^2 -> %dmm/s^2)
-		"train %d at %L hdn %s @ %dmm/s to %L, m%dsens, ls:%s",
+		"train %d at %L hdn %s @ %dmm/s to %L, m%dsens, ls:%s, dls: %dmm",
 		train->no,
 		&loc,
 		direction_str,
@@ -158,14 +158,15 @@ void a0ui_on_train_location(a0ui *this, train* train) {
 		// (int) (train->a * 1000 * 1000),
 		&dest,
 		train->num_missed_sensors,
-		train->last_attrib_sensor ? train->last_attrib_sensor->name : "NULL"
+		train->last_attrib_sensor ? train->last_attrib_sensor->name : "NULL",
+		(int) train->dist_since_last_sensor
 	);
 
 	char msg[512];
 	char *b;
 
 	b = msg;
-	b += sprintf(b, "\tres:");
+	b += sprintf(b, "\tres (%d):", train->reservation->len);
 	for (int i = 0; i < train->reservation->len && i < reservatoin_print_limit; i++) {
 		track_edge *edge = train->reservation->edges[i];
 		b += sprintf(b, " %s-%s", edge->src->name, edge->dest->name);
@@ -173,7 +174,7 @@ void a0ui_on_train_location(a0ui *this, train* train) {
 	logstrip_printf(this->traininfolog[idx][1], msg);
 
 	b = msg;
-	b += sprintf(b, "\talt:");
+	b += sprintf(b, "\talt (%d):", train->reservation_alt->len);
 	for (int i = 0; i < train->reservation_alt->len && i < reservatoin_print_limit; i++) {
 		track_edge *edge = train->reservation->edges[i];
 		b += sprintf(b, " %s-%s", edge->src->name, edge->dest->name);

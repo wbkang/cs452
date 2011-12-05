@@ -371,6 +371,7 @@ int train_init(train *this, int no) {
 
 	this->last_attrib_sensor = NULL;
 	this->num_missed_sensors = 0;
+	this->dist_since_last_sensor = 0;
 
 	train_set_lost(this);
 	train_set_tsim(this, 0);
@@ -636,6 +637,7 @@ static void train_update_state(train *this, float t_f) {
 	float fdt = t_f - train_get_tsim(this);
 	if (!train_is_lost(this) && train_is_moving(this)) {
 		float dx = this->v * fdt;
+		this->dist_since_last_sensor += dx;
 		location loc_front = train_get_frontloc(this);
 		int num_sensors = location_add(&loc_front, dx);
 		ASSERT(num_sensors >= 0, "add failed %d", num_sensors);
@@ -663,7 +665,11 @@ void train_on_attrib(train *this, location *new_loc_pickup, int t_loc, int t) {
 	this->num_missed_sensors = 0;
 
 	train_update_simulation(this, t);
+
 	float dx_lag = train_simulate_dx(this, t_loc, t);
+
+	this->dist_since_last_sensor = dx_lag;
+
 	location_add(new_loc_pickup, dx_lag);
 	train_set_pickuploc(this, new_loc_pickup);
 }
@@ -689,13 +695,13 @@ int train_update_reservations(train *this) {
 	location loc_train = train_get_frontloc(this);
 	req->edges[req->len++] = loc_train.edge;
 
+	int toprevnode = loc_train.offset;
+	int tonextnode = loc_train.edge->dist - toprevnode;
 	int poserr = train_get_poserr(this);
 
-	int toprevnode = loc_train.offset;
-	int behind = poserr / 2 + train_get_length(this) - toprevnode;
+	int behind = poserr / 2 + train_get_length(this) - toprevnode + this->dist_since_last_sensor;
 	if (!track_walk(loc_train.edge->src->reverse, behind, TRACK_NUM_EDGES, req->edges, &req->len)) return FALSE;
 
-	int tonextnode = loc_train.edge->dist - toprevnode;
 	int ahead = poserr / 2 + train_get_stopdist(this) - tonextnode;
 	if (!track_walk(loc_train.edge->dest, ahead, TRACK_NUM_EDGES, req->edges, &req->len)) return FALSE;
 
