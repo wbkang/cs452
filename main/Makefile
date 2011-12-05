@@ -34,7 +34,7 @@ track_data.o track_node.o console.o \
 task/calib_test.o task/task1.o task/k3clients.o task/a0.o task/perfmon.o task/accel.o \
 ui/logstrip.o ui/cmdline.o ui/logdisplay.o ui/a0_track_template.o ui/timedisplay.o ui/a0ui.o \
 engineer.o location.o server/courier.o server/publisher.o train.o track_reservation.o \
-gps.o server/switchcmdrunner.o train_registry.o poly.o heist.o
+gps.o server/switchcmdrunner.o train_registry.o poly.o project/heist.o
 ################
 
 
@@ -53,17 +53,10 @@ generate_funcmap : $(OBJS)
 	@echo "[FUNCMAP] Generating funcmap..."
 	@(cd ../;sh ./generate_funcmap.sh)
 
-%.o : %.s
-	@echo "[AS]\t$< -> $@"
-	@$(AS) $(ASFLAGS) -o $@ $<
-
-#%.o : %.c
-#	@echo "[CC]\t$< -> $@"
-#	@$(XCC) $(CFLAGS) -o $@ $<
-
-%.s : %.c
-	@echo "[CC]\t$< -> $@"
-	@$(XCC) -S $(CFLAGS) -o $@ $<
+%.o : %.c
+	@echo "[ASCC]\t$< -> $@"
+	@$(XCC) $(CFLAGS) -S $<
+	@$(XCC) $(CFLAGS) -o $@ $<
 
 clean:
 	@echo "[rm]\tCleaning"
