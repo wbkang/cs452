@@ -7,7 +7,7 @@ XCC	= $(CCDIR)/gcc
 AS	= $(CCDIR)/as
 AR	= $(CCDIR)/ar
 LD  = $(CCDIR)/ld
-CFLAGS  = -ggdb -fno-builtin -c -fPIC -Wall -I./include -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99 -O2 -fno-omit-frame-pointer
+CFLAGS  = -ggdb -fno-builtin -c -fPIC -Wall -I./include -I../include -mcpu=arm920t -msoft-float -nostdlib -pedantic -Wall -std=c99 -O3 -fno-omit-frame-pointer
 
 # -g: include hooks for gdb
 # -c: only compile
@@ -31,7 +31,7 @@ server/sensorserver.o server/comnotifier.o server/traincmdbuffer.o \
 server/traincmdrunner.o server/timenotifier.o server/buffertask.o \
 server/timeserver.o server/ioserver.o server/eventnotifier.o server/uiserver.o \
 track_data.o track_node.o console.o \
-task/calib_test.o task/task1.o task/k3clients.o task/a0.o task/perfmon.o task/accel.o \
+task/calib_test.o task/task1.o task/k3clients.o task/a0.o task/perfmon.o task/accel.o task/decel.o \
 ui/logstrip.o ui/cmdline.o ui/logdisplay.o ui/a0_track_template.o ui/timedisplay.o ui/a0ui.o \
 engineer.o location.o server/courier.o server/publisher.o train.o track_reservation.o \
 gps.o server/switchcmdrunner.o train_registry.o poly.o
