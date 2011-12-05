@@ -20,10 +20,12 @@ guard* guard_new(guardtype type, struct heist *heist, engineer *eng, a0ui *ui, i
 	this->ui = ui;
 	this->train = engineer_get_train(eng, train_no);
 	this->state = 0;
+	this->enabled = FALSE;
 
 	if (type == GUARD_1) {
 		a0ui_on_logf(this->ui, "guard1 created. train no %d.", train_no);
 		this->guardproc = loopguard_on_tick;
+		this->guardenableproc = loopguard_set_enable;
 		this->train->reversible = FALSE;
 		this->train->stopatdest = FALSE;
 		loopdata *data = malloc(sizeof(loopdata));
@@ -46,7 +48,9 @@ guard* guard_new(guardtype type, struct heist *heist, engineer *eng, a0ui *ui, i
 }
 
 void guard_on_tick(guard *this) {
-	this->guardproc(this);
+	if (this->enabled) {
+		this->guardproc(this);
+	}
 }
 
 void loopguard_on_tick(guard *this) {
@@ -63,4 +67,17 @@ void loopguard_on_tick(guard *this) {
 		this->state++;
 		this->state %= loopdata->len;
 	}
+}
+
+void loopguard_set_enable(guard *this) {
+	if (!this->enabled) {
+		location undef = location_undef();
+		train_set_dest(this->train, &undef);
+		engineer_set_speed(this->eng, this->train->no, 0);
+	}
+}
+
+void guard_set_enabled(guard *this, int enabled) {
+	this->enabled = enabled;
+	this->guardenableproc(this);
 }
