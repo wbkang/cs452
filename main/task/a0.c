@@ -314,8 +314,8 @@ static void handle_sensor(msg_sensor *msg) {
 
 static void handle_setup_demotrack() {
 	engineer *eng = get_state()->eng;
-	int s[] = {/*6,*/ 9, 10, 14, 15, 16};
-	int c[] = {1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 17, /*18,*/ 153, 154, 155, 156};
+	int s[] = {6, 9, 10, 14, 15, 16};
+	int c[] = {1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 17, 18, 153, 154, 155, 156};
 	int ns = sizeof(s) / sizeof(int);
 	int nc = sizeof(c) / sizeof(int);
 	engineer_set_track(eng, s, ns, c, nc);
@@ -324,8 +324,8 @@ static void handle_setup_demotrack() {
 static void handle_train_switch_all(char pos) {
 	engineer *eng = get_state()->eng;
 	int all[] = {
-		1, 2, 3, 4, 5, /*6,*/ 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-		17, /*18,*/ 153, 154, 155, 156
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+		17, 18, 153, 154, 155, 156
 	};
 	int count = sizeof(all) / sizeof(int);
 	if (track_switchpos_straight(pos)) {
