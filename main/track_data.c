@@ -97,7 +97,7 @@ lookup *init_tracka(track_node *track) {
 	track[1].edge[DIR_AHEAD].reverse = &track[187].edge[DIR_AHEAD];
 	track[1].edge[DIR_AHEAD].src = &track[1];
 	track[1].edge[DIR_AHEAD].dest = &track[186];
-	track[1].edge[DIR_AHEAD].dist = 125.0;
+	track[1].edge[DIR_AHEAD].dist = 125;
 	track[1].edge[DIR_AHEAD].num = 1;
 	track[1].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[1].name, track + 1);
@@ -121,7 +121,7 @@ lookup *init_tracka(track_node *track) {
 	track[3].edge[DIR_AHEAD].reverse = &track[189].edge[DIR_AHEAD];
 	track[3].edge[DIR_AHEAD].src = &track[3];
 	track[3].edge[DIR_AHEAD].dest = &track[188];
-	track[3].edge[DIR_AHEAD].dist = 110.0;
+	track[3].edge[DIR_AHEAD].dist = 110;
 	track[3].edge[DIR_AHEAD].num = 3;
 	track[3].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[3].name, track + 3);
@@ -145,7 +145,7 @@ lookup *init_tracka(track_node *track) {
 	track[5].edge[DIR_AHEAD].reverse = &track[213].edge[DIR_AHEAD];
 	track[5].edge[DIR_AHEAD].src = &track[5];
 	track[5].edge[DIR_AHEAD].dest = &track[212];
-	track[5].edge[DIR_AHEAD].dist = 81.125;
+	track[5].edge[DIR_AHEAD].dist = 81;
 	track[5].edge[DIR_AHEAD].num = 5;
 	track[5].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[5].name, track + 5);
@@ -157,7 +157,7 @@ lookup *init_tracka(track_node *track) {
 	track[6].edge[DIR_AHEAD].reverse = &track[245].edge[DIR_AHEAD];
 	track[6].edge[DIR_AHEAD].src = &track[6];
 	track[6].edge[DIR_AHEAD].dest = &track[244];
-	track[6].edge[DIR_AHEAD].dist = 118.25;
+	track[6].edge[DIR_AHEAD].dist = 118;
 	track[6].edge[DIR_AHEAD].num = 6;
 	track[6].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[6].name, track + 6);
@@ -181,7 +181,7 @@ lookup *init_tracka(track_node *track) {
 	track[8].edge[DIR_AHEAD].reverse = &track[193].edge[DIR_AHEAD];
 	track[8].edge[DIR_AHEAD].src = &track[8];
 	track[8].edge[DIR_AHEAD].dest = &track[192];
-	track[8].edge[DIR_AHEAD].dist = 72.25;
+	track[8].edge[DIR_AHEAD].dist = 72;
 	track[8].edge[DIR_AHEAD].num = 8;
 	track[8].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[8].name, track + 8);
@@ -241,7 +241,7 @@ lookup *init_tracka(track_node *track) {
 	track[13].edge[DIR_AHEAD].reverse = &track[195].edge[DIR_AHEAD];
 	track[13].edge[DIR_AHEAD].src = &track[13];
 	track[13].edge[DIR_AHEAD].dest = &track[194];
-	track[13].edge[DIR_AHEAD].dist = 80.0;
+	track[13].edge[DIR_AHEAD].dist = 80;
 	track[13].edge[DIR_AHEAD].num = 13;
 	track[13].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[13].name, track + 13);
@@ -253,7 +253,7 @@ lookup *init_tracka(track_node *track) {
 	track[14].edge[DIR_AHEAD].reverse = &track[219].edge[DIR_AHEAD];
 	track[14].edge[DIR_AHEAD].src = &track[14];
 	track[14].edge[DIR_AHEAD].dest = &track[218];
-	track[14].edge[DIR_AHEAD].dist = 72.5;
+	track[14].edge[DIR_AHEAD].dist = 72;
 	track[14].edge[DIR_AHEAD].num = 14;
 	track[14].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[14].name, track + 14);
@@ -277,7 +277,7 @@ lookup *init_tracka(track_node *track) {
 	track[16].edge[DIR_AHEAD].reverse = &track[197].edge[DIR_AHEAD];
 	track[16].edge[DIR_AHEAD].src = &track[16];
 	track[16].edge[DIR_AHEAD].dest = &track[196];
-	track[16].edge[DIR_AHEAD].dist = 99.5;
+	track[16].edge[DIR_AHEAD].dist = 99;
 	track[16].edge[DIR_AHEAD].num = 16;
 	track[16].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[16].name, track + 16);
@@ -301,7 +301,7 @@ lookup *init_tracka(track_node *track) {
 	track[18].edge[DIR_AHEAD].reverse = &track[157].edge[DIR_AHEAD];
 	track[18].edge[DIR_AHEAD].src = &track[18];
 	track[18].edge[DIR_AHEAD].dest = &track[156];
-	track[18].edge[DIR_AHEAD].dist = 115.0;
+	track[18].edge[DIR_AHEAD].dist = 115;
 	track[18].edge[DIR_AHEAD].num = 18;
 	track[18].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[18].name, track + 18);
@@ -325,7 +325,7 @@ lookup *init_tracka(track_node *track) {
 	track[20].edge[DIR_AHEAD].reverse = &track[199].edge[DIR_AHEAD];
 	track[20].edge[DIR_AHEAD].src = &track[20];
 	track[20].edge[DIR_AHEAD].dest = &track[198];
-	track[20].edge[DIR_AHEAD].dist = 101.25;
+	track[20].edge[DIR_AHEAD].dist = 101;
 	track[20].edge[DIR_AHEAD].num = 20;
 	track[20].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[20].name, track + 20);
@@ -349,7 +349,7 @@ lookup *init_tracka(track_node *track) {
 	track[22].edge[DIR_AHEAD].reverse = &track[268].edge[DIR_AHEAD];
 	track[22].edge[DIR_AHEAD].src = &track[22];
 	track[22].edge[DIR_AHEAD].dest = &track[269];
-	track[22].edge[DIR_AHEAD].dist = 72.25;
+	track[22].edge[DIR_AHEAD].dist = 72;
 	track[22].edge[DIR_AHEAD].num = 22;
 	track[22].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[22].name, track + 22);
@@ -373,7 +373,7 @@ lookup *init_tracka(track_node *track) {
 	track[24].edge[DIR_AHEAD].reverse = &track[264].edge[DIR_AHEAD];
 	track[24].edge[DIR_AHEAD].src = &track[24];
 	track[24].edge[DIR_AHEAD].dest = &track[265];
-	track[24].edge[DIR_AHEAD].dist = 81.125;
+	track[24].edge[DIR_AHEAD].dist = 81;
 	track[24].edge[DIR_AHEAD].num = 24;
 	track[24].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[24].name, track + 24);
@@ -397,7 +397,7 @@ lookup *init_tracka(track_node *track) {
 	track[26].edge[DIR_AHEAD].reverse = &track[260].edge[DIR_AHEAD];
 	track[26].edge[DIR_AHEAD].src = &track[26];
 	track[26].edge[DIR_AHEAD].dest = &track[261];
-	track[26].edge[DIR_AHEAD].dist = 118.25;
+	track[26].edge[DIR_AHEAD].dist = 118;
 	track[26].edge[DIR_AHEAD].num = 26;
 	track[26].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[26].name, track + 26);
@@ -433,7 +433,7 @@ lookup *init_tracka(track_node *track) {
 	track[29].edge[DIR_AHEAD].reverse = &track[161].edge[DIR_AHEAD];
 	track[29].edge[DIR_AHEAD].src = &track[29];
 	track[29].edge[DIR_AHEAD].dest = &track[160];
-	track[29].edge[DIR_AHEAD].dist = 101.0;
+	track[29].edge[DIR_AHEAD].dist = 101;
 	track[29].edge[DIR_AHEAD].num = 29;
 	track[29].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[29].name, track + 29);
@@ -445,7 +445,7 @@ lookup *init_tracka(track_node *track) {
 	track[30].edge[DIR_AHEAD].reverse = &track[252].edge[DIR_AHEAD];
 	track[30].edge[DIR_AHEAD].src = &track[30];
 	track[30].edge[DIR_AHEAD].dest = &track[253];
-	track[30].edge[DIR_AHEAD].dist = 110.0;
+	track[30].edge[DIR_AHEAD].dist = 110;
 	track[30].edge[DIR_AHEAD].num = 30;
 	track[30].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[30].name, track + 30);
@@ -469,7 +469,7 @@ lookup *init_tracka(track_node *track) {
 	track[32].edge[DIR_AHEAD].reverse = &track[156].edge[DIR_AHEAD];
 	track[32].edge[DIR_AHEAD].src = &track[32];
 	track[32].edge[DIR_AHEAD].dest = &track[157];
-	track[32].edge[DIR_AHEAD].dist = 115.0;
+	track[32].edge[DIR_AHEAD].dist = 115;
 	track[32].edge[DIR_AHEAD].num = 32;
 	track[32].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[32].name, track + 32);
@@ -493,7 +493,7 @@ lookup *init_tracka(track_node *track) {
 	track[34].edge[DIR_AHEAD].reverse = &track[201].edge[DIR_AHEAD];
 	track[34].edge[DIR_AHEAD].src = &track[34];
 	track[34].edge[DIR_AHEAD].dest = &track[200];
-	track[34].edge[DIR_AHEAD].dist = 102.5;
+	track[34].edge[DIR_AHEAD].dist = 102;
 	track[34].edge[DIR_AHEAD].num = 34;
 	track[34].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[34].name, track + 34);
@@ -553,7 +553,7 @@ lookup *init_tracka(track_node *track) {
 	track[39].edge[DIR_AHEAD].reverse = &track[165].edge[DIR_AHEAD];
 	track[39].edge[DIR_AHEAD].src = &track[39];
 	track[39].edge[DIR_AHEAD].dest = &track[164];
-	track[39].edge[DIR_AHEAD].dist = 72.5;
+	track[39].edge[DIR_AHEAD].dist = 72;
 	track[39].edge[DIR_AHEAD].num = 39;
 	track[39].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[39].name, track + 39);
@@ -577,7 +577,7 @@ lookup *init_tracka(track_node *track) {
 	track[41].edge[DIR_AHEAD].reverse = &track[167].edge[DIR_AHEAD];
 	track[41].edge[DIR_AHEAD].src = &track[41];
 	track[41].edge[DIR_AHEAD].dest = &track[166];
-	track[41].edge[DIR_AHEAD].dist = 73.0;
+	track[41].edge[DIR_AHEAD].dist = 73;
 	track[41].edge[DIR_AHEAD].num = 41;
 	track[41].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[41].name, track + 41);
@@ -589,7 +589,7 @@ lookup *init_tracka(track_node *track) {
 	track[42].edge[DIR_AHEAD].reverse = &track[221].edge[DIR_AHEAD];
 	track[42].edge[DIR_AHEAD].src = &track[42];
 	track[42].edge[DIR_AHEAD].dest = &track[220];
-	track[42].edge[DIR_AHEAD].dist = 70.0;
+	track[42].edge[DIR_AHEAD].dist = 70;
 	track[42].edge[DIR_AHEAD].num = 42;
 	track[42].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[42].name, track + 42);
@@ -613,7 +613,7 @@ lookup *init_tracka(track_node *track) {
 	track[44].edge[DIR_AHEAD].reverse = &track[215].edge[DIR_AHEAD];
 	track[44].edge[DIR_AHEAD].src = &track[44];
 	track[44].edge[DIR_AHEAD].dest = &track[214];
-	track[44].edge[DIR_AHEAD].dist = 109.625;
+	track[44].edge[DIR_AHEAD].dist = 109;
 	track[44].edge[DIR_AHEAD].num = 44;
 	track[44].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[44].name, track + 44);
@@ -637,7 +637,7 @@ lookup *init_tracka(track_node *track) {
 	track[46].edge[DIR_AHEAD].reverse = &track[205].edge[DIR_AHEAD];
 	track[46].edge[DIR_AHEAD].src = &track[46];
 	track[46].edge[DIR_AHEAD].dest = &track[204];
-	track[46].edge[DIR_AHEAD].dist = 101.25;
+	track[46].edge[DIR_AHEAD].dist = 101;
 	track[46].edge[DIR_AHEAD].num = 46;
 	track[46].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[46].name, track + 46);
@@ -673,7 +673,7 @@ lookup *init_tracka(track_node *track) {
 	track[49].edge[DIR_AHEAD].reverse = &track[173].edge[DIR_AHEAD];
 	track[49].edge[DIR_AHEAD].src = &track[49];
 	track[49].edge[DIR_AHEAD].dest = &track[172];
-	track[49].edge[DIR_AHEAD].dist = 100.0;
+	track[49].edge[DIR_AHEAD].dist = 100;
 	track[49].edge[DIR_AHEAD].num = 49;
 	track[49].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[49].name, track + 49);
@@ -697,7 +697,7 @@ lookup *init_tracka(track_node *track) {
 	track[51].edge[DIR_AHEAD].reverse = &track[230].edge[DIR_AHEAD];
 	track[51].edge[DIR_AHEAD].src = &track[51];
 	track[51].edge[DIR_AHEAD].dest = &track[231];
-	track[51].edge[DIR_AHEAD].dist = 101.25;
+	track[51].edge[DIR_AHEAD].dist = 101;
 	track[51].edge[DIR_AHEAD].num = 51;
 	track[51].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[51].name, track + 51);
@@ -709,7 +709,7 @@ lookup *init_tracka(track_node *track) {
 	track[52].edge[DIR_AHEAD].reverse = &track[207].edge[DIR_AHEAD];
 	track[52].edge[DIR_AHEAD].src = &track[52];
 	track[52].edge[DIR_AHEAD].dest = &track[206];
-	track[52].edge[DIR_AHEAD].dist = 93.75;
+	track[52].edge[DIR_AHEAD].dist = 93;
 	track[52].edge[DIR_AHEAD].num = 52;
 	track[52].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[52].name, track + 52);
@@ -745,7 +745,7 @@ lookup *init_tracka(track_node *track) {
 	track[55].edge[DIR_AHEAD].reverse = &track[209].edge[DIR_AHEAD];
 	track[55].edge[DIR_AHEAD].src = &track[55];
 	track[55].edge[DIR_AHEAD].dest = &track[208];
-	track[55].edge[DIR_AHEAD].dist = 93.75;
+	track[55].edge[DIR_AHEAD].dist = 93;
 	track[55].edge[DIR_AHEAD].num = 55;
 	track[55].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[55].name, track + 55);
@@ -757,7 +757,7 @@ lookup *init_tracka(track_node *track) {
 	track[56].edge[DIR_AHEAD].reverse = &track[247].edge[DIR_AHEAD];
 	track[56].edge[DIR_AHEAD].src = &track[56];
 	track[56].edge[DIR_AHEAD].dest = &track[246];
-	track[56].edge[DIR_AHEAD].dist = 90.25;
+	track[56].edge[DIR_AHEAD].dist = 90;
 	track[56].edge[DIR_AHEAD].num = 56;
 	track[56].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[56].name, track + 56);
@@ -781,7 +781,7 @@ lookup *init_tracka(track_node *track) {
 	track[58].edge[DIR_AHEAD].reverse = &track[256].edge[DIR_AHEAD];
 	track[58].edge[DIR_AHEAD].src = &track[58];
 	track[58].edge[DIR_AHEAD].dest = &track[257];
-	track[58].edge[DIR_AHEAD].dist = 101.25;
+	track[58].edge[DIR_AHEAD].dist = 101;
 	track[58].edge[DIR_AHEAD].num = 58;
 	track[58].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[58].name, track + 58);
@@ -805,7 +805,7 @@ lookup *init_tracka(track_node *track) {
 	track[60].edge[DIR_AHEAD].reverse = &track[254].edge[DIR_AHEAD];
 	track[60].edge[DIR_AHEAD].src = &track[60];
 	track[60].edge[DIR_AHEAD].dest = &track[255];
-	track[60].edge[DIR_AHEAD].dist = 99.5;
+	track[60].edge[DIR_AHEAD].dist = 99;
 	track[60].edge[DIR_AHEAD].num = 60;
 	track[60].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[60].name, track + 60);
@@ -829,7 +829,7 @@ lookup *init_tracka(track_node *track) {
 	track[62].edge[DIR_AHEAD].reverse = &track[160].edge[DIR_AHEAD];
 	track[62].edge[DIR_AHEAD].src = &track[62];
 	track[62].edge[DIR_AHEAD].dest = &track[161];
-	track[62].edge[DIR_AHEAD].dist = 101.0;
+	track[62].edge[DIR_AHEAD].dist = 101;
 	track[62].edge[DIR_AHEAD].num = 62;
 	track[62].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[62].name, track + 62);
@@ -865,7 +865,7 @@ lookup *init_tracka(track_node *track) {
 	track[65].edge[DIR_AHEAD].reverse = &track[179].edge[DIR_AHEAD];
 	track[65].edge[DIR_AHEAD].src = &track[65];
 	track[65].edge[DIR_AHEAD].dest = &track[178];
-	track[65].edge[DIR_AHEAD].dist = 101.5;
+	track[65].edge[DIR_AHEAD].dist = 101;
 	track[65].edge[DIR_AHEAD].num = 65;
 	track[65].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[65].name, track + 65);
@@ -877,7 +877,7 @@ lookup *init_tracka(track_node *track) {
 	track[66].edge[DIR_AHEAD].reverse = &track[172].edge[DIR_AHEAD];
 	track[66].edge[DIR_AHEAD].src = &track[66];
 	track[66].edge[DIR_AHEAD].dest = &track[173];
-	track[66].edge[DIR_AHEAD].dist = 100.0;
+	track[66].edge[DIR_AHEAD].dist = 100;
 	track[66].edge[DIR_AHEAD].num = 66;
 	track[66].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[66].name, track + 66);
@@ -901,7 +901,7 @@ lookup *init_tracka(track_node *track) {
 	track[68].edge[DIR_AHEAD].reverse = &track[236].edge[DIR_AHEAD];
 	track[68].edge[DIR_AHEAD].src = &track[68];
 	track[68].edge[DIR_AHEAD].dest = &track[237];
-	track[68].edge[DIR_AHEAD].dist = 93.75;
+	track[68].edge[DIR_AHEAD].dist = 93;
 	track[68].edge[DIR_AHEAD].num = 68;
 	track[68].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[68].name, track + 68);
@@ -925,7 +925,7 @@ lookup *init_tracka(track_node *track) {
 	track[70].edge[DIR_AHEAD].reverse = &track[258].edge[DIR_AHEAD];
 	track[70].edge[DIR_AHEAD].src = &track[70];
 	track[70].edge[DIR_AHEAD].dest = &track[259];
-	track[70].edge[DIR_AHEAD].dist = 93.75;
+	track[70].edge[DIR_AHEAD].dist = 93;
 	track[70].edge[DIR_AHEAD].num = 70;
 	track[70].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[70].name, track + 70);
@@ -937,7 +937,7 @@ lookup *init_tracka(track_node *track) {
 	track[71].edge[DIR_AHEAD].reverse = &track[266].edge[DIR_AHEAD];
 	track[71].edge[DIR_AHEAD].src = &track[71];
 	track[71].edge[DIR_AHEAD].dest = &track[267];
-	track[71].edge[DIR_AHEAD].dist = 109.625;
+	track[71].edge[DIR_AHEAD].dist = 109;
 	track[71].edge[DIR_AHEAD].num = 71;
 	track[71].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[71].name, track + 71);
@@ -961,7 +961,7 @@ lookup *init_tracka(track_node *track) {
 	track[73].edge[DIR_AHEAD].reverse = &track[211].edge[DIR_AHEAD];
 	track[73].edge[DIR_AHEAD].src = &track[73];
 	track[73].edge[DIR_AHEAD].dest = &track[210];
-	track[73].edge[DIR_AHEAD].dist = 93.75;
+	track[73].edge[DIR_AHEAD].dist = 93;
 	track[73].edge[DIR_AHEAD].num = 73;
 	track[73].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[73].name, track + 73);
@@ -973,7 +973,7 @@ lookup *init_tracka(track_node *track) {
 	track[74].edge[DIR_AHEAD].reverse = &track[262].edge[DIR_AHEAD];
 	track[74].edge[DIR_AHEAD].src = &track[74];
 	track[74].edge[DIR_AHEAD].dest = &track[263];
-	track[74].edge[DIR_AHEAD].dist = 90.25;
+	track[74].edge[DIR_AHEAD].dist = 90;
 	track[74].edge[DIR_AHEAD].num = 74;
 	track[74].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[74].name, track + 74);
@@ -1009,7 +1009,7 @@ lookup *init_tracka(track_node *track) {
 	track[77].edge[DIR_AHEAD].reverse = &track[238].edge[DIR_AHEAD];
 	track[77].edge[DIR_AHEAD].src = &track[77];
 	track[77].edge[DIR_AHEAD].dest = &track[239];
-	track[77].edge[DIR_AHEAD].dist = 93.75;
+	track[77].edge[DIR_AHEAD].dist = 93;
 	track[77].edge[DIR_AHEAD].num = 77;
 	track[77].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[77].name, track + 77);
@@ -1033,7 +1033,7 @@ lookup *init_tracka(track_node *track) {
 	track[79].edge[DIR_AHEAD].reverse = &track[178].edge[DIR_AHEAD];
 	track[79].edge[DIR_AHEAD].src = &track[79];
 	track[79].edge[DIR_AHEAD].dest = &track[179];
-	track[79].edge[DIR_AHEAD].dist = 101.5;
+	track[79].edge[DIR_AHEAD].dist = 101;
 	track[79].edge[DIR_AHEAD].num = 79;
 	track[79].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[79].name, track + 79);
@@ -1123,7 +1123,7 @@ lookup *init_tracka(track_node *track) {
 	track[85].edge[DIR_AHEAD].reverse = &track[164].edge[DIR_AHEAD];
 	track[85].edge[DIR_AHEAD].src = &track[85];
 	track[85].edge[DIR_AHEAD].dest = &track[165];
-	track[85].edge[DIR_AHEAD].dist = 72.5;
+	track[85].edge[DIR_AHEAD].dist = 72;
 	track[85].edge[DIR_AHEAD].num = 88;
 	track[85].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[85].name, track + 85);
@@ -1183,7 +1183,7 @@ lookup *init_tracka(track_node *track) {
 	track[89].edge[DIR_AHEAD].reverse = &track[183].edge[DIR_AHEAD];
 	track[89].edge[DIR_AHEAD].src = &track[89];
 	track[89].edge[DIR_AHEAD].dest = &track[182];
-	track[89].edge[DIR_AHEAD].dist = 93.5;
+	track[89].edge[DIR_AHEAD].dist = 93;
 	track[89].edge[DIR_AHEAD].num = 94;
 	track[89].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[89].name, track + 89);
@@ -1273,7 +1273,7 @@ lookup *init_tracka(track_node *track) {
 	track[95].edge[DIR_AHEAD].reverse = &track[185].edge[DIR_AHEAD];
 	track[95].edge[DIR_AHEAD].src = &track[95];
 	track[95].edge[DIR_AHEAD].dest = &track[184];
-	track[95].edge[DIR_AHEAD].dist = 96.5;
+	track[95].edge[DIR_AHEAD].dist = 96;
 	track[95].edge[DIR_AHEAD].num = 103;
 	track[95].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[95].name, track + 95);
@@ -1303,7 +1303,7 @@ lookup *init_tracka(track_node *track) {
 	track[97].edge[DIR_AHEAD].reverse = &track[184].edge[DIR_AHEAD];
 	track[97].edge[DIR_AHEAD].src = &track[97];
 	track[97].edge[DIR_AHEAD].dest = &track[185];
-	track[97].edge[DIR_AHEAD].dist = 96.5;
+	track[97].edge[DIR_AHEAD].dist = 96;
 	track[97].edge[DIR_AHEAD].num = 106;
 	track[97].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[97].name, track + 97);
@@ -1423,7 +1423,7 @@ lookup *init_tracka(track_node *track) {
 	track[105].edge[DIR_AHEAD].reverse = &track[220].edge[DIR_AHEAD];
 	track[105].edge[DIR_AHEAD].src = &track[105];
 	track[105].edge[DIR_AHEAD].dest = &track[221];
-	track[105].edge[DIR_AHEAD].dist = 70.0;
+	track[105].edge[DIR_AHEAD].dist = 70;
 	track[105].edge[DIR_AHEAD].num = 118;
 	track[105].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[105].name, track + 105);
@@ -1513,7 +1513,7 @@ lookup *init_tracka(track_node *track) {
 	track[111].edge[DIR_AHEAD].reverse = &track[166].edge[DIR_AHEAD];
 	track[111].edge[DIR_AHEAD].src = &track[111];
 	track[111].edge[DIR_AHEAD].dest = &track[167];
-	track[111].edge[DIR_AHEAD].dist = 73.0;
+	track[111].edge[DIR_AHEAD].dist = 73;
 	track[111].edge[DIR_AHEAD].num = 127;
 	track[111].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[111].name, track + 111);
@@ -1573,7 +1573,7 @@ lookup *init_tracka(track_node *track) {
 	track[115].edge[DIR_AHEAD].reverse = &track[182].edge[DIR_AHEAD];
 	track[115].edge[DIR_AHEAD].src = &track[115];
 	track[115].edge[DIR_AHEAD].dest = &track[183];
-	track[115].edge[DIR_AHEAD].dist = 93.5;
+	track[115].edge[DIR_AHEAD].dist = 93;
 	track[115].edge[DIR_AHEAD].num = 133;
 	track[115].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[115].name, track + 115);
@@ -1736,7 +1736,7 @@ lookup *init_tracka(track_node *track) {
 	track[128].edge[DIR_AHEAD].reverse = &track[232].edge[DIR_AHEAD];
 	track[128].edge[DIR_AHEAD].src = &track[128];
 	track[128].edge[DIR_AHEAD].dest = &track[233];
-	track[128].edge[DIR_AHEAD].dist = 102.5;
+	track[128].edge[DIR_AHEAD].dist = 102;
 	track[128].edge[DIR_AHEAD].num = 148;
 	track[128].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[128].name, track + 128);
@@ -1752,7 +1752,7 @@ lookup *init_tracka(track_node *track) {
 	track[130].edge[DIR_AHEAD].reverse = &track[228].edge[DIR_AHEAD];
 	track[130].edge[DIR_AHEAD].src = &track[130];
 	track[130].edge[DIR_AHEAD].dest = &track[229];
-	track[130].edge[DIR_AHEAD].dist = 80.0;
+	track[130].edge[DIR_AHEAD].dist = 80;
 	track[130].edge[DIR_AHEAD].num = 149;
 	track[130].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[130].name, track + 130);
@@ -1768,7 +1768,7 @@ lookup *init_tracka(track_node *track) {
 	track[132].edge[DIR_AHEAD].reverse = &track[224].edge[DIR_AHEAD];
 	track[132].edge[DIR_AHEAD].src = &track[132];
 	track[132].edge[DIR_AHEAD].dest = &track[225];
-	track[132].edge[DIR_AHEAD].dist = 125.0;
+	track[132].edge[DIR_AHEAD].dist = 125;
 	track[132].edge[DIR_AHEAD].num = 150;
 	track[132].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[132].name, track + 132);
@@ -1784,7 +1784,7 @@ lookup *init_tracka(track_node *track) {
 	track[134].edge[DIR_AHEAD].reverse = &track[218].edge[DIR_AHEAD];
 	track[134].edge[DIR_AHEAD].src = &track[134];
 	track[134].edge[DIR_AHEAD].dest = &track[219];
-	track[134].edge[DIR_AHEAD].dist = 72.5;
+	track[134].edge[DIR_AHEAD].dist = 72;
 	track[134].edge[DIR_AHEAD].num = 151;
 	track[134].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[134].name, track + 134);
@@ -1865,7 +1865,7 @@ lookup *init_tracka(track_node *track) {
 	track[144].edge[DIR_AHEAD].reverse = &track[225].edge[DIR_AHEAD];
 	track[144].edge[DIR_AHEAD].src = &track[144];
 	track[144].edge[DIR_AHEAD].dest = &track[224];
-	track[144].edge[DIR_AHEAD].dist = 125.0;
+	track[144].edge[DIR_AHEAD].dist = 125;
 	track[144].edge[DIR_AHEAD].num = 156;
 	track[144].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[144].name, track + 144);
@@ -1877,7 +1877,7 @@ lookup *init_tracka(track_node *track) {
 	track[145].edge[DIR_AHEAD].reverse = &track[186].edge[DIR_AHEAD];
 	track[145].edge[DIR_AHEAD].src = &track[145];
 	track[145].edge[DIR_AHEAD].dest = &track[187];
-	track[145].edge[DIR_AHEAD].dist = 125.0;
+	track[145].edge[DIR_AHEAD].dist = 125;
 	track[145].edge[DIR_AHEAD].num = 157;
 	track[145].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[145].name, track + 145);
@@ -1889,7 +1889,7 @@ lookup *init_tracka(track_node *track) {
 	track[146].edge[DIR_AHEAD].reverse = &track[253].edge[DIR_AHEAD];
 	track[146].edge[DIR_AHEAD].src = &track[146];
 	track[146].edge[DIR_AHEAD].dest = &track[252];
-	track[146].edge[DIR_AHEAD].dist = 110.0;
+	track[146].edge[DIR_AHEAD].dist = 110;
 	track[146].edge[DIR_AHEAD].num = 158;
 	track[146].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[146].name, track + 146);
@@ -1901,7 +1901,7 @@ lookup *init_tracka(track_node *track) {
 	track[147].edge[DIR_AHEAD].reverse = &track[188].edge[DIR_AHEAD];
 	track[147].edge[DIR_AHEAD].src = &track[147];
 	track[147].edge[DIR_AHEAD].dest = &track[189];
-	track[147].edge[DIR_AHEAD].dist = 110.0;
+	track[147].edge[DIR_AHEAD].dist = 110;
 	track[147].edge[DIR_AHEAD].num = 159;
 	track[147].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[147].name, track + 147);
@@ -1913,7 +1913,7 @@ lookup *init_tracka(track_node *track) {
 	track[148].edge[DIR_AHEAD].reverse = &track[249].edge[DIR_AHEAD];
 	track[148].edge[DIR_AHEAD].src = &track[148];
 	track[148].edge[DIR_AHEAD].dest = &track[248];
-	track[148].edge[DIR_AHEAD].dist = 81.125;
+	track[148].edge[DIR_AHEAD].dist = 81;
 	track[148].edge[DIR_AHEAD].num = 160;
 	track[148].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[148].name, track + 148);
@@ -1925,7 +1925,7 @@ lookup *init_tracka(track_node *track) {
 	track[149].edge[DIR_AHEAD].reverse = &track[240].edge[DIR_AHEAD];
 	track[149].edge[DIR_AHEAD].src = &track[149];
 	track[149].edge[DIR_AHEAD].dest = &track[241];
-	track[149].edge[DIR_AHEAD].dist = 81.125;
+	track[149].edge[DIR_AHEAD].dist = 81;
 	track[149].edge[DIR_AHEAD].num = 161;
 	track[149].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[149].name, track + 149);
@@ -1937,7 +1937,7 @@ lookup *init_tracka(track_node *track) {
 	track[150].edge[DIR_AHEAD].reverse = &track[269].edge[DIR_AHEAD];
 	track[150].edge[DIR_AHEAD].src = &track[150];
 	track[150].edge[DIR_AHEAD].dest = &track[268];
-	track[150].edge[DIR_AHEAD].dist = 72.25;
+	track[150].edge[DIR_AHEAD].dist = 72;
 	track[150].edge[DIR_AHEAD].num = 162;
 	track[150].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[150].name, track + 150);
@@ -1949,7 +1949,7 @@ lookup *init_tracka(track_node *track) {
 	track[151].edge[DIR_AHEAD].reverse = &track[192].edge[DIR_AHEAD];
 	track[151].edge[DIR_AHEAD].src = &track[151];
 	track[151].edge[DIR_AHEAD].dest = &track[193];
-	track[151].edge[DIR_AHEAD].dist = 72.25;
+	track[151].edge[DIR_AHEAD].dist = 72;
 	track[151].edge[DIR_AHEAD].num = 163;
 	track[151].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[151].name, track + 151);
@@ -1961,7 +1961,7 @@ lookup *init_tracka(track_node *track) {
 	track[152].edge[DIR_AHEAD].reverse = &track[229].edge[DIR_AHEAD];
 	track[152].edge[DIR_AHEAD].src = &track[152];
 	track[152].edge[DIR_AHEAD].dest = &track[228];
-	track[152].edge[DIR_AHEAD].dist = 80.0;
+	track[152].edge[DIR_AHEAD].dist = 80;
 	track[152].edge[DIR_AHEAD].num = 164;
 	track[152].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[152].name, track + 152);
@@ -1973,7 +1973,7 @@ lookup *init_tracka(track_node *track) {
 	track[153].edge[DIR_AHEAD].reverse = &track[194].edge[DIR_AHEAD];
 	track[153].edge[DIR_AHEAD].src = &track[153];
 	track[153].edge[DIR_AHEAD].dest = &track[195];
-	track[153].edge[DIR_AHEAD].dist = 80.0;
+	track[153].edge[DIR_AHEAD].dist = 80;
 	track[153].edge[DIR_AHEAD].num = 165;
 	track[153].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[153].name, track + 153);
@@ -1985,7 +1985,7 @@ lookup *init_tracka(track_node *track) {
 	track[154].edge[DIR_AHEAD].reverse = &track[255].edge[DIR_AHEAD];
 	track[154].edge[DIR_AHEAD].src = &track[154];
 	track[154].edge[DIR_AHEAD].dest = &track[254];
-	track[154].edge[DIR_AHEAD].dist = 99.5;
+	track[154].edge[DIR_AHEAD].dist = 99;
 	track[154].edge[DIR_AHEAD].num = 166;
 	track[154].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[154].name, track + 154);
@@ -1997,7 +1997,7 @@ lookup *init_tracka(track_node *track) {
 	track[155].edge[DIR_AHEAD].reverse = &track[196].edge[DIR_AHEAD];
 	track[155].edge[DIR_AHEAD].src = &track[155];
 	track[155].edge[DIR_AHEAD].dest = &track[197];
-	track[155].edge[DIR_AHEAD].dist = 99.5;
+	track[155].edge[DIR_AHEAD].dist = 99;
 	track[155].edge[DIR_AHEAD].num = 167;
 	track[155].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[155].name, track + 155);
@@ -2009,7 +2009,7 @@ lookup *init_tracka(track_node *track) {
 	track[156].edge[DIR_AHEAD].reverse = &track[32].edge[DIR_AHEAD];
 	track[156].edge[DIR_AHEAD].src = &track[156];
 	track[156].edge[DIR_AHEAD].dest = &track[33];
-	track[156].edge[DIR_AHEAD].dist = 115.0;
+	track[156].edge[DIR_AHEAD].dist = 115;
 	track[156].edge[DIR_AHEAD].num = 168;
 	track[156].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[156].name, track + 156);
@@ -2021,7 +2021,7 @@ lookup *init_tracka(track_node *track) {
 	track[157].edge[DIR_AHEAD].reverse = &track[18].edge[DIR_AHEAD];
 	track[157].edge[DIR_AHEAD].src = &track[157];
 	track[157].edge[DIR_AHEAD].dest = &track[19];
-	track[157].edge[DIR_AHEAD].dist = 115.0;
+	track[157].edge[DIR_AHEAD].dist = 115;
 	track[157].edge[DIR_AHEAD].num = 169;
 	track[157].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[157].name, track + 157);
@@ -2033,7 +2033,7 @@ lookup *init_tracka(track_node *track) {
 	track[158].edge[DIR_AHEAD].reverse = &track[231].edge[DIR_AHEAD];
 	track[158].edge[DIR_AHEAD].src = &track[158];
 	track[158].edge[DIR_AHEAD].dest = &track[230];
-	track[158].edge[DIR_AHEAD].dist = 101.25;
+	track[158].edge[DIR_AHEAD].dist = 101;
 	track[158].edge[DIR_AHEAD].num = 170;
 	track[158].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[158].name, track + 158);
@@ -2045,7 +2045,7 @@ lookup *init_tracka(track_node *track) {
 	track[159].edge[DIR_AHEAD].reverse = &track[198].edge[DIR_AHEAD];
 	track[159].edge[DIR_AHEAD].src = &track[159];
 	track[159].edge[DIR_AHEAD].dest = &track[199];
-	track[159].edge[DIR_AHEAD].dist = 101.25;
+	track[159].edge[DIR_AHEAD].dist = 101;
 	track[159].edge[DIR_AHEAD].num = 171;
 	track[159].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[159].name, track + 159);
@@ -2057,7 +2057,7 @@ lookup *init_tracka(track_node *track) {
 	track[160].edge[DIR_AHEAD].reverse = &track[62].edge[DIR_AHEAD];
 	track[160].edge[DIR_AHEAD].src = &track[160];
 	track[160].edge[DIR_AHEAD].dest = &track[63];
-	track[160].edge[DIR_AHEAD].dist = 101.0;
+	track[160].edge[DIR_AHEAD].dist = 101;
 	track[160].edge[DIR_AHEAD].num = 172;
 	track[160].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[160].name, track + 160);
@@ -2069,7 +2069,7 @@ lookup *init_tracka(track_node *track) {
 	track[161].edge[DIR_AHEAD].reverse = &track[29].edge[DIR_AHEAD];
 	track[161].edge[DIR_AHEAD].src = &track[161];
 	track[161].edge[DIR_AHEAD].dest = &track[28];
-	track[161].edge[DIR_AHEAD].dist = 101.0;
+	track[161].edge[DIR_AHEAD].dist = 101;
 	track[161].edge[DIR_AHEAD].num = 173;
 	track[161].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[161].name, track + 161);
@@ -2081,7 +2081,7 @@ lookup *init_tracka(track_node *track) {
 	track[162].edge[DIR_AHEAD].reverse = &track[233].edge[DIR_AHEAD];
 	track[162].edge[DIR_AHEAD].src = &track[162];
 	track[162].edge[DIR_AHEAD].dest = &track[232];
-	track[162].edge[DIR_AHEAD].dist = 102.5;
+	track[162].edge[DIR_AHEAD].dist = 102;
 	track[162].edge[DIR_AHEAD].num = 174;
 	track[162].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[162].name, track + 162);
@@ -2093,7 +2093,7 @@ lookup *init_tracka(track_node *track) {
 	track[163].edge[DIR_AHEAD].reverse = &track[200].edge[DIR_AHEAD];
 	track[163].edge[DIR_AHEAD].src = &track[163];
 	track[163].edge[DIR_AHEAD].dest = &track[201];
-	track[163].edge[DIR_AHEAD].dist = 102.5;
+	track[163].edge[DIR_AHEAD].dist = 102;
 	track[163].edge[DIR_AHEAD].num = 175;
 	track[163].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[163].name, track + 163);
@@ -2105,7 +2105,7 @@ lookup *init_tracka(track_node *track) {
 	track[164].edge[DIR_AHEAD].reverse = &track[85].edge[DIR_AHEAD];
 	track[164].edge[DIR_AHEAD].src = &track[164];
 	track[164].edge[DIR_AHEAD].dest = &track[84];
-	track[164].edge[DIR_AHEAD].dist = 72.5;
+	track[164].edge[DIR_AHEAD].dist = 72;
 	track[164].edge[DIR_AHEAD].num = 176;
 	track[164].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[164].name, track + 164);
@@ -2117,7 +2117,7 @@ lookup *init_tracka(track_node *track) {
 	track[165].edge[DIR_AHEAD].reverse = &track[39].edge[DIR_AHEAD];
 	track[165].edge[DIR_AHEAD].src = &track[165];
 	track[165].edge[DIR_AHEAD].dest = &track[38];
-	track[165].edge[DIR_AHEAD].dist = 72.5;
+	track[165].edge[DIR_AHEAD].dist = 72;
 	track[165].edge[DIR_AHEAD].num = 177;
 	track[165].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[165].name, track + 165);
@@ -2129,7 +2129,7 @@ lookup *init_tracka(track_node *track) {
 	track[166].edge[DIR_AHEAD].reverse = &track[111].edge[DIR_AHEAD];
 	track[166].edge[DIR_AHEAD].src = &track[166];
 	track[166].edge[DIR_AHEAD].dest = &track[110];
-	track[166].edge[DIR_AHEAD].dist = 73.0;
+	track[166].edge[DIR_AHEAD].dist = 73;
 	track[166].edge[DIR_AHEAD].num = 178;
 	track[166].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[166].name, track + 166);
@@ -2141,7 +2141,7 @@ lookup *init_tracka(track_node *track) {
 	track[167].edge[DIR_AHEAD].reverse = &track[41].edge[DIR_AHEAD];
 	track[167].edge[DIR_AHEAD].src = &track[167];
 	track[167].edge[DIR_AHEAD].dest = &track[40];
-	track[167].edge[DIR_AHEAD].dist = 73.0;
+	track[167].edge[DIR_AHEAD].dist = 73;
 	track[167].edge[DIR_AHEAD].num = 179;
 	track[167].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[167].name, track + 167);
@@ -2153,7 +2153,7 @@ lookup *init_tracka(track_node *track) {
 	track[168].edge[DIR_AHEAD].reverse = &track[251].edge[DIR_AHEAD];
 	track[168].edge[DIR_AHEAD].src = &track[168];
 	track[168].edge[DIR_AHEAD].dest = &track[250];
-	track[168].edge[DIR_AHEAD].dist = 109.625;
+	track[168].edge[DIR_AHEAD].dist = 109;
 	track[168].edge[DIR_AHEAD].num = 180;
 	track[168].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[168].name, track + 168);
@@ -2165,7 +2165,7 @@ lookup *init_tracka(track_node *track) {
 	track[169].edge[DIR_AHEAD].reverse = &track[242].edge[DIR_AHEAD];
 	track[169].edge[DIR_AHEAD].src = &track[169];
 	track[169].edge[DIR_AHEAD].dest = &track[243];
-	track[169].edge[DIR_AHEAD].dist = 109.625;
+	track[169].edge[DIR_AHEAD].dist = 109;
 	track[169].edge[DIR_AHEAD].num = 181;
 	track[169].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[169].name, track + 169);
@@ -2177,7 +2177,7 @@ lookup *init_tracka(track_node *track) {
 	track[170].edge[DIR_AHEAD].reverse = &track[257].edge[DIR_AHEAD];
 	track[170].edge[DIR_AHEAD].src = &track[170];
 	track[170].edge[DIR_AHEAD].dest = &track[256];
-	track[170].edge[DIR_AHEAD].dist = 101.25;
+	track[170].edge[DIR_AHEAD].dist = 101;
 	track[170].edge[DIR_AHEAD].num = 182;
 	track[170].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[170].name, track + 170);
@@ -2189,7 +2189,7 @@ lookup *init_tracka(track_node *track) {
 	track[171].edge[DIR_AHEAD].reverse = &track[204].edge[DIR_AHEAD];
 	track[171].edge[DIR_AHEAD].src = &track[171];
 	track[171].edge[DIR_AHEAD].dest = &track[205];
-	track[171].edge[DIR_AHEAD].dist = 101.25;
+	track[171].edge[DIR_AHEAD].dist = 101;
 	track[171].edge[DIR_AHEAD].num = 183;
 	track[171].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[171].name, track + 171);
@@ -2201,7 +2201,7 @@ lookup *init_tracka(track_node *track) {
 	track[172].edge[DIR_AHEAD].reverse = &track[66].edge[DIR_AHEAD];
 	track[172].edge[DIR_AHEAD].src = &track[172];
 	track[172].edge[DIR_AHEAD].dest = &track[67];
-	track[172].edge[DIR_AHEAD].dist = 100.0;
+	track[172].edge[DIR_AHEAD].dist = 100;
 	track[172].edge[DIR_AHEAD].num = 184;
 	track[172].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[172].name, track + 172);
@@ -2213,7 +2213,7 @@ lookup *init_tracka(track_node *track) {
 	track[173].edge[DIR_AHEAD].reverse = &track[49].edge[DIR_AHEAD];
 	track[173].edge[DIR_AHEAD].src = &track[173];
 	track[173].edge[DIR_AHEAD].dest = &track[48];
-	track[173].edge[DIR_AHEAD].dist = 100.0;
+	track[173].edge[DIR_AHEAD].dist = 100;
 	track[173].edge[DIR_AHEAD].num = 185;
 	track[173].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[173].name, track + 173);
@@ -2225,7 +2225,7 @@ lookup *init_tracka(track_node *track) {
 	track[174].edge[DIR_AHEAD].reverse = &track[237].edge[DIR_AHEAD];
 	track[174].edge[DIR_AHEAD].src = &track[174];
 	track[174].edge[DIR_AHEAD].dest = &track[236];
-	track[174].edge[DIR_AHEAD].dist = 93.75;
+	track[174].edge[DIR_AHEAD].dist = 93;
 	track[174].edge[DIR_AHEAD].num = 186;
 	track[174].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[174].name, track + 174);
@@ -2237,7 +2237,7 @@ lookup *init_tracka(track_node *track) {
 	track[175].edge[DIR_AHEAD].reverse = &track[206].edge[DIR_AHEAD];
 	track[175].edge[DIR_AHEAD].src = &track[175];
 	track[175].edge[DIR_AHEAD].dest = &track[207];
-	track[175].edge[DIR_AHEAD].dist = 93.75;
+	track[175].edge[DIR_AHEAD].dist = 93;
 	track[175].edge[DIR_AHEAD].num = 187;
 	track[175].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[175].name, track + 175);
@@ -2249,7 +2249,7 @@ lookup *init_tracka(track_node *track) {
 	track[176].edge[DIR_AHEAD].reverse = &track[259].edge[DIR_AHEAD];
 	track[176].edge[DIR_AHEAD].src = &track[176];
 	track[176].edge[DIR_AHEAD].dest = &track[258];
-	track[176].edge[DIR_AHEAD].dist = 93.75;
+	track[176].edge[DIR_AHEAD].dist = 93;
 	track[176].edge[DIR_AHEAD].num = 188;
 	track[176].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[176].name, track + 176);
@@ -2261,7 +2261,7 @@ lookup *init_tracka(track_node *track) {
 	track[177].edge[DIR_AHEAD].reverse = &track[208].edge[DIR_AHEAD];
 	track[177].edge[DIR_AHEAD].src = &track[177];
 	track[177].edge[DIR_AHEAD].dest = &track[209];
-	track[177].edge[DIR_AHEAD].dist = 93.75;
+	track[177].edge[DIR_AHEAD].dist = 93;
 	track[177].edge[DIR_AHEAD].num = 189;
 	track[177].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[177].name, track + 177);
@@ -2273,7 +2273,7 @@ lookup *init_tracka(track_node *track) {
 	track[178].edge[DIR_AHEAD].reverse = &track[79].edge[DIR_AHEAD];
 	track[178].edge[DIR_AHEAD].src = &track[178];
 	track[178].edge[DIR_AHEAD].dest = &track[78];
-	track[178].edge[DIR_AHEAD].dist = 101.5;
+	track[178].edge[DIR_AHEAD].dist = 101;
 	track[178].edge[DIR_AHEAD].num = 190;
 	track[178].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[178].name, track + 178);
@@ -2285,7 +2285,7 @@ lookup *init_tracka(track_node *track) {
 	track[179].edge[DIR_AHEAD].reverse = &track[65].edge[DIR_AHEAD];
 	track[179].edge[DIR_AHEAD].src = &track[179];
 	track[179].edge[DIR_AHEAD].dest = &track[64];
-	track[179].edge[DIR_AHEAD].dist = 101.5;
+	track[179].edge[DIR_AHEAD].dist = 101;
 	track[179].edge[DIR_AHEAD].num = 191;
 	track[179].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[179].name, track + 179);
@@ -2297,7 +2297,7 @@ lookup *init_tracka(track_node *track) {
 	track[180].edge[DIR_AHEAD].reverse = &track[239].edge[DIR_AHEAD];
 	track[180].edge[DIR_AHEAD].src = &track[180];
 	track[180].edge[DIR_AHEAD].dest = &track[238];
-	track[180].edge[DIR_AHEAD].dist = 93.75;
+	track[180].edge[DIR_AHEAD].dist = 93;
 	track[180].edge[DIR_AHEAD].num = 192;
 	track[180].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[180].name, track + 180);
@@ -2309,7 +2309,7 @@ lookup *init_tracka(track_node *track) {
 	track[181].edge[DIR_AHEAD].reverse = &track[210].edge[DIR_AHEAD];
 	track[181].edge[DIR_AHEAD].src = &track[181];
 	track[181].edge[DIR_AHEAD].dest = &track[211];
-	track[181].edge[DIR_AHEAD].dist = 93.75;
+	track[181].edge[DIR_AHEAD].dist = 93;
 	track[181].edge[DIR_AHEAD].num = 193;
 	track[181].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[181].name, track + 181);
@@ -2321,7 +2321,7 @@ lookup *init_tracka(track_node *track) {
 	track[182].edge[DIR_AHEAD].reverse = &track[115].edge[DIR_AHEAD];
 	track[182].edge[DIR_AHEAD].src = &track[182];
 	track[182].edge[DIR_AHEAD].dest = &track[114];
-	track[182].edge[DIR_AHEAD].dist = 93.5;
+	track[182].edge[DIR_AHEAD].dist = 93;
 	track[182].edge[DIR_AHEAD].num = 194;
 	track[182].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[182].name, track + 182);
@@ -2333,7 +2333,7 @@ lookup *init_tracka(track_node *track) {
 	track[183].edge[DIR_AHEAD].reverse = &track[89].edge[DIR_AHEAD];
 	track[183].edge[DIR_AHEAD].src = &track[183];
 	track[183].edge[DIR_AHEAD].dest = &track[88];
-	track[183].edge[DIR_AHEAD].dist = 93.5;
+	track[183].edge[DIR_AHEAD].dist = 93;
 	track[183].edge[DIR_AHEAD].num = 195;
 	track[183].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[183].name, track + 183);
@@ -2345,7 +2345,7 @@ lookup *init_tracka(track_node *track) {
 	track[184].edge[DIR_AHEAD].reverse = &track[97].edge[DIR_AHEAD];
 	track[184].edge[DIR_AHEAD].src = &track[184];
 	track[184].edge[DIR_AHEAD].dest = &track[96];
-	track[184].edge[DIR_AHEAD].dist = 96.5;
+	track[184].edge[DIR_AHEAD].dist = 96;
 	track[184].edge[DIR_AHEAD].num = 196;
 	track[184].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[184].name, track + 184);
@@ -2357,7 +2357,7 @@ lookup *init_tracka(track_node *track) {
 	track[185].edge[DIR_AHEAD].reverse = &track[95].edge[DIR_AHEAD];
 	track[185].edge[DIR_AHEAD].src = &track[185];
 	track[185].edge[DIR_AHEAD].dest = &track[94];
-	track[185].edge[DIR_AHEAD].dist = 96.5;
+	track[185].edge[DIR_AHEAD].dist = 96;
 	track[185].edge[DIR_AHEAD].num = 197;
 	track[185].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[185].name, track + 185);
@@ -2369,7 +2369,7 @@ lookup *init_tracka(track_node *track) {
 	track[186].edge[DIR_AHEAD].reverse = &track[145].edge[DIR_AHEAD];
 	track[186].edge[DIR_AHEAD].src = &track[186];
 	track[186].edge[DIR_AHEAD].dest = &track[144];
-	track[186].edge[DIR_AHEAD].dist = 125.0;
+	track[186].edge[DIR_AHEAD].dist = 125;
 	track[186].edge[DIR_AHEAD].num = 198;
 	track[186].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[186].name, track + 186);
@@ -2381,7 +2381,7 @@ lookup *init_tracka(track_node *track) {
 	track[187].edge[DIR_AHEAD].reverse = &track[1].edge[DIR_AHEAD];
 	track[187].edge[DIR_AHEAD].src = &track[187];
 	track[187].edge[DIR_AHEAD].dest = &track[0];
-	track[187].edge[DIR_AHEAD].dist = 125.0;
+	track[187].edge[DIR_AHEAD].dist = 125;
 	track[187].edge[DIR_AHEAD].num = 199;
 	track[187].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[187].name, track + 187);
@@ -2393,7 +2393,7 @@ lookup *init_tracka(track_node *track) {
 	track[188].edge[DIR_AHEAD].reverse = &track[147].edge[DIR_AHEAD];
 	track[188].edge[DIR_AHEAD].src = &track[188];
 	track[188].edge[DIR_AHEAD].dest = &track[146];
-	track[188].edge[DIR_AHEAD].dist = 110.0;
+	track[188].edge[DIR_AHEAD].dist = 110;
 	track[188].edge[DIR_AHEAD].num = 200;
 	track[188].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[188].name, track + 188);
@@ -2405,7 +2405,7 @@ lookup *init_tracka(track_node *track) {
 	track[189].edge[DIR_AHEAD].reverse = &track[3].edge[DIR_AHEAD];
 	track[189].edge[DIR_AHEAD].src = &track[189];
 	track[189].edge[DIR_AHEAD].dest = &track[2];
-	track[189].edge[DIR_AHEAD].dist = 110.0;
+	track[189].edge[DIR_AHEAD].dist = 110;
 	track[189].edge[DIR_AHEAD].num = 201;
 	track[189].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[189].name, track + 189);
@@ -2417,7 +2417,7 @@ lookup *init_tracka(track_node *track) {
 	track[190].edge[DIR_AHEAD].reverse = &track[241].edge[DIR_AHEAD];
 	track[190].edge[DIR_AHEAD].src = &track[190];
 	track[190].edge[DIR_AHEAD].dest = &track[240];
-	track[190].edge[DIR_AHEAD].dist = 81.125;
+	track[190].edge[DIR_AHEAD].dist = 81;
 	track[190].edge[DIR_AHEAD].num = 202;
 	track[190].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[190].name, track + 190);
@@ -2429,7 +2429,7 @@ lookup *init_tracka(track_node *track) {
 	track[191].edge[DIR_AHEAD].reverse = &track[212].edge[DIR_AHEAD];
 	track[191].edge[DIR_AHEAD].src = &track[191];
 	track[191].edge[DIR_AHEAD].dest = &track[213];
-	track[191].edge[DIR_AHEAD].dist = 81.125;
+	track[191].edge[DIR_AHEAD].dist = 81;
 	track[191].edge[DIR_AHEAD].num = 203;
 	track[191].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[191].name, track + 191);
@@ -2441,7 +2441,7 @@ lookup *init_tracka(track_node *track) {
 	track[192].edge[DIR_AHEAD].reverse = &track[151].edge[DIR_AHEAD];
 	track[192].edge[DIR_AHEAD].src = &track[192];
 	track[192].edge[DIR_AHEAD].dest = &track[150];
-	track[192].edge[DIR_AHEAD].dist = 72.25;
+	track[192].edge[DIR_AHEAD].dist = 72;
 	track[192].edge[DIR_AHEAD].num = 204;
 	track[192].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[192].name, track + 192);
@@ -2453,7 +2453,7 @@ lookup *init_tracka(track_node *track) {
 	track[193].edge[DIR_AHEAD].reverse = &track[8].edge[DIR_AHEAD];
 	track[193].edge[DIR_AHEAD].src = &track[193];
 	track[193].edge[DIR_AHEAD].dest = &track[9];
-	track[193].edge[DIR_AHEAD].dist = 72.25;
+	track[193].edge[DIR_AHEAD].dist = 72;
 	track[193].edge[DIR_AHEAD].num = 205;
 	track[193].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[193].name, track + 193);
@@ -2465,7 +2465,7 @@ lookup *init_tracka(track_node *track) {
 	track[194].edge[DIR_AHEAD].reverse = &track[153].edge[DIR_AHEAD];
 	track[194].edge[DIR_AHEAD].src = &track[194];
 	track[194].edge[DIR_AHEAD].dest = &track[152];
-	track[194].edge[DIR_AHEAD].dist = 80.0;
+	track[194].edge[DIR_AHEAD].dist = 80;
 	track[194].edge[DIR_AHEAD].num = 206;
 	track[194].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[194].name, track + 194);
@@ -2477,7 +2477,7 @@ lookup *init_tracka(track_node *track) {
 	track[195].edge[DIR_AHEAD].reverse = &track[13].edge[DIR_AHEAD];
 	track[195].edge[DIR_AHEAD].src = &track[195];
 	track[195].edge[DIR_AHEAD].dest = &track[12];
-	track[195].edge[DIR_AHEAD].dist = 80.0;
+	track[195].edge[DIR_AHEAD].dist = 80;
 	track[195].edge[DIR_AHEAD].num = 207;
 	track[195].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[195].name, track + 195);
@@ -2489,7 +2489,7 @@ lookup *init_tracka(track_node *track) {
 	track[196].edge[DIR_AHEAD].reverse = &track[155].edge[DIR_AHEAD];
 	track[196].edge[DIR_AHEAD].src = &track[196];
 	track[196].edge[DIR_AHEAD].dest = &track[154];
-	track[196].edge[DIR_AHEAD].dist = 99.5;
+	track[196].edge[DIR_AHEAD].dist = 99;
 	track[196].edge[DIR_AHEAD].num = 208;
 	track[196].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[196].name, track + 196);
@@ -2501,7 +2501,7 @@ lookup *init_tracka(track_node *track) {
 	track[197].edge[DIR_AHEAD].reverse = &track[16].edge[DIR_AHEAD];
 	track[197].edge[DIR_AHEAD].src = &track[197];
 	track[197].edge[DIR_AHEAD].dest = &track[17];
-	track[197].edge[DIR_AHEAD].dist = 99.5;
+	track[197].edge[DIR_AHEAD].dist = 99;
 	track[197].edge[DIR_AHEAD].num = 209;
 	track[197].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[197].name, track + 197);
@@ -2513,7 +2513,7 @@ lookup *init_tracka(track_node *track) {
 	track[198].edge[DIR_AHEAD].reverse = &track[159].edge[DIR_AHEAD];
 	track[198].edge[DIR_AHEAD].src = &track[198];
 	track[198].edge[DIR_AHEAD].dest = &track[158];
-	track[198].edge[DIR_AHEAD].dist = 101.25;
+	track[198].edge[DIR_AHEAD].dist = 101;
 	track[198].edge[DIR_AHEAD].num = 210;
 	track[198].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[198].name, track + 198);
@@ -2525,7 +2525,7 @@ lookup *init_tracka(track_node *track) {
 	track[199].edge[DIR_AHEAD].reverse = &track[20].edge[DIR_AHEAD];
 	track[199].edge[DIR_AHEAD].src = &track[199];
 	track[199].edge[DIR_AHEAD].dest = &track[21];
-	track[199].edge[DIR_AHEAD].dist = 101.25;
+	track[199].edge[DIR_AHEAD].dist = 101;
 	track[199].edge[DIR_AHEAD].num = 211;
 	track[199].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[199].name, track + 199);
@@ -2537,7 +2537,7 @@ lookup *init_tracka(track_node *track) {
 	track[200].edge[DIR_AHEAD].reverse = &track[163].edge[DIR_AHEAD];
 	track[200].edge[DIR_AHEAD].src = &track[200];
 	track[200].edge[DIR_AHEAD].dest = &track[162];
-	track[200].edge[DIR_AHEAD].dist = 102.5;
+	track[200].edge[DIR_AHEAD].dist = 102;
 	track[200].edge[DIR_AHEAD].num = 212;
 	track[200].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[200].name, track + 200);
@@ -2549,7 +2549,7 @@ lookup *init_tracka(track_node *track) {
 	track[201].edge[DIR_AHEAD].reverse = &track[34].edge[DIR_AHEAD];
 	track[201].edge[DIR_AHEAD].src = &track[201];
 	track[201].edge[DIR_AHEAD].dest = &track[35];
-	track[201].edge[DIR_AHEAD].dist = 102.5;
+	track[201].edge[DIR_AHEAD].dist = 102;
 	track[201].edge[DIR_AHEAD].num = 213;
 	track[201].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[201].name, track + 201);
@@ -2561,7 +2561,7 @@ lookup *init_tracka(track_node *track) {
 	track[202].edge[DIR_AHEAD].reverse = &track[243].edge[DIR_AHEAD];
 	track[202].edge[DIR_AHEAD].src = &track[202];
 	track[202].edge[DIR_AHEAD].dest = &track[242];
-	track[202].edge[DIR_AHEAD].dist = 109.625;
+	track[202].edge[DIR_AHEAD].dist = 109;
 	track[202].edge[DIR_AHEAD].num = 214;
 	track[202].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[202].name, track + 202);
@@ -2573,7 +2573,7 @@ lookup *init_tracka(track_node *track) {
 	track[203].edge[DIR_AHEAD].reverse = &track[214].edge[DIR_AHEAD];
 	track[203].edge[DIR_AHEAD].src = &track[203];
 	track[203].edge[DIR_AHEAD].dest = &track[215];
-	track[203].edge[DIR_AHEAD].dist = 109.625;
+	track[203].edge[DIR_AHEAD].dist = 109;
 	track[203].edge[DIR_AHEAD].num = 215;
 	track[203].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[203].name, track + 203);
@@ -2585,7 +2585,7 @@ lookup *init_tracka(track_node *track) {
 	track[204].edge[DIR_AHEAD].reverse = &track[171].edge[DIR_AHEAD];
 	track[204].edge[DIR_AHEAD].src = &track[204];
 	track[204].edge[DIR_AHEAD].dest = &track[170];
-	track[204].edge[DIR_AHEAD].dist = 101.25;
+	track[204].edge[DIR_AHEAD].dist = 101;
 	track[204].edge[DIR_AHEAD].num = 216;
 	track[204].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[204].name, track + 204);
@@ -2597,7 +2597,7 @@ lookup *init_tracka(track_node *track) {
 	track[205].edge[DIR_AHEAD].reverse = &track[46].edge[DIR_AHEAD];
 	track[205].edge[DIR_AHEAD].src = &track[205];
 	track[205].edge[DIR_AHEAD].dest = &track[47];
-	track[205].edge[DIR_AHEAD].dist = 101.25;
+	track[205].edge[DIR_AHEAD].dist = 101;
 	track[205].edge[DIR_AHEAD].num = 217;
 	track[205].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[205].name, track + 205);
@@ -2609,7 +2609,7 @@ lookup *init_tracka(track_node *track) {
 	track[206].edge[DIR_AHEAD].reverse = &track[175].edge[DIR_AHEAD];
 	track[206].edge[DIR_AHEAD].src = &track[206];
 	track[206].edge[DIR_AHEAD].dest = &track[174];
-	track[206].edge[DIR_AHEAD].dist = 93.75;
+	track[206].edge[DIR_AHEAD].dist = 93;
 	track[206].edge[DIR_AHEAD].num = 218;
 	track[206].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[206].name, track + 206);
@@ -2621,7 +2621,7 @@ lookup *init_tracka(track_node *track) {
 	track[207].edge[DIR_AHEAD].reverse = &track[52].edge[DIR_AHEAD];
 	track[207].edge[DIR_AHEAD].src = &track[207];
 	track[207].edge[DIR_AHEAD].dest = &track[53];
-	track[207].edge[DIR_AHEAD].dist = 93.75;
+	track[207].edge[DIR_AHEAD].dist = 93;
 	track[207].edge[DIR_AHEAD].num = 219;
 	track[207].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[207].name, track + 207);
@@ -2633,7 +2633,7 @@ lookup *init_tracka(track_node *track) {
 	track[208].edge[DIR_AHEAD].reverse = &track[177].edge[DIR_AHEAD];
 	track[208].edge[DIR_AHEAD].src = &track[208];
 	track[208].edge[DIR_AHEAD].dest = &track[176];
-	track[208].edge[DIR_AHEAD].dist = 93.75;
+	track[208].edge[DIR_AHEAD].dist = 93;
 	track[208].edge[DIR_AHEAD].num = 220;
 	track[208].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[208].name, track + 208);
@@ -2645,7 +2645,7 @@ lookup *init_tracka(track_node *track) {
 	track[209].edge[DIR_AHEAD].reverse = &track[55].edge[DIR_AHEAD];
 	track[209].edge[DIR_AHEAD].src = &track[209];
 	track[209].edge[DIR_AHEAD].dest = &track[54];
-	track[209].edge[DIR_AHEAD].dist = 93.75;
+	track[209].edge[DIR_AHEAD].dist = 93;
 	track[209].edge[DIR_AHEAD].num = 221;
 	track[209].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[209].name, track + 209);
@@ -2657,7 +2657,7 @@ lookup *init_tracka(track_node *track) {
 	track[210].edge[DIR_AHEAD].reverse = &track[181].edge[DIR_AHEAD];
 	track[210].edge[DIR_AHEAD].src = &track[210];
 	track[210].edge[DIR_AHEAD].dest = &track[180];
-	track[210].edge[DIR_AHEAD].dist = 93.75;
+	track[210].edge[DIR_AHEAD].dist = 93;
 	track[210].edge[DIR_AHEAD].num = 222;
 	track[210].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[210].name, track + 210);
@@ -2669,7 +2669,7 @@ lookup *init_tracka(track_node *track) {
 	track[211].edge[DIR_AHEAD].reverse = &track[73].edge[DIR_AHEAD];
 	track[211].edge[DIR_AHEAD].src = &track[211];
 	track[211].edge[DIR_AHEAD].dest = &track[72];
-	track[211].edge[DIR_AHEAD].dist = 93.75;
+	track[211].edge[DIR_AHEAD].dist = 93;
 	track[211].edge[DIR_AHEAD].num = 223;
 	track[211].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[211].name, track + 211);
@@ -2681,7 +2681,7 @@ lookup *init_tracka(track_node *track) {
 	track[212].edge[DIR_AHEAD].reverse = &track[191].edge[DIR_AHEAD];
 	track[212].edge[DIR_AHEAD].src = &track[212];
 	track[212].edge[DIR_AHEAD].dest = &track[190];
-	track[212].edge[DIR_AHEAD].dist = 81.125;
+	track[212].edge[DIR_AHEAD].dist = 81;
 	track[212].edge[DIR_AHEAD].num = 224;
 	track[212].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[212].name, track + 212);
@@ -2693,7 +2693,7 @@ lookup *init_tracka(track_node *track) {
 	track[213].edge[DIR_AHEAD].reverse = &track[5].edge[DIR_AHEAD];
 	track[213].edge[DIR_AHEAD].src = &track[213];
 	track[213].edge[DIR_AHEAD].dest = &track[4];
-	track[213].edge[DIR_AHEAD].dist = 81.125;
+	track[213].edge[DIR_AHEAD].dist = 81;
 	track[213].edge[DIR_AHEAD].num = 225;
 	track[213].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[213].name, track + 213);
@@ -2705,7 +2705,7 @@ lookup *init_tracka(track_node *track) {
 	track[214].edge[DIR_AHEAD].reverse = &track[203].edge[DIR_AHEAD];
 	track[214].edge[DIR_AHEAD].src = &track[214];
 	track[214].edge[DIR_AHEAD].dest = &track[202];
-	track[214].edge[DIR_AHEAD].dist = 109.625;
+	track[214].edge[DIR_AHEAD].dist = 109;
 	track[214].edge[DIR_AHEAD].num = 226;
 	track[214].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[214].name, track + 214);
@@ -2717,7 +2717,7 @@ lookup *init_tracka(track_node *track) {
 	track[215].edge[DIR_AHEAD].reverse = &track[44].edge[DIR_AHEAD];
 	track[215].edge[DIR_AHEAD].src = &track[215];
 	track[215].edge[DIR_AHEAD].dest = &track[45];
-	track[215].edge[DIR_AHEAD].dist = 109.625;
+	track[215].edge[DIR_AHEAD].dist = 109;
 	track[215].edge[DIR_AHEAD].num = 227;
 	track[215].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[215].name, track + 215);
@@ -2729,7 +2729,7 @@ lookup *init_tracka(track_node *track) {
 	track[216].edge[DIR_AHEAD].reverse = &track[261].edge[DIR_AHEAD];
 	track[216].edge[DIR_AHEAD].src = &track[216];
 	track[216].edge[DIR_AHEAD].dest = &track[260];
-	track[216].edge[DIR_AHEAD].dist = 118.25;
+	track[216].edge[DIR_AHEAD].dist = 118;
 	track[216].edge[DIR_AHEAD].num = 228;
 	track[216].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[216].name, track + 216);
@@ -2741,7 +2741,7 @@ lookup *init_tracka(track_node *track) {
 	track[217].edge[DIR_AHEAD].reverse = &track[244].edge[DIR_AHEAD];
 	track[217].edge[DIR_AHEAD].src = &track[217];
 	track[217].edge[DIR_AHEAD].dest = &track[245];
-	track[217].edge[DIR_AHEAD].dist = 118.25;
+	track[217].edge[DIR_AHEAD].dist = 118;
 	track[217].edge[DIR_AHEAD].num = 229;
 	track[217].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[217].name, track + 217);
@@ -2753,7 +2753,7 @@ lookup *init_tracka(track_node *track) {
 	track[218].edge[DIR_AHEAD].reverse = &track[134].edge[DIR_AHEAD];
 	track[218].edge[DIR_AHEAD].src = &track[218];
 	track[218].edge[DIR_AHEAD].dest = &track[135];
-	track[218].edge[DIR_AHEAD].dist = 72.5;
+	track[218].edge[DIR_AHEAD].dist = 72;
 	track[218].edge[DIR_AHEAD].num = 230;
 	track[218].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[218].name, track + 218);
@@ -2765,7 +2765,7 @@ lookup *init_tracka(track_node *track) {
 	track[219].edge[DIR_AHEAD].reverse = &track[14].edge[DIR_AHEAD];
 	track[219].edge[DIR_AHEAD].src = &track[219];
 	track[219].edge[DIR_AHEAD].dest = &track[15];
-	track[219].edge[DIR_AHEAD].dist = 72.5;
+	track[219].edge[DIR_AHEAD].dist = 72;
 	track[219].edge[DIR_AHEAD].num = 231;
 	track[219].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[219].name, track + 219);
@@ -2777,7 +2777,7 @@ lookup *init_tracka(track_node *track) {
 	track[220].edge[DIR_AHEAD].reverse = &track[105].edge[DIR_AHEAD];
 	track[220].edge[DIR_AHEAD].src = &track[220];
 	track[220].edge[DIR_AHEAD].dest = &track[104];
-	track[220].edge[DIR_AHEAD].dist = 70.0;
+	track[220].edge[DIR_AHEAD].dist = 70;
 	track[220].edge[DIR_AHEAD].num = 232;
 	track[220].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[220].name, track + 220);
@@ -2789,7 +2789,7 @@ lookup *init_tracka(track_node *track) {
 	track[221].edge[DIR_AHEAD].reverse = &track[42].edge[DIR_AHEAD];
 	track[221].edge[DIR_AHEAD].src = &track[221];
 	track[221].edge[DIR_AHEAD].dest = &track[43];
-	track[221].edge[DIR_AHEAD].dist = 70.0;
+	track[221].edge[DIR_AHEAD].dist = 70;
 	track[221].edge[DIR_AHEAD].num = 233;
 	track[221].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[221].name, track + 221);
@@ -2801,7 +2801,7 @@ lookup *init_tracka(track_node *track) {
 	track[222].edge[DIR_AHEAD].reverse = &track[263].edge[DIR_AHEAD];
 	track[222].edge[DIR_AHEAD].src = &track[222];
 	track[222].edge[DIR_AHEAD].dest = &track[262];
-	track[222].edge[DIR_AHEAD].dist = 90.25;
+	track[222].edge[DIR_AHEAD].dist = 90;
 	track[222].edge[DIR_AHEAD].num = 234;
 	track[222].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[222].name, track + 222);
@@ -2813,7 +2813,7 @@ lookup *init_tracka(track_node *track) {
 	track[223].edge[DIR_AHEAD].reverse = &track[246].edge[DIR_AHEAD];
 	track[223].edge[DIR_AHEAD].src = &track[223];
 	track[223].edge[DIR_AHEAD].dest = &track[247];
-	track[223].edge[DIR_AHEAD].dist = 90.25;
+	track[223].edge[DIR_AHEAD].dist = 90;
 	track[223].edge[DIR_AHEAD].num = 235;
 	track[223].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[223].name, track + 223);
@@ -2825,7 +2825,7 @@ lookup *init_tracka(track_node *track) {
 	track[224].edge[DIR_AHEAD].reverse = &track[132].edge[DIR_AHEAD];
 	track[224].edge[DIR_AHEAD].src = &track[224];
 	track[224].edge[DIR_AHEAD].dest = &track[133];
-	track[224].edge[DIR_AHEAD].dist = 125.0;
+	track[224].edge[DIR_AHEAD].dist = 125;
 	track[224].edge[DIR_AHEAD].num = 236;
 	track[224].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[224].name, track + 224);
@@ -2837,7 +2837,7 @@ lookup *init_tracka(track_node *track) {
 	track[225].edge[DIR_AHEAD].reverse = &track[144].edge[DIR_AHEAD];
 	track[225].edge[DIR_AHEAD].src = &track[225];
 	track[225].edge[DIR_AHEAD].dest = &track[145];
-	track[225].edge[DIR_AHEAD].dist = 125.0;
+	track[225].edge[DIR_AHEAD].dist = 125;
 	track[225].edge[DIR_AHEAD].num = 237;
 	track[225].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[225].name, track + 225);
@@ -2849,7 +2849,7 @@ lookup *init_tracka(track_node *track) {
 	track[226].edge[DIR_AHEAD].reverse = &track[265].edge[DIR_AHEAD];
 	track[226].edge[DIR_AHEAD].src = &track[226];
 	track[226].edge[DIR_AHEAD].dest = &track[264];
-	track[226].edge[DIR_AHEAD].dist = 81.125;
+	track[226].edge[DIR_AHEAD].dist = 81;
 	track[226].edge[DIR_AHEAD].num = 238;
 	track[226].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[226].name, track + 226);
@@ -2861,7 +2861,7 @@ lookup *init_tracka(track_node *track) {
 	track[227].edge[DIR_AHEAD].reverse = &track[248].edge[DIR_AHEAD];
 	track[227].edge[DIR_AHEAD].src = &track[227];
 	track[227].edge[DIR_AHEAD].dest = &track[249];
-	track[227].edge[DIR_AHEAD].dist = 81.125;
+	track[227].edge[DIR_AHEAD].dist = 81;
 	track[227].edge[DIR_AHEAD].num = 239;
 	track[227].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[227].name, track + 227);
@@ -2873,7 +2873,7 @@ lookup *init_tracka(track_node *track) {
 	track[228].edge[DIR_AHEAD].reverse = &track[130].edge[DIR_AHEAD];
 	track[228].edge[DIR_AHEAD].src = &track[228];
 	track[228].edge[DIR_AHEAD].dest = &track[131];
-	track[228].edge[DIR_AHEAD].dist = 80.0;
+	track[228].edge[DIR_AHEAD].dist = 80;
 	track[228].edge[DIR_AHEAD].num = 240;
 	track[228].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[228].name, track + 228);
@@ -2885,7 +2885,7 @@ lookup *init_tracka(track_node *track) {
 	track[229].edge[DIR_AHEAD].reverse = &track[152].edge[DIR_AHEAD];
 	track[229].edge[DIR_AHEAD].src = &track[229];
 	track[229].edge[DIR_AHEAD].dest = &track[153];
-	track[229].edge[DIR_AHEAD].dist = 80.0;
+	track[229].edge[DIR_AHEAD].dist = 80;
 	track[229].edge[DIR_AHEAD].num = 241;
 	track[229].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[229].name, track + 229);
@@ -2897,7 +2897,7 @@ lookup *init_tracka(track_node *track) {
 	track[230].edge[DIR_AHEAD].reverse = &track[51].edge[DIR_AHEAD];
 	track[230].edge[DIR_AHEAD].src = &track[230];
 	track[230].edge[DIR_AHEAD].dest = &track[50];
-	track[230].edge[DIR_AHEAD].dist = 101.25;
+	track[230].edge[DIR_AHEAD].dist = 101;
 	track[230].edge[DIR_AHEAD].num = 242;
 	track[230].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[230].name, track + 230);
@@ -2909,7 +2909,7 @@ lookup *init_tracka(track_node *track) {
 	track[231].edge[DIR_AHEAD].reverse = &track[158].edge[DIR_AHEAD];
 	track[231].edge[DIR_AHEAD].src = &track[231];
 	track[231].edge[DIR_AHEAD].dest = &track[159];
-	track[231].edge[DIR_AHEAD].dist = 101.25;
+	track[231].edge[DIR_AHEAD].dist = 101;
 	track[231].edge[DIR_AHEAD].num = 243;
 	track[231].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[231].name, track + 231);
@@ -2921,7 +2921,7 @@ lookup *init_tracka(track_node *track) {
 	track[232].edge[DIR_AHEAD].reverse = &track[128].edge[DIR_AHEAD];
 	track[232].edge[DIR_AHEAD].src = &track[232];
 	track[232].edge[DIR_AHEAD].dest = &track[129];
-	track[232].edge[DIR_AHEAD].dist = 102.5;
+	track[232].edge[DIR_AHEAD].dist = 102;
 	track[232].edge[DIR_AHEAD].num = 244;
 	track[232].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[232].name, track + 232);
@@ -2933,7 +2933,7 @@ lookup *init_tracka(track_node *track) {
 	track[233].edge[DIR_AHEAD].reverse = &track[162].edge[DIR_AHEAD];
 	track[233].edge[DIR_AHEAD].src = &track[233];
 	track[233].edge[DIR_AHEAD].dest = &track[163];
-	track[233].edge[DIR_AHEAD].dist = 102.5;
+	track[233].edge[DIR_AHEAD].dist = 102;
 	track[233].edge[DIR_AHEAD].num = 245;
 	track[233].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[233].name, track + 233);
@@ -2945,7 +2945,7 @@ lookup *init_tracka(track_node *track) {
 	track[234].edge[DIR_AHEAD].reverse = &track[267].edge[DIR_AHEAD];
 	track[234].edge[DIR_AHEAD].src = &track[234];
 	track[234].edge[DIR_AHEAD].dest = &track[266];
-	track[234].edge[DIR_AHEAD].dist = 109.625;
+	track[234].edge[DIR_AHEAD].dist = 109;
 	track[234].edge[DIR_AHEAD].num = 246;
 	track[234].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[234].name, track + 234);
@@ -2957,7 +2957,7 @@ lookup *init_tracka(track_node *track) {
 	track[235].edge[DIR_AHEAD].reverse = &track[250].edge[DIR_AHEAD];
 	track[235].edge[DIR_AHEAD].src = &track[235];
 	track[235].edge[DIR_AHEAD].dest = &track[251];
-	track[235].edge[DIR_AHEAD].dist = 109.625;
+	track[235].edge[DIR_AHEAD].dist = 109;
 	track[235].edge[DIR_AHEAD].num = 247;
 	track[235].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[235].name, track + 235);
@@ -2969,7 +2969,7 @@ lookup *init_tracka(track_node *track) {
 	track[236].edge[DIR_AHEAD].reverse = &track[68].edge[DIR_AHEAD];
 	track[236].edge[DIR_AHEAD].src = &track[236];
 	track[236].edge[DIR_AHEAD].dest = &track[69];
-	track[236].edge[DIR_AHEAD].dist = 93.75;
+	track[236].edge[DIR_AHEAD].dist = 93;
 	track[236].edge[DIR_AHEAD].num = 248;
 	track[236].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[236].name, track + 236);
@@ -2981,7 +2981,7 @@ lookup *init_tracka(track_node *track) {
 	track[237].edge[DIR_AHEAD].reverse = &track[174].edge[DIR_AHEAD];
 	track[237].edge[DIR_AHEAD].src = &track[237];
 	track[237].edge[DIR_AHEAD].dest = &track[175];
-	track[237].edge[DIR_AHEAD].dist = 93.75;
+	track[237].edge[DIR_AHEAD].dist = 93;
 	track[237].edge[DIR_AHEAD].num = 249;
 	track[237].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[237].name, track + 237);
@@ -2993,7 +2993,7 @@ lookup *init_tracka(track_node *track) {
 	track[238].edge[DIR_AHEAD].reverse = &track[77].edge[DIR_AHEAD];
 	track[238].edge[DIR_AHEAD].src = &track[238];
 	track[238].edge[DIR_AHEAD].dest = &track[76];
-	track[238].edge[DIR_AHEAD].dist = 93.75;
+	track[238].edge[DIR_AHEAD].dist = 93;
 	track[238].edge[DIR_AHEAD].num = 250;
 	track[238].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[238].name, track + 238);
@@ -3005,7 +3005,7 @@ lookup *init_tracka(track_node *track) {
 	track[239].edge[DIR_AHEAD].reverse = &track[180].edge[DIR_AHEAD];
 	track[239].edge[DIR_AHEAD].src = &track[239];
 	track[239].edge[DIR_AHEAD].dest = &track[181];
-	track[239].edge[DIR_AHEAD].dist = 93.75;
+	track[239].edge[DIR_AHEAD].dist = 93;
 	track[239].edge[DIR_AHEAD].num = 251;
 	track[239].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[239].name, track + 239);
@@ -3017,7 +3017,7 @@ lookup *init_tracka(track_node *track) {
 	track[240].edge[DIR_AHEAD].reverse = &track[149].edge[DIR_AHEAD];
 	track[240].edge[DIR_AHEAD].src = &track[240];
 	track[240].edge[DIR_AHEAD].dest = &track[148];
-	track[240].edge[DIR_AHEAD].dist = 81.125;
+	track[240].edge[DIR_AHEAD].dist = 81;
 	track[240].edge[DIR_AHEAD].num = 252;
 	track[240].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[240].name, track + 240);
@@ -3029,7 +3029,7 @@ lookup *init_tracka(track_node *track) {
 	track[241].edge[DIR_AHEAD].reverse = &track[190].edge[DIR_AHEAD];
 	track[241].edge[DIR_AHEAD].src = &track[241];
 	track[241].edge[DIR_AHEAD].dest = &track[191];
-	track[241].edge[DIR_AHEAD].dist = 81.125;
+	track[241].edge[DIR_AHEAD].dist = 81;
 	track[241].edge[DIR_AHEAD].num = 253;
 	track[241].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[241].name, track + 241);
@@ -3041,7 +3041,7 @@ lookup *init_tracka(track_node *track) {
 	track[242].edge[DIR_AHEAD].reverse = &track[169].edge[DIR_AHEAD];
 	track[242].edge[DIR_AHEAD].src = &track[242];
 	track[242].edge[DIR_AHEAD].dest = &track[168];
-	track[242].edge[DIR_AHEAD].dist = 109.625;
+	track[242].edge[DIR_AHEAD].dist = 109;
 	track[242].edge[DIR_AHEAD].num = 254;
 	track[242].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[242].name, track + 242);
@@ -3053,7 +3053,7 @@ lookup *init_tracka(track_node *track) {
 	track[243].edge[DIR_AHEAD].reverse = &track[202].edge[DIR_AHEAD];
 	track[243].edge[DIR_AHEAD].src = &track[243];
 	track[243].edge[DIR_AHEAD].dest = &track[203];
-	track[243].edge[DIR_AHEAD].dist = 109.625;
+	track[243].edge[DIR_AHEAD].dist = 109;
 	track[243].edge[DIR_AHEAD].num = 255;
 	track[243].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[243].name, track + 243);
@@ -3065,7 +3065,7 @@ lookup *init_tracka(track_node *track) {
 	track[244].edge[DIR_AHEAD].reverse = &track[217].edge[DIR_AHEAD];
 	track[244].edge[DIR_AHEAD].src = &track[244];
 	track[244].edge[DIR_AHEAD].dest = &track[216];
-	track[244].edge[DIR_AHEAD].dist = 118.25;
+	track[244].edge[DIR_AHEAD].dist = 118;
 	track[244].edge[DIR_AHEAD].num = 256;
 	track[244].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[244].name, track + 244);
@@ -3077,7 +3077,7 @@ lookup *init_tracka(track_node *track) {
 	track[245].edge[DIR_AHEAD].reverse = &track[6].edge[DIR_AHEAD];
 	track[245].edge[DIR_AHEAD].src = &track[245];
 	track[245].edge[DIR_AHEAD].dest = &track[7];
-	track[245].edge[DIR_AHEAD].dist = 118.25;
+	track[245].edge[DIR_AHEAD].dist = 118;
 	track[245].edge[DIR_AHEAD].num = 257;
 	track[245].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[245].name, track + 245);
@@ -3089,7 +3089,7 @@ lookup *init_tracka(track_node *track) {
 	track[246].edge[DIR_AHEAD].reverse = &track[223].edge[DIR_AHEAD];
 	track[246].edge[DIR_AHEAD].src = &track[246];
 	track[246].edge[DIR_AHEAD].dest = &track[222];
-	track[246].edge[DIR_AHEAD].dist = 90.25;
+	track[246].edge[DIR_AHEAD].dist = 90;
 	track[246].edge[DIR_AHEAD].num = 258;
 	track[246].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[246].name, track + 246);
@@ -3101,7 +3101,7 @@ lookup *init_tracka(track_node *track) {
 	track[247].edge[DIR_AHEAD].reverse = &track[56].edge[DIR_AHEAD];
 	track[247].edge[DIR_AHEAD].src = &track[247];
 	track[247].edge[DIR_AHEAD].dest = &track[57];
-	track[247].edge[DIR_AHEAD].dist = 90.25;
+	track[247].edge[DIR_AHEAD].dist = 90;
 	track[247].edge[DIR_AHEAD].num = 259;
 	track[247].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[247].name, track + 247);
@@ -3113,7 +3113,7 @@ lookup *init_tracka(track_node *track) {
 	track[248].edge[DIR_AHEAD].reverse = &track[227].edge[DIR_AHEAD];
 	track[248].edge[DIR_AHEAD].src = &track[248];
 	track[248].edge[DIR_AHEAD].dest = &track[226];
-	track[248].edge[DIR_AHEAD].dist = 81.125;
+	track[248].edge[DIR_AHEAD].dist = 81;
 	track[248].edge[DIR_AHEAD].num = 260;
 	track[248].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[248].name, track + 248);
@@ -3125,7 +3125,7 @@ lookup *init_tracka(track_node *track) {
 	track[249].edge[DIR_AHEAD].reverse = &track[148].edge[DIR_AHEAD];
 	track[249].edge[DIR_AHEAD].src = &track[249];
 	track[249].edge[DIR_AHEAD].dest = &track[149];
-	track[249].edge[DIR_AHEAD].dist = 81.125;
+	track[249].edge[DIR_AHEAD].dist = 81;
 	track[249].edge[DIR_AHEAD].num = 261;
 	track[249].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[249].name, track + 249);
@@ -3137,7 +3137,7 @@ lookup *init_tracka(track_node *track) {
 	track[250].edge[DIR_AHEAD].reverse = &track[235].edge[DIR_AHEAD];
 	track[250].edge[DIR_AHEAD].src = &track[250];
 	track[250].edge[DIR_AHEAD].dest = &track[234];
-	track[250].edge[DIR_AHEAD].dist = 109.625;
+	track[250].edge[DIR_AHEAD].dist = 109;
 	track[250].edge[DIR_AHEAD].num = 262;
 	track[250].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[250].name, track + 250);
@@ -3149,7 +3149,7 @@ lookup *init_tracka(track_node *track) {
 	track[251].edge[DIR_AHEAD].reverse = &track[168].edge[DIR_AHEAD];
 	track[251].edge[DIR_AHEAD].src = &track[251];
 	track[251].edge[DIR_AHEAD].dest = &track[169];
-	track[251].edge[DIR_AHEAD].dist = 109.625;
+	track[251].edge[DIR_AHEAD].dist = 109;
 	track[251].edge[DIR_AHEAD].num = 263;
 	track[251].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[251].name, track + 251);
@@ -3161,7 +3161,7 @@ lookup *init_tracka(track_node *track) {
 	track[252].edge[DIR_AHEAD].reverse = &track[30].edge[DIR_AHEAD];
 	track[252].edge[DIR_AHEAD].src = &track[252];
 	track[252].edge[DIR_AHEAD].dest = &track[31];
-	track[252].edge[DIR_AHEAD].dist = 110.0;
+	track[252].edge[DIR_AHEAD].dist = 110;
 	track[252].edge[DIR_AHEAD].num = 264;
 	track[252].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[252].name, track + 252);
@@ -3173,7 +3173,7 @@ lookup *init_tracka(track_node *track) {
 	track[253].edge[DIR_AHEAD].reverse = &track[146].edge[DIR_AHEAD];
 	track[253].edge[DIR_AHEAD].src = &track[253];
 	track[253].edge[DIR_AHEAD].dest = &track[147];
-	track[253].edge[DIR_AHEAD].dist = 110.0;
+	track[253].edge[DIR_AHEAD].dist = 110;
 	track[253].edge[DIR_AHEAD].num = 265;
 	track[253].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[253].name, track + 253);
@@ -3185,7 +3185,7 @@ lookup *init_tracka(track_node *track) {
 	track[254].edge[DIR_AHEAD].reverse = &track[60].edge[DIR_AHEAD];
 	track[254].edge[DIR_AHEAD].src = &track[254];
 	track[254].edge[DIR_AHEAD].dest = &track[61];
-	track[254].edge[DIR_AHEAD].dist = 99.5;
+	track[254].edge[DIR_AHEAD].dist = 99;
 	track[254].edge[DIR_AHEAD].num = 266;
 	track[254].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[254].name, track + 254);
@@ -3197,7 +3197,7 @@ lookup *init_tracka(track_node *track) {
 	track[255].edge[DIR_AHEAD].reverse = &track[154].edge[DIR_AHEAD];
 	track[255].edge[DIR_AHEAD].src = &track[255];
 	track[255].edge[DIR_AHEAD].dest = &track[155];
-	track[255].edge[DIR_AHEAD].dist = 99.5;
+	track[255].edge[DIR_AHEAD].dist = 99;
 	track[255].edge[DIR_AHEAD].num = 267;
 	track[255].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[255].name, track + 255);
@@ -3209,7 +3209,7 @@ lookup *init_tracka(track_node *track) {
 	track[256].edge[DIR_AHEAD].reverse = &track[58].edge[DIR_AHEAD];
 	track[256].edge[DIR_AHEAD].src = &track[256];
 	track[256].edge[DIR_AHEAD].dest = &track[59];
-	track[256].edge[DIR_AHEAD].dist = 101.25;
+	track[256].edge[DIR_AHEAD].dist = 101;
 	track[256].edge[DIR_AHEAD].num = 268;
 	track[256].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[256].name, track + 256);
@@ -3221,7 +3221,7 @@ lookup *init_tracka(track_node *track) {
 	track[257].edge[DIR_AHEAD].reverse = &track[170].edge[DIR_AHEAD];
 	track[257].edge[DIR_AHEAD].src = &track[257];
 	track[257].edge[DIR_AHEAD].dest = &track[171];
-	track[257].edge[DIR_AHEAD].dist = 101.25;
+	track[257].edge[DIR_AHEAD].dist = 101;
 	track[257].edge[DIR_AHEAD].num = 269;
 	track[257].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[257].name, track + 257);
@@ -3233,7 +3233,7 @@ lookup *init_tracka(track_node *track) {
 	track[258].edge[DIR_AHEAD].reverse = &track[70].edge[DIR_AHEAD];
 	track[258].edge[DIR_AHEAD].src = &track[258];
 	track[258].edge[DIR_AHEAD].dest = &track[71];
-	track[258].edge[DIR_AHEAD].dist = 93.75;
+	track[258].edge[DIR_AHEAD].dist = 93;
 	track[258].edge[DIR_AHEAD].num = 270;
 	track[258].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[258].name, track + 258);
@@ -3245,7 +3245,7 @@ lookup *init_tracka(track_node *track) {
 	track[259].edge[DIR_AHEAD].reverse = &track[176].edge[DIR_AHEAD];
 	track[259].edge[DIR_AHEAD].src = &track[259];
 	track[259].edge[DIR_AHEAD].dest = &track[177];
-	track[259].edge[DIR_AHEAD].dist = 93.75;
+	track[259].edge[DIR_AHEAD].dist = 93;
 	track[259].edge[DIR_AHEAD].num = 271;
 	track[259].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[259].name, track + 259);
@@ -3257,7 +3257,7 @@ lookup *init_tracka(track_node *track) {
 	track[260].edge[DIR_AHEAD].reverse = &track[26].edge[DIR_AHEAD];
 	track[260].edge[DIR_AHEAD].src = &track[260];
 	track[260].edge[DIR_AHEAD].dest = &track[27];
-	track[260].edge[DIR_AHEAD].dist = 118.25;
+	track[260].edge[DIR_AHEAD].dist = 118;
 	track[260].edge[DIR_AHEAD].num = 272;
 	track[260].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[260].name, track + 260);
@@ -3269,7 +3269,7 @@ lookup *init_tracka(track_node *track) {
 	track[261].edge[DIR_AHEAD].reverse = &track[216].edge[DIR_AHEAD];
 	track[261].edge[DIR_AHEAD].src = &track[261];
 	track[261].edge[DIR_AHEAD].dest = &track[217];
-	track[261].edge[DIR_AHEAD].dist = 118.25;
+	track[261].edge[DIR_AHEAD].dist = 118;
 	track[261].edge[DIR_AHEAD].num = 273;
 	track[261].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[261].name, track + 261);
@@ -3281,7 +3281,7 @@ lookup *init_tracka(track_node *track) {
 	track[262].edge[DIR_AHEAD].reverse = &track[74].edge[DIR_AHEAD];
 	track[262].edge[DIR_AHEAD].src = &track[262];
 	track[262].edge[DIR_AHEAD].dest = &track[75];
-	track[262].edge[DIR_AHEAD].dist = 90.25;
+	track[262].edge[DIR_AHEAD].dist = 90;
 	track[262].edge[DIR_AHEAD].num = 274;
 	track[262].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[262].name, track + 262);
@@ -3293,7 +3293,7 @@ lookup *init_tracka(track_node *track) {
 	track[263].edge[DIR_AHEAD].reverse = &track[222].edge[DIR_AHEAD];
 	track[263].edge[DIR_AHEAD].src = &track[263];
 	track[263].edge[DIR_AHEAD].dest = &track[223];
-	track[263].edge[DIR_AHEAD].dist = 90.25;
+	track[263].edge[DIR_AHEAD].dist = 90;
 	track[263].edge[DIR_AHEAD].num = 275;
 	track[263].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[263].name, track + 263);
@@ -3305,7 +3305,7 @@ lookup *init_tracka(track_node *track) {
 	track[264].edge[DIR_AHEAD].reverse = &track[24].edge[DIR_AHEAD];
 	track[264].edge[DIR_AHEAD].src = &track[264];
 	track[264].edge[DIR_AHEAD].dest = &track[25];
-	track[264].edge[DIR_AHEAD].dist = 81.125;
+	track[264].edge[DIR_AHEAD].dist = 81;
 	track[264].edge[DIR_AHEAD].num = 276;
 	track[264].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[264].name, track + 264);
@@ -3317,7 +3317,7 @@ lookup *init_tracka(track_node *track) {
 	track[265].edge[DIR_AHEAD].reverse = &track[226].edge[DIR_AHEAD];
 	track[265].edge[DIR_AHEAD].src = &track[265];
 	track[265].edge[DIR_AHEAD].dest = &track[227];
-	track[265].edge[DIR_AHEAD].dist = 81.125;
+	track[265].edge[DIR_AHEAD].dist = 81;
 	track[265].edge[DIR_AHEAD].num = 277;
 	track[265].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[265].name, track + 265);
@@ -3329,7 +3329,7 @@ lookup *init_tracka(track_node *track) {
 	track[266].edge[DIR_AHEAD].reverse = &track[71].edge[DIR_AHEAD];
 	track[266].edge[DIR_AHEAD].src = &track[266];
 	track[266].edge[DIR_AHEAD].dest = &track[70];
-	track[266].edge[DIR_AHEAD].dist = 109.625;
+	track[266].edge[DIR_AHEAD].dist = 109;
 	track[266].edge[DIR_AHEAD].num = 278;
 	track[266].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[266].name, track + 266);
@@ -3341,7 +3341,7 @@ lookup *init_tracka(track_node *track) {
 	track[267].edge[DIR_AHEAD].reverse = &track[234].edge[DIR_AHEAD];
 	track[267].edge[DIR_AHEAD].src = &track[267];
 	track[267].edge[DIR_AHEAD].dest = &track[235];
-	track[267].edge[DIR_AHEAD].dist = 109.625;
+	track[267].edge[DIR_AHEAD].dist = 109;
 	track[267].edge[DIR_AHEAD].num = 279;
 	track[267].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[267].name, track + 267);
@@ -3353,7 +3353,7 @@ lookup *init_tracka(track_node *track) {
 	track[268].edge[DIR_AHEAD].reverse = &track[22].edge[DIR_AHEAD];
 	track[268].edge[DIR_AHEAD].src = &track[268];
 	track[268].edge[DIR_AHEAD].dest = &track[23];
-	track[268].edge[DIR_AHEAD].dist = 72.25;
+	track[268].edge[DIR_AHEAD].dist = 72;
 	track[268].edge[DIR_AHEAD].num = 280;
 	track[268].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[268].name, track + 268);
@@ -3365,7 +3365,7 @@ lookup *init_tracka(track_node *track) {
 	track[269].edge[DIR_AHEAD].reverse = &track[150].edge[DIR_AHEAD];
 	track[269].edge[DIR_AHEAD].src = &track[269];
 	track[269].edge[DIR_AHEAD].dest = &track[151];
-	track[269].edge[DIR_AHEAD].dist = 72.25;
+	track[269].edge[DIR_AHEAD].dist = 72;
 	track[269].edge[DIR_AHEAD].num = 281;
 	track[269].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[269].name, track + 269);
@@ -3395,7 +3395,7 @@ lookup *init_trackb(track_node *track) {
 	track[1].edge[DIR_AHEAD].reverse = &track[213].edge[DIR_AHEAD];
 	track[1].edge[DIR_AHEAD].src = &track[1];
 	track[1].edge[DIR_AHEAD].dest = &track[212];
-	track[1].edge[DIR_AHEAD].dist = 65.375;
+	track[1].edge[DIR_AHEAD].dist = 65;
 	track[1].edge[DIR_AHEAD].num = 1;
 	track[1].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[1].name, track + 1);
@@ -3419,7 +3419,7 @@ lookup *init_trackb(track_node *track) {
 	track[3].edge[DIR_AHEAD].reverse = &track[183].edge[DIR_AHEAD];
 	track[3].edge[DIR_AHEAD].src = &track[3];
 	track[3].edge[DIR_AHEAD].dest = &track[182];
-	track[3].edge[DIR_AHEAD].dist = 111.25;
+	track[3].edge[DIR_AHEAD].dist = 111;
 	track[3].edge[DIR_AHEAD].num = 3;
 	track[3].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[3].name, track + 3);
@@ -3443,7 +3443,7 @@ lookup *init_trackb(track_node *track) {
 	track[5].edge[DIR_AHEAD].reverse = &track[215].edge[DIR_AHEAD];
 	track[5].edge[DIR_AHEAD].src = &track[5];
 	track[5].edge[DIR_AHEAD].dest = &track[214];
-	track[5].edge[DIR_AHEAD].dist = 83.125;
+	track[5].edge[DIR_AHEAD].dist = 83;
 	track[5].edge[DIR_AHEAD].num = 5;
 	track[5].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[5].name, track + 5);
@@ -3455,7 +3455,7 @@ lookup *init_trackb(track_node *track) {
 	track[6].edge[DIR_AHEAD].reverse = &track[257].edge[DIR_AHEAD];
 	track[6].edge[DIR_AHEAD].src = &track[6];
 	track[6].edge[DIR_AHEAD].dest = &track[256];
-	track[6].edge[DIR_AHEAD].dist = 116.25;
+	track[6].edge[DIR_AHEAD].dist = 116;
 	track[6].edge[DIR_AHEAD].num = 6;
 	track[6].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[6].name, track + 6);
@@ -3479,7 +3479,7 @@ lookup *init_trackb(track_node *track) {
 	track[8].edge[DIR_AHEAD].reverse = &track[187].edge[DIR_AHEAD];
 	track[8].edge[DIR_AHEAD].src = &track[8];
 	track[8].edge[DIR_AHEAD].dest = &track[186];
-	track[8].edge[DIR_AHEAD].dist = 68.75;
+	track[8].edge[DIR_AHEAD].dist = 68;
 	track[8].edge[DIR_AHEAD].num = 8;
 	track[8].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[8].name, track + 8);
@@ -3515,7 +3515,7 @@ lookup *init_trackb(track_node *track) {
 	track[11].edge[DIR_AHEAD].reverse = &track[217].edge[DIR_AHEAD];
 	track[11].edge[DIR_AHEAD].src = &track[11];
 	track[11].edge[DIR_AHEAD].dest = &track[216];
-	track[11].edge[DIR_AHEAD].dist = 100.625;
+	track[11].edge[DIR_AHEAD].dist = 100;
 	track[11].edge[DIR_AHEAD].num = 11;
 	track[11].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[11].name, track + 11);
@@ -3539,7 +3539,7 @@ lookup *init_trackb(track_node *track) {
 	track[13].edge[DIR_AHEAD].reverse = &track[191].edge[DIR_AHEAD];
 	track[13].edge[DIR_AHEAD].src = &track[13];
 	track[13].edge[DIR_AHEAD].dest = &track[190];
-	track[13].edge[DIR_AHEAD].dist = 83.25;
+	track[13].edge[DIR_AHEAD].dist = 83;
 	track[13].edge[DIR_AHEAD].num = 13;
 	track[13].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[13].name, track + 13);
@@ -3551,7 +3551,7 @@ lookup *init_trackb(track_node *track) {
 	track[14].edge[DIR_AHEAD].reverse = &track[290].edge[DIR_AHEAD];
 	track[14].edge[DIR_AHEAD].src = &track[14];
 	track[14].edge[DIR_AHEAD].dest = &track[291];
-	track[14].edge[DIR_AHEAD].dist = 100.625;
+	track[14].edge[DIR_AHEAD].dist = 100;
 	track[14].edge[DIR_AHEAD].num = 14;
 	track[14].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[14].name, track + 14);
@@ -3575,7 +3575,7 @@ lookup *init_trackb(track_node *track) {
 	track[16].edge[DIR_AHEAD].reverse = &track[193].edge[DIR_AHEAD];
 	track[16].edge[DIR_AHEAD].src = &track[16];
 	track[16].edge[DIR_AHEAD].dest = &track[192];
-	track[16].edge[DIR_AHEAD].dist = 102.5;
+	track[16].edge[DIR_AHEAD].dist = 102;
 	track[16].edge[DIR_AHEAD].num = 16;
 	track[16].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[16].name, track + 16);
@@ -3599,7 +3599,7 @@ lookup *init_trackb(track_node *track) {
 	track[18].edge[DIR_AHEAD].reverse = &track[151].edge[DIR_AHEAD];
 	track[18].edge[DIR_AHEAD].src = &track[18];
 	track[18].edge[DIR_AHEAD].dest = &track[150];
-	track[18].edge[DIR_AHEAD].dist = 102.5;
+	track[18].edge[DIR_AHEAD].dist = 102;
 	track[18].edge[DIR_AHEAD].num = 18;
 	track[18].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[18].name, track + 18);
@@ -3623,7 +3623,7 @@ lookup *init_trackb(track_node *track) {
 	track[20].edge[DIR_AHEAD].reverse = &track[195].edge[DIR_AHEAD];
 	track[20].edge[DIR_AHEAD].src = &track[20];
 	track[20].edge[DIR_AHEAD].dest = &track[194];
-	track[20].edge[DIR_AHEAD].dist = 102.5;
+	track[20].edge[DIR_AHEAD].dist = 102;
 	track[20].edge[DIR_AHEAD].num = 20;
 	track[20].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[20].name, track + 20);
@@ -3647,7 +3647,7 @@ lookup *init_trackb(track_node *track) {
 	track[22].edge[DIR_AHEAD].reverse = &track[286].edge[DIR_AHEAD];
 	track[22].edge[DIR_AHEAD].src = &track[22];
 	track[22].edge[DIR_AHEAD].dest = &track[287];
-	track[22].edge[DIR_AHEAD].dist = 68.75;
+	track[22].edge[DIR_AHEAD].dist = 68;
 	track[22].edge[DIR_AHEAD].num = 22;
 	track[22].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[22].name, track + 22);
@@ -3671,7 +3671,7 @@ lookup *init_trackb(track_node *track) {
 	track[24].edge[DIR_AHEAD].reverse = &track[282].edge[DIR_AHEAD];
 	track[24].edge[DIR_AHEAD].src = &track[24];
 	track[24].edge[DIR_AHEAD].dest = &track[283];
-	track[24].edge[DIR_AHEAD].dist = 83.125;
+	track[24].edge[DIR_AHEAD].dist = 83;
 	track[24].edge[DIR_AHEAD].num = 24;
 	track[24].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[24].name, track + 24);
@@ -3695,7 +3695,7 @@ lookup *init_trackb(track_node *track) {
 	track[26].edge[DIR_AHEAD].reverse = &track[278].edge[DIR_AHEAD];
 	track[26].edge[DIR_AHEAD].src = &track[26];
 	track[26].edge[DIR_AHEAD].dest = &track[279];
-	track[26].edge[DIR_AHEAD].dist = 116.25;
+	track[26].edge[DIR_AHEAD].dist = 116;
 	track[26].edge[DIR_AHEAD].num = 26;
 	track[26].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[26].name, track + 26);
@@ -3731,7 +3731,7 @@ lookup *init_trackb(track_node *track) {
 	track[29].edge[DIR_AHEAD].reverse = &track[155].edge[DIR_AHEAD];
 	track[29].edge[DIR_AHEAD].src = &track[29];
 	track[29].edge[DIR_AHEAD].dest = &track[154];
-	track[29].edge[DIR_AHEAD].dist = 102.5;
+	track[29].edge[DIR_AHEAD].dist = 102;
 	track[29].edge[DIR_AHEAD].num = 29;
 	track[29].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[29].name, track + 29);
@@ -3743,7 +3743,7 @@ lookup *init_trackb(track_node *track) {
 	track[30].edge[DIR_AHEAD].reverse = &track[268].edge[DIR_AHEAD];
 	track[30].edge[DIR_AHEAD].src = &track[30];
 	track[30].edge[DIR_AHEAD].dest = &track[269];
-	track[30].edge[DIR_AHEAD].dist = 111.25;
+	track[30].edge[DIR_AHEAD].dist = 111;
 	track[30].edge[DIR_AHEAD].num = 30;
 	track[30].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[30].name, track + 30);
@@ -3767,7 +3767,7 @@ lookup *init_trackb(track_node *track) {
 	track[32].edge[DIR_AHEAD].reverse = &track[150].edge[DIR_AHEAD];
 	track[32].edge[DIR_AHEAD].src = &track[32];
 	track[32].edge[DIR_AHEAD].dest = &track[151];
-	track[32].edge[DIR_AHEAD].dist = 102.5;
+	track[32].edge[DIR_AHEAD].dist = 102;
 	track[32].edge[DIR_AHEAD].num = 32;
 	track[32].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[32].name, track + 32);
@@ -3791,7 +3791,7 @@ lookup *init_trackb(track_node *track) {
 	track[34].edge[DIR_AHEAD].reverse = &track[197].edge[DIR_AHEAD];
 	track[34].edge[DIR_AHEAD].src = &track[34];
 	track[34].edge[DIR_AHEAD].dest = &track[196];
-	track[34].edge[DIR_AHEAD].dist = 103.75;
+	track[34].edge[DIR_AHEAD].dist = 103;
 	track[34].edge[DIR_AHEAD].num = 34;
 	track[34].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[34].name, track + 34);
@@ -3815,7 +3815,7 @@ lookup *init_trackb(track_node *track) {
 	track[36].edge[DIR_AHEAD].reverse = &track[199].edge[DIR_AHEAD];
 	track[36].edge[DIR_AHEAD].src = &track[36];
 	track[36].edge[DIR_AHEAD].dest = &track[198];
-	track[36].edge[DIR_AHEAD].dist = 72.75;
+	track[36].edge[DIR_AHEAD].dist = 72;
 	track[36].edge[DIR_AHEAD].num = 36;
 	track[36].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[36].name, track + 36);
@@ -3839,7 +3839,7 @@ lookup *init_trackb(track_node *track) {
 	track[38].edge[DIR_AHEAD].reverse = &track[201].edge[DIR_AHEAD];
 	track[38].edge[DIR_AHEAD].src = &track[38];
 	track[38].edge[DIR_AHEAD].dest = &track[200];
-	track[38].edge[DIR_AHEAD].dist = 99.5;
+	track[38].edge[DIR_AHEAD].dist = 99;
 	track[38].edge[DIR_AHEAD].num = 38;
 	track[38].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[38].name, track + 38);
@@ -3851,7 +3851,7 @@ lookup *init_trackb(track_node *track) {
 	track[39].edge[DIR_AHEAD].reverse = &track[223].edge[DIR_AHEAD];
 	track[39].edge[DIR_AHEAD].src = &track[39];
 	track[39].edge[DIR_AHEAD].dest = &track[222];
-	track[39].edge[DIR_AHEAD].dist = 72.5;
+	track[39].edge[DIR_AHEAD].dist = 72;
 	track[39].edge[DIR_AHEAD].num = 39;
 	track[39].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[39].name, track + 39);
@@ -3875,7 +3875,7 @@ lookup *init_trackb(track_node *track) {
 	track[41].edge[DIR_AHEAD].reverse = &track[163].edge[DIR_AHEAD];
 	track[41].edge[DIR_AHEAD].src = &track[41];
 	track[41].edge[DIR_AHEAD].dest = &track[162];
-	track[41].edge[DIR_AHEAD].dist = 70.0;
+	track[41].edge[DIR_AHEAD].dist = 70;
 	track[41].edge[DIR_AHEAD].num = 41;
 	track[41].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[41].name, track + 41);
@@ -3887,7 +3887,7 @@ lookup *init_trackb(track_node *track) {
 	track[42].edge[DIR_AHEAD].reverse = &track[225].edge[DIR_AHEAD];
 	track[42].edge[DIR_AHEAD].src = &track[42];
 	track[42].edge[DIR_AHEAD].dest = &track[224];
-	track[42].edge[DIR_AHEAD].dist = 70.0;
+	track[42].edge[DIR_AHEAD].dist = 70;
 	track[42].edge[DIR_AHEAD].num = 42;
 	track[42].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[42].name, track + 42);
@@ -3911,7 +3911,7 @@ lookup *init_trackb(track_node *track) {
 	track[44].edge[DIR_AHEAD].reverse = &track[219].edge[DIR_AHEAD];
 	track[44].edge[DIR_AHEAD].src = &track[44];
 	track[44].edge[DIR_AHEAD].dest = &track[218];
-	track[44].edge[DIR_AHEAD].dist = 97.5;
+	track[44].edge[DIR_AHEAD].dist = 97;
 	track[44].edge[DIR_AHEAD].num = 44;
 	track[44].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[44].name, track + 44);
@@ -3935,7 +3935,7 @@ lookup *init_trackb(track_node *track) {
 	track[46].edge[DIR_AHEAD].reverse = &track[205].edge[DIR_AHEAD];
 	track[46].edge[DIR_AHEAD].src = &track[46];
 	track[46].edge[DIR_AHEAD].dest = &track[204];
-	track[46].edge[DIR_AHEAD].dist = 101.25;
+	track[46].edge[DIR_AHEAD].dist = 101;
 	track[46].edge[DIR_AHEAD].num = 46;
 	track[46].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[46].name, track + 46);
@@ -3947,7 +3947,7 @@ lookup *init_trackb(track_node *track) {
 	track[47].edge[DIR_AHEAD].reverse = &track[272].edge[DIR_AHEAD];
 	track[47].edge[DIR_AHEAD].src = &track[47];
 	track[47].edge[DIR_AHEAD].dest = &track[273];
-	track[47].edge[DIR_AHEAD].dist = 72.75;
+	track[47].edge[DIR_AHEAD].dist = 72;
 	track[47].edge[DIR_AHEAD].num = 47;
 	track[47].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[47].name, track + 47);
@@ -3971,7 +3971,7 @@ lookup *init_trackb(track_node *track) {
 	track[49].edge[DIR_AHEAD].reverse = &track[169].edge[DIR_AHEAD];
 	track[49].edge[DIR_AHEAD].src = &track[49];
 	track[49].edge[DIR_AHEAD].dest = &track[168];
-	track[49].edge[DIR_AHEAD].dist = 102.5;
+	track[49].edge[DIR_AHEAD].dist = 102;
 	track[49].edge[DIR_AHEAD].num = 49;
 	track[49].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[49].name, track + 49);
@@ -3995,7 +3995,7 @@ lookup *init_trackb(track_node *track) {
 	track[51].edge[DIR_AHEAD].reverse = &track[236].edge[DIR_AHEAD];
 	track[51].edge[DIR_AHEAD].src = &track[51];
 	track[51].edge[DIR_AHEAD].dest = &track[237];
-	track[51].edge[DIR_AHEAD].dist = 102.5;
+	track[51].edge[DIR_AHEAD].dist = 102;
 	track[51].edge[DIR_AHEAD].num = 51;
 	track[51].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[51].name, track + 51);
@@ -4007,7 +4007,7 @@ lookup *init_trackb(track_node *track) {
 	track[52].edge[DIR_AHEAD].reverse = &track[207].edge[DIR_AHEAD];
 	track[52].edge[DIR_AHEAD].src = &track[52];
 	track[52].edge[DIR_AHEAD].dest = &track[206];
-	track[52].edge[DIR_AHEAD].dist = 71.25;
+	track[52].edge[DIR_AHEAD].dist = 71;
 	track[52].edge[DIR_AHEAD].num = 52;
 	track[52].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[52].name, track + 52);
@@ -4043,7 +4043,7 @@ lookup *init_trackb(track_node *track) {
 	track[55].edge[DIR_AHEAD].reverse = &track[209].edge[DIR_AHEAD];
 	track[55].edge[DIR_AHEAD].src = &track[55];
 	track[55].edge[DIR_AHEAD].dest = &track[208];
-	track[55].edge[DIR_AHEAD].dist = 96.5;
+	track[55].edge[DIR_AHEAD].dist = 96;
 	track[55].edge[DIR_AHEAD].num = 55;
 	track[55].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[55].name, track + 55);
@@ -4055,7 +4055,7 @@ lookup *init_trackb(track_node *track) {
 	track[56].edge[DIR_AHEAD].reverse = &track[259].edge[DIR_AHEAD];
 	track[56].edge[DIR_AHEAD].src = &track[56];
 	track[56].edge[DIR_AHEAD].dest = &track[258];
-	track[56].edge[DIR_AHEAD].dist = 72.5;
+	track[56].edge[DIR_AHEAD].dist = 72;
 	track[56].edge[DIR_AHEAD].num = 56;
 	track[56].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[56].name, track + 56);
@@ -4079,7 +4079,7 @@ lookup *init_trackb(track_node *track) {
 	track[58].edge[DIR_AHEAD].reverse = &track[274].edge[DIR_AHEAD];
 	track[58].edge[DIR_AHEAD].src = &track[58];
 	track[58].edge[DIR_AHEAD].dest = &track[275];
-	track[58].edge[DIR_AHEAD].dist = 101.25;
+	track[58].edge[DIR_AHEAD].dist = 101;
 	track[58].edge[DIR_AHEAD].num = 58;
 	track[58].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[58].name, track + 58);
@@ -4103,7 +4103,7 @@ lookup *init_trackb(track_node *track) {
 	track[60].edge[DIR_AHEAD].reverse = &track[234].edge[DIR_AHEAD];
 	track[60].edge[DIR_AHEAD].src = &track[60];
 	track[60].edge[DIR_AHEAD].dest = &track[235];
-	track[60].edge[DIR_AHEAD].dist = 102.5;
+	track[60].edge[DIR_AHEAD].dist = 102;
 	track[60].edge[DIR_AHEAD].num = 60;
 	track[60].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[60].name, track + 60);
@@ -4127,7 +4127,7 @@ lookup *init_trackb(track_node *track) {
 	track[62].edge[DIR_AHEAD].reverse = &track[154].edge[DIR_AHEAD];
 	track[62].edge[DIR_AHEAD].src = &track[62];
 	track[62].edge[DIR_AHEAD].dest = &track[155];
-	track[62].edge[DIR_AHEAD].dist = 102.5;
+	track[62].edge[DIR_AHEAD].dist = 102;
 	track[62].edge[DIR_AHEAD].num = 62;
 	track[62].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[62].name, track + 62);
@@ -4163,7 +4163,7 @@ lookup *init_trackb(track_node *track) {
 	track[65].edge[DIR_AHEAD].reverse = &track[175].edge[DIR_AHEAD];
 	track[65].edge[DIR_AHEAD].src = &track[65];
 	track[65].edge[DIR_AHEAD].dest = &track[174];
-	track[65].edge[DIR_AHEAD].dist = 102.5;
+	track[65].edge[DIR_AHEAD].dist = 102;
 	track[65].edge[DIR_AHEAD].num = 65;
 	track[65].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[65].name, track + 65);
@@ -4175,7 +4175,7 @@ lookup *init_trackb(track_node *track) {
 	track[66].edge[DIR_AHEAD].reverse = &track[168].edge[DIR_AHEAD];
 	track[66].edge[DIR_AHEAD].src = &track[66];
 	track[66].edge[DIR_AHEAD].dest = &track[169];
-	track[66].edge[DIR_AHEAD].dist = 102.5;
+	track[66].edge[DIR_AHEAD].dist = 102;
 	track[66].edge[DIR_AHEAD].num = 66;
 	track[66].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[66].name, track + 66);
@@ -4199,7 +4199,7 @@ lookup *init_trackb(track_node *track) {
 	track[68].edge[DIR_AHEAD].reverse = &track[244].edge[DIR_AHEAD];
 	track[68].edge[DIR_AHEAD].src = &track[68];
 	track[68].edge[DIR_AHEAD].dest = &track[245];
-	track[68].edge[DIR_AHEAD].dist = 71.25;
+	track[68].edge[DIR_AHEAD].dist = 71;
 	track[68].edge[DIR_AHEAD].num = 68;
 	track[68].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[68].name, track + 68);
@@ -4223,7 +4223,7 @@ lookup *init_trackb(track_node *track) {
 	track[70].edge[DIR_AHEAD].reverse = &track[276].edge[DIR_AHEAD];
 	track[70].edge[DIR_AHEAD].src = &track[70];
 	track[70].edge[DIR_AHEAD].dest = &track[277];
-	track[70].edge[DIR_AHEAD].dist = 96.5;
+	track[70].edge[DIR_AHEAD].dist = 96;
 	track[70].edge[DIR_AHEAD].num = 70;
 	track[70].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[70].name, track + 70);
@@ -4235,7 +4235,7 @@ lookup *init_trackb(track_node *track) {
 	track[71].edge[DIR_AHEAD].reverse = &track[284].edge[DIR_AHEAD];
 	track[71].edge[DIR_AHEAD].src = &track[71];
 	track[71].edge[DIR_AHEAD].dest = &track[285];
-	track[71].edge[DIR_AHEAD].dist = 97.5;
+	track[71].edge[DIR_AHEAD].dist = 97;
 	track[71].edge[DIR_AHEAD].num = 71;
 	track[71].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[71].name, track + 71);
@@ -4259,7 +4259,7 @@ lookup *init_trackb(track_node *track) {
 	track[73].edge[DIR_AHEAD].reverse = &track[211].edge[DIR_AHEAD];
 	track[73].edge[DIR_AHEAD].src = &track[73];
 	track[73].edge[DIR_AHEAD].dest = &track[210];
-	track[73].edge[DIR_AHEAD].dist = 72.5;
+	track[73].edge[DIR_AHEAD].dist = 72;
 	track[73].edge[DIR_AHEAD].num = 73;
 	track[73].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[73].name, track + 73);
@@ -4271,7 +4271,7 @@ lookup *init_trackb(track_node *track) {
 	track[74].edge[DIR_AHEAD].reverse = &track[280].edge[DIR_AHEAD];
 	track[74].edge[DIR_AHEAD].src = &track[74];
 	track[74].edge[DIR_AHEAD].dest = &track[281];
-	track[74].edge[DIR_AHEAD].dist = 72.5;
+	track[74].edge[DIR_AHEAD].dist = 72;
 	track[74].edge[DIR_AHEAD].num = 74;
 	track[74].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[74].name, track + 74);
@@ -4307,7 +4307,7 @@ lookup *init_trackb(track_node *track) {
 	track[77].edge[DIR_AHEAD].reverse = &track[246].edge[DIR_AHEAD];
 	track[77].edge[DIR_AHEAD].src = &track[77];
 	track[77].edge[DIR_AHEAD].dest = &track[247];
-	track[77].edge[DIR_AHEAD].dist = 72.5;
+	track[77].edge[DIR_AHEAD].dist = 72;
 	track[77].edge[DIR_AHEAD].num = 77;
 	track[77].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[77].name, track + 77);
@@ -4331,7 +4331,7 @@ lookup *init_trackb(track_node *track) {
 	track[79].edge[DIR_AHEAD].reverse = &track[174].edge[DIR_AHEAD];
 	track[79].edge[DIR_AHEAD].src = &track[79];
 	track[79].edge[DIR_AHEAD].dest = &track[175];
-	track[79].edge[DIR_AHEAD].dist = 102.5;
+	track[79].edge[DIR_AHEAD].dist = 102;
 	track[79].edge[DIR_AHEAD].num = 79;
 	track[79].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[79].name, track + 79);
@@ -4421,7 +4421,7 @@ lookup *init_trackb(track_node *track) {
 	track[85].edge[DIR_AHEAD].reverse = &track[222].edge[DIR_AHEAD];
 	track[85].edge[DIR_AHEAD].src = &track[85];
 	track[85].edge[DIR_AHEAD].dest = &track[223];
-	track[85].edge[DIR_AHEAD].dist = 72.5;
+	track[85].edge[DIR_AHEAD].dist = 72;
 	track[85].edge[DIR_AHEAD].num = 88;
 	track[85].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[85].name, track + 85);
@@ -4481,7 +4481,7 @@ lookup *init_trackb(track_node *track) {
 	track[89].edge[DIR_AHEAD].reverse = &track[240].edge[DIR_AHEAD];
 	track[89].edge[DIR_AHEAD].src = &track[89];
 	track[89].edge[DIR_AHEAD].dest = &track[241];
-	track[89].edge[DIR_AHEAD].dist = 99.5;
+	track[89].edge[DIR_AHEAD].dist = 99;
 	track[89].edge[DIR_AHEAD].num = 94;
 	track[89].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[89].name, track + 89);
@@ -4541,7 +4541,7 @@ lookup *init_trackb(track_node *track) {
 	track[93].edge[DIR_AHEAD].reverse = &track[179].edge[DIR_AHEAD];
 	track[93].edge[DIR_AHEAD].src = &track[93];
 	track[93].edge[DIR_AHEAD].dest = &track[178];
-	track[93].edge[DIR_AHEAD].dist = 93.5;
+	track[93].edge[DIR_AHEAD].dist = 93;
 	track[93].edge[DIR_AHEAD].num = 100;
 	track[93].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[93].name, track + 93);
@@ -4571,7 +4571,7 @@ lookup *init_trackb(track_node *track) {
 	track[95].edge[DIR_AHEAD].reverse = &track[178].edge[DIR_AHEAD];
 	track[95].edge[DIR_AHEAD].src = &track[95];
 	track[95].edge[DIR_AHEAD].dest = &track[179];
-	track[95].edge[DIR_AHEAD].dist = 93.5;
+	track[95].edge[DIR_AHEAD].dist = 93;
 	track[95].edge[DIR_AHEAD].num = 103;
 	track[95].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[95].name, track + 95);
@@ -4691,7 +4691,7 @@ lookup *init_trackb(track_node *track) {
 	track[103].edge[DIR_AHEAD].reverse = &track[224].edge[DIR_AHEAD];
 	track[103].edge[DIR_AHEAD].src = &track[103];
 	track[103].edge[DIR_AHEAD].dest = &track[225];
-	track[103].edge[DIR_AHEAD].dist = 70.0;
+	track[103].edge[DIR_AHEAD].dist = 70;
 	track[103].edge[DIR_AHEAD].num = 115;
 	track[103].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[103].name, track + 103);
@@ -4781,7 +4781,7 @@ lookup *init_trackb(track_node *track) {
 	track[109].edge[DIR_AHEAD].reverse = &track[162].edge[DIR_AHEAD];
 	track[109].edge[DIR_AHEAD].src = &track[109];
 	track[109].edge[DIR_AHEAD].dest = &track[163];
-	track[109].edge[DIR_AHEAD].dist = 70.0;
+	track[109].edge[DIR_AHEAD].dist = 70;
 	track[109].edge[DIR_AHEAD].num = 124;
 	track[109].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[109].name, track + 109);
@@ -4974,7 +4974,7 @@ lookup *init_trackb(track_node *track) {
 	track[124].edge[DIR_AHEAD].reverse = &track[238].edge[DIR_AHEAD];
 	track[124].edge[DIR_AHEAD].src = &track[124];
 	track[124].edge[DIR_AHEAD].dest = &track[239];
-	track[124].edge[DIR_AHEAD].dist = 103.75;
+	track[124].edge[DIR_AHEAD].dist = 103;
 	track[124].edge[DIR_AHEAD].num = 142;
 	track[124].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[124].name, track + 124);
@@ -4990,7 +4990,7 @@ lookup *init_trackb(track_node *track) {
 	track[126].edge[DIR_AHEAD].reverse = &track[270].edge[DIR_AHEAD];
 	track[126].edge[DIR_AHEAD].src = &track[126];
 	track[126].edge[DIR_AHEAD].dest = &track[271];
-	track[126].edge[DIR_AHEAD].dist = 83.25;
+	track[126].edge[DIR_AHEAD].dist = 83;
 	track[126].edge[DIR_AHEAD].num = 143;
 	track[126].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[126].name, track + 126);
@@ -5006,7 +5006,7 @@ lookup *init_trackb(track_node *track) {
 	track[128].edge[DIR_AHEAD].reverse = &track[288].edge[DIR_AHEAD];
 	track[128].edge[DIR_AHEAD].src = &track[128];
 	track[128].edge[DIR_AHEAD].dest = &track[289];
-	track[128].edge[DIR_AHEAD].dist = 65.375;
+	track[128].edge[DIR_AHEAD].dist = 65;
 	track[128].edge[DIR_AHEAD].num = 144;
 	track[128].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[128].name, track + 128);
@@ -5071,7 +5071,7 @@ lookup *init_trackb(track_node *track) {
 	track[136].edge[DIR_AHEAD].reverse = &track[261].edge[DIR_AHEAD];
 	track[136].edge[DIR_AHEAD].src = &track[136];
 	track[136].edge[DIR_AHEAD].dest = &track[260];
-	track[136].edge[DIR_AHEAD].dist = 65.375;
+	track[136].edge[DIR_AHEAD].dist = 65;
 	track[136].edge[DIR_AHEAD].num = 148;
 	track[136].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[136].name, track + 136);
@@ -5083,7 +5083,7 @@ lookup *init_trackb(track_node *track) {
 	track[137].edge[DIR_AHEAD].reverse = &track[248].edge[DIR_AHEAD];
 	track[137].edge[DIR_AHEAD].src = &track[137];
 	track[137].edge[DIR_AHEAD].dest = &track[249];
-	track[137].edge[DIR_AHEAD].dist = 65.375;
+	track[137].edge[DIR_AHEAD].dist = 65;
 	track[137].edge[DIR_AHEAD].num = 149;
 	track[137].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[137].name, track + 137);
@@ -5095,7 +5095,7 @@ lookup *init_trackb(track_node *track) {
 	track[138].edge[DIR_AHEAD].reverse = &track[269].edge[DIR_AHEAD];
 	track[138].edge[DIR_AHEAD].src = &track[138];
 	track[138].edge[DIR_AHEAD].dest = &track[268];
-	track[138].edge[DIR_AHEAD].dist = 111.25;
+	track[138].edge[DIR_AHEAD].dist = 111;
 	track[138].edge[DIR_AHEAD].num = 150;
 	track[138].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[138].name, track + 138);
@@ -5107,7 +5107,7 @@ lookup *init_trackb(track_node *track) {
 	track[139].edge[DIR_AHEAD].reverse = &track[182].edge[DIR_AHEAD];
 	track[139].edge[DIR_AHEAD].src = &track[139];
 	track[139].edge[DIR_AHEAD].dest = &track[183];
-	track[139].edge[DIR_AHEAD].dist = 111.25;
+	track[139].edge[DIR_AHEAD].dist = 111;
 	track[139].edge[DIR_AHEAD].num = 151;
 	track[139].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[139].name, track + 139);
@@ -5119,7 +5119,7 @@ lookup *init_trackb(track_node *track) {
 	track[140].edge[DIR_AHEAD].reverse = &track[263].edge[DIR_AHEAD];
 	track[140].edge[DIR_AHEAD].src = &track[140];
 	track[140].edge[DIR_AHEAD].dest = &track[262];
-	track[140].edge[DIR_AHEAD].dist = 83.125;
+	track[140].edge[DIR_AHEAD].dist = 83;
 	track[140].edge[DIR_AHEAD].num = 152;
 	track[140].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[140].name, track + 140);
@@ -5131,7 +5131,7 @@ lookup *init_trackb(track_node *track) {
 	track[141].edge[DIR_AHEAD].reverse = &track[250].edge[DIR_AHEAD];
 	track[141].edge[DIR_AHEAD].src = &track[141];
 	track[141].edge[DIR_AHEAD].dest = &track[251];
-	track[141].edge[DIR_AHEAD].dist = 83.125;
+	track[141].edge[DIR_AHEAD].dist = 83;
 	track[141].edge[DIR_AHEAD].num = 153;
 	track[141].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[141].name, track + 141);
@@ -5143,7 +5143,7 @@ lookup *init_trackb(track_node *track) {
 	track[142].edge[DIR_AHEAD].reverse = &track[287].edge[DIR_AHEAD];
 	track[142].edge[DIR_AHEAD].src = &track[142];
 	track[142].edge[DIR_AHEAD].dest = &track[286];
-	track[142].edge[DIR_AHEAD].dist = 68.75;
+	track[142].edge[DIR_AHEAD].dist = 68;
 	track[142].edge[DIR_AHEAD].num = 154;
 	track[142].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[142].name, track + 142);
@@ -5155,7 +5155,7 @@ lookup *init_trackb(track_node *track) {
 	track[143].edge[DIR_AHEAD].reverse = &track[186].edge[DIR_AHEAD];
 	track[143].edge[DIR_AHEAD].src = &track[143];
 	track[143].edge[DIR_AHEAD].dest = &track[187];
-	track[143].edge[DIR_AHEAD].dist = 68.75;
+	track[143].edge[DIR_AHEAD].dist = 68;
 	track[143].edge[DIR_AHEAD].num = 155;
 	track[143].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[143].name, track + 143);
@@ -5167,7 +5167,7 @@ lookup *init_trackb(track_node *track) {
 	track[144].edge[DIR_AHEAD].reverse = &track[265].edge[DIR_AHEAD];
 	track[144].edge[DIR_AHEAD].src = &track[144];
 	track[144].edge[DIR_AHEAD].dest = &track[264];
-	track[144].edge[DIR_AHEAD].dist = 100.625;
+	track[144].edge[DIR_AHEAD].dist = 100;
 	track[144].edge[DIR_AHEAD].num = 156;
 	track[144].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[144].name, track + 144);
@@ -5179,7 +5179,7 @@ lookup *init_trackb(track_node *track) {
 	track[145].edge[DIR_AHEAD].reverse = &track[252].edge[DIR_AHEAD];
 	track[145].edge[DIR_AHEAD].src = &track[145];
 	track[145].edge[DIR_AHEAD].dest = &track[253];
-	track[145].edge[DIR_AHEAD].dist = 100.625;
+	track[145].edge[DIR_AHEAD].dist = 100;
 	track[145].edge[DIR_AHEAD].num = 157;
 	track[145].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[145].name, track + 145);
@@ -5191,7 +5191,7 @@ lookup *init_trackb(track_node *track) {
 	track[146].edge[DIR_AHEAD].reverse = &track[271].edge[DIR_AHEAD];
 	track[146].edge[DIR_AHEAD].src = &track[146];
 	track[146].edge[DIR_AHEAD].dest = &track[270];
-	track[146].edge[DIR_AHEAD].dist = 83.25;
+	track[146].edge[DIR_AHEAD].dist = 83;
 	track[146].edge[DIR_AHEAD].num = 158;
 	track[146].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[146].name, track + 146);
@@ -5203,7 +5203,7 @@ lookup *init_trackb(track_node *track) {
 	track[147].edge[DIR_AHEAD].reverse = &track[190].edge[DIR_AHEAD];
 	track[147].edge[DIR_AHEAD].src = &track[147];
 	track[147].edge[DIR_AHEAD].dest = &track[191];
-	track[147].edge[DIR_AHEAD].dist = 83.25;
+	track[147].edge[DIR_AHEAD].dist = 83;
 	track[147].edge[DIR_AHEAD].num = 159;
 	track[147].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[147].name, track + 147);
@@ -5215,7 +5215,7 @@ lookup *init_trackb(track_node *track) {
 	track[148].edge[DIR_AHEAD].reverse = &track[235].edge[DIR_AHEAD];
 	track[148].edge[DIR_AHEAD].src = &track[148];
 	track[148].edge[DIR_AHEAD].dest = &track[234];
-	track[148].edge[DIR_AHEAD].dist = 102.5;
+	track[148].edge[DIR_AHEAD].dist = 102;
 	track[148].edge[DIR_AHEAD].num = 160;
 	track[148].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[148].name, track + 148);
@@ -5227,7 +5227,7 @@ lookup *init_trackb(track_node *track) {
 	track[149].edge[DIR_AHEAD].reverse = &track[192].edge[DIR_AHEAD];
 	track[149].edge[DIR_AHEAD].src = &track[149];
 	track[149].edge[DIR_AHEAD].dest = &track[193];
-	track[149].edge[DIR_AHEAD].dist = 102.5;
+	track[149].edge[DIR_AHEAD].dist = 102;
 	track[149].edge[DIR_AHEAD].num = 161;
 	track[149].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[149].name, track + 149);
@@ -5239,7 +5239,7 @@ lookup *init_trackb(track_node *track) {
 	track[150].edge[DIR_AHEAD].reverse = &track[32].edge[DIR_AHEAD];
 	track[150].edge[DIR_AHEAD].src = &track[150];
 	track[150].edge[DIR_AHEAD].dest = &track[33];
-	track[150].edge[DIR_AHEAD].dist = 102.5;
+	track[150].edge[DIR_AHEAD].dist = 102;
 	track[150].edge[DIR_AHEAD].num = 162;
 	track[150].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[150].name, track + 150);
@@ -5251,7 +5251,7 @@ lookup *init_trackb(track_node *track) {
 	track[151].edge[DIR_AHEAD].reverse = &track[18].edge[DIR_AHEAD];
 	track[151].edge[DIR_AHEAD].src = &track[151];
 	track[151].edge[DIR_AHEAD].dest = &track[19];
-	track[151].edge[DIR_AHEAD].dist = 102.5;
+	track[151].edge[DIR_AHEAD].dist = 102;
 	track[151].edge[DIR_AHEAD].num = 163;
 	track[151].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[151].name, track + 151);
@@ -5263,7 +5263,7 @@ lookup *init_trackb(track_node *track) {
 	track[152].edge[DIR_AHEAD].reverse = &track[237].edge[DIR_AHEAD];
 	track[152].edge[DIR_AHEAD].src = &track[152];
 	track[152].edge[DIR_AHEAD].dest = &track[236];
-	track[152].edge[DIR_AHEAD].dist = 102.5;
+	track[152].edge[DIR_AHEAD].dist = 102;
 	track[152].edge[DIR_AHEAD].num = 164;
 	track[152].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[152].name, track + 152);
@@ -5275,7 +5275,7 @@ lookup *init_trackb(track_node *track) {
 	track[153].edge[DIR_AHEAD].reverse = &track[194].edge[DIR_AHEAD];
 	track[153].edge[DIR_AHEAD].src = &track[153];
 	track[153].edge[DIR_AHEAD].dest = &track[195];
-	track[153].edge[DIR_AHEAD].dist = 102.5;
+	track[153].edge[DIR_AHEAD].dist = 102;
 	track[153].edge[DIR_AHEAD].num = 165;
 	track[153].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[153].name, track + 153);
@@ -5287,7 +5287,7 @@ lookup *init_trackb(track_node *track) {
 	track[154].edge[DIR_AHEAD].reverse = &track[62].edge[DIR_AHEAD];
 	track[154].edge[DIR_AHEAD].src = &track[154];
 	track[154].edge[DIR_AHEAD].dest = &track[63];
-	track[154].edge[DIR_AHEAD].dist = 102.5;
+	track[154].edge[DIR_AHEAD].dist = 102;
 	track[154].edge[DIR_AHEAD].num = 166;
 	track[154].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[154].name, track + 154);
@@ -5299,7 +5299,7 @@ lookup *init_trackb(track_node *track) {
 	track[155].edge[DIR_AHEAD].reverse = &track[29].edge[DIR_AHEAD];
 	track[155].edge[DIR_AHEAD].src = &track[155];
 	track[155].edge[DIR_AHEAD].dest = &track[28];
-	track[155].edge[DIR_AHEAD].dist = 102.5;
+	track[155].edge[DIR_AHEAD].dist = 102;
 	track[155].edge[DIR_AHEAD].num = 167;
 	track[155].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[155].name, track + 155);
@@ -5311,7 +5311,7 @@ lookup *init_trackb(track_node *track) {
 	track[156].edge[DIR_AHEAD].reverse = &track[239].edge[DIR_AHEAD];
 	track[156].edge[DIR_AHEAD].src = &track[156];
 	track[156].edge[DIR_AHEAD].dest = &track[238];
-	track[156].edge[DIR_AHEAD].dist = 103.75;
+	track[156].edge[DIR_AHEAD].dist = 103;
 	track[156].edge[DIR_AHEAD].num = 168;
 	track[156].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[156].name, track + 156);
@@ -5323,7 +5323,7 @@ lookup *init_trackb(track_node *track) {
 	track[157].edge[DIR_AHEAD].reverse = &track[196].edge[DIR_AHEAD];
 	track[157].edge[DIR_AHEAD].src = &track[157];
 	track[157].edge[DIR_AHEAD].dest = &track[197];
-	track[157].edge[DIR_AHEAD].dist = 103.75;
+	track[157].edge[DIR_AHEAD].dist = 103;
 	track[157].edge[DIR_AHEAD].num = 169;
 	track[157].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[157].name, track + 157);
@@ -5335,7 +5335,7 @@ lookup *init_trackb(track_node *track) {
 	track[158].edge[DIR_AHEAD].reverse = &track[273].edge[DIR_AHEAD];
 	track[158].edge[DIR_AHEAD].src = &track[158];
 	track[158].edge[DIR_AHEAD].dest = &track[272];
-	track[158].edge[DIR_AHEAD].dist = 72.75;
+	track[158].edge[DIR_AHEAD].dist = 72;
 	track[158].edge[DIR_AHEAD].num = 170;
 	track[158].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[158].name, track + 158);
@@ -5347,7 +5347,7 @@ lookup *init_trackb(track_node *track) {
 	track[159].edge[DIR_AHEAD].reverse = &track[198].edge[DIR_AHEAD];
 	track[159].edge[DIR_AHEAD].src = &track[159];
 	track[159].edge[DIR_AHEAD].dest = &track[199];
-	track[159].edge[DIR_AHEAD].dist = 72.75;
+	track[159].edge[DIR_AHEAD].dist = 72;
 	track[159].edge[DIR_AHEAD].num = 171;
 	track[159].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[159].name, track + 159);
@@ -5359,7 +5359,7 @@ lookup *init_trackb(track_node *track) {
 	track[160].edge[DIR_AHEAD].reverse = &track[241].edge[DIR_AHEAD];
 	track[160].edge[DIR_AHEAD].src = &track[160];
 	track[160].edge[DIR_AHEAD].dest = &track[240];
-	track[160].edge[DIR_AHEAD].dist = 99.5;
+	track[160].edge[DIR_AHEAD].dist = 99;
 	track[160].edge[DIR_AHEAD].num = 172;
 	track[160].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[160].name, track + 160);
@@ -5371,7 +5371,7 @@ lookup *init_trackb(track_node *track) {
 	track[161].edge[DIR_AHEAD].reverse = &track[200].edge[DIR_AHEAD];
 	track[161].edge[DIR_AHEAD].src = &track[161];
 	track[161].edge[DIR_AHEAD].dest = &track[201];
-	track[161].edge[DIR_AHEAD].dist = 99.5;
+	track[161].edge[DIR_AHEAD].dist = 99;
 	track[161].edge[DIR_AHEAD].num = 173;
 	track[161].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[161].name, track + 161);
@@ -5383,7 +5383,7 @@ lookup *init_trackb(track_node *track) {
 	track[162].edge[DIR_AHEAD].reverse = &track[109].edge[DIR_AHEAD];
 	track[162].edge[DIR_AHEAD].src = &track[162];
 	track[162].edge[DIR_AHEAD].dest = &track[108];
-	track[162].edge[DIR_AHEAD].dist = 70.0;
+	track[162].edge[DIR_AHEAD].dist = 70;
 	track[162].edge[DIR_AHEAD].num = 174;
 	track[162].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[162].name, track + 162);
@@ -5395,7 +5395,7 @@ lookup *init_trackb(track_node *track) {
 	track[163].edge[DIR_AHEAD].reverse = &track[41].edge[DIR_AHEAD];
 	track[163].edge[DIR_AHEAD].src = &track[163];
 	track[163].edge[DIR_AHEAD].dest = &track[40];
-	track[163].edge[DIR_AHEAD].dist = 70.0;
+	track[163].edge[DIR_AHEAD].dist = 70;
 	track[163].edge[DIR_AHEAD].num = 175;
 	track[163].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[163].name, track + 163);
@@ -5407,7 +5407,7 @@ lookup *init_trackb(track_node *track) {
 	track[164].edge[DIR_AHEAD].reverse = &track[267].edge[DIR_AHEAD];
 	track[164].edge[DIR_AHEAD].src = &track[164];
 	track[164].edge[DIR_AHEAD].dest = &track[266];
-	track[164].edge[DIR_AHEAD].dist = 97.5;
+	track[164].edge[DIR_AHEAD].dist = 97;
 	track[164].edge[DIR_AHEAD].num = 176;
 	track[164].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[164].name, track + 164);
@@ -5419,7 +5419,7 @@ lookup *init_trackb(track_node *track) {
 	track[165].edge[DIR_AHEAD].reverse = &track[254].edge[DIR_AHEAD];
 	track[165].edge[DIR_AHEAD].src = &track[165];
 	track[165].edge[DIR_AHEAD].dest = &track[255];
-	track[165].edge[DIR_AHEAD].dist = 97.5;
+	track[165].edge[DIR_AHEAD].dist = 97;
 	track[165].edge[DIR_AHEAD].num = 177;
 	track[165].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[165].name, track + 165);
@@ -5431,7 +5431,7 @@ lookup *init_trackb(track_node *track) {
 	track[166].edge[DIR_AHEAD].reverse = &track[275].edge[DIR_AHEAD];
 	track[166].edge[DIR_AHEAD].src = &track[166];
 	track[166].edge[DIR_AHEAD].dest = &track[274];
-	track[166].edge[DIR_AHEAD].dist = 101.25;
+	track[166].edge[DIR_AHEAD].dist = 101;
 	track[166].edge[DIR_AHEAD].num = 178;
 	track[166].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[166].name, track + 166);
@@ -5443,7 +5443,7 @@ lookup *init_trackb(track_node *track) {
 	track[167].edge[DIR_AHEAD].reverse = &track[204].edge[DIR_AHEAD];
 	track[167].edge[DIR_AHEAD].src = &track[167];
 	track[167].edge[DIR_AHEAD].dest = &track[205];
-	track[167].edge[DIR_AHEAD].dist = 101.25;
+	track[167].edge[DIR_AHEAD].dist = 101;
 	track[167].edge[DIR_AHEAD].num = 179;
 	track[167].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[167].name, track + 167);
@@ -5455,7 +5455,7 @@ lookup *init_trackb(track_node *track) {
 	track[168].edge[DIR_AHEAD].reverse = &track[66].edge[DIR_AHEAD];
 	track[168].edge[DIR_AHEAD].src = &track[168];
 	track[168].edge[DIR_AHEAD].dest = &track[67];
-	track[168].edge[DIR_AHEAD].dist = 102.5;
+	track[168].edge[DIR_AHEAD].dist = 102;
 	track[168].edge[DIR_AHEAD].num = 180;
 	track[168].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[168].name, track + 168);
@@ -5467,7 +5467,7 @@ lookup *init_trackb(track_node *track) {
 	track[169].edge[DIR_AHEAD].reverse = &track[49].edge[DIR_AHEAD];
 	track[169].edge[DIR_AHEAD].src = &track[169];
 	track[169].edge[DIR_AHEAD].dest = &track[48];
-	track[169].edge[DIR_AHEAD].dist = 102.5;
+	track[169].edge[DIR_AHEAD].dist = 102;
 	track[169].edge[DIR_AHEAD].num = 181;
 	track[169].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[169].name, track + 169);
@@ -5479,7 +5479,7 @@ lookup *init_trackb(track_node *track) {
 	track[170].edge[DIR_AHEAD].reverse = &track[245].edge[DIR_AHEAD];
 	track[170].edge[DIR_AHEAD].src = &track[170];
 	track[170].edge[DIR_AHEAD].dest = &track[244];
-	track[170].edge[DIR_AHEAD].dist = 71.25;
+	track[170].edge[DIR_AHEAD].dist = 71;
 	track[170].edge[DIR_AHEAD].num = 182;
 	track[170].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[170].name, track + 170);
@@ -5491,7 +5491,7 @@ lookup *init_trackb(track_node *track) {
 	track[171].edge[DIR_AHEAD].reverse = &track[206].edge[DIR_AHEAD];
 	track[171].edge[DIR_AHEAD].src = &track[171];
 	track[171].edge[DIR_AHEAD].dest = &track[207];
-	track[171].edge[DIR_AHEAD].dist = 71.25;
+	track[171].edge[DIR_AHEAD].dist = 71;
 	track[171].edge[DIR_AHEAD].num = 183;
 	track[171].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[171].name, track + 171);
@@ -5503,7 +5503,7 @@ lookup *init_trackb(track_node *track) {
 	track[172].edge[DIR_AHEAD].reverse = &track[277].edge[DIR_AHEAD];
 	track[172].edge[DIR_AHEAD].src = &track[172];
 	track[172].edge[DIR_AHEAD].dest = &track[276];
-	track[172].edge[DIR_AHEAD].dist = 96.5;
+	track[172].edge[DIR_AHEAD].dist = 96;
 	track[172].edge[DIR_AHEAD].num = 184;
 	track[172].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[172].name, track + 172);
@@ -5515,7 +5515,7 @@ lookup *init_trackb(track_node *track) {
 	track[173].edge[DIR_AHEAD].reverse = &track[208].edge[DIR_AHEAD];
 	track[173].edge[DIR_AHEAD].src = &track[173];
 	track[173].edge[DIR_AHEAD].dest = &track[209];
-	track[173].edge[DIR_AHEAD].dist = 96.5;
+	track[173].edge[DIR_AHEAD].dist = 96;
 	track[173].edge[DIR_AHEAD].num = 185;
 	track[173].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[173].name, track + 173);
@@ -5527,7 +5527,7 @@ lookup *init_trackb(track_node *track) {
 	track[174].edge[DIR_AHEAD].reverse = &track[79].edge[DIR_AHEAD];
 	track[174].edge[DIR_AHEAD].src = &track[174];
 	track[174].edge[DIR_AHEAD].dest = &track[78];
-	track[174].edge[DIR_AHEAD].dist = 102.5;
+	track[174].edge[DIR_AHEAD].dist = 102;
 	track[174].edge[DIR_AHEAD].num = 186;
 	track[174].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[174].name, track + 174);
@@ -5539,7 +5539,7 @@ lookup *init_trackb(track_node *track) {
 	track[175].edge[DIR_AHEAD].reverse = &track[65].edge[DIR_AHEAD];
 	track[175].edge[DIR_AHEAD].src = &track[175];
 	track[175].edge[DIR_AHEAD].dest = &track[64];
-	track[175].edge[DIR_AHEAD].dist = 102.5;
+	track[175].edge[DIR_AHEAD].dist = 102;
 	track[175].edge[DIR_AHEAD].num = 187;
 	track[175].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[175].name, track + 175);
@@ -5551,7 +5551,7 @@ lookup *init_trackb(track_node *track) {
 	track[176].edge[DIR_AHEAD].reverse = &track[247].edge[DIR_AHEAD];
 	track[176].edge[DIR_AHEAD].src = &track[176];
 	track[176].edge[DIR_AHEAD].dest = &track[246];
-	track[176].edge[DIR_AHEAD].dist = 72.5;
+	track[176].edge[DIR_AHEAD].dist = 72;
 	track[176].edge[DIR_AHEAD].num = 188;
 	track[176].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[176].name, track + 176);
@@ -5563,7 +5563,7 @@ lookup *init_trackb(track_node *track) {
 	track[177].edge[DIR_AHEAD].reverse = &track[210].edge[DIR_AHEAD];
 	track[177].edge[DIR_AHEAD].src = &track[177];
 	track[177].edge[DIR_AHEAD].dest = &track[211];
-	track[177].edge[DIR_AHEAD].dist = 72.5;
+	track[177].edge[DIR_AHEAD].dist = 72;
 	track[177].edge[DIR_AHEAD].num = 189;
 	track[177].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[177].name, track + 177);
@@ -5575,7 +5575,7 @@ lookup *init_trackb(track_node *track) {
 	track[178].edge[DIR_AHEAD].reverse = &track[95].edge[DIR_AHEAD];
 	track[178].edge[DIR_AHEAD].src = &track[178];
 	track[178].edge[DIR_AHEAD].dest = &track[94];
-	track[178].edge[DIR_AHEAD].dist = 93.5;
+	track[178].edge[DIR_AHEAD].dist = 93;
 	track[178].edge[DIR_AHEAD].num = 190;
 	track[178].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[178].name, track + 178);
@@ -5587,7 +5587,7 @@ lookup *init_trackb(track_node *track) {
 	track[179].edge[DIR_AHEAD].reverse = &track[93].edge[DIR_AHEAD];
 	track[179].edge[DIR_AHEAD].src = &track[179];
 	track[179].edge[DIR_AHEAD].dest = &track[92];
-	track[179].edge[DIR_AHEAD].dist = 93.5;
+	track[179].edge[DIR_AHEAD].dist = 93;
 	track[179].edge[DIR_AHEAD].num = 191;
 	track[179].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[179].name, track + 179);
@@ -5599,7 +5599,7 @@ lookup *init_trackb(track_node *track) {
 	track[180].edge[DIR_AHEAD].reverse = &track[249].edge[DIR_AHEAD];
 	track[180].edge[DIR_AHEAD].src = &track[180];
 	track[180].edge[DIR_AHEAD].dest = &track[248];
-	track[180].edge[DIR_AHEAD].dist = 65.375;
+	track[180].edge[DIR_AHEAD].dist = 65;
 	track[180].edge[DIR_AHEAD].num = 192;
 	track[180].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[180].name, track + 180);
@@ -5611,7 +5611,7 @@ lookup *init_trackb(track_node *track) {
 	track[181].edge[DIR_AHEAD].reverse = &track[212].edge[DIR_AHEAD];
 	track[181].edge[DIR_AHEAD].src = &track[181];
 	track[181].edge[DIR_AHEAD].dest = &track[213];
-	track[181].edge[DIR_AHEAD].dist = 65.375;
+	track[181].edge[DIR_AHEAD].dist = 65;
 	track[181].edge[DIR_AHEAD].num = 193;
 	track[181].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[181].name, track + 181);
@@ -5623,7 +5623,7 @@ lookup *init_trackb(track_node *track) {
 	track[182].edge[DIR_AHEAD].reverse = &track[139].edge[DIR_AHEAD];
 	track[182].edge[DIR_AHEAD].src = &track[182];
 	track[182].edge[DIR_AHEAD].dest = &track[138];
-	track[182].edge[DIR_AHEAD].dist = 111.25;
+	track[182].edge[DIR_AHEAD].dist = 111;
 	track[182].edge[DIR_AHEAD].num = 194;
 	track[182].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[182].name, track + 182);
@@ -5635,7 +5635,7 @@ lookup *init_trackb(track_node *track) {
 	track[183].edge[DIR_AHEAD].reverse = &track[3].edge[DIR_AHEAD];
 	track[183].edge[DIR_AHEAD].src = &track[183];
 	track[183].edge[DIR_AHEAD].dest = &track[2];
-	track[183].edge[DIR_AHEAD].dist = 111.25;
+	track[183].edge[DIR_AHEAD].dist = 111;
 	track[183].edge[DIR_AHEAD].num = 195;
 	track[183].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[183].name, track + 183);
@@ -5647,7 +5647,7 @@ lookup *init_trackb(track_node *track) {
 	track[184].edge[DIR_AHEAD].reverse = &track[251].edge[DIR_AHEAD];
 	track[184].edge[DIR_AHEAD].src = &track[184];
 	track[184].edge[DIR_AHEAD].dest = &track[250];
-	track[184].edge[DIR_AHEAD].dist = 83.125;
+	track[184].edge[DIR_AHEAD].dist = 83;
 	track[184].edge[DIR_AHEAD].num = 196;
 	track[184].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[184].name, track + 184);
@@ -5659,7 +5659,7 @@ lookup *init_trackb(track_node *track) {
 	track[185].edge[DIR_AHEAD].reverse = &track[214].edge[DIR_AHEAD];
 	track[185].edge[DIR_AHEAD].src = &track[185];
 	track[185].edge[DIR_AHEAD].dest = &track[215];
-	track[185].edge[DIR_AHEAD].dist = 83.125;
+	track[185].edge[DIR_AHEAD].dist = 83;
 	track[185].edge[DIR_AHEAD].num = 197;
 	track[185].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[185].name, track + 185);
@@ -5671,7 +5671,7 @@ lookup *init_trackb(track_node *track) {
 	track[186].edge[DIR_AHEAD].reverse = &track[143].edge[DIR_AHEAD];
 	track[186].edge[DIR_AHEAD].src = &track[186];
 	track[186].edge[DIR_AHEAD].dest = &track[142];
-	track[186].edge[DIR_AHEAD].dist = 68.75;
+	track[186].edge[DIR_AHEAD].dist = 68;
 	track[186].edge[DIR_AHEAD].num = 198;
 	track[186].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[186].name, track + 186);
@@ -5683,7 +5683,7 @@ lookup *init_trackb(track_node *track) {
 	track[187].edge[DIR_AHEAD].reverse = &track[8].edge[DIR_AHEAD];
 	track[187].edge[DIR_AHEAD].src = &track[187];
 	track[187].edge[DIR_AHEAD].dest = &track[9];
-	track[187].edge[DIR_AHEAD].dist = 68.75;
+	track[187].edge[DIR_AHEAD].dist = 68;
 	track[187].edge[DIR_AHEAD].num = 199;
 	track[187].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[187].name, track + 187);
@@ -5695,7 +5695,7 @@ lookup *init_trackb(track_node *track) {
 	track[188].edge[DIR_AHEAD].reverse = &track[253].edge[DIR_AHEAD];
 	track[188].edge[DIR_AHEAD].src = &track[188];
 	track[188].edge[DIR_AHEAD].dest = &track[252];
-	track[188].edge[DIR_AHEAD].dist = 100.625;
+	track[188].edge[DIR_AHEAD].dist = 100;
 	track[188].edge[DIR_AHEAD].num = 200;
 	track[188].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[188].name, track + 188);
@@ -5707,7 +5707,7 @@ lookup *init_trackb(track_node *track) {
 	track[189].edge[DIR_AHEAD].reverse = &track[216].edge[DIR_AHEAD];
 	track[189].edge[DIR_AHEAD].src = &track[189];
 	track[189].edge[DIR_AHEAD].dest = &track[217];
-	track[189].edge[DIR_AHEAD].dist = 100.625;
+	track[189].edge[DIR_AHEAD].dist = 100;
 	track[189].edge[DIR_AHEAD].num = 201;
 	track[189].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[189].name, track + 189);
@@ -5719,7 +5719,7 @@ lookup *init_trackb(track_node *track) {
 	track[190].edge[DIR_AHEAD].reverse = &track[147].edge[DIR_AHEAD];
 	track[190].edge[DIR_AHEAD].src = &track[190];
 	track[190].edge[DIR_AHEAD].dest = &track[146];
-	track[190].edge[DIR_AHEAD].dist = 83.25;
+	track[190].edge[DIR_AHEAD].dist = 83;
 	track[190].edge[DIR_AHEAD].num = 202;
 	track[190].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[190].name, track + 190);
@@ -5731,7 +5731,7 @@ lookup *init_trackb(track_node *track) {
 	track[191].edge[DIR_AHEAD].reverse = &track[13].edge[DIR_AHEAD];
 	track[191].edge[DIR_AHEAD].src = &track[191];
 	track[191].edge[DIR_AHEAD].dest = &track[12];
-	track[191].edge[DIR_AHEAD].dist = 83.25;
+	track[191].edge[DIR_AHEAD].dist = 83;
 	track[191].edge[DIR_AHEAD].num = 203;
 	track[191].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[191].name, track + 191);
@@ -5743,7 +5743,7 @@ lookup *init_trackb(track_node *track) {
 	track[192].edge[DIR_AHEAD].reverse = &track[149].edge[DIR_AHEAD];
 	track[192].edge[DIR_AHEAD].src = &track[192];
 	track[192].edge[DIR_AHEAD].dest = &track[148];
-	track[192].edge[DIR_AHEAD].dist = 102.5;
+	track[192].edge[DIR_AHEAD].dist = 102;
 	track[192].edge[DIR_AHEAD].num = 204;
 	track[192].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[192].name, track + 192);
@@ -5755,7 +5755,7 @@ lookup *init_trackb(track_node *track) {
 	track[193].edge[DIR_AHEAD].reverse = &track[16].edge[DIR_AHEAD];
 	track[193].edge[DIR_AHEAD].src = &track[193];
 	track[193].edge[DIR_AHEAD].dest = &track[17];
-	track[193].edge[DIR_AHEAD].dist = 102.5;
+	track[193].edge[DIR_AHEAD].dist = 102;
 	track[193].edge[DIR_AHEAD].num = 205;
 	track[193].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[193].name, track + 193);
@@ -5767,7 +5767,7 @@ lookup *init_trackb(track_node *track) {
 	track[194].edge[DIR_AHEAD].reverse = &track[153].edge[DIR_AHEAD];
 	track[194].edge[DIR_AHEAD].src = &track[194];
 	track[194].edge[DIR_AHEAD].dest = &track[152];
-	track[194].edge[DIR_AHEAD].dist = 102.5;
+	track[194].edge[DIR_AHEAD].dist = 102;
 	track[194].edge[DIR_AHEAD].num = 206;
 	track[194].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[194].name, track + 194);
@@ -5779,7 +5779,7 @@ lookup *init_trackb(track_node *track) {
 	track[195].edge[DIR_AHEAD].reverse = &track[20].edge[DIR_AHEAD];
 	track[195].edge[DIR_AHEAD].src = &track[195];
 	track[195].edge[DIR_AHEAD].dest = &track[21];
-	track[195].edge[DIR_AHEAD].dist = 102.5;
+	track[195].edge[DIR_AHEAD].dist = 102;
 	track[195].edge[DIR_AHEAD].num = 207;
 	track[195].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[195].name, track + 195);
@@ -5791,7 +5791,7 @@ lookup *init_trackb(track_node *track) {
 	track[196].edge[DIR_AHEAD].reverse = &track[157].edge[DIR_AHEAD];
 	track[196].edge[DIR_AHEAD].src = &track[196];
 	track[196].edge[DIR_AHEAD].dest = &track[156];
-	track[196].edge[DIR_AHEAD].dist = 103.75;
+	track[196].edge[DIR_AHEAD].dist = 103;
 	track[196].edge[DIR_AHEAD].num = 208;
 	track[196].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[196].name, track + 196);
@@ -5803,7 +5803,7 @@ lookup *init_trackb(track_node *track) {
 	track[197].edge[DIR_AHEAD].reverse = &track[34].edge[DIR_AHEAD];
 	track[197].edge[DIR_AHEAD].src = &track[197];
 	track[197].edge[DIR_AHEAD].dest = &track[35];
-	track[197].edge[DIR_AHEAD].dist = 103.75;
+	track[197].edge[DIR_AHEAD].dist = 103;
 	track[197].edge[DIR_AHEAD].num = 209;
 	track[197].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[197].name, track + 197);
@@ -5815,7 +5815,7 @@ lookup *init_trackb(track_node *track) {
 	track[198].edge[DIR_AHEAD].reverse = &track[159].edge[DIR_AHEAD];
 	track[198].edge[DIR_AHEAD].src = &track[198];
 	track[198].edge[DIR_AHEAD].dest = &track[158];
-	track[198].edge[DIR_AHEAD].dist = 72.75;
+	track[198].edge[DIR_AHEAD].dist = 72;
 	track[198].edge[DIR_AHEAD].num = 210;
 	track[198].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[198].name, track + 198);
@@ -5827,7 +5827,7 @@ lookup *init_trackb(track_node *track) {
 	track[199].edge[DIR_AHEAD].reverse = &track[36].edge[DIR_AHEAD];
 	track[199].edge[DIR_AHEAD].src = &track[199];
 	track[199].edge[DIR_AHEAD].dest = &track[37];
-	track[199].edge[DIR_AHEAD].dist = 72.75;
+	track[199].edge[DIR_AHEAD].dist = 72;
 	track[199].edge[DIR_AHEAD].num = 211;
 	track[199].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[199].name, track + 199);
@@ -5839,7 +5839,7 @@ lookup *init_trackb(track_node *track) {
 	track[200].edge[DIR_AHEAD].reverse = &track[161].edge[DIR_AHEAD];
 	track[200].edge[DIR_AHEAD].src = &track[200];
 	track[200].edge[DIR_AHEAD].dest = &track[160];
-	track[200].edge[DIR_AHEAD].dist = 99.5;
+	track[200].edge[DIR_AHEAD].dist = 99;
 	track[200].edge[DIR_AHEAD].num = 212;
 	track[200].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[200].name, track + 200);
@@ -5851,7 +5851,7 @@ lookup *init_trackb(track_node *track) {
 	track[201].edge[DIR_AHEAD].reverse = &track[38].edge[DIR_AHEAD];
 	track[201].edge[DIR_AHEAD].src = &track[201];
 	track[201].edge[DIR_AHEAD].dest = &track[39];
-	track[201].edge[DIR_AHEAD].dist = 99.5;
+	track[201].edge[DIR_AHEAD].dist = 99;
 	track[201].edge[DIR_AHEAD].num = 213;
 	track[201].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[201].name, track + 201);
@@ -5863,7 +5863,7 @@ lookup *init_trackb(track_node *track) {
 	track[202].edge[DIR_AHEAD].reverse = &track[255].edge[DIR_AHEAD];
 	track[202].edge[DIR_AHEAD].src = &track[202];
 	track[202].edge[DIR_AHEAD].dest = &track[254];
-	track[202].edge[DIR_AHEAD].dist = 97.5;
+	track[202].edge[DIR_AHEAD].dist = 97;
 	track[202].edge[DIR_AHEAD].num = 214;
 	track[202].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[202].name, track + 202);
@@ -5875,7 +5875,7 @@ lookup *init_trackb(track_node *track) {
 	track[203].edge[DIR_AHEAD].reverse = &track[218].edge[DIR_AHEAD];
 	track[203].edge[DIR_AHEAD].src = &track[203];
 	track[203].edge[DIR_AHEAD].dest = &track[219];
-	track[203].edge[DIR_AHEAD].dist = 97.5;
+	track[203].edge[DIR_AHEAD].dist = 97;
 	track[203].edge[DIR_AHEAD].num = 215;
 	track[203].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[203].name, track + 203);
@@ -5887,7 +5887,7 @@ lookup *init_trackb(track_node *track) {
 	track[204].edge[DIR_AHEAD].reverse = &track[167].edge[DIR_AHEAD];
 	track[204].edge[DIR_AHEAD].src = &track[204];
 	track[204].edge[DIR_AHEAD].dest = &track[166];
-	track[204].edge[DIR_AHEAD].dist = 101.25;
+	track[204].edge[DIR_AHEAD].dist = 101;
 	track[204].edge[DIR_AHEAD].num = 216;
 	track[204].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[204].name, track + 204);
@@ -5899,7 +5899,7 @@ lookup *init_trackb(track_node *track) {
 	track[205].edge[DIR_AHEAD].reverse = &track[46].edge[DIR_AHEAD];
 	track[205].edge[DIR_AHEAD].src = &track[205];
 	track[205].edge[DIR_AHEAD].dest = &track[47];
-	track[205].edge[DIR_AHEAD].dist = 101.25;
+	track[205].edge[DIR_AHEAD].dist = 101;
 	track[205].edge[DIR_AHEAD].num = 217;
 	track[205].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[205].name, track + 205);
@@ -5911,7 +5911,7 @@ lookup *init_trackb(track_node *track) {
 	track[206].edge[DIR_AHEAD].reverse = &track[171].edge[DIR_AHEAD];
 	track[206].edge[DIR_AHEAD].src = &track[206];
 	track[206].edge[DIR_AHEAD].dest = &track[170];
-	track[206].edge[DIR_AHEAD].dist = 71.25;
+	track[206].edge[DIR_AHEAD].dist = 71;
 	track[206].edge[DIR_AHEAD].num = 218;
 	track[206].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[206].name, track + 206);
@@ -5923,7 +5923,7 @@ lookup *init_trackb(track_node *track) {
 	track[207].edge[DIR_AHEAD].reverse = &track[52].edge[DIR_AHEAD];
 	track[207].edge[DIR_AHEAD].src = &track[207];
 	track[207].edge[DIR_AHEAD].dest = &track[53];
-	track[207].edge[DIR_AHEAD].dist = 71.25;
+	track[207].edge[DIR_AHEAD].dist = 71;
 	track[207].edge[DIR_AHEAD].num = 219;
 	track[207].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[207].name, track + 207);
@@ -5935,7 +5935,7 @@ lookup *init_trackb(track_node *track) {
 	track[208].edge[DIR_AHEAD].reverse = &track[173].edge[DIR_AHEAD];
 	track[208].edge[DIR_AHEAD].src = &track[208];
 	track[208].edge[DIR_AHEAD].dest = &track[172];
-	track[208].edge[DIR_AHEAD].dist = 96.5;
+	track[208].edge[DIR_AHEAD].dist = 96;
 	track[208].edge[DIR_AHEAD].num = 220;
 	track[208].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[208].name, track + 208);
@@ -5947,7 +5947,7 @@ lookup *init_trackb(track_node *track) {
 	track[209].edge[DIR_AHEAD].reverse = &track[55].edge[DIR_AHEAD];
 	track[209].edge[DIR_AHEAD].src = &track[209];
 	track[209].edge[DIR_AHEAD].dest = &track[54];
-	track[209].edge[DIR_AHEAD].dist = 96.5;
+	track[209].edge[DIR_AHEAD].dist = 96;
 	track[209].edge[DIR_AHEAD].num = 221;
 	track[209].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[209].name, track + 209);
@@ -5959,7 +5959,7 @@ lookup *init_trackb(track_node *track) {
 	track[210].edge[DIR_AHEAD].reverse = &track[177].edge[DIR_AHEAD];
 	track[210].edge[DIR_AHEAD].src = &track[210];
 	track[210].edge[DIR_AHEAD].dest = &track[176];
-	track[210].edge[DIR_AHEAD].dist = 72.5;
+	track[210].edge[DIR_AHEAD].dist = 72;
 	track[210].edge[DIR_AHEAD].num = 222;
 	track[210].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[210].name, track + 210);
@@ -5971,7 +5971,7 @@ lookup *init_trackb(track_node *track) {
 	track[211].edge[DIR_AHEAD].reverse = &track[73].edge[DIR_AHEAD];
 	track[211].edge[DIR_AHEAD].src = &track[211];
 	track[211].edge[DIR_AHEAD].dest = &track[72];
-	track[211].edge[DIR_AHEAD].dist = 72.5;
+	track[211].edge[DIR_AHEAD].dist = 72;
 	track[211].edge[DIR_AHEAD].num = 223;
 	track[211].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[211].name, track + 211);
@@ -5983,7 +5983,7 @@ lookup *init_trackb(track_node *track) {
 	track[212].edge[DIR_AHEAD].reverse = &track[181].edge[DIR_AHEAD];
 	track[212].edge[DIR_AHEAD].src = &track[212];
 	track[212].edge[DIR_AHEAD].dest = &track[180];
-	track[212].edge[DIR_AHEAD].dist = 65.375;
+	track[212].edge[DIR_AHEAD].dist = 65;
 	track[212].edge[DIR_AHEAD].num = 224;
 	track[212].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[212].name, track + 212);
@@ -5995,7 +5995,7 @@ lookup *init_trackb(track_node *track) {
 	track[213].edge[DIR_AHEAD].reverse = &track[1].edge[DIR_AHEAD];
 	track[213].edge[DIR_AHEAD].src = &track[213];
 	track[213].edge[DIR_AHEAD].dest = &track[0];
-	track[213].edge[DIR_AHEAD].dist = 65.375;
+	track[213].edge[DIR_AHEAD].dist = 65;
 	track[213].edge[DIR_AHEAD].num = 225;
 	track[213].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[213].name, track + 213);
@@ -6007,7 +6007,7 @@ lookup *init_trackb(track_node *track) {
 	track[214].edge[DIR_AHEAD].reverse = &track[185].edge[DIR_AHEAD];
 	track[214].edge[DIR_AHEAD].src = &track[214];
 	track[214].edge[DIR_AHEAD].dest = &track[184];
-	track[214].edge[DIR_AHEAD].dist = 83.125;
+	track[214].edge[DIR_AHEAD].dist = 83;
 	track[214].edge[DIR_AHEAD].num = 226;
 	track[214].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[214].name, track + 214);
@@ -6019,7 +6019,7 @@ lookup *init_trackb(track_node *track) {
 	track[215].edge[DIR_AHEAD].reverse = &track[5].edge[DIR_AHEAD];
 	track[215].edge[DIR_AHEAD].src = &track[215];
 	track[215].edge[DIR_AHEAD].dest = &track[4];
-	track[215].edge[DIR_AHEAD].dist = 83.125;
+	track[215].edge[DIR_AHEAD].dist = 83;
 	track[215].edge[DIR_AHEAD].num = 227;
 	track[215].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[215].name, track + 215);
@@ -6031,7 +6031,7 @@ lookup *init_trackb(track_node *track) {
 	track[216].edge[DIR_AHEAD].reverse = &track[189].edge[DIR_AHEAD];
 	track[216].edge[DIR_AHEAD].src = &track[216];
 	track[216].edge[DIR_AHEAD].dest = &track[188];
-	track[216].edge[DIR_AHEAD].dist = 100.625;
+	track[216].edge[DIR_AHEAD].dist = 100;
 	track[216].edge[DIR_AHEAD].num = 228;
 	track[216].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[216].name, track + 216);
@@ -6043,7 +6043,7 @@ lookup *init_trackb(track_node *track) {
 	track[217].edge[DIR_AHEAD].reverse = &track[11].edge[DIR_AHEAD];
 	track[217].edge[DIR_AHEAD].src = &track[217];
 	track[217].edge[DIR_AHEAD].dest = &track[10];
-	track[217].edge[DIR_AHEAD].dist = 100.625;
+	track[217].edge[DIR_AHEAD].dist = 100;
 	track[217].edge[DIR_AHEAD].num = 229;
 	track[217].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[217].name, track + 217);
@@ -6055,7 +6055,7 @@ lookup *init_trackb(track_node *track) {
 	track[218].edge[DIR_AHEAD].reverse = &track[203].edge[DIR_AHEAD];
 	track[218].edge[DIR_AHEAD].src = &track[218];
 	track[218].edge[DIR_AHEAD].dest = &track[202];
-	track[218].edge[DIR_AHEAD].dist = 97.5;
+	track[218].edge[DIR_AHEAD].dist = 97;
 	track[218].edge[DIR_AHEAD].num = 230;
 	track[218].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[218].name, track + 218);
@@ -6067,7 +6067,7 @@ lookup *init_trackb(track_node *track) {
 	track[219].edge[DIR_AHEAD].reverse = &track[44].edge[DIR_AHEAD];
 	track[219].edge[DIR_AHEAD].src = &track[219];
 	track[219].edge[DIR_AHEAD].dest = &track[45];
-	track[219].edge[DIR_AHEAD].dist = 97.5;
+	track[219].edge[DIR_AHEAD].dist = 97;
 	track[219].edge[DIR_AHEAD].num = 231;
 	track[219].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[219].name, track + 219);
@@ -6079,7 +6079,7 @@ lookup *init_trackb(track_node *track) {
 	track[220].edge[DIR_AHEAD].reverse = &track[279].edge[DIR_AHEAD];
 	track[220].edge[DIR_AHEAD].src = &track[220];
 	track[220].edge[DIR_AHEAD].dest = &track[278];
-	track[220].edge[DIR_AHEAD].dist = 116.25;
+	track[220].edge[DIR_AHEAD].dist = 116;
 	track[220].edge[DIR_AHEAD].num = 232;
 	track[220].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[220].name, track + 220);
@@ -6091,7 +6091,7 @@ lookup *init_trackb(track_node *track) {
 	track[221].edge[DIR_AHEAD].reverse = &track[256].edge[DIR_AHEAD];
 	track[221].edge[DIR_AHEAD].src = &track[221];
 	track[221].edge[DIR_AHEAD].dest = &track[257];
-	track[221].edge[DIR_AHEAD].dist = 116.25;
+	track[221].edge[DIR_AHEAD].dist = 116;
 	track[221].edge[DIR_AHEAD].num = 233;
 	track[221].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[221].name, track + 221);
@@ -6103,7 +6103,7 @@ lookup *init_trackb(track_node *track) {
 	track[222].edge[DIR_AHEAD].reverse = &track[85].edge[DIR_AHEAD];
 	track[222].edge[DIR_AHEAD].src = &track[222];
 	track[222].edge[DIR_AHEAD].dest = &track[84];
-	track[222].edge[DIR_AHEAD].dist = 72.5;
+	track[222].edge[DIR_AHEAD].dist = 72;
 	track[222].edge[DIR_AHEAD].num = 234;
 	track[222].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[222].name, track + 222);
@@ -6115,7 +6115,7 @@ lookup *init_trackb(track_node *track) {
 	track[223].edge[DIR_AHEAD].reverse = &track[39].edge[DIR_AHEAD];
 	track[223].edge[DIR_AHEAD].src = &track[223];
 	track[223].edge[DIR_AHEAD].dest = &track[38];
-	track[223].edge[DIR_AHEAD].dist = 72.5;
+	track[223].edge[DIR_AHEAD].dist = 72;
 	track[223].edge[DIR_AHEAD].num = 235;
 	track[223].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[223].name, track + 223);
@@ -6127,7 +6127,7 @@ lookup *init_trackb(track_node *track) {
 	track[224].edge[DIR_AHEAD].reverse = &track[103].edge[DIR_AHEAD];
 	track[224].edge[DIR_AHEAD].src = &track[224];
 	track[224].edge[DIR_AHEAD].dest = &track[102];
-	track[224].edge[DIR_AHEAD].dist = 70.0;
+	track[224].edge[DIR_AHEAD].dist = 70;
 	track[224].edge[DIR_AHEAD].num = 236;
 	track[224].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[224].name, track + 224);
@@ -6139,7 +6139,7 @@ lookup *init_trackb(track_node *track) {
 	track[225].edge[DIR_AHEAD].reverse = &track[42].edge[DIR_AHEAD];
 	track[225].edge[DIR_AHEAD].src = &track[225];
 	track[225].edge[DIR_AHEAD].dest = &track[43];
-	track[225].edge[DIR_AHEAD].dist = 70.0;
+	track[225].edge[DIR_AHEAD].dist = 70;
 	track[225].edge[DIR_AHEAD].num = 237;
 	track[225].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[225].name, track + 225);
@@ -6151,7 +6151,7 @@ lookup *init_trackb(track_node *track) {
 	track[226].edge[DIR_AHEAD].reverse = &track[281].edge[DIR_AHEAD];
 	track[226].edge[DIR_AHEAD].src = &track[226];
 	track[226].edge[DIR_AHEAD].dest = &track[280];
-	track[226].edge[DIR_AHEAD].dist = 72.5;
+	track[226].edge[DIR_AHEAD].dist = 72;
 	track[226].edge[DIR_AHEAD].num = 238;
 	track[226].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[226].name, track + 226);
@@ -6163,7 +6163,7 @@ lookup *init_trackb(track_node *track) {
 	track[227].edge[DIR_AHEAD].reverse = &track[258].edge[DIR_AHEAD];
 	track[227].edge[DIR_AHEAD].src = &track[227];
 	track[227].edge[DIR_AHEAD].dest = &track[259];
-	track[227].edge[DIR_AHEAD].dist = 72.5;
+	track[227].edge[DIR_AHEAD].dist = 72;
 	track[227].edge[DIR_AHEAD].num = 239;
 	track[227].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[227].name, track + 227);
@@ -6175,7 +6175,7 @@ lookup *init_trackb(track_node *track) {
 	track[228].edge[DIR_AHEAD].reverse = &track[289].edge[DIR_AHEAD];
 	track[228].edge[DIR_AHEAD].src = &track[228];
 	track[228].edge[DIR_AHEAD].dest = &track[288];
-	track[228].edge[DIR_AHEAD].dist = 65.375;
+	track[228].edge[DIR_AHEAD].dist = 65;
 	track[228].edge[DIR_AHEAD].num = 240;
 	track[228].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[228].name, track + 228);
@@ -6187,7 +6187,7 @@ lookup *init_trackb(track_node *track) {
 	track[229].edge[DIR_AHEAD].reverse = &track[260].edge[DIR_AHEAD];
 	track[229].edge[DIR_AHEAD].src = &track[229];
 	track[229].edge[DIR_AHEAD].dest = &track[261];
-	track[229].edge[DIR_AHEAD].dist = 65.375;
+	track[229].edge[DIR_AHEAD].dist = 65;
 	track[229].edge[DIR_AHEAD].num = 241;
 	track[229].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[229].name, track + 229);
@@ -6199,7 +6199,7 @@ lookup *init_trackb(track_node *track) {
 	track[230].edge[DIR_AHEAD].reverse = &track[283].edge[DIR_AHEAD];
 	track[230].edge[DIR_AHEAD].src = &track[230];
 	track[230].edge[DIR_AHEAD].dest = &track[282];
-	track[230].edge[DIR_AHEAD].dist = 83.125;
+	track[230].edge[DIR_AHEAD].dist = 83;
 	track[230].edge[DIR_AHEAD].num = 242;
 	track[230].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[230].name, track + 230);
@@ -6211,7 +6211,7 @@ lookup *init_trackb(track_node *track) {
 	track[231].edge[DIR_AHEAD].reverse = &track[262].edge[DIR_AHEAD];
 	track[231].edge[DIR_AHEAD].src = &track[231];
 	track[231].edge[DIR_AHEAD].dest = &track[263];
-	track[231].edge[DIR_AHEAD].dist = 83.125;
+	track[231].edge[DIR_AHEAD].dist = 83;
 	track[231].edge[DIR_AHEAD].num = 243;
 	track[231].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[231].name, track + 231);
@@ -6223,7 +6223,7 @@ lookup *init_trackb(track_node *track) {
 	track[232].edge[DIR_AHEAD].reverse = &track[291].edge[DIR_AHEAD];
 	track[232].edge[DIR_AHEAD].src = &track[232];
 	track[232].edge[DIR_AHEAD].dest = &track[290];
-	track[232].edge[DIR_AHEAD].dist = 100.625;
+	track[232].edge[DIR_AHEAD].dist = 100;
 	track[232].edge[DIR_AHEAD].num = 244;
 	track[232].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[232].name, track + 232);
@@ -6235,7 +6235,7 @@ lookup *init_trackb(track_node *track) {
 	track[233].edge[DIR_AHEAD].reverse = &track[264].edge[DIR_AHEAD];
 	track[233].edge[DIR_AHEAD].src = &track[233];
 	track[233].edge[DIR_AHEAD].dest = &track[265];
-	track[233].edge[DIR_AHEAD].dist = 100.625;
+	track[233].edge[DIR_AHEAD].dist = 100;
 	track[233].edge[DIR_AHEAD].num = 245;
 	track[233].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[233].name, track + 233);
@@ -6247,7 +6247,7 @@ lookup *init_trackb(track_node *track) {
 	track[234].edge[DIR_AHEAD].reverse = &track[60].edge[DIR_AHEAD];
 	track[234].edge[DIR_AHEAD].src = &track[234];
 	track[234].edge[DIR_AHEAD].dest = &track[61];
-	track[234].edge[DIR_AHEAD].dist = 102.5;
+	track[234].edge[DIR_AHEAD].dist = 102;
 	track[234].edge[DIR_AHEAD].num = 246;
 	track[234].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[234].name, track + 234);
@@ -6259,7 +6259,7 @@ lookup *init_trackb(track_node *track) {
 	track[235].edge[DIR_AHEAD].reverse = &track[148].edge[DIR_AHEAD];
 	track[235].edge[DIR_AHEAD].src = &track[235];
 	track[235].edge[DIR_AHEAD].dest = &track[149];
-	track[235].edge[DIR_AHEAD].dist = 102.5;
+	track[235].edge[DIR_AHEAD].dist = 102;
 	track[235].edge[DIR_AHEAD].num = 247;
 	track[235].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[235].name, track + 235);
@@ -6271,7 +6271,7 @@ lookup *init_trackb(track_node *track) {
 	track[236].edge[DIR_AHEAD].reverse = &track[51].edge[DIR_AHEAD];
 	track[236].edge[DIR_AHEAD].src = &track[236];
 	track[236].edge[DIR_AHEAD].dest = &track[50];
-	track[236].edge[DIR_AHEAD].dist = 102.5;
+	track[236].edge[DIR_AHEAD].dist = 102;
 	track[236].edge[DIR_AHEAD].num = 248;
 	track[236].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[236].name, track + 236);
@@ -6283,7 +6283,7 @@ lookup *init_trackb(track_node *track) {
 	track[237].edge[DIR_AHEAD].reverse = &track[152].edge[DIR_AHEAD];
 	track[237].edge[DIR_AHEAD].src = &track[237];
 	track[237].edge[DIR_AHEAD].dest = &track[153];
-	track[237].edge[DIR_AHEAD].dist = 102.5;
+	track[237].edge[DIR_AHEAD].dist = 102;
 	track[237].edge[DIR_AHEAD].num = 249;
 	track[237].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[237].name, track + 237);
@@ -6295,7 +6295,7 @@ lookup *init_trackb(track_node *track) {
 	track[238].edge[DIR_AHEAD].reverse = &track[124].edge[DIR_AHEAD];
 	track[238].edge[DIR_AHEAD].src = &track[238];
 	track[238].edge[DIR_AHEAD].dest = &track[125];
-	track[238].edge[DIR_AHEAD].dist = 103.75;
+	track[238].edge[DIR_AHEAD].dist = 103;
 	track[238].edge[DIR_AHEAD].num = 250;
 	track[238].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[238].name, track + 238);
@@ -6307,7 +6307,7 @@ lookup *init_trackb(track_node *track) {
 	track[239].edge[DIR_AHEAD].reverse = &track[156].edge[DIR_AHEAD];
 	track[239].edge[DIR_AHEAD].src = &track[239];
 	track[239].edge[DIR_AHEAD].dest = &track[157];
-	track[239].edge[DIR_AHEAD].dist = 103.75;
+	track[239].edge[DIR_AHEAD].dist = 103;
 	track[239].edge[DIR_AHEAD].num = 251;
 	track[239].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[239].name, track + 239);
@@ -6319,7 +6319,7 @@ lookup *init_trackb(track_node *track) {
 	track[240].edge[DIR_AHEAD].reverse = &track[89].edge[DIR_AHEAD];
 	track[240].edge[DIR_AHEAD].src = &track[240];
 	track[240].edge[DIR_AHEAD].dest = &track[88];
-	track[240].edge[DIR_AHEAD].dist = 99.5;
+	track[240].edge[DIR_AHEAD].dist = 99;
 	track[240].edge[DIR_AHEAD].num = 252;
 	track[240].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[240].name, track + 240);
@@ -6331,7 +6331,7 @@ lookup *init_trackb(track_node *track) {
 	track[241].edge[DIR_AHEAD].reverse = &track[160].edge[DIR_AHEAD];
 	track[241].edge[DIR_AHEAD].src = &track[241];
 	track[241].edge[DIR_AHEAD].dest = &track[161];
-	track[241].edge[DIR_AHEAD].dist = 99.5;
+	track[241].edge[DIR_AHEAD].dist = 99;
 	track[241].edge[DIR_AHEAD].num = 253;
 	track[241].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[241].name, track + 241);
@@ -6343,7 +6343,7 @@ lookup *init_trackb(track_node *track) {
 	track[242].edge[DIR_AHEAD].reverse = &track[285].edge[DIR_AHEAD];
 	track[242].edge[DIR_AHEAD].src = &track[242];
 	track[242].edge[DIR_AHEAD].dest = &track[284];
-	track[242].edge[DIR_AHEAD].dist = 97.5;
+	track[242].edge[DIR_AHEAD].dist = 97;
 	track[242].edge[DIR_AHEAD].num = 254;
 	track[242].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[242].name, track + 242);
@@ -6355,7 +6355,7 @@ lookup *init_trackb(track_node *track) {
 	track[243].edge[DIR_AHEAD].reverse = &track[266].edge[DIR_AHEAD];
 	track[243].edge[DIR_AHEAD].src = &track[243];
 	track[243].edge[DIR_AHEAD].dest = &track[267];
-	track[243].edge[DIR_AHEAD].dist = 97.5;
+	track[243].edge[DIR_AHEAD].dist = 97;
 	track[243].edge[DIR_AHEAD].num = 255;
 	track[243].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[243].name, track + 243);
@@ -6367,7 +6367,7 @@ lookup *init_trackb(track_node *track) {
 	track[244].edge[DIR_AHEAD].reverse = &track[68].edge[DIR_AHEAD];
 	track[244].edge[DIR_AHEAD].src = &track[244];
 	track[244].edge[DIR_AHEAD].dest = &track[69];
-	track[244].edge[DIR_AHEAD].dist = 71.25;
+	track[244].edge[DIR_AHEAD].dist = 71;
 	track[244].edge[DIR_AHEAD].num = 256;
 	track[244].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[244].name, track + 244);
@@ -6379,7 +6379,7 @@ lookup *init_trackb(track_node *track) {
 	track[245].edge[DIR_AHEAD].reverse = &track[170].edge[DIR_AHEAD];
 	track[245].edge[DIR_AHEAD].src = &track[245];
 	track[245].edge[DIR_AHEAD].dest = &track[171];
-	track[245].edge[DIR_AHEAD].dist = 71.25;
+	track[245].edge[DIR_AHEAD].dist = 71;
 	track[245].edge[DIR_AHEAD].num = 257;
 	track[245].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[245].name, track + 245);
@@ -6391,7 +6391,7 @@ lookup *init_trackb(track_node *track) {
 	track[246].edge[DIR_AHEAD].reverse = &track[77].edge[DIR_AHEAD];
 	track[246].edge[DIR_AHEAD].src = &track[246];
 	track[246].edge[DIR_AHEAD].dest = &track[76];
-	track[246].edge[DIR_AHEAD].dist = 72.5;
+	track[246].edge[DIR_AHEAD].dist = 72;
 	track[246].edge[DIR_AHEAD].num = 258;
 	track[246].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[246].name, track + 246);
@@ -6403,7 +6403,7 @@ lookup *init_trackb(track_node *track) {
 	track[247].edge[DIR_AHEAD].reverse = &track[176].edge[DIR_AHEAD];
 	track[247].edge[DIR_AHEAD].src = &track[247];
 	track[247].edge[DIR_AHEAD].dest = &track[177];
-	track[247].edge[DIR_AHEAD].dist = 72.5;
+	track[247].edge[DIR_AHEAD].dist = 72;
 	track[247].edge[DIR_AHEAD].num = 259;
 	track[247].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[247].name, track + 247);
@@ -6415,7 +6415,7 @@ lookup *init_trackb(track_node *track) {
 	track[248].edge[DIR_AHEAD].reverse = &track[137].edge[DIR_AHEAD];
 	track[248].edge[DIR_AHEAD].src = &track[248];
 	track[248].edge[DIR_AHEAD].dest = &track[136];
-	track[248].edge[DIR_AHEAD].dist = 65.375;
+	track[248].edge[DIR_AHEAD].dist = 65;
 	track[248].edge[DIR_AHEAD].num = 260;
 	track[248].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[248].name, track + 248);
@@ -6427,7 +6427,7 @@ lookup *init_trackb(track_node *track) {
 	track[249].edge[DIR_AHEAD].reverse = &track[180].edge[DIR_AHEAD];
 	track[249].edge[DIR_AHEAD].src = &track[249];
 	track[249].edge[DIR_AHEAD].dest = &track[181];
-	track[249].edge[DIR_AHEAD].dist = 65.375;
+	track[249].edge[DIR_AHEAD].dist = 65;
 	track[249].edge[DIR_AHEAD].num = 261;
 	track[249].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[249].name, track + 249);
@@ -6439,7 +6439,7 @@ lookup *init_trackb(track_node *track) {
 	track[250].edge[DIR_AHEAD].reverse = &track[141].edge[DIR_AHEAD];
 	track[250].edge[DIR_AHEAD].src = &track[250];
 	track[250].edge[DIR_AHEAD].dest = &track[140];
-	track[250].edge[DIR_AHEAD].dist = 83.125;
+	track[250].edge[DIR_AHEAD].dist = 83;
 	track[250].edge[DIR_AHEAD].num = 262;
 	track[250].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[250].name, track + 250);
@@ -6451,7 +6451,7 @@ lookup *init_trackb(track_node *track) {
 	track[251].edge[DIR_AHEAD].reverse = &track[184].edge[DIR_AHEAD];
 	track[251].edge[DIR_AHEAD].src = &track[251];
 	track[251].edge[DIR_AHEAD].dest = &track[185];
-	track[251].edge[DIR_AHEAD].dist = 83.125;
+	track[251].edge[DIR_AHEAD].dist = 83;
 	track[251].edge[DIR_AHEAD].num = 263;
 	track[251].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[251].name, track + 251);
@@ -6463,7 +6463,7 @@ lookup *init_trackb(track_node *track) {
 	track[252].edge[DIR_AHEAD].reverse = &track[145].edge[DIR_AHEAD];
 	track[252].edge[DIR_AHEAD].src = &track[252];
 	track[252].edge[DIR_AHEAD].dest = &track[144];
-	track[252].edge[DIR_AHEAD].dist = 100.625;
+	track[252].edge[DIR_AHEAD].dist = 100;
 	track[252].edge[DIR_AHEAD].num = 264;
 	track[252].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[252].name, track + 252);
@@ -6475,7 +6475,7 @@ lookup *init_trackb(track_node *track) {
 	track[253].edge[DIR_AHEAD].reverse = &track[188].edge[DIR_AHEAD];
 	track[253].edge[DIR_AHEAD].src = &track[253];
 	track[253].edge[DIR_AHEAD].dest = &track[189];
-	track[253].edge[DIR_AHEAD].dist = 100.625;
+	track[253].edge[DIR_AHEAD].dist = 100;
 	track[253].edge[DIR_AHEAD].num = 265;
 	track[253].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[253].name, track + 253);
@@ -6487,7 +6487,7 @@ lookup *init_trackb(track_node *track) {
 	track[254].edge[DIR_AHEAD].reverse = &track[165].edge[DIR_AHEAD];
 	track[254].edge[DIR_AHEAD].src = &track[254];
 	track[254].edge[DIR_AHEAD].dest = &track[164];
-	track[254].edge[DIR_AHEAD].dist = 97.5;
+	track[254].edge[DIR_AHEAD].dist = 97;
 	track[254].edge[DIR_AHEAD].num = 266;
 	track[254].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[254].name, track + 254);
@@ -6499,7 +6499,7 @@ lookup *init_trackb(track_node *track) {
 	track[255].edge[DIR_AHEAD].reverse = &track[202].edge[DIR_AHEAD];
 	track[255].edge[DIR_AHEAD].src = &track[255];
 	track[255].edge[DIR_AHEAD].dest = &track[203];
-	track[255].edge[DIR_AHEAD].dist = 97.5;
+	track[255].edge[DIR_AHEAD].dist = 97;
 	track[255].edge[DIR_AHEAD].num = 267;
 	track[255].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[255].name, track + 255);
@@ -6511,7 +6511,7 @@ lookup *init_trackb(track_node *track) {
 	track[256].edge[DIR_AHEAD].reverse = &track[221].edge[DIR_AHEAD];
 	track[256].edge[DIR_AHEAD].src = &track[256];
 	track[256].edge[DIR_AHEAD].dest = &track[220];
-	track[256].edge[DIR_AHEAD].dist = 116.25;
+	track[256].edge[DIR_AHEAD].dist = 116;
 	track[256].edge[DIR_AHEAD].num = 268;
 	track[256].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[256].name, track + 256);
@@ -6523,7 +6523,7 @@ lookup *init_trackb(track_node *track) {
 	track[257].edge[DIR_AHEAD].reverse = &track[6].edge[DIR_AHEAD];
 	track[257].edge[DIR_AHEAD].src = &track[257];
 	track[257].edge[DIR_AHEAD].dest = &track[7];
-	track[257].edge[DIR_AHEAD].dist = 116.25;
+	track[257].edge[DIR_AHEAD].dist = 116;
 	track[257].edge[DIR_AHEAD].num = 269;
 	track[257].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[257].name, track + 257);
@@ -6535,7 +6535,7 @@ lookup *init_trackb(track_node *track) {
 	track[258].edge[DIR_AHEAD].reverse = &track[227].edge[DIR_AHEAD];
 	track[258].edge[DIR_AHEAD].src = &track[258];
 	track[258].edge[DIR_AHEAD].dest = &track[226];
-	track[258].edge[DIR_AHEAD].dist = 72.5;
+	track[258].edge[DIR_AHEAD].dist = 72;
 	track[258].edge[DIR_AHEAD].num = 270;
 	track[258].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[258].name, track + 258);
@@ -6547,7 +6547,7 @@ lookup *init_trackb(track_node *track) {
 	track[259].edge[DIR_AHEAD].reverse = &track[56].edge[DIR_AHEAD];
 	track[259].edge[DIR_AHEAD].src = &track[259];
 	track[259].edge[DIR_AHEAD].dest = &track[57];
-	track[259].edge[DIR_AHEAD].dist = 72.5;
+	track[259].edge[DIR_AHEAD].dist = 72;
 	track[259].edge[DIR_AHEAD].num = 271;
 	track[259].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[259].name, track + 259);
@@ -6559,7 +6559,7 @@ lookup *init_trackb(track_node *track) {
 	track[260].edge[DIR_AHEAD].reverse = &track[229].edge[DIR_AHEAD];
 	track[260].edge[DIR_AHEAD].src = &track[260];
 	track[260].edge[DIR_AHEAD].dest = &track[228];
-	track[260].edge[DIR_AHEAD].dist = 65.375;
+	track[260].edge[DIR_AHEAD].dist = 65;
 	track[260].edge[DIR_AHEAD].num = 272;
 	track[260].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[260].name, track + 260);
@@ -6571,7 +6571,7 @@ lookup *init_trackb(track_node *track) {
 	track[261].edge[DIR_AHEAD].reverse = &track[136].edge[DIR_AHEAD];
 	track[261].edge[DIR_AHEAD].src = &track[261];
 	track[261].edge[DIR_AHEAD].dest = &track[137];
-	track[261].edge[DIR_AHEAD].dist = 65.375;
+	track[261].edge[DIR_AHEAD].dist = 65;
 	track[261].edge[DIR_AHEAD].num = 273;
 	track[261].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[261].name, track + 261);
@@ -6583,7 +6583,7 @@ lookup *init_trackb(track_node *track) {
 	track[262].edge[DIR_AHEAD].reverse = &track[231].edge[DIR_AHEAD];
 	track[262].edge[DIR_AHEAD].src = &track[262];
 	track[262].edge[DIR_AHEAD].dest = &track[230];
-	track[262].edge[DIR_AHEAD].dist = 83.125;
+	track[262].edge[DIR_AHEAD].dist = 83;
 	track[262].edge[DIR_AHEAD].num = 274;
 	track[262].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[262].name, track + 262);
@@ -6595,7 +6595,7 @@ lookup *init_trackb(track_node *track) {
 	track[263].edge[DIR_AHEAD].reverse = &track[140].edge[DIR_AHEAD];
 	track[263].edge[DIR_AHEAD].src = &track[263];
 	track[263].edge[DIR_AHEAD].dest = &track[141];
-	track[263].edge[DIR_AHEAD].dist = 83.125;
+	track[263].edge[DIR_AHEAD].dist = 83;
 	track[263].edge[DIR_AHEAD].num = 275;
 	track[263].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[263].name, track + 263);
@@ -6607,7 +6607,7 @@ lookup *init_trackb(track_node *track) {
 	track[264].edge[DIR_AHEAD].reverse = &track[233].edge[DIR_AHEAD];
 	track[264].edge[DIR_AHEAD].src = &track[264];
 	track[264].edge[DIR_AHEAD].dest = &track[232];
-	track[264].edge[DIR_AHEAD].dist = 100.625;
+	track[264].edge[DIR_AHEAD].dist = 100;
 	track[264].edge[DIR_AHEAD].num = 276;
 	track[264].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[264].name, track + 264);
@@ -6619,7 +6619,7 @@ lookup *init_trackb(track_node *track) {
 	track[265].edge[DIR_AHEAD].reverse = &track[144].edge[DIR_AHEAD];
 	track[265].edge[DIR_AHEAD].src = &track[265];
 	track[265].edge[DIR_AHEAD].dest = &track[145];
-	track[265].edge[DIR_AHEAD].dist = 100.625;
+	track[265].edge[DIR_AHEAD].dist = 100;
 	track[265].edge[DIR_AHEAD].num = 277;
 	track[265].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[265].name, track + 265);
@@ -6631,7 +6631,7 @@ lookup *init_trackb(track_node *track) {
 	track[266].edge[DIR_AHEAD].reverse = &track[243].edge[DIR_AHEAD];
 	track[266].edge[DIR_AHEAD].src = &track[266];
 	track[266].edge[DIR_AHEAD].dest = &track[242];
-	track[266].edge[DIR_AHEAD].dist = 97.5;
+	track[266].edge[DIR_AHEAD].dist = 97;
 	track[266].edge[DIR_AHEAD].num = 278;
 	track[266].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[266].name, track + 266);
@@ -6643,7 +6643,7 @@ lookup *init_trackb(track_node *track) {
 	track[267].edge[DIR_AHEAD].reverse = &track[164].edge[DIR_AHEAD];
 	track[267].edge[DIR_AHEAD].src = &track[267];
 	track[267].edge[DIR_AHEAD].dest = &track[165];
-	track[267].edge[DIR_AHEAD].dist = 97.5;
+	track[267].edge[DIR_AHEAD].dist = 97;
 	track[267].edge[DIR_AHEAD].num = 279;
 	track[267].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[267].name, track + 267);
@@ -6655,7 +6655,7 @@ lookup *init_trackb(track_node *track) {
 	track[268].edge[DIR_AHEAD].reverse = &track[30].edge[DIR_AHEAD];
 	track[268].edge[DIR_AHEAD].src = &track[268];
 	track[268].edge[DIR_AHEAD].dest = &track[31];
-	track[268].edge[DIR_AHEAD].dist = 111.25;
+	track[268].edge[DIR_AHEAD].dist = 111;
 	track[268].edge[DIR_AHEAD].num = 280;
 	track[268].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[268].name, track + 268);
@@ -6667,7 +6667,7 @@ lookup *init_trackb(track_node *track) {
 	track[269].edge[DIR_AHEAD].reverse = &track[138].edge[DIR_AHEAD];
 	track[269].edge[DIR_AHEAD].src = &track[269];
 	track[269].edge[DIR_AHEAD].dest = &track[139];
-	track[269].edge[DIR_AHEAD].dist = 111.25;
+	track[269].edge[DIR_AHEAD].dist = 111;
 	track[269].edge[DIR_AHEAD].num = 281;
 	track[269].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[269].name, track + 269);
@@ -6679,7 +6679,7 @@ lookup *init_trackb(track_node *track) {
 	track[270].edge[DIR_AHEAD].reverse = &track[126].edge[DIR_AHEAD];
 	track[270].edge[DIR_AHEAD].src = &track[270];
 	track[270].edge[DIR_AHEAD].dest = &track[127];
-	track[270].edge[DIR_AHEAD].dist = 83.25;
+	track[270].edge[DIR_AHEAD].dist = 83;
 	track[270].edge[DIR_AHEAD].num = 282;
 	track[270].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[270].name, track + 270);
@@ -6691,7 +6691,7 @@ lookup *init_trackb(track_node *track) {
 	track[271].edge[DIR_AHEAD].reverse = &track[146].edge[DIR_AHEAD];
 	track[271].edge[DIR_AHEAD].src = &track[271];
 	track[271].edge[DIR_AHEAD].dest = &track[147];
-	track[271].edge[DIR_AHEAD].dist = 83.25;
+	track[271].edge[DIR_AHEAD].dist = 83;
 	track[271].edge[DIR_AHEAD].num = 283;
 	track[271].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[271].name, track + 271);
@@ -6703,7 +6703,7 @@ lookup *init_trackb(track_node *track) {
 	track[272].edge[DIR_AHEAD].reverse = &track[47].edge[DIR_AHEAD];
 	track[272].edge[DIR_AHEAD].src = &track[272];
 	track[272].edge[DIR_AHEAD].dest = &track[46];
-	track[272].edge[DIR_AHEAD].dist = 72.75;
+	track[272].edge[DIR_AHEAD].dist = 72;
 	track[272].edge[DIR_AHEAD].num = 284;
 	track[272].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[272].name, track + 272);
@@ -6715,7 +6715,7 @@ lookup *init_trackb(track_node *track) {
 	track[273].edge[DIR_AHEAD].reverse = &track[158].edge[DIR_AHEAD];
 	track[273].edge[DIR_AHEAD].src = &track[273];
 	track[273].edge[DIR_AHEAD].dest = &track[159];
-	track[273].edge[DIR_AHEAD].dist = 72.75;
+	track[273].edge[DIR_AHEAD].dist = 72;
 	track[273].edge[DIR_AHEAD].num = 285;
 	track[273].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[273].name, track + 273);
@@ -6727,7 +6727,7 @@ lookup *init_trackb(track_node *track) {
 	track[274].edge[DIR_AHEAD].reverse = &track[58].edge[DIR_AHEAD];
 	track[274].edge[DIR_AHEAD].src = &track[274];
 	track[274].edge[DIR_AHEAD].dest = &track[59];
-	track[274].edge[DIR_AHEAD].dist = 101.25;
+	track[274].edge[DIR_AHEAD].dist = 101;
 	track[274].edge[DIR_AHEAD].num = 286;
 	track[274].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[274].name, track + 274);
@@ -6739,7 +6739,7 @@ lookup *init_trackb(track_node *track) {
 	track[275].edge[DIR_AHEAD].reverse = &track[166].edge[DIR_AHEAD];
 	track[275].edge[DIR_AHEAD].src = &track[275];
 	track[275].edge[DIR_AHEAD].dest = &track[167];
-	track[275].edge[DIR_AHEAD].dist = 101.25;
+	track[275].edge[DIR_AHEAD].dist = 101;
 	track[275].edge[DIR_AHEAD].num = 287;
 	track[275].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[275].name, track + 275);
@@ -6751,7 +6751,7 @@ lookup *init_trackb(track_node *track) {
 	track[276].edge[DIR_AHEAD].reverse = &track[70].edge[DIR_AHEAD];
 	track[276].edge[DIR_AHEAD].src = &track[276];
 	track[276].edge[DIR_AHEAD].dest = &track[71];
-	track[276].edge[DIR_AHEAD].dist = 96.5;
+	track[276].edge[DIR_AHEAD].dist = 96;
 	track[276].edge[DIR_AHEAD].num = 288;
 	track[276].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[276].name, track + 276);
@@ -6763,7 +6763,7 @@ lookup *init_trackb(track_node *track) {
 	track[277].edge[DIR_AHEAD].reverse = &track[172].edge[DIR_AHEAD];
 	track[277].edge[DIR_AHEAD].src = &track[277];
 	track[277].edge[DIR_AHEAD].dest = &track[173];
-	track[277].edge[DIR_AHEAD].dist = 96.5;
+	track[277].edge[DIR_AHEAD].dist = 96;
 	track[277].edge[DIR_AHEAD].num = 289;
 	track[277].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[277].name, track + 277);
@@ -6775,7 +6775,7 @@ lookup *init_trackb(track_node *track) {
 	track[278].edge[DIR_AHEAD].reverse = &track[26].edge[DIR_AHEAD];
 	track[278].edge[DIR_AHEAD].src = &track[278];
 	track[278].edge[DIR_AHEAD].dest = &track[27];
-	track[278].edge[DIR_AHEAD].dist = 116.25;
+	track[278].edge[DIR_AHEAD].dist = 116;
 	track[278].edge[DIR_AHEAD].num = 290;
 	track[278].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[278].name, track + 278);
@@ -6787,7 +6787,7 @@ lookup *init_trackb(track_node *track) {
 	track[279].edge[DIR_AHEAD].reverse = &track[220].edge[DIR_AHEAD];
 	track[279].edge[DIR_AHEAD].src = &track[279];
 	track[279].edge[DIR_AHEAD].dest = &track[221];
-	track[279].edge[DIR_AHEAD].dist = 116.25;
+	track[279].edge[DIR_AHEAD].dist = 116;
 	track[279].edge[DIR_AHEAD].num = 291;
 	track[279].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[279].name, track + 279);
@@ -6799,7 +6799,7 @@ lookup *init_trackb(track_node *track) {
 	track[280].edge[DIR_AHEAD].reverse = &track[74].edge[DIR_AHEAD];
 	track[280].edge[DIR_AHEAD].src = &track[280];
 	track[280].edge[DIR_AHEAD].dest = &track[75];
-	track[280].edge[DIR_AHEAD].dist = 72.5;
+	track[280].edge[DIR_AHEAD].dist = 72;
 	track[280].edge[DIR_AHEAD].num = 292;
 	track[280].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[280].name, track + 280);
@@ -6811,7 +6811,7 @@ lookup *init_trackb(track_node *track) {
 	track[281].edge[DIR_AHEAD].reverse = &track[226].edge[DIR_AHEAD];
 	track[281].edge[DIR_AHEAD].src = &track[281];
 	track[281].edge[DIR_AHEAD].dest = &track[227];
-	track[281].edge[DIR_AHEAD].dist = 72.5;
+	track[281].edge[DIR_AHEAD].dist = 72;
 	track[281].edge[DIR_AHEAD].num = 293;
 	track[281].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[281].name, track + 281);
@@ -6823,7 +6823,7 @@ lookup *init_trackb(track_node *track) {
 	track[282].edge[DIR_AHEAD].reverse = &track[24].edge[DIR_AHEAD];
 	track[282].edge[DIR_AHEAD].src = &track[282];
 	track[282].edge[DIR_AHEAD].dest = &track[25];
-	track[282].edge[DIR_AHEAD].dist = 83.125;
+	track[282].edge[DIR_AHEAD].dist = 83;
 	track[282].edge[DIR_AHEAD].num = 294;
 	track[282].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[282].name, track + 282);
@@ -6835,7 +6835,7 @@ lookup *init_trackb(track_node *track) {
 	track[283].edge[DIR_AHEAD].reverse = &track[230].edge[DIR_AHEAD];
 	track[283].edge[DIR_AHEAD].src = &track[283];
 	track[283].edge[DIR_AHEAD].dest = &track[231];
-	track[283].edge[DIR_AHEAD].dist = 83.125;
+	track[283].edge[DIR_AHEAD].dist = 83;
 	track[283].edge[DIR_AHEAD].num = 295;
 	track[283].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[283].name, track + 283);
@@ -6847,7 +6847,7 @@ lookup *init_trackb(track_node *track) {
 	track[284].edge[DIR_AHEAD].reverse = &track[71].edge[DIR_AHEAD];
 	track[284].edge[DIR_AHEAD].src = &track[284];
 	track[284].edge[DIR_AHEAD].dest = &track[70];
-	track[284].edge[DIR_AHEAD].dist = 97.5;
+	track[284].edge[DIR_AHEAD].dist = 97;
 	track[284].edge[DIR_AHEAD].num = 296;
 	track[284].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[284].name, track + 284);
@@ -6859,7 +6859,7 @@ lookup *init_trackb(track_node *track) {
 	track[285].edge[DIR_AHEAD].reverse = &track[242].edge[DIR_AHEAD];
 	track[285].edge[DIR_AHEAD].src = &track[285];
 	track[285].edge[DIR_AHEAD].dest = &track[243];
-	track[285].edge[DIR_AHEAD].dist = 97.5;
+	track[285].edge[DIR_AHEAD].dist = 97;
 	track[285].edge[DIR_AHEAD].num = 297;
 	track[285].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[285].name, track + 285);
@@ -6871,7 +6871,7 @@ lookup *init_trackb(track_node *track) {
 	track[286].edge[DIR_AHEAD].reverse = &track[22].edge[DIR_AHEAD];
 	track[286].edge[DIR_AHEAD].src = &track[286];
 	track[286].edge[DIR_AHEAD].dest = &track[23];
-	track[286].edge[DIR_AHEAD].dist = 68.75;
+	track[286].edge[DIR_AHEAD].dist = 68;
 	track[286].edge[DIR_AHEAD].num = 298;
 	track[286].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[286].name, track + 286);
@@ -6883,7 +6883,7 @@ lookup *init_trackb(track_node *track) {
 	track[287].edge[DIR_AHEAD].reverse = &track[142].edge[DIR_AHEAD];
 	track[287].edge[DIR_AHEAD].src = &track[287];
 	track[287].edge[DIR_AHEAD].dest = &track[143];
-	track[287].edge[DIR_AHEAD].dist = 68.75;
+	track[287].edge[DIR_AHEAD].dist = 68;
 	track[287].edge[DIR_AHEAD].num = 299;
 	track[287].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[287].name, track + 287);
@@ -6895,7 +6895,7 @@ lookup *init_trackb(track_node *track) {
 	track[288].edge[DIR_AHEAD].reverse = &track[128].edge[DIR_AHEAD];
 	track[288].edge[DIR_AHEAD].src = &track[288];
 	track[288].edge[DIR_AHEAD].dest = &track[129];
-	track[288].edge[DIR_AHEAD].dist = 65.375;
+	track[288].edge[DIR_AHEAD].dist = 65;
 	track[288].edge[DIR_AHEAD].num = 300;
 	track[288].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[288].name, track + 288);
@@ -6907,7 +6907,7 @@ lookup *init_trackb(track_node *track) {
 	track[289].edge[DIR_AHEAD].reverse = &track[228].edge[DIR_AHEAD];
 	track[289].edge[DIR_AHEAD].src = &track[289];
 	track[289].edge[DIR_AHEAD].dest = &track[229];
-	track[289].edge[DIR_AHEAD].dist = 65.375;
+	track[289].edge[DIR_AHEAD].dist = 65;
 	track[289].edge[DIR_AHEAD].num = 301;
 	track[289].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[289].name, track + 289);
@@ -6919,7 +6919,7 @@ lookup *init_trackb(track_node *track) {
 	track[290].edge[DIR_AHEAD].reverse = &track[14].edge[DIR_AHEAD];
 	track[290].edge[DIR_AHEAD].src = &track[290];
 	track[290].edge[DIR_AHEAD].dest = &track[15];
-	track[290].edge[DIR_AHEAD].dist = 100.625;
+	track[290].edge[DIR_AHEAD].dist = 100;
 	track[290].edge[DIR_AHEAD].num = 302;
 	track[290].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[290].name, track + 290);
@@ -6931,7 +6931,7 @@ lookup *init_trackb(track_node *track) {
 	track[291].edge[DIR_AHEAD].reverse = &track[232].edge[DIR_AHEAD];
 	track[291].edge[DIR_AHEAD].src = &track[291];
 	track[291].edge[DIR_AHEAD].dest = &track[233];
-	track[291].edge[DIR_AHEAD].dist = 100.625;
+	track[291].edge[DIR_AHEAD].dist = 100;
 	track[291].edge[DIR_AHEAD].num = 303;
 	track[291].edge[DIR_AHEAD].owner = -1;
 	lookup_put(sensormap, (void*) track[291].name, track + 291);

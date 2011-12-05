@@ -65,6 +65,11 @@ struct train_cal {
 	poly x0to12;
 	poly v0to12;
 	poly a0to12;
+
+	int usepoly2;
+	poly x12to0;
+	poly v12to0;
+	poly a12to0;
 };
 
 typedef struct train train;

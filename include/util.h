@@ -94,6 +94,13 @@ static inline int overflow(int x, int y) {
 	return (y > 0 && x > INT_MAX - y) || (y < 0 && x < INT_MIN - y);
 }
 
+static inline int in_array(void** arr, int len, void* item) {
+	for (int i = 0; i < len; i++) {
+		if (arr[i] == item) return TRUE;
+	}
+	return FALSE;
+}
+
 #define REVERSE_ARR(arr, size) { \
 	for (int i = (size >> 1) - 1; i >= 0; i--) { \
 		void* item = arr[i]; \

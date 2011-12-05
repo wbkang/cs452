@@ -56,6 +56,8 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
+			cal->usepoly2 = FALSE;
+
 			cal->st_order = 4;
 			cal->st[0] = -1.02274;
 			cal->st[1] = 103842;
@@ -112,7 +114,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 			}
 
 			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(-0.0009, 0.134, -0.0002, 1.329e-7, -2.671e-11, 2.425e-15);
+			cal->x0to12 = poly_new(5.2516, -0.0097, -2.092e-5, 3.532e-8, -5.186e-12, 2.291e-16);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
@@ -171,7 +173,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 			}
 
 			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(-0.016, 0.0292, -6.921e-5, 9.479e-8, -2.396e-11, 2.53e-15);
+			cal->x0to12 = poly_new(-6.7912, -0.0632, 0.0001, -6.74e-9, 0, 0);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
@@ -285,7 +287,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 			}
 
 			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(0.6028, 0.0018, 1.928e-5, 2.367e-8, -2.176e-11, 7.55e-15);
+			cal->x0to12 = poly_new(-1.2573, 0.0261, -2.791e-6, 6.555e-9, 1.092e-12, 0);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
@@ -345,7 +347,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 			// }
 
 			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(-1.281, 0.101, -0.0001, 8.216e-8, -1.447e-11, 1.084e-15);
+			cal->x0to12 = poly_new(13.401, -0.0889, 7.433e-5, 2.658e-10, -3.471e-13, 0);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
@@ -431,7 +433,10 @@ int train_get_stopdist(train *this) {
 	// 	return max(0, dist);
 	// }
 	float st = train_st(&this->cal, this->v, 0);
-	return (this->v / 2) * st; // + (this->a / 2) * st * st;
+	float dist = (this->v / 2) * st; // + (this->a / 2) * st * st;
+	ASSERT(dist >= 0, "stop dist is negative, st: %dms: v: %dmm/s", (int) st, (int) (this->v * 1000));
+	ASSERT(dist < 2000, "stop dist too long, st: %dms: v: %dmm/s", (int) st, (int) (this->v * 1000));
+	return dist;
 }
 
 int train_get_speed(train *this) {
@@ -588,11 +593,13 @@ float train_st(train_cal *cal, float v_i, float v_f) {
 		dvn *= dv;
 	}
 
+	ASSERT(rv >= -0.1, "stop time is negative: %d", (int) rv);
+
 	return rv;
 }
 
 static void train_update_state(train *this, float t_f) {
-	if (fabs(this->v - this->v_f) > 0.0001) {
+	if (fabs(this->v - this->v_f) > 0.001) {
 		if (this->v_i < this->v_f && this->cal.usepoly) {
 			float dv = this->v_f - this->v_i;
 			float alpha = dv / this->cal.v_avg[train_speed2speedidx(0, 12)];
@@ -671,9 +678,9 @@ static int train_update_reservations(train *this) {
 	int tonextnode = loc_train.edge->dist - toprevnode;
 	int ahead = RESERVE_AHEAD + train_get_stopdist(this) - tonextnode;
 
-	if (!track_walk(loc_train.edge->dest, ahead, MAX_PATH_LEN, req->edges, &req->len)) return FALSE;
+	if (!track_walk(loc_train.edge->dest, ahead, TRACK_NUM_EDGES, req->edges, &req->len)) return FALSE;
 
-	if (!track_walk(loc_train.edge->src->reverse, behind, MAX_PATH_LEN, req->edges, &req->len)) return FALSE;
+	if (!track_walk(loc_train.edge->src->reverse, behind, TRACK_NUM_EDGES, req->edges, &req->len)) return FALSE;
 
 	return reservation_replace(this->reservation, req, this->no);
 }
@@ -851,10 +858,10 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 int train_get_reverse_cost(train *train, int dist, track_node *node) {
 	int safe_len = train_get_length(train) + train_get_poserr(train);
 
-	SMALLOC(track_edge*, edges, MAX_PATH_LEN);
+	SMALLOC(track_edge*, edges, TRACK_NUM_EDGES);
 	int num_edges = 0;
 
-	if (!track_walk(node->reverse, safe_len, MAX_PATH_LEN, edges, &num_edges)) {
+	if (!track_walk(node->reverse, safe_len, TRACK_NUM_EDGES, edges, &num_edges)) {
 		return infinity; // not enough room to reverse
 	}
 

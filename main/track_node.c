@@ -74,6 +74,37 @@ int track_numedges(track_node *node) {
 }
 
 // starting from 'node' walk a distance 'dist' forward and put all met edges into 'arr'
+// int track_walk(track_node *node, int dist, int maxlen, track_edge *arr[], int *len) {
+// 	while (dist > 0) {
+// 		if (!node) return FALSE;
+
+// 		int num_edges = track_numedges(node);
+
+// 		if (num_edges == 0) return node->type == NODE_EXIT; // exits are a special case
+
+// 		if (num_edges == 2) {
+// 			track_edge *edge = &node->edge[1];
+// 			if (!in_array((void**) arr, *len, edge) && !in_array((void**) arr, *len, edge->reverse)) {
+// 				ASSERT(*len < maxlen, "'arr' full, len %d max len %d", *len, maxlen);
+// 				arr[(*len)++] = edge;
+// 			}
+// 			if (!track_walk(edge->dest, dist - edge->dist, maxlen, arr, len)) return FALSE;
+// 		}
+
+// 		if (num_edges >= 1) {
+// 			track_edge *edge = &node->edge[0];
+// 			if (!in_array((void**) arr, *len, edge) && !in_array((void**) arr, *len, edge->reverse)) {
+// 				ASSERT(*len < maxlen, "'arr' full, len %d max len %d", *len, maxlen);
+// 				arr[(*len)++] = edge;
+// 			}
+// 			node = edge->dest;
+// 			dist -= edge->dist;
+// 		}
+// 	}
+// 	return TRUE;
+// }
+
+// starting from 'node' walk a distance 'dist' forward and put all met edges into 'arr'
 int track_walk(track_node *node, int dist, int maxlen, track_edge *arr[], int *len) {
 	if (dist <= 0) return TRUE;
 	if (!node) return FALSE;

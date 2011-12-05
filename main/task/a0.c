@@ -29,7 +29,6 @@ a0state *get_state() {
 
 #define LEN_MSG (64 * 4)
 
-
 /*
  * Server
  */
