@@ -648,9 +648,6 @@ void train_set_dest(train *this, location *dest) {
 	this->vcmdslen = 0;
 }
 
-#define RESERVE_BEHIND 0
-#define RESERVE_AHEAD 100
-
 static int train_update_reservations(train *this) {
 	reservation_req *req = this->reservation_alt;
 	req->len = 0;
@@ -664,11 +661,13 @@ static int train_update_reservations(train *this) {
 
 	req->edges[req->len++] = loc_train.edge;
 
+	int poserr = train_get_poserr(this);
+
 	int toprevnode = loc_train.offset;
-	int behind = RESERVE_BEHIND + train_get_length(this) - toprevnode;
+	int behind = poserr / 2 + train_get_length(this) - toprevnode;
 
 	int tonextnode = loc_train.edge->dist - toprevnode;
-	int ahead = RESERVE_AHEAD + train_get_stopdist(this) - tonextnode;
+	int ahead = poserr / 2 + train_get_stopdist(this) - tonextnode;
 
 	if (!track_walk(loc_train.edge->dest, ahead, TRACK_NUM_EDGES, req->edges, &req->len)) return FALSE;
 

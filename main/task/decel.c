@@ -173,13 +173,13 @@ static void decel_on_traincmdmsgreceipt(traincmd_receipt* msg) {
 
 void decel() {
 	int mytid = MyTid();
-	int tid_time = WhoIs(NAME_TIMESERVER);
+	// int tid_time = WhoIs(NAME_TIMESERVER);
 	int tid_traincmdpub = publisher_new(NAME_TRAINCMDPUB, PRIORITY_TRAINCMDPUB, sizeof(traincmd_receipt));
 	publisher_sub(tid_traincmdpub, mytid);
 
 	// ui
 	uiserver_new();
-	ui_id id_ui = uiserver_register();
+	/*ui_id id_ui = */uiserver_register();
 	char track = 'b';
 	decel_ui = a0ui_new(handle_command, track);
 
@@ -200,7 +200,7 @@ void decel() {
 
 	int tid_simstepbuffer = buffertask_new(NULL, 9, sizeof(msg_time));
 	timenotifier_new(tid_simstepbuffer, 9, MS2TICK(20));
-	int tid_simstep = courier_new(9, tid_simstepbuffer, mytid, sizeof(msg_time), NULL);
+	/*int tid_simstep = */courier_new(9, tid_simstepbuffer, mytid, sizeof(msg_time), NULL);
 
 	void *msg = malloc(LEN_MSG);
 

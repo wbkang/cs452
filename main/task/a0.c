@@ -66,63 +66,63 @@ struct {
 	int speed;
 } csdstate;
 
-static void init_csdstate() {
-	csdstate.state = STOP_INIT;
-	csdstate.speed = 6;
-}
+// static void init_csdstate() {
+// 	csdstate.state = STOP_INIT;
+// 	csdstate.speed = 6;
+// }
 
-static void calib_stopdist() {
-	a0state *state = get_state();
-	engineer *eng = state->eng;
-	train *train = engineer_get_train(eng, 39);
-	track_node *cur_sensor = state->cur_sensor;
-	track_node *e8 = engineer_get_tracknode(eng, "E", 8);
-	switch (csdstate.state) {
-		case STOP_INIT:
-			engineer_set_switch(eng, 11, 'c');
-			engineer_set_speed(eng, train->no, csdstate.speed);
-			csdstate.state = STOP_UP2SPEED1;
-			break;
-		case STOP_UP2SPEED1:
-			if (cur_sensor == e8) {
-				csdstate.state = STOP_UP2SPEED2;
-			}
-			break;
-		case STOP_UP2SPEED2:
-			if (cur_sensor == e8) {
-				csdstate.state = STOP_STOPPING;
-			}
-			break;
-		case STOP_STOPPING:
-			if (cur_sensor == e8) {
-				a0ui_on_logf(
-					state->a0ui,
-					"testing speed idx %d",
-					train_get_speedidx(train)
-				);
-				engineer_set_speed(eng, train->no, 0);
-				engineer_set_switch(eng, 11, 's');
-				Delay(STOP_PAUSE, eng->tid_time);
-				if (csdstate.speed == 14) {
-					csdstate.speed = 6;
-				} else {
-					csdstate.speed += 1;
-				}
-				engineer_reverse(eng, train->no);
-				engineer_set_speed(eng, train->no, 14);
-				csdstate.state = STOP_REVERSING;
-			}
-			break;
-		case STOP_REVERSING:
-			if (strcmp(cur_sensor->name, "E7") == 0) {
-				engineer_set_switch(eng, 11, 'c');
-				engineer_reverse(eng, train->no);
-				engineer_set_speed(eng, train->no, csdstate.speed);
-				csdstate.state = STOP_UP2SPEED1;
-			}
-			break;
-	}
-}
+// static void calib_stopdist() {
+// 	a0state *state = get_state();
+// 	engineer *eng = state->eng;
+// 	train *train = engineer_get_train(eng, 39);
+// 	track_node *cur_sensor = state->cur_sensor;
+// 	track_node *e8 = engineer_get_tracknode(eng, "E", 8);
+// 	switch (csdstate.state) {
+// 		case STOP_INIT:
+// 			engineer_set_switch(eng, 11, 'c');
+// 			engineer_set_speed(eng, train->no, csdstate.speed);
+// 			csdstate.state = STOP_UP2SPEED1;
+// 			break;
+// 		case STOP_UP2SPEED1:
+// 			if (cur_sensor == e8) {
+// 				csdstate.state = STOP_UP2SPEED2;
+// 			}
+// 			break;
+// 		case STOP_UP2SPEED2:
+// 			if (cur_sensor == e8) {
+// 				csdstate.state = STOP_STOPPING;
+// 			}
+// 			break;
+// 		case STOP_STOPPING:
+// 			if (cur_sensor == e8) {
+// 				a0ui_on_logf(
+// 					state->a0ui,
+// 					"testing speed idx %d",
+// 					train_get_speedidx(train)
+// 				);
+// 				engineer_set_speed(eng, train->no, 0);
+// 				engineer_set_switch(eng, 11, 's');
+// 				Delay(STOP_PAUSE, eng->tid_time);
+// 				if (csdstate.speed == 14) {
+// 					csdstate.speed = 6;
+// 				} else {
+// 					csdstate.speed += 1;
+// 				}
+// 				engineer_reverse(eng, train->no);
+// 				engineer_set_speed(eng, train->no, 14);
+// 				csdstate.state = STOP_REVERSING;
+// 			}
+// 			break;
+// 		case STOP_REVERSING:
+// 			if (strcmp(cur_sensor->name, "E7") == 0) {
+// 				engineer_set_switch(eng, 11, 'c');
+// 				engineer_reverse(eng, train->no);
+// 				engineer_set_speed(eng, train->no, csdstate.speed);
+// 				csdstate.state = STOP_UP2SPEED1;
+// 			}
+// 			break;
+// 	}
+// }
 
 struct {
 	int state;
@@ -138,64 +138,64 @@ struct {
 
 #define JERK_STABILIZE_NUM_SENSORS 10
 
-static void init_jerk() {
-	j.state = 0;
-}
+// static void init_jerk() {
+// 	j.state = 0;
+// }
 
-static void jerk(track_node *sensor, int timestamp) {
-	a0state *state = get_state();
-	engineer *eng = state->eng;
-	track_node *last_sensor = j.last_sensor;
-	int dx = track_distance(last_sensor, sensor);
-	int dt = TICK2MS(timestamp - j.last_timestamp);
-	j.last_sensor = sensor;
-	j.last_timestamp = timestamp;
+// static void jerk(track_node *sensor, int timestamp) {
+// 	a0state *state = get_state();
+// 	engineer *eng = state->eng;
+// 	track_node *last_sensor = j.last_sensor;
+// 	int dx = track_distance(last_sensor, sensor);
+// 	int dt = TICK2MS(timestamp - j.last_timestamp);
+// 	j.last_sensor = sensor;
+// 	j.last_timestamp = timestamp;
 
-	switch (j.state) {
-		case 0: // get to v_i
-			a0ui_on_cmdlog(state->a0ui, "getting to v_i");
-			engineer_set_speed(eng, 38, 8);
-			j.state = 1;
-			j.count = 0;
-			break;
-		case 1: // stabilize v_i
-			a0ui_on_cmdlog(state->a0ui, "stabilizing v_i");
-			j.count++;
-			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
-				j.state = 2;
-			}
-			break;
-		case 2: // get to v_f
-			a0ui_on_cmdlog(state->a0ui, "getting to v_f");
-			engineer_set_speed(eng, 38, 12);
-			j.state = 3;
-			j.count = 0;
-			j.dx = 0;
-			j.dt = 0;
-			j.v_i_x = dx;
-			j.v_i_t = dt;
-			j.start = sensor;
-			break;
-		case 3: // stabilize v_f
-			a0ui_on_cmdlog(state->a0ui, "stabilizing v_f");
-			j.dx += dx;
-			j.dt += dt;
-			j.count++;
-			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
-				// "dx/dt = %d/%d from %s to %s, v_i = %d/%d, v_f = %d/%d"
-				a0ui_on_logf(
-					state->a0ui,
-					"%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d",
-					j.start->name, sensor->name,
-					j.dx, j.dt,
-					j.v_i_x, j.v_i_t,
-					dx, dt
-				);
-				j.state = 0;
-			}
-			break;
-	}
-}
+// 	switch (j.state) {
+// 		case 0: // get to v_i
+// 			a0ui_on_cmdlog(state->a0ui, "getting to v_i");
+// 			engineer_set_speed(eng, 38, 8);
+// 			j.state = 1;
+// 			j.count = 0;
+// 			break;
+// 		case 1: // stabilize v_i
+// 			a0ui_on_cmdlog(state->a0ui, "stabilizing v_i");
+// 			j.count++;
+// 			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
+// 				j.state = 2;
+// 			}
+// 			break;
+// 		case 2: // get to v_f
+// 			a0ui_on_cmdlog(state->a0ui, "getting to v_f");
+// 			engineer_set_speed(eng, 38, 12);
+// 			j.state = 3;
+// 			j.count = 0;
+// 			j.dx = 0;
+// 			j.dt = 0;
+// 			j.v_i_x = dx;
+// 			j.v_i_t = dt;
+// 			j.start = sensor;
+// 			break;
+// 		case 3: // stabilize v_f
+// 			a0ui_on_cmdlog(state->a0ui, "stabilizing v_f");
+// 			j.dx += dx;
+// 			j.dt += dt;
+// 			j.count++;
+// 			if (j.count == JERK_STABILIZE_NUM_SENSORS) {
+// 				// "dx/dt = %d/%d from %s to %s, v_i = %d/%d, v_f = %d/%d"
+// 				a0ui_on_logf(
+// 					state->a0ui,
+// 					"%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d",
+// 					j.start->name, sensor->name,
+// 					j.dx, j.dt,
+// 					j.v_i_x, j.v_i_t,
+// 					dx, dt
+// 				);
+// 				j.state = 0;
+// 			}
+// 			break;
+// 	}
+// }
 
 struct {
 	track_node *last_sensor;
@@ -213,14 +213,14 @@ static void reset_v_avg() {
 	app_v_avg_state.dt = 0;
 }
 
-static void init_v_avg() {
-	reset_v_avg();
-	state = V_ASCENDING;
-	for (int i = 0; i < 28; i++) {
-		app_v_avg_state.saveddx[i] = 0;
-		app_v_avg_state.saveddt[i] = 0;
-	}
-}
+// static void init_v_avg() {
+// 	reset_v_avg();
+// 	state = V_ASCENDING;
+// 	for (int i = 0; i < 28; i++) {
+// 		app_v_avg_state.saveddx[i] = 0;
+// 		app_v_avg_state.saveddt[i] = 0;
+// 	}
+// }
 
 static void print_v_avg() {
 	a0state *state = get_state();
