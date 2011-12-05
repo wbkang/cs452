@@ -544,7 +544,7 @@ int train_get_length(train *this) {
 
 // @TODO: this should be a function of the distance travelled since last sensor hit
 int train_get_poserr(train *this) {
-	return 300;
+	return 500;
 }
 
 int train_get_pickup2frontdist(train *this) {
@@ -774,7 +774,7 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 			case VCMD_SETSWITCH: {
 				int dist = location_isundef(&waitloc) ? 0 : location_dist_min(&curloc, &waitloc);
 				if (dist < 0) break;
-				int switch_dist = train_get_stopdist(this) + train_get_poserr(this); // ok to be safe
+				int switch_dist = train_get_stopdist(this) + train_get_poserr(this) / 2; // ok to be safe
 				if (dist <= switch_dist) {
 					char *branchname = curvcmd->data.switchinfo.nodename;
 					char pos = curvcmd->data.switchinfo.pos;
@@ -798,7 +798,7 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 					break;
 				}
 				int stopdist = train_get_stopdist(this);
-				// if (train_is_moving(this) && (dist <= stopdist) || xx train_get_poserr(this)) {
+				// if (train_is_moving(this) && (dist <= stopdist) || train_get_poserr(this)) {
 				if (dist <= stopdist) {
 					char buf[100], buf2[100];
 					location_tostring(&curloc, buf);

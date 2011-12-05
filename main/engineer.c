@@ -210,7 +210,7 @@ void engineer_onsensor(engineer *this, msg_sensor *msg) {
 }
 
 void engineer_ontick(void *vthis, void* unused) {
-	(void)unused;
+	(void) unused;
 	engineer *this = vthis;
 	int t = Time(this->tid_time);
 	trainreg_foreach(this->trainreg, train) {
