@@ -57,8 +57,8 @@ struct train_cal {
 	float stopm;
 	float stopb;
 	float v_avg[TRAIN_NUM_SPEED_IDX];
-	int st_order; // order of approximation
-	float st[5]; // polynomial coefficients
+
+	poly stoptime;
 
 	int usepoly;
 	poly x0to12;
