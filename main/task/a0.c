@@ -74,48 +74,48 @@ struct {
 // static void calib_stopdist() {
 // 	a0state *state = get_state();
 // 	engineer *eng = state->eng;
-// 	train *train = engineer_get_train(eng, 39);
+// 	train *train = engineer_get_train(eng, 35);
 // 	track_node *cur_sensor = state->cur_sensor;
-// 	track_node *e8 = engineer_get_tracknode(eng, "E", 8);
+// 	track_node *refsens = engineer_get_tracknode(eng, "C", 13);
 // 	switch (csdstate.state) {
 // 		case STOP_INIT:
-// 			engineer_set_switch(eng, 11, 'c');
+// 			// engineer_set_switch(eng, 11, 'c');
 // 			engineer_set_speed(eng, train->no, csdstate.speed);
 // 			csdstate.state = STOP_UP2SPEED1;
 // 			break;
 // 		case STOP_UP2SPEED1:
-// 			if (cur_sensor == e8) {
-// 				csdstate.state = STOP_UP2SPEED2;
+// 			if (cur_sensor == refsens) {
+// 				csdstate.state = STOP_STOPPING;
 // 			}
 // 			break;
 // 		case STOP_UP2SPEED2:
-// 			if (cur_sensor == e8) {
+// 			if (cur_sensor == refsens) {
 // 				csdstate.state = STOP_STOPPING;
 // 			}
 // 			break;
 // 		case STOP_STOPPING:
-// 			if (cur_sensor == e8) {
+// 			if (cur_sensor == refsens) {
 // 				a0ui_on_logf(
 // 					state->a0ui,
 // 					"testing speed idx %d",
 // 					train_get_speedidx(train)
 // 				);
 // 				engineer_set_speed(eng, train->no, 0);
-// 				engineer_set_switch(eng, 11, 's');
+// 				// engineer_set_switch(eng, 11, 's');
 // 				Delay(STOP_PAUSE, eng->tid_time);
 // 				if (csdstate.speed == 14) {
 // 					csdstate.speed = 6;
 // 				} else {
 // 					csdstate.speed += 1;
 // 				}
-// 				engineer_reverse(eng, train->no);
+// 				// engineer_reverse(eng, train->no);
 // 				engineer_set_speed(eng, train->no, 14);
-// 				csdstate.state = STOP_REVERSING;
+// 				csdstate.state = STOP_UP2SPEED1;
 // 			}
 // 			break;
 // 		case STOP_REVERSING:
 // 			if (strcmp(cur_sensor->name, "E7") == 0) {
-// 				engineer_set_switch(eng, 11, 'c');
+// 				// engineer_set_switch(eng, 11, 'c');
 // 				engineer_reverse(eng, train->no);
 // 				engineer_set_speed(eng, train->no, csdstate.speed);
 // 				csdstate.state = STOP_UP2SPEED1;
@@ -255,39 +255,39 @@ static void save_v_avg() {
 	}
 }
 
-static void get_v_avg(void *vstate, void* unused) {
-	(void) unused;
-	a0state *state = vstate;
-	track_node *last_sensor = app_v_avg_state.last_sensor;
-	app_v_avg_state.last_sensor = state->cur_sensor;
-	int t_last_sensor = app_v_avg_state.t_last_sensor;
-	track_node *sensor = state->cur_sensor;
-	int t_sensor = Time(state->tid_time);
-	app_v_avg_state.t_last_sensor = t_sensor;
+// static void get_v_avg(void *vstate, void* unused) {
+// 	(void) unused;
+// 	a0state *state = vstate;
+// 	track_node *last_sensor = app_v_avg_state.last_sensor;
+// 	app_v_avg_state.last_sensor = state->cur_sensor;
+// 	int t_last_sensor = app_v_avg_state.t_last_sensor;
+// 	track_node *sensor = state->cur_sensor;
+// 	int t_sensor = Time(state->tid_time);
+// 	app_v_avg_state.t_last_sensor = t_sensor;
 
-	if (!last_sensor) return;
+// 	if (!last_sensor) return;
 
-	int dt = t_sensor - t_last_sensor;
-	if (dt <= 0) return;
+// 	int dt = t_sensor - t_last_sensor;
+// 	if (dt <= 0) return;
 
-	int dx = track_distance(last_sensor, sensor);
-	if (dx <= 0) return;
+// 	int dx = track_distance(last_sensor, sensor);
+// 	if (dx <= 0) return;
 
-	app_v_avg_state.dx += dx;
-	app_v_avg_state.dt += dt;
+// 	app_v_avg_state.dx += dx;
+// 	app_v_avg_state.dt += dt;
 
-//	a0ui_on_logf(
-//		state->a0ui,
-//		"[%7d] %s to %s is {%d} %d / %d (%f) [%d / %d (%f)]",
-//		t_sensor,
-//		last_sensor->name, sensor->name,
-//		train_get_speedidx(train),
-//		app_v_avg_state.dx, app_v_avg_state.dt,
-//		((float) app_v_avg_state.dx) / app_v_avg_state.dt,
-//		dx, dt,
-//		((float) dx) / dt
-//	);
-}
+// //	a0ui_on_logf(
+// //		state->a0ui,
+// //		"[%7d] %s to %s is {%d} %d / %d (%f) [%d / %d (%f)]",
+// //		t_sensor,
+// //		last_sensor->name, sensor->name,
+// //		train_get_speedidx(train),
+// //		app_v_avg_state.dx, app_v_avg_state.dt,
+// //		((float) app_v_avg_state.dx) / app_v_avg_state.dt,
+// //		dx, dt,
+// //		((float) dx) / dt
+// //	);
+// }
 
 static void handle_sensor(msg_sensor *msg) {
 	a0state *state = get_state();
@@ -659,7 +659,7 @@ void a0() {
 	// init_csdstate();
 	// dumbbus_register(state->sensor_bus, &calib_stopdist);
 //	init_v_avg();
-	dumbbus_register(state->sensor_bus, get_v_avg);
+	// dumbbus_register(state->sensor_bus, get_v_avg);
 
 	// time bus
 	state->bus10hz = dumbbus_new();
