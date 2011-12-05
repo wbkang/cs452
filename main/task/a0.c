@@ -468,6 +468,14 @@ static void handle_command(void* vthis, char *cmd, int size) {
 				ENFORCE(guardno == 1 || guardno == 2, "bad guard no");
 				ENFORCE(train_goodtrain(train), "bad train");
 				heist_init(state->heist, train, guardno); // TODO
+			} else if (*c == 's') {
+				ACCEPT('s');
+				ACCEPT('\0');
+				heist_set_enabled(state->heist, FALSE);
+			} else if (*c == 'g') {
+				ACCEPT('g');
+				ACCEPT('\0');
+				heist_set_enabled(state->heist, TRUE);
 			} else {
 				goto badcmd;
 			}
