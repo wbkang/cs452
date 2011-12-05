@@ -301,62 +301,57 @@ int train_init_cal(train_cal *cal, int train_no) {
 			return TRUE;
 		}
 		case 41: {
-			// cal->stopm = 1386.5;
-			// cal->stopb = -68.665;
+//			 cal->stopm = 1386.5;
+//			 cal->stopb = -68.665;
 			cal->len_pickup = 50;
 			cal->dist2nose = 24;
 			cal->dist2tail = 143;
 
-			// int data[] = {
-			// 	0,		1,
-			// 	791,	78393,
-			// 	2510,	34398,
-			// 	4757,	37633,
-			// 	6982,	39301,
-			// 	8734,	37224,
-			// 	6509,	22603,
-			// 	7694,	22102,
-			// 	16481,	42221,
-			// 	15437,	35441,
-			// 	11279,	23860,
-			// 	15062,	28433,
-			// 	10558,	18291,
-			// 	39277,	63136,
-			// 	16803,	27068,
-			// 	599,	60079,
-			// 	1466,	20227,
-			// 	3676,	28987,
-			// 	13885,	78019,
-			// 	6522,	27782,
-			// 	16481,	57568,
-			// 	18332,	52594,
-			// 	8135,	21220,
-			// 	12515,	28530,
-			// 	19804,	42189,
-			// 	14271,	27137,
-			// 	20784,	36490,
-			// 	36677,	59104
-			// };
+			 int data[] = {
+			0,0,
+			404,30226,
+			485,6212,
+			599,4473,
+			4743,25616,
+			  4743,19776,
+			4299,14668,
+			3967,11197,
+			8309,20433,
+			4743,1038,
+			  5031,10073,
+			4743,8537,
+			4743,7739,
+			3967,6408,
+			9870,15918,
+			689,36048,
+			444,5540,
+			692,5232,
+			1174,6583,
+			4144,17400,
+			4339,14731,
+			3967,11137,
+			7667,19069,
+			4743,10628,
+			5127,1026,
+			5342,9501,
+			7667,12683,
+			5917,9410,
+			 };
 
-			// TRAIN_FOREACH_SPEEDIDX(i) {
-			// 	float dx = data[i * 2];
-			// 	float dt = data[i * 2 + 1];
-			// 	cal->v_avg[i] = dx / dt;
-			// }
+			 TRAIN_FOREACH_SPEEDIDX(i) {
+			 	float dx = data[i * 2];
+			 	float dt = data[i * 2 + 1];
+			 	cal->v_avg[i] = dx / dt;
+			 }
 
 			cal->usepoly = TRUE;
 			cal->x0to12 = poly_new(-1.281, 0.101, -0.0001, 8.216e-8, -1.447e-11, 1.084e-15);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
-			// cal->st_order = 4;
-			// cal->st[0] = -0.0580817;
-			// cal->st[1] = 19572.6;
-			// cal->st[2] = -59037.1;
-			// cal->st[3] = 77626.7;
-			// cal->st[4] = -36317.5;
+			 cal->st_order = -1;
 
-			// cal->st_mul = 2.2;
+//			 cal->st_mul = 2.2;
 
 			return FALSE;
 		}
@@ -453,6 +448,8 @@ void train_set_speed(train *this, int speed, int t) {
 
 	this->v_i = train_get_velocity(this);
 	this->v_f = train_get_cruising_velocity(this);
+
+	this->v = this->cal.v_avg[train_get_speedidx(this)];
 
 	this->a_i = this->a;
 	// a_f = 0
@@ -596,40 +593,6 @@ float train_st(train_cal *cal, float v_i, float v_f) {
 }
 
 static void train_update_state(train *this, float t_f) {
-	if (fabs(this->v - this->v_f) > 0.0001) {
-		if (this->v_i < this->v_f && this->cal.usepoly) {
-			float dv = this->v_f - this->v_i;
-			float alpha = dv / this->cal.v_avg[train_speed2speedidx(0, 12)];
-			poly v = poly_scale(this->cal.v0to12, alpha);
-			float t = t_f - train_get_tspeed(this);
-			this->v = this->v_i + poly_eval(&v, t);
-			poly a = poly_derive(v);
-			this->a = this->a_i + poly_eval(&a, t);
-		} else {
-			float dv = this->v_f - this->v_i;
-			float dt = this->st;
-			float t = t_f - train_get_tspeed(this);
-			float tau = t / dt;
-			float tau2 = tau * tau;
-			// float tau3 = tau * tau2;
-			// float tau4 = tau * tau3;
-
-			// a_i=a_f=0
-			this->v = this->v_i + dv * (3 - 2 * tau) * tau2;
-			this->a = this->a_i + 6 * (dv / dt) * tau * (1 - tau);
-
-			// j_i=j_f=0
-			// this->v = this->v_i + dv * (10 - 15 * tau + 6 * tau2) * tau3;
-			// this->a = this->a_i + 30 * (dv / dt) * fpow(tau * (1 - tau), 2);
-
-			// s_i=s_f=0
-			// this->v = this->v_i + dv * (35 - 84 * tau + 70 * tau2 - 20 * tau3) * tau4;
-			// this->a = this->a_i + 140 * (dv / dt) * fpow(tau * (1 - tau), 3);
-		}
-	} else {
-		this->v = this->v_f;
-		this->a = 0;
-	}
 	float fdt = t_f - train_get_tsim(this);
 	if (!train_is_lost(this) && train_is_moving(this)) {
 		float dx = this->v * fdt;
