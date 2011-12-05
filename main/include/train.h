@@ -60,7 +60,10 @@ struct train_cal {
 	float stopb;
 	float v_avg[TRAIN_NUM_SPEED_IDX];
 
-	poly stoptime;
+	int useacceltime;
+	poly acceltime;
+
+	poly deceltime;
 
 	int usepoly;
 	poly x0to12;
@@ -90,7 +93,7 @@ struct train {
 	float a;
 	float a_i;
 
-	float st;
+	float dt;
 
 	int speed;
 	int t_speed;
@@ -234,4 +237,4 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 int train_get_reverse_cost(train *this, int dist, track_node *node);
 int train_get_train_length(train *this);
 
-float train_st(train_cal *cal, float v_i, float v_f);
+float train_get_dt(train_cal *cal, float v_i, float v_f);
