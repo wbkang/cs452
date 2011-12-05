@@ -55,7 +55,7 @@ generate_funcmap : $(OBJS)
 
 %.o : %.c
 	@echo "[ASCC]\t$< -> $@"
-	@$(XCC) $(CFLAGS) -S $<
+#	@$(XCC) $(CFLAGS) -S $<
 	@$(XCC) $(CFLAGS) -o $@ $<
 
 clean:
