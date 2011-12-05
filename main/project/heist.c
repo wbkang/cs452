@@ -11,27 +11,29 @@ struct heist {
 	engineer *eng;
 	a0ui *ui;
 	int initialized;
-	int guard1;
-	int guard2;
+	guard *guard1;
+	guard *guard2;
 };
 
 heist *heist_new(engineer *eng, a0ui *ui) {
 	heist *this = malloc(sizeof(heist));
 	this->eng = eng;
 	this->ui = ui;
-	this->guard1 = TRAIN_UNKNOWN;
-	this->guard2 = TRAIN_UNKNOWN;
+	this->guard1 = NULL;
+	this->guard2 = NULL;
 	this->initialized = FALSE;
 	return this;
 }
 
 void heist_init(heist *this, int guard1, int guard2) {
-	this->guard1 = guard1;
-	this->guard2 = guard2;
+	this->guard1 = guard_new(GUARD_1, this, this->eng, this->ui, guard1);
+//	this->guard2 = guard_new(GUARD_2, this, this->eng, this->ui, guard1);
 	this->initialized = TRUE;
 }
 
 void heist_on_tick(heist *this) {
-	a0ui_on_logf(this->ui, "heist on tick initialized:%d", this->initialized);
 	if (!this->initialized) return;
+
+	guard_on_tick(this->guard1);
+//	guard_on_tick(this->guard2);
 }

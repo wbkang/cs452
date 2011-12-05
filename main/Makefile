@@ -34,7 +34,8 @@ track_data.o track_node.o console.o \
 task/calib_test.o task/task1.o task/k3clients.o task/a0.o task/perfmon.o task/accel.o \
 ui/logstrip.o ui/cmdline.o ui/logdisplay.o ui/a0_track_template.o ui/timedisplay.o ui/a0ui.o \
 engineer.o location.o server/courier.o server/publisher.o train.o track_reservation.o \
-gps.o server/switchcmdrunner.o train_registry.o poly.o project/heist.o
+gps.o server/switchcmdrunner.o train_registry.o poly.o \
+project/heist.o project/guard.o
 ################
 
 
