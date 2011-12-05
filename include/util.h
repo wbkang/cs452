@@ -78,6 +78,14 @@ static inline uint abs(int n) {
 	return (n + mask) ^ mask;
 }
 
+static inline float fmin(float a, float b) {
+	return a < b ? a : b;
+}
+
+static inline float fmax(float a, float b) {
+	return a > b ? a : b;
+}
+
 static inline float fabs(float f) {
 	return f < 0 ? -f : f;
 }
@@ -92,6 +100,13 @@ static inline float fpow(float f, int n) {
 
 static inline int overflow(int x, int y) {
 	return (y > 0 && x > INT_MAX - y) || (y < 0 && x < INT_MIN - y);
+}
+
+static inline int in_array(void** arr, int len, void* item) {
+	for (int i = 0; i < len; i++) {
+		if (arr[i] == item) return TRUE;
+	}
+	return FALSE;
 }
 
 #define REVERSE_ARR(arr, size) { \

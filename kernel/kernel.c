@@ -404,7 +404,7 @@ void kernel_check_memory(task_descriptor *td) {
 
 	ASSERT(
 		sp > (uint) td->heap,
-		"Task %d buffer overflow. heap: %x, sp: %x",
+		"Task %d stack overflow. heap: %x, sp: %x",
 		td->id, (uint) td->heap, (uint) td->registers.r[REG_SP]
 	);
 	ASSERT(fp < 0x2000000, "task %d fp out of range %x", fp);

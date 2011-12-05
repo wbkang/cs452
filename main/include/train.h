@@ -41,6 +41,8 @@
 #define TRAIN_NUM_SENSORS 16
 #define TRAIN_NUM_SWITCHADDR 22
 
+#define MAX_NUM_MISSED_SENSORS 3
+
 #define TRAIN_MAX_VCMD 40
 
 typedef enum {
@@ -57,14 +59,18 @@ struct train_cal {
 	float stopm;
 	float stopb;
 	float v_avg[TRAIN_NUM_SPEED_IDX];
-	int st_order; // order of approximation
-	float st[5]; // polynomial coefficients
-	float st_mul; // acceding vs descending multiplier
+
+	poly stoptime;
 
 	int usepoly;
 	poly x0to12;
 	poly v0to12;
 	poly a0to12;
+
+	int usepoly2;
+	poly x12to0;
+	poly v12to0;
+	poly a12to0;
 };
 
 typedef struct train train;
@@ -75,6 +81,8 @@ struct train {
 
 	int no;
 	train_direction dir;
+	float x;
+
 	float v;
 	float v_i;
 	float v_f;
@@ -88,6 +96,11 @@ struct train {
 	int t_speed;
 	int last_speed;
 	location loc_front;
+
+	track_node *last_attrib_sensor;
+	int num_missed_sensors;
+	float dist_since_last_sensor;
+
 	float t_sim;
 
 	// vcmd stuff
@@ -209,10 +222,16 @@ void train_set_tsim(train *this, float t_sim);
 int train_get_length(train *this);
 int train_get_poserr(train *this);
 int train_get_pickup2frontdist(train *this);
+void train_on_missed2manysensors(train *this);
 float train_simulate_dx(train *this, int t_i, int t_f);
 void train_update_simulation(train *this, int t_f);
+
+void train_on_attrib(train *this, location *new_loc_pickup, int t_loc, int t);
+
 void train_set_dest(train *this, location *dest);
 location train_get_dest(train *this);
+void train_giveupres(train *this);
+int train_update_reservations(train *this);
 void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui, int tick, struct gps *gps);
 int train_get_reverse_cost(train *this, int dist, track_node *node);
 int train_get_train_length(train *this);

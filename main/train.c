@@ -52,18 +52,13 @@ int train_init_cal(train_cal *cal, int train_no) {
 			}
 
 			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(-3.9501, -0.01, 5.115e-5, -3.907e-9, 1.038e-13, 0);
+			cal->x0to12 = poly_new(0, 1.3132251e-4, -2.6646334e-5, 3.6739198e-8, -5.3437495e-12, 2.3553124e-16);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
-			cal->st_order = 4;
-			cal->st[0] = -1.02274;
-			cal->st[1] = 103842;
-			cal->st[2] = -695046;
-			cal->st[3] = 1909800;
-			cal->st[4] = -1945780;
+			cal->usepoly2 = FALSE;
 
-			cal->st_mul = 0.8;
+			cal->stoptime = poly_new(-1.02274, 103842, -695046, 1.09098e6, -1.94579e6, 0);
 
 			return TRUE;
 		}
@@ -112,17 +107,16 @@ int train_init_cal(train_cal *cal, int train_no) {
 			}
 
 			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(-0.0009, 0.134, -0.0002, 1.329e-7, -2.671e-11, 2.425e-15);
+			cal->x0to12 = poly_new(0, 1.3132e-4, -2.6646e-5, 3.6739e-8, -5.3437e-12, 2.3553e-16);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
-			cal->st_order = 3;
-			cal->st[0] = -8.5976;
-			cal->st[1] = 22379.5;
-			cal->st[2] = -57487.1;
-			cal->st[3] = 48854.3;
+			cal->usepoly2 = FALSE;
+			cal->x12to0 = poly_new(0, 8.3965199e-1, -5.1386494e-4, 1.9775775e-7, -2.9803312e-11, 0);
+			cal->v12to0 = poly_derive(cal->x12to0);
+			cal->a12to0 = poly_derive(cal->v12to0);
 
-			cal->st_mul = 1;
+			cal->stoptime = poly_new(-8.5976, 22379.5, -57487.1, 48854.3, 0, 0);
 
 			return TRUE;
 		}
@@ -170,76 +164,75 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(-0.016, 0.0292, -6.921e-5, 9.479e-8, -2.396e-11, 2.53e-15);
+			cal->usepoly = FALSE;
+			cal->x0to12 = poly_new(0, -6.9344654e-2, 1.1340435e-4, -6.8402173e-9, 0, 0);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
-			cal->st_order = 1;
-			cal->st[0] = 49.4653;
-			cal->st[1] = 6227.4;
+			cal->usepoly2 = FALSE;
+			cal->x12to0 = poly_new(0, 7.2182429e-1, -3.3968281e-4, 1.3857999e-7, -2.6837221e-11, 0);
+			cal->v12to0 = poly_derive(cal->x12to0);
+			cal->a12to0 = poly_derive(cal->v12to0);
 
-			cal->st_mul = 1;
-
-			return TRUE;
-		}
-		case 38: {
-			cal->stopm = 1184.03;
-			cal->stopb = -93.842;
-			cal->len_pickup = 50;
-			cal->dist2nose = 25;
-			cal->dist2tail = 80;
-
-			int data[] = {
-				0,		1,
-				445,	103217,
-				3213,	38768,
-				4630,	32945,
-				7050,	36503,
-				8661,	35831,
-				11691,	40407,
-				10639,	31140,
-				12611,	32524,
-				14656,	33872,
-				12611,	26533,
-				21271,	40711,
-				18230,	32337,
-				19619,	32578,
-				36037,	58152,
-				445,	103217,
-				1410,	25227,
-				3850,	35460,
-				10539,	64302,
-				7091,	32959,
-				11412,	42560,
-				12028,	38705,
-				19340,	52800,
-				19661,	47915,
-				14166,	31185,
-				23150,	46491,
-				21564,	39870,
-				25735,	44219
-			};
-
-			TRAIN_FOREACH_SPEEDIDX(i) {
-				float dx = data[i * 2];
-				float dt = data[i * 2 + 1];
-				cal->v_avg[i] = dx / dt;
-			}
-
-			cal->usepoly = FALSE;
-
-			cal->st_order = 4;
-			cal->st[0] = -0.00897707;
-			cal->st[1] = 14008.5;
-			cal->st[2] = -43208.4;
-			cal->st[3] = 64574.3;
-			cal->st[4] = -36555.3;
-
-			cal->st_mul = 1.0;
+			cal->stoptime = poly_new(49.4653, 6227.4, 0, 0, 0, 0);
 
 			return TRUE;
 		}
+		// case 38: {
+		// 	cal->stopm = 1184.03;
+		// 	cal->stopb = -93.842;
+		// 	cal->len_pickup = 50;
+		// 	cal->dist2nose = 25;
+		// 	cal->dist2tail = 80;
+
+		// 	int data[] = {
+		// 		0,		1,
+		// 		445,	103217,
+		// 		3213,	38768,
+		// 		4630,	32945,
+		// 		7050,	36503,
+		// 		8661,	35831,
+		// 		11691,	40407,
+		// 		10639,	31140,
+		// 		12611,	32524,
+		// 		14656,	33872,
+		// 		12611,	26533,
+		// 		21271,	40711,
+		// 		18230,	32337,
+		// 		19619,	32578,
+		// 		36037,	58152,
+		// 		445,	103217,
+		// 		1410,	25227,
+		// 		3850,	35460,
+		// 		10539,	64302,
+		// 		7091,	32959,
+		// 		11412,	42560,
+		// 		12028,	38705,
+		// 		19340,	52800,
+		// 		19661,	47915,
+		// 		14166,	31185,
+		// 		23150,	46491,
+		// 		21564,	39870,
+		// 		25735,	44219
+		// 	};
+
+		// 	TRAIN_FOREACH_SPEEDIDX(i) {
+		// 		float dx = data[i * 2];
+		// 		float dt = data[i * 2 + 1];
+		// 		cal->v_avg[i] = dx / dt;
+		// 	}
+
+		// 	cal->usepoly = FALSE;
+
+		// 	cal->st_order = 4;
+		// 	cal->st[0] = -0.00897707;
+		// 	cal->st[1] = 14008.5;
+		// 	cal->st[2] = -43208.4;
+		// 	cal->st[3] = 64574.3;
+		// 	cal->st[4] = -36555.3;
+
+		// 	return TRUE;
+		// }
 		case 39: {
 			cal->stopm = 1386.5;
 			cal->stopb = -68.665;
@@ -285,18 +278,16 @@ int train_init_cal(train_cal *cal, int train_no) {
 			}
 
 			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(0.2876, 0.0306, -7.537e-5, 1.334e-7, -7.897e-11, 2.128e-14);
+			cal->x0to12 = poly_new(0, 3.8994330e-2, -2.3363269e-5, 1.5223410e-8, 0, 0);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
-			cal->st_order = 4;
-			cal->st[0] = -0.0580817;
-			cal->st[1] = 19572.6;
-			cal->st[2] = -59037.1;
-			cal->st[3] = 77626.7;
-			cal->st[4] = -36317.5;
+			cal->usepoly2 = FALSE;
+			cal->x12to0 = poly_new(0, 7.0415021e-1, -4.6319289e-4, 1.9169587e-7, -3.0627974e-11, 0);
+			cal->v12to0 = poly_derive(cal->x12to0);
+			cal->a12to0 = poly_derive(cal->v12to0);
 
-			cal->st_mul = 2.2;
+			cal->stoptime = poly_new(-0.0580817, 19572.6, -59037.1, 77626.7, -36317.5, 0);
 
 			return TRUE;
 		}
@@ -307,56 +298,49 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->dist2nose = 24;
 			cal->dist2tail = 143;
 
-			// int data[] = {
-			// 	0,		1,
-			// 	791,	78393,
-			// 	2510,	34398,
-			// 	4757,	37633,
-			// 	6982,	39301,
-			// 	8734,	37224,
-			// 	6509,	22603,
-			// 	7694,	22102,
-			// 	16481,	42221,
-			// 	15437,	35441,
-			// 	11279,	23860,
-			// 	15062,	28433,
-			// 	10558,	18291,
-			// 	39277,	63136,
-			// 	16803,	27068,
-			// 	599,	60079,
-			// 	1466,	20227,
-			// 	3676,	28987,
-			// 	13885,	78019,
-			// 	6522,	27782,
-			// 	16481,	57568,
-			// 	18332,	52594,
-			// 	8135,	21220,
-			// 	12515,	28530,
-			// 	19804,	42189,
-			// 	14271,	27137,
-			// 	20784,	36490,
-			// 	36677,	59104
-			// };
+			int data[] = {
+				0,0,
+				404,30226,
+				485,6212,
+				599,4473,
+				4743,25616,
+				4743,19776,
+				4299,14668,
+				3967,11197,
+				8309,20433,
+				4743,1038,
+				5031,10073,
+				4743,8537,
+				4743,7739,
+				3967,6408,
+				9870,15918,
+				689,36048,
+				444,5540,
+				692,5232,
+				1174,6583,
+				4144,17400,
+				4339,14731,
+				3967,11137,
+				7667,19069,
+				4743,10628,
+				5127,1026,
+				5342,9501,
+				7667,12683,
+				5917,9410
+			};
 
-			// TRAIN_FOREACH_SPEEDIDX(i) {
-			// 	float dx = data[i * 2];
-			// 	float dt = data[i * 2 + 1];
-			// 	cal->v_avg[i] = dx / dt;
-			// }
+			TRAIN_FOREACH_SPEEDIDX(i) {
+				float dx = data[i * 2];
+				float dt = data[i * 2 + 1];
+				cal->v_avg[i] = dx / dt;
+			}
 
 			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(-1.281, 0.101, -0.0001, 8.216e-8, -1.447e-11, 1.084e-15);
+			cal->x0to12 = poly_new(13.401, -0.0889, 7.433e-5, 2.658e-10, -3.471e-13, 0);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
-			// cal->st_order = 4;
-			// cal->st[0] = -0.0580817;
-			// cal->st[1] = 19572.6;
-			// cal->st[2] = -59037.1;
-			// cal->st[3] = 77626.7;
-			// cal->st[4] = -36317.5;
-
-			// cal->st_mul = 2.2;
+			// cal->stoptime = poly_new(0, 0, 0, 0, 0);
 
 			return FALSE;
 		}
@@ -371,6 +355,8 @@ int train_init(train *this, int no) {
 	this->no = no;
 	train_set_dir(this, TRAIN_UNKNOWN);
 
+	this->x = 0;
+
 	this->v = 0;
 	this->v_i = 0;
 	this->v_f = 0;
@@ -382,6 +368,10 @@ int train_init(train *this, int no) {
 	this->last_speed = 0;
 	this->speed = 0;
 	train_set_tspeed(this, 0);
+
+	this->last_attrib_sensor = NULL;
+	this->num_missed_sensors = 0;
+	this->dist_since_last_sensor = 0;
 
 	train_set_lost(this);
 	train_set_tsim(this, 0);
@@ -433,7 +423,10 @@ int train_get_stopdist(train *this) {
 	// 	return max(0, dist);
 	// }
 	float st = train_st(&this->cal, this->v, 0);
-	return (this->v / 2) * st; // + (this->a / 2) * st * st;
+	float dist = (this->v / 2) * st; // + (this->a / 2) * st * st;
+	ASSERT(dist >= 0, "stop dist is negative, st: %dms: v: %dmm/s", (int) st, (int) (this->v * 1000));
+	ASSERT(dist < 2000, "stop dist too long, st: %dms: v: %dmm/s", (int) st, (int) (this->v * 1000));
+	return dist;
 }
 
 int train_get_speed(train *this) {
@@ -452,6 +445,8 @@ void train_set_speed(train *this, int speed, int t) {
 	this->last_speed = this->speed;
 	this->speed = speed;
 	train_set_tspeed(this, t);
+
+	this->x = 0;
 
 	this->v_i = train_get_velocity(this);
 	this->v_f = train_get_cruising_velocity(this);
@@ -498,7 +493,7 @@ location train_get_pickuploc_hist(train *this, int t_i) {
 
 void train_set_lost(train *this) {
 	location undef = location_undef();
-	train_set_pickuploc(this, &undef);
+	train_set_frontloc(this, &undef);
 }
 
 int train_is_lost(train *this) {
@@ -555,7 +550,7 @@ int train_get_length(train *this) {
 
 // @TODO: this should be a function of the distance travelled since last sensor hit
 int train_get_poserr(train *this) {
-	return 300;
+	return 500;
 }
 
 int train_get_pickup2frontdist(train *this) {
@@ -570,6 +565,11 @@ int train_get_pickup2frontdist(train *this) {
 	return 0; // unreachable
 }
 
+void train_on_missed2manysensors(train *this) {
+	train_set_lost(this);
+	train_speed(this->no, 0, WhoIs(NAME_TRAINCMDBUFFER));
+}
+
 // simulate the distance the train would travel from t_i to t_f
 // assuming t_i <= t_f and that t_i is relatively close to the current time
 float train_simulate_dx(train *this, int t_i, int t_f) {
@@ -580,33 +580,33 @@ float train_simulate_dx(train *this, int t_i, int t_f) {
 }
 
 float train_st(train_cal *cal, float v_i, float v_f) {
-	float rv = 0;
-
-	float dv = fabs(v_f - v_i);
-	float dvn = 1; // dv^n
-
-	for (int n = 0; n <= cal->st_order; n++) {
-		rv += cal->st[n] * dvn;
-		dvn *= dv;
-	}
-
-	if (v_i < v_f) { // accelerating
-		rv *= cal->st_mul;
-	}
-
-	return rv;
+	float st = poly_eval(&cal->stoptime, fabs(v_f - v_i));
+	ASSERT(st >= -100, "stop time is negative: %d", (int) st);
+	return fmax(0, st);
 }
 
 static void train_update_state(train *this, float t_f) {
-	if (fabs(this->v - this->v_f) > 0.0001) {
+	if (fabs(this->v - this->v_f) > 0.001) {
 		if (this->v_i < this->v_f && this->cal.usepoly) {
-			float dv = this->v_f - this->v_i;
-			float alpha = dv / this->cal.v_avg[train_speed2speedidx(0, 12)];
-			poly v = poly_scale(this->cal.v0to12, alpha);
+			poly v = this->cal.v0to12;
+			float dv = fabs(this->v_f - this->v_i);
+			float v12 = this->cal.v_avg[train_speed2speedidx(0, 12)];
+			float alpha = dv / v12;
+			v = poly_scale(v, alpha);
 			float t = t_f - train_get_tspeed(this);
-			this->v = this->v_i + poly_eval(&v, t);
-			poly a = poly_derive(v);
-			this->a = this->a_i + poly_eval(&a, t);
+			this->v = fmax(0, this->v_i + poly_eval(&v, t));
+			// poly a = poly_derive(v);
+			// this->a = this->a_i + poly_eval(&a, t);
+		} else if (this->v_i > this->v_f && this->cal.usepoly2) {
+			poly v = this->cal.v12to0;
+			float dv = fabs(this->v_f - this->v_i);
+			float v12 = this->cal.v_avg[train_speed2speedidx(0, 12)];
+			float alpha = dv / v12;
+			v = poly_scale(v, alpha);
+			float t = t_f - train_get_tspeed(this);
+			this->v = fmax(0, poly_eval(&v, t));
+			// poly a = poly_derive(v);
+			// this->a = this->a_i + poly_eval(&a, t);
 		} else {
 			float dv = this->v_f - this->v_i;
 			float dt = this->st;
@@ -615,6 +615,10 @@ static void train_update_state(train *this, float t_f) {
 			float tau2 = tau * tau;
 			// float tau3 = tau * tau2;
 			// float tau4 = tau * tau3;
+
+			// linear acceleration
+			// this->v = this->v_i + dv * tau;
+			// this->a = this->a_i + dv / dt;
 
 			// a_i=a_f=0
 			this->v = this->v_i + dv * (3 - 2 * tau) * tau2;
@@ -635,9 +639,16 @@ static void train_update_state(train *this, float t_f) {
 	float fdt = t_f - train_get_tsim(this);
 	if (!train_is_lost(this) && train_is_moving(this)) {
 		float dx = this->v * fdt;
+		this->dist_since_last_sensor += dx;
 		location loc_front = train_get_frontloc(this);
-		location_add(&loc_front, dx);
-		train_set_frontloc(this, &loc_front);
+		int num_sensors = location_add(&loc_front, dx);
+		ASSERT(num_sensors >= 0, "add failed %d", num_sensors);
+		this->num_missed_sensors += num_sensors;
+		if (this->num_missed_sensors >= MAX_NUM_MISSED_SENSORS) {
+			train_on_missed2manysensors(this);
+		} else {
+			train_set_frontloc(this, &loc_front);
+		}
 	}
 	train_set_tsim(this, t_f);
 }
@@ -653,37 +664,52 @@ location train_get_dest(train *this) {
 	return this->destination;
 }
 
+void train_on_attrib(train *this, location *new_loc_pickup, int t_loc, int t) {
+	track_node *sensor = new_loc_pickup->edge->src;
+	ASSERTNOTNULL(sensor); // sanity check
+	this->last_attrib_sensor = sensor;
+	this->num_missed_sensors = 0;
+
+	train_update_simulation(this, t);
+
+	float dx_lag = train_simulate_dx(this, t_loc, t);
+
+	this->dist_since_last_sensor = dx_lag;
+
+	location_add(new_loc_pickup, dx_lag);
+	train_set_pickuploc(this, new_loc_pickup);
+}
+
 void train_set_dest(train *this, location *dest) {
 	this->destination = *dest;
 	this->vcmdidx = 0;
 	this->vcmdslen = 0;
 }
 
-#define RESERVE_BEHIND 0
-#define RESERVE_AHEAD 100
+void train_giveupres(train *this) {
+	reservation_req *req = this->reservation_alt;
+	req->len = 0;
+	reservation_replace(this->reservation, req, this->no);
+}
 
-static int train_update_reservations(train *this) {
+int train_update_reservations(train *this) {
+	if (train_is_lost(this)) return FALSE;
+
 	reservation_req *req = this->reservation_alt;
 	req->len = 0;
 
-	if (train_is_lost(this)) {
-		reservation_replace(this->reservation, req, this->no);
-		return FALSE;
-	}
-
 	location loc_train = train_get_frontloc(this);
-
 	req->edges[req->len++] = loc_train.edge;
 
 	int toprevnode = loc_train.offset;
-	int behind = RESERVE_BEHIND + train_get_length(this) - toprevnode;
-
 	int tonextnode = loc_train.edge->dist - toprevnode;
-	int ahead = RESERVE_AHEAD + train_get_stopdist(this) - tonextnode;
+	int poserr = train_get_poserr(this);
 
-	if (!track_walk(loc_train.edge->dest, ahead, TRACK_MAX, req->edges, &req->len)) return FALSE;
+	int behind = poserr / 2 + train_get_length(this) - toprevnode + this->dist_since_last_sensor;
+	if (!track_walk(loc_train.edge->src->reverse, behind, TRACK_NUM_EDGES, req->edges, &req->len)) return FALSE;
 
-	if (!track_walk(loc_train.edge->src->reverse, behind, TRACK_MAX, req->edges, &req->len)) return FALSE;
+	int ahead = poserr / 2 + train_get_stopdist(this) - tonextnode;
+	if (!track_walk(loc_train.edge->dest, ahead, TRACK_NUM_EDGES, req->edges, &req->len)) return FALSE;
 
 	return reservation_replace(this->reservation, req, this->no);
 }
@@ -785,7 +811,7 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 			case VCMD_SETSWITCH: {
 				int dist = location_isundef(&waitloc) ? 0 : location_dist_min(&curloc, &waitloc);
 				if (dist < 0) break;
-				int switch_dist = train_get_stopdist(this) + train_get_poserr(this); // ok to be safe
+				int switch_dist = train_get_stopdist(this) + train_get_poserr(this) / 2; // ok to be safe
 				if (dist <= switch_dist) {
 					char *branchname = curvcmd->data.switchinfo.nodename;
 					char pos = curvcmd->data.switchinfo.pos;
@@ -809,7 +835,7 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 					break;
 				}
 				int stopdist = train_get_stopdist(this);
-				// if (train_is_moving(this) && (dist <= stopdist) || xx train_get_poserr(this)) {
+				// if (train_is_moving(this) && (dist <= stopdist) || train_get_poserr(this)) {
 				if (dist <= stopdist) {
 					char buf[100], buf2[100];
 					location_tostring(&curloc, buf);
@@ -865,10 +891,10 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 int train_get_reverse_cost(train *train, int dist, track_node *node) {
 	int safe_len = train_get_length(train) + train_get_poserr(train);
 
-	SMALLOC(track_edge*, edges, TRACK_MAX);
+	SMALLOC(track_edge*, edges, TRACK_NUM_EDGES);
 	int num_edges = 0;
 
-	if (!track_walk(node->reverse, safe_len, TRACK_MAX, edges, &num_edges)) {
+	if (!track_walk(node->reverse, safe_len, TRACK_NUM_EDGES, edges, &num_edges)) {
 		return infinity; // not enough room to reverse
 	}
 

@@ -11,13 +11,14 @@ struct path {
 	location start;
 	location end;
 	int pathlen;
-	track_node *nodes[TRACK_MAX];
+	track_node *nodes[TRACK_NUM_EDGES];
 };
 
 typedef struct reservation_req reservation_req;
 
+// @TODO: this should be done with a sparse set
 struct reservation_req {
-	track_edge *edges[TRACK_MAX];
+	track_edge *edges[TRACK_NUM_EDGES];
 	int len;
 };
 
