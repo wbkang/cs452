@@ -164,7 +164,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->usepoly = TRUE;
+			cal->usepoly = FALSE;
 			cal->x0to12 = poly_new(0, -6.9344654e-2, 1.1340435e-4, -6.8402173e-9, 0, 0);
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
@@ -658,20 +658,17 @@ static int train_update_reservations(train *this) {
 	}
 
 	location loc_train = train_get_frontloc(this);
-
 	req->edges[req->len++] = loc_train.edge;
 
 	int poserr = train_get_poserr(this);
 
 	int toprevnode = loc_train.offset;
 	int behind = poserr / 2 + train_get_length(this) - toprevnode;
+	if (!track_walk(loc_train.edge->src->reverse, behind, TRACK_NUM_EDGES, req->edges, &req->len)) return FALSE;
 
 	int tonextnode = loc_train.edge->dist - toprevnode;
 	int ahead = poserr / 2 + train_get_stopdist(this) - tonextnode;
-
 	if (!track_walk(loc_train.edge->dest, ahead, TRACK_NUM_EDGES, req->edges, &req->len)) return FALSE;
-
-	if (!track_walk(loc_train.edge->src->reverse, behind, TRACK_NUM_EDGES, req->edges, &req->len)) return FALSE;
 
 	return reservation_replace(this->reservation, req, this->no);
 }
