@@ -78,6 +78,14 @@ static inline uint abs(int n) {
 	return (n + mask) ^ mask;
 }
 
+static inline float fmin(float a, float b) {
+	return a < b ? a : b;
+}
+
+static inline float fmax(float a, float b) {
+	return a > b ? a : b;
+}
+
 static inline float fabs(float f) {
 	return f < 0 ? -f : f;
 }
