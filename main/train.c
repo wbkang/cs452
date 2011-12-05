@@ -118,12 +118,16 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
-			cal->st_order = -1;
-
-			cal->usepoly2 = TRUE;
+			cal->usepoly2 = FALSE;
 			cal->x12to0 = poly_new(0, 8.3965199e-1, -5.1386494e-4, 1.9775775e-7, -2.9803312e-11, 0);
 			cal->v12to0 = poly_derive(cal->x12to0);
 			cal->a12to0 = poly_derive(cal->v12to0);
+
+			cal->st_order = 3;
+			cal->st[0] = -8.5976;
+			cal->st[1] = 22379.5;
+			cal->st[2] = -57487.1;
+			cal->st[3] = 48854.3;
 
 			return TRUE;
 		}
@@ -176,12 +180,14 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
-			cal->st_order = -1;
-
-			cal->usepoly2 = TRUE;
+			cal->usepoly2 = FALSE;
 			cal->x12to0 = poly_new(0, 7.2182429e-1, -3.3968281e-4, 1.3857999e-7, -2.6837221e-11, 0);
 			cal->v12to0 = poly_derive(cal->x12to0);
 			cal->a12to0 = poly_derive(cal->v12to0);
+
+			cal->st_order = 1;
+			cal->st[0] = 49.4653;
+			cal->st[1] = 6227.4;
 
 			cal->st_mul = 1;
 
@@ -293,12 +299,17 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->v0to12 = poly_derive(cal->x0to12);
 			cal->a0to12 = poly_derive(cal->v0to12);
 
-			cal->st_order = -1;
-
-			cal->usepoly2 = TRUE;
+			cal->usepoly2 = FALSE;
 			cal->x12to0 = poly_new(0, 7.0415021e-1, -4.6319289e-4, 1.9169587e-7, -3.0627974e-11, 0);
 			cal->v12to0 = poly_derive(cal->x12to0);
 			cal->a12to0 = poly_derive(cal->v12to0);
+
+			cal->st_order = 4;
+			cal->st[0] = -0.0580817;
+			cal->st[1] = 19572.6;
+			cal->st[2] = -59037.1;
+			cal->st[3] = 77626.7;
+			cal->st[4] = -36317.5;
 
 			return TRUE;
 		}
@@ -597,9 +608,9 @@ float train_st(train_cal *cal, float v_i, float v_f) {
 		dvn *= dv;
 	}
 
-	ASSERT(rv >= -0.1, "stop time is negative: %d", (int) rv);
+	ASSERT(rv >= -100, "stop time is negative: %d", (int) rv);
 
-	return rv;
+	return fmax(0, rv);
 }
 
 static void train_update_state(train *this, float t_f) {
@@ -625,7 +636,6 @@ static void train_update_state(train *this, float t_f) {
 			// poly a = poly_derive(v);
 			// this->a = this->a_i + poly_eval(&a, t);
 		} else {
-			ASSERT(0, "no");
 			float dv = this->v_f - this->v_i;
 			float dt = this->st;
 			float t = t_f - train_get_tspeed(this);
