@@ -56,7 +56,7 @@ generate_funcmap : $(OBJS)
 %.o : %.c
 	@echo "[ASCC]\t$< -> $@"
 	@$(XCC) $(CFLAGS) -o $@ $<
-	@$(XCC) $(CFLAGS) -S $< >/dev/null 2>/dev/null
+	@$(XCC) $(CFLAGS) -S $<
 
 clean:
 	@echo "[rm]\tCleaning"
