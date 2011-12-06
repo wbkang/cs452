@@ -96,7 +96,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->acceltime = poly_new(0, 9506.3, 0, 0, 0, 0);
+			cal->acceltime = poly_new(42.4388, 16626.1, -13638.8, 0, 0, 0);
 			cal->deceltime = poly_new(0, 5835.55, 0, 0, 0, 0);
 
 			return TRUE;
@@ -143,7 +143,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->acceltime = poly_new(16.8551, 10298.2, -6118.3, 0, 0, 0);
+			cal->acceltime = poly_new(-3.00881, 10307.9, -2275.12, -18953.4, 21107.1, 0);
 			// cal->deceltime = poly_new(0, 5906.36, 0, 0, 0, 0);
 			cal->deceltime = poly_new(49.4653, 6227.4, 0, 0, 0, 0);
 
@@ -155,34 +155,34 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->dist2tail = 80;
 
 			int data[] = {
-				0,		1,
-				445,	103217,
-				3213,	38768,
-				4630,	32945,
-				7050,	36503,
-				8661,	35831,
-				11691,	40407,
-				10639,	31140,
-				12611,	32524,
-				14656,	33872,
-				12611,	26533,
-				21271,	40711,
-				18230,	32337,
-				19619,	32578,
-				36037,	58152,
-				445,	103217,
-				1410,	25227,
-				3850,	35460,
-				10539,	64302,
-				7091,	32959,
-				11412,	42560,
-				12028,	38705,
-				19340,	52800,
-				19661,	47915,
-				14166,	31185,
-				23150,	46491,
-				21564,	39870,
-				25735,	44219
+				0,1,
+				194,15212,
+				776,15212,
+				485,3449,
+				776,4770,
+				1759,7586,
+				2549,8811,
+				1759,4946,
+				7269,17863,
+				8716,19243,
+				12419,23920,
+				5345,9438,
+				5037,10440,
+				5522,11065,
+				8716,17525,
+				194,15212,
+				384,7269,
+				599,5508,
+				485,3142,
+				1174,5598,
+				444,1668,
+				1160,3859,
+				1160,3368,
+				2523,7115,
+				2595,6058,
+				1819,3932,
+				1819,3744,
+				1819,3808
 			};
 
 			TRAIN_FOREACH_SPEEDIDX(i) {
@@ -191,8 +191,8 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->acceltime = poly_new(-0.00897707, 14008.5, -43208.4, 64574.3, -36555.3, 0);
-			cal->deceltime = poly_new(-0.00897707, 14008.5, -43208.4, 64574.3, -36555.3, 0);
+			cal->acceltime = poly_new(5.79241, 10808, -13230.6, 0, 0, 0);
+			cal->deceltime = poly_new(5.79241, 10808, -13230.6, 0, 0, 0);
 
 			return TRUE;
 		}
@@ -238,7 +238,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->acceltime = poly_new(0, 16222.8, -10912.2, 0, 0, 0);
+			cal->acceltime = poly_new(1.19742, 16175, -10844.5, 0, 0, 0);
 			cal->deceltime = poly_new(-0.0580817, 19572.6, -59037.1, 77626.7, -36317.5, 0);
 
 			return TRUE;
@@ -249,7 +249,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->dist2tail = 143;
 
 			int data[] = {
-				0,0,
+				0,1,
 				404,30226,
 				485,6212,
 				599,4473,
@@ -285,8 +285,8 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->acceltime = poly_new(0, 9525.39, 0, 0, 0, 0);
-			// cal->deceltime = poly_new(0, 0, 0, 0, 0, 0);
+			cal->acceltime = poly_new(34.9382, 13048.3, -5517.89, 0, 0, 0);
+			cal->deceltime = poly_new(34.9382, 13048.3, -5517.89, 0, 0, 0);
 
 			return FALSE;
 		}
@@ -361,11 +361,6 @@ int train_is_moving(train *this) {
 }
 
 int train_get_stopdist(train *this) {
-	// if (this->v == this->v_f) {
-	// 	float v = train_get_velocity(this);
-	// 	int dist = this->cal.stopm * v + this->cal.stopb;
-	// 	return max(0, dist);
-	// }
 	float dt = train_get_dt(&this->cal, this->v, 0);
 	float dist = (this->v / 2) * dt; // + (this->a / 2) * st * st;
 	ASSERT(dist >= 0, "stop dist is negative, st: %dms: v: %dmm/s", (int) dt, (int) (this->v * 1000));
@@ -494,6 +489,7 @@ int train_get_length(train *this) {
 
 // @TODO: this should be a function of the distance travelled since last sensor hit
 int train_get_poserr(train *this) {
+	//return this->dist_since_last_sensor / 2; // can't use this because dijkstra uses poserr for future predictions
 	return 500;
 }
 
@@ -539,7 +535,7 @@ static void train_update_state(train *this, float t_f) {
 		float tau2 = tau * tau;
 		float tau3 = tau * tau2;
 		this->v = this->v_i + 3 * dv * tau2 - 2 * dv * tau3;
-		this->a = this->a_i + 6 * (dv / dt) * tau * (1 - tau);
+		this->a = this->a_i + 6 * (dv / dt) * tau - 6 * (dv / dt) * tau2;
 	} else {
 		this->v = this->v_f;
 		this->a = 0;

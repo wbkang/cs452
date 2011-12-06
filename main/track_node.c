@@ -116,7 +116,9 @@ int track_walk(track_node *node, int dist, int maxlen, track_edge *arr[], int *l
 		track_edge *edge = &node->edge[i];
 		ASSERT(*len < maxlen, "'arr' full, len %d max len %d", *len, maxlen);
 		// if (*len >= maxlen) return FALSE;
-		arr[(*len)++] = edge;
+		if (!in_array((void**) arr, *len, edge) && !in_array((void**) arr, *len, edge->reverse)) {
+			arr[(*len)++] = edge;
+		}
 		if (!track_walk(edge->dest, dist - edge->dist, maxlen, arr, len)) return FALSE;
 	}
 
