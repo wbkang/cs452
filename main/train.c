@@ -8,8 +8,6 @@
 int train_init_cal(train_cal *cal, int train_no) {
 	switch (train_no) {
 		case 21: {
-			cal->stopm = 1620.85475;
-			cal->stopb = 153.7681768;
 			cal->len_pickup = 50;
 			cal->dist2nose = 22;
 			cal->dist2tail = 120;
@@ -51,22 +49,12 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(0, 1.3132251e-4, -2.6646334e-5, 3.6739198e-8, -5.3437495e-12, 2.3553124e-16);
-			cal->v0to12 = poly_derive(cal->x0to12);
-			cal->a0to12 = poly_derive(cal->v0to12);
-
-			cal->usepoly2 = FALSE;
-
-			cal->useacceltime = FALSE;
-
+			cal->acceltime = poly_new(0, 13662.3, 0, 0, 0, 0);
 			cal->deceltime = poly_new(-1.02274, 103842, -695046, 1.09098e6, -1.94579e6, 0);
 
 			return TRUE;
 		}
 		case 35: {
-			cal->stopm = 2012.356051;
-			cal->stopb = -219.3890214;
 			cal->len_pickup = 50;
 			cal->dist2nose = 22;
 			cal->dist2tail = 120;
@@ -108,25 +96,12 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(0, 1.3132e-4, -2.6646e-5, 3.6739e-8, -5.3437e-12, 2.3553e-16);
-			cal->v0to12 = poly_derive(cal->x0to12);
-			cal->a0to12 = poly_derive(cal->v0to12);
-
-			cal->usepoly2 = FALSE;
-			cal->x12to0 = poly_new(0, 8.3965199e-1, -5.1386494e-4, 1.9775775e-7, -2.9803312e-11, 0);
-			cal->v12to0 = poly_derive(cal->x12to0);
-			cal->a12to0 = poly_derive(cal->v12to0);
-
-			cal->useacceltime = FALSE;
-
-			cal->deceltime = poly_new(-8.5976, 22379.5, -57487.1, 48854.3, 0, 0);
+			cal->acceltime = poly_new(0, 9506.3, 0, 0, 0, 0);
+			cal->deceltime = poly_new(0, 5835.55, 0, 0, 0, 0);
 
 			return TRUE;
 		}
 		case 37: {
-			cal->stopm = 2747.7;
-			cal->stopb = -552.48;
 			cal->len_pickup = 50;
 			cal->dist2nose = 22;
 			cal->dist2tail = 120;
@@ -168,80 +143,60 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->usepoly = FALSE;
-			cal->x0to12 = poly_new(0, -6.9344654e-2, 1.1340435e-4, -6.8402173e-9, 0, 0);
-			cal->v0to12 = poly_derive(cal->x0to12);
-			cal->a0to12 = poly_derive(cal->v0to12);
-
-			cal->usepoly2 = FALSE;
-			cal->x12to0 = poly_new(0, 7.2182429e-1, -3.3968281e-4, 1.3857999e-7, -2.6837221e-11, 0);
-			cal->v12to0 = poly_derive(cal->x12to0);
-			cal->a12to0 = poly_derive(cal->v12to0);
-
-			cal->useacceltime = FALSE;
-
+			cal->acceltime = poly_new(16.8551, 10298.2, -6118.3, 0, 0, 0);
+			// cal->deceltime = poly_new(0, 5906.36, 0, 0, 0, 0);
 			cal->deceltime = poly_new(49.4653, 6227.4, 0, 0, 0, 0);
 
 			return TRUE;
 		}
-		// case 38: {
-		// 	cal->stopm = 1184.03;
-		// 	cal->stopb = -93.842;
-		// 	cal->len_pickup = 50;
-		// 	cal->dist2nose = 25;
-		// 	cal->dist2tail = 80;
+		case 38: {
+			cal->len_pickup = 50;
+			cal->dist2nose = 25;
+			cal->dist2tail = 80;
 
-		// 	int data[] = {
-		// 		0,		1,
-		// 		445,	103217,
-		// 		3213,	38768,
-		// 		4630,	32945,
-		// 		7050,	36503,
-		// 		8661,	35831,
-		// 		11691,	40407,
-		// 		10639,	31140,
-		// 		12611,	32524,
-		// 		14656,	33872,
-		// 		12611,	26533,
-		// 		21271,	40711,
-		// 		18230,	32337,
-		// 		19619,	32578,
-		// 		36037,	58152,
-		// 		445,	103217,
-		// 		1410,	25227,
-		// 		3850,	35460,
-		// 		10539,	64302,
-		// 		7091,	32959,
-		// 		11412,	42560,
-		// 		12028,	38705,
-		// 		19340,	52800,
-		// 		19661,	47915,
-		// 		14166,	31185,
-		// 		23150,	46491,
-		// 		21564,	39870,
-		// 		25735,	44219
-		// 	};
+			int data[] = {
+				0,		1,
+				445,	103217,
+				3213,	38768,
+				4630,	32945,
+				7050,	36503,
+				8661,	35831,
+				11691,	40407,
+				10639,	31140,
+				12611,	32524,
+				14656,	33872,
+				12611,	26533,
+				21271,	40711,
+				18230,	32337,
+				19619,	32578,
+				36037,	58152,
+				445,	103217,
+				1410,	25227,
+				3850,	35460,
+				10539,	64302,
+				7091,	32959,
+				11412,	42560,
+				12028,	38705,
+				19340,	52800,
+				19661,	47915,
+				14166,	31185,
+				23150,	46491,
+				21564,	39870,
+				25735,	44219
+			};
 
-		// 	TRAIN_FOREACH_SPEEDIDX(i) {
-		// 		float dx = data[i * 2];
-		// 		float dt = data[i * 2 + 1];
-		// 		cal->v_avg[i] = dx / dt;
-		// 	}
+			TRAIN_FOREACH_SPEEDIDX(i) {
+				float dx = data[i * 2];
+				float dt = data[i * 2 + 1];
+				cal->v_avg[i] = dx / dt;
+			}
 
-		// 	cal->usepoly = FALSE;
+			cal->acceltime = poly_new(-0.00897707, 14008.5, -43208.4, 64574.3, -36555.3, 0);
+			cal->deceltime = poly_new(-0.00897707, 14008.5, -43208.4, 64574.3, -36555.3, 0);
 
-		// 	cal->st_order = 4;
-		// 	cal->st[0] = -0.00897707;
-		// 	cal->st[1] = 14008.5;
-		// 	cal->st[2] = -43208.4;
-		// 	cal->st[3] = 64574.3;
-		// 	cal->st[4] = -36555.3;
-
-		// 	return TRUE;
-		// }
+			return TRUE;
+		}
 		case 39: {
-			cal->stopm = 1386.5;
-			cal->stopb = -68.665;
 			cal->len_pickup = 50;
 			cal->dist2nose = 24;
 			cal->dist2tail = 143;
@@ -283,26 +238,12 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->usepoly = FALSE;
-			cal->x0to12 = poly_new(0, 3.8994330e-2, -2.3363269e-5, 1.5223410e-8, 0, 0);
-			cal->v0to12 = poly_derive(cal->x0to12);
-			cal->a0to12 = poly_derive(cal->v0to12);
-
-			cal->usepoly2 = FALSE;
-			cal->x12to0 = poly_new(0, 7.0415021e-1, -4.6319289e-4, 1.9169587e-7, -3.0627974e-11, 0);
-			cal->v12to0 = poly_derive(cal->x12to0);
-			cal->a12to0 = poly_derive(cal->v12to0);
-
-			cal->useacceltime = TRUE;
 			cal->acceltime = poly_new(0, 16222.8, -10912.2, 0, 0, 0);
-
 			cal->deceltime = poly_new(-0.0580817, 19572.6, -59037.1, 77626.7, -36317.5, 0);
 
 			return TRUE;
 		}
 		case 41: {
-			// cal->stopm = 1386.5;
-			// cal->stopb = -68.665;
 			cal->len_pickup = 50;
 			cal->dist2nose = 24;
 			cal->dist2tail = 143;
@@ -344,14 +285,8 @@ int train_init_cal(train_cal *cal, int train_no) {
 				cal->v_avg[i] = dx / dt;
 			}
 
-			cal->usepoly = TRUE;
-			cal->x0to12 = poly_new(13.401, -0.0889, 7.433e-5, 2.658e-10, -3.471e-13, 0);
-			cal->v0to12 = poly_derive(cal->x0to12);
-			cal->a0to12 = poly_derive(cal->v0to12);
-
-			cal->useacceltime = FALSE;
-
-			// cal->deceltime = poly_new(0, 0, 0, 0, 0);
+			cal->acceltime = poly_new(0, 9525.39, 0, 0, 0, 0);
+			// cal->deceltime = poly_new(0, 0, 0, 0, 0, 0);
 
 			return FALSE;
 		}
@@ -590,63 +525,21 @@ float train_simulate_dx(train *this, int t_i, int t_f) {
 
 float train_get_dt(train_cal *cal, float v_i, float v_f) {
 	float dv = fabs(v_f - v_i);
-
-	if (v_i < v_f && cal->useacceltime) {
-		return poly_eval(&cal->acceltime, dv);
-	}
-
-	float dt = poly_eval(&cal->deceltime, dv);
+	float dt = poly_eval(v_i < v_f ? &cal->acceltime : &cal->deceltime, dv);
 	ASSERT(dt >= -100, "stop time is negative: %d", (int) dt);
 	return fmax(0, dt);
 }
 
 static void train_update_state(train *this, float t_f) {
 	if (fabs(this->v - this->v_f) > 0.001) {
-		if (this->v_i < this->v_f && this->cal.usepoly) {
-			poly v = this->cal.v0to12;
-			float dv = fabs(this->v_f - this->v_i);
-			float v12 = this->cal.v_avg[train_speed2speedidx(0, 12)];
-			float alpha = dv / v12;
-			v = poly_scale(v, alpha);
-			float t = t_f - train_get_tspeed(this);
-			this->v = fmax(0, this->v_i + poly_eval(&v, t));
-			// poly a = poly_derive(v);
-			// this->a = this->a_i + poly_eval(&a, t);
-		} else if (this->v_i > this->v_f && this->cal.usepoly2) {
-			poly v = this->cal.v12to0;
-			float dv = fabs(this->v_f - this->v_i);
-			float v12 = this->cal.v_avg[train_speed2speedidx(0, 12)];
-			float alpha = dv / v12;
-			v = poly_scale(v, alpha);
-			float t = t_f - train_get_tspeed(this);
-			this->v = fmax(0, poly_eval(&v, t));
-			// poly a = poly_derive(v);
-			// this->a = this->a_i + poly_eval(&a, t);
-		} else {
-			float dv = this->v_f - this->v_i;
-			float dt = this->dt;
-			float t = t_f - train_get_tspeed(this);
-			float tau = t / dt;
-			float tau2 = tau * tau;
-			// float tau3 = tau * tau2;
-			// float tau4 = tau * tau3;
-
-			// linear acceleration
-			// this->v = this->v_i + dv * tau;
-			// this->a = this->a_i + dv / dt;
-
-			// a_i=a_f=0
-			this->v = this->v_i + dv * (3 - 2 * tau) * tau2;
-			this->a = this->a_i + 6 * (dv / dt) * tau * (1 - tau);
-
-			// j_i=j_f=0
-			// this->v = this->v_i + dv * (10 - 15 * tau + 6 * tau2) * tau3;
-			// this->a = this->a_i + 30 * (dv / dt) * fpow(tau * (1 - tau), 2);
-
-			// s_i=s_f=0
-			// this->v = this->v_i + dv * (35 - 84 * tau + 70 * tau2 - 20 * tau3) * tau4;
-			// this->a = this->a_i + 140 * (dv / dt) * fpow(tau * (1 - tau), 3);
-		}
+		float dv = this->v_f - this->v_i;
+		float dt = this->dt;
+		float t = t_f - train_get_tspeed(this);
+		float tau = t / dt;
+		float tau2 = tau * tau;
+		float tau3 = tau * tau2;
+		this->v = this->v_i + 3 * dv * tau2 - 2 * dv * tau3;
+		this->a = this->a_i + 6 * (dv / dt) * tau * (1 - tau);
 	} else {
 		this->v = this->v_f;
 		this->a = 0;
@@ -657,13 +550,14 @@ static void train_update_state(train *this, float t_f) {
 		this->dist_since_last_sensor += dx;
 		location loc_front = train_get_frontloc(this);
 		int num_sensors = location_add(&loc_front, dx);
-		ASSERT(num_sensors >= 0, "add failed %d", num_sensors);
-		this->num_missed_sensors += num_sensors;
-		if (this->num_missed_sensors >= MAX_NUM_MISSED_SENSORS) {
-			train_on_missed2manysensors(this);
-		} else {
-			train_set_frontloc(this, &loc_front);
+		if (num_sensors > 0) {
+			this->num_missed_sensors += num_sensors;
+			if (this->num_missed_sensors >= MAX_NUM_MISSED_SENSORS) {
+				train_on_missed2manysensors(this);
+				return;
+			}
 		}
+		train_set_frontloc(this, &loc_front);
 	}
 	train_set_tsim(this, t_f);
 }

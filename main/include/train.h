@@ -56,24 +56,9 @@ struct train_cal {
 	int len_pickup;
 	int dist2nose;
 	int dist2tail;
-	float stopm;
-	float stopb;
 	float v_avg[TRAIN_NUM_SPEED_IDX];
-
-	int useacceltime;
 	poly acceltime;
-
 	poly deceltime;
-
-	int usepoly;
-	poly x0to12;
-	poly v0to12;
-	poly a0to12;
-
-	int usepoly2;
-	poly x12to0;
-	poly v12to0;
-	poly a12to0;
 };
 
 typedef struct train train;
