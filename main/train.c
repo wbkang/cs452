@@ -490,7 +490,7 @@ int train_get_length(train *this) {
 // @TODO: this should be a function of the distance travelled since last sensor hit
 int train_get_poserr(train *this) {
 	//return this->dist_since_last_sensor / 2; // can't use this because dijkstra uses poserr for future predictions
-	return 500;
+	return 300;
 }
 
 int train_get_pickup2frontdist(train *this) {
@@ -527,7 +527,7 @@ float train_get_dt(train_cal *cal, float v_i, float v_f) {
 }
 
 static void train_update_state(train *this, float t_f) {
-	if (fabs(this->v - this->v_f) > 0.001) {
+	if (fabs(this->v - this->v_f) > 0.002) {
 		float dv = this->v_f - this->v_i;
 		float dt = this->dt;
 		float t = t_f - train_get_tspeed(this);
@@ -606,11 +606,13 @@ int train_update_reservations(train *this) {
 	int tonextnode = loc_train.edge->dist - toprevnode;
 	int poserr = train_get_poserr(this);
 
-	int behind = poserr / 2 + train_get_length(this) - toprevnode + this->dist_since_last_sensor;
+	int behind = poserr / 2 + train_get_length(this) - toprevnode;
 	if (!track_walk(loc_train.edge->src->reverse, behind, TRACK_NUM_EDGES, req->edges, &req->len)) return FALSE;
 
 	int ahead = poserr / 2 + train_get_stopdist(this) - tonextnode;
 	if (!track_walk(loc_train.edge->dest, ahead, TRACK_NUM_EDGES, req->edges, &req->len)) return FALSE;
+
+	if (this->last_attrib_sensor && !track_walk(this->last_attrib_sensor, this->dist_since_last_sensor,  TRACK_NUM_EDGES, req->edges, &req->len)) return FALSE;
 
 	return reservation_replace(this->reservation, req, this->no);
 }

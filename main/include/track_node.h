@@ -52,3 +52,4 @@ int track_distance(track_node *from, track_node *to);
 int track_numedges(track_node *node);
 int track_walk(track_node *node, int dist, int maxlen, track_edge *arr[], int *len);
 int track_skipvnodes(track_node **node);
+char track_branch_edge2pos(track_node *br, track_edge *edge);

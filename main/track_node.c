@@ -137,3 +137,10 @@ int track_skipvnodes(track_node **node) {
 	}
 	return -3; // unreachable
 }
+
+char track_branch_edge2pos(track_node *br, track_edge *edge) {
+	if (edge == &br->edge[DIR_STRAIGHT]) return 's';
+	if (edge == &br->edge[DIR_CURVED]) return 'c';
+	ASSERT(0, "'edge' is not a vaid edge of 'br'");
+	return '\0'; // unreachable
+}
