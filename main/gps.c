@@ -115,6 +115,32 @@ static int gps_collapsereverse(track_node *startnode, track_node *path[], int pa
 	return -1;
 }
 
+static int gps_findgoodspeed(train_cal *cal, int speed_i, float v_i, int i, track_node *path[], int pathlen) {
+	// int dist = 0;
+	// for (; i < pathlen - 1; i++) {
+	// 	track_node *node = path[i];
+	// 	track_node *nextnode = path[i + 1];
+	// 	if (node->reverse == nextnode) { // reverse
+	// 		break;
+	// 	} else {
+	// 		track_edge *nextedge = track_get_edge(node, nextnode);
+	// 		ASSERT(nextedge, "no edge from %s to %s", node->name, nextnode->name);
+	// 		dist += nextedge->dist;
+	// 	}
+	// }
+
+	// for (int speed = TRAIN_MAX_SPEED; speed > 0; speed--) {
+	// 	int speedidx = train_speed2speedidx(speed_i, speed);
+	// 	ASSERT(0 <= speedidx && speedidx < TRAIN_NUM_SPEED_IDX, "bad speedidx %d", speedidx);
+	// 	float v_m = cal->v_avg[speedidx];
+	// 	int mindist = train_calc_dvdist(cal, v_i, v_m) + train_calc_dvdist(cal, v_m, 0);
+	// 	if (mindist < dist) return speed;
+	// }
+
+	// return 0; // (should be) unreachable
+	return CRUISE_SPEED;
+}
+
 void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd *rv_vcmd, int *rv_len, a0ui *a0ui) {
 	if (train_is_lost(train)) {
 		*rv_len = 0;
@@ -152,12 +178,13 @@ void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd
 
 	if (collapseidx >= 0) {
 		trainvcmd_addreverse(rv_vcmd, &cmdlen, NULL);
-		trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
 		startidx = collapseidx;
 	} else {
-		trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, &trainloc);
 		startidx = 0;
 	}
+
+	int speed = gps_findgoodspeed(&train->cal, train->speed, train->v, startidx, path, *pathlen);
+	trainvcmd_addspeed(rv_vcmd, &cmdlen, speed, NULL);
 
 	for (int i = startidx; i < *pathlen - 1; i++) {
 		track_node *curnode = path[i];
@@ -170,7 +197,8 @@ void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd
 			trainvcmd_addreverse(rv_vcmd, &cmdlen, &stoploc);
 			// @TODO: this works but the stop at the end is useless
 			if (i < *pathlen - 2) {
-				trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
+				int speed = gps_findgoodspeed(&train->cal, 0, 0, i, path, *pathlen);
+				trainvcmd_addspeed(rv_vcmd, &cmdlen, speed, NULL);
 			}
 		} else {
 			track_edge *nextedge = track_get_edge(curnode, nextnode);
@@ -179,7 +207,7 @@ void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd
 				char pos = track_branch_edge2pos(curnode, nextedge);
 				location switchloc = location_fromedge(nextedge);
 				trainvcmd_addswitch(rv_vcmd, &cmdlen, curnode->name, pos, &switchloc);
-			} else if (curnode->type == NODE_MERGE) {
+			} else if (nextnode->type == NODE_MERGE) {
 				track_node *sw = nextnode->reverse;
 				char pos = track_branch_edge2pos(sw, nextedge->reverse);
 				location switchloc = location_fromedge(&nextnode->edge[0]);

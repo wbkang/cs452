@@ -22,6 +22,7 @@ poly poly_new(float a0, float a1, float a2, float a3, float a4, float a5) {
 // evaluate polynomial at x
 float poly_eval(const poly const * const this, float x) {
 	ASSERTNOTNULL(this);
+	ASSERT(this->order <= POLY_MAX_ORDER, "order out of bounds %d", this->order);
 
 	float rv = 0;
 	float x2n = 1; // at^n
@@ -36,24 +37,12 @@ float poly_eval(const poly const * const this, float x) {
 
 // return the derivative of the polynomial
 poly poly_derive(poly p) {
+	ASSERT(p.order <= POLY_MAX_ORDER, "order out of bounds %d", p.order);
+
 	for (int n = 1; n <= p.order; n++) {
 		p.a[n - 1] = n * p.a[n];
 	}
 	p.a[p.order] = 0;
 	p.order--;
-	return p;
-}
-
-// this function scales the polynomial vertically and horizontally by alpha
-poly poly_scale(poly p, float alpha) {
-	if (alpha == 0) {
-		p.order = -1;
-	} else {
-		float a = alpha;
-		for (int n = 0; n <= p.order; n++) {
-			p.a[n] *= a;
-			a /= alpha;
-		}
-	}
 	return p;
 }
