@@ -68,13 +68,6 @@ static inline void trainvcmd_addswitch(trainvcmd *rv_vcmd, int *idx, char const 
 	(*idx)++;
 }
 
-static inline char gps_getnextswitchpos(track_node *sw, track_edge *edgeafterbranch) {
-	if (edgeafterbranch == &sw->edge[DIR_STRAIGHT]) return 's';
-	if (edgeafterbranch == &sw->edge[DIR_CURVED]) return 'c';
-	ASSERT(0, "edgeafterbranch not an edge of sw");
-	return '\0'; // unreachable
-}
-
 static inline location gps_get_rev_stoploc(train *train, track_node *node) {
 	location rv = location_fromnode(node, 0);
 	location_add(&rv, -train_get_poserr(train) / 2);
@@ -169,23 +162,8 @@ void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd
 	for (int i = startidx; i < *pathlen - 1; i++) {
 		track_node *curnode = path[i];
 		track_node *nextnode = path[i + 1];
-		track_edge *nextedge = track_get_edge(curnode, nextnode);
-		ASSERT(nextedge || curnode->reverse == nextnode, "i: %d curnode: %s, nextnode: %s", i, curnode->name, nextnode->name);
 
-		if (nextedge) {
-			if (curnode->type == NODE_BRANCH) {
-				char pos = gps_getnextswitchpos(curnode, nextedge);
-				location switchloc = location_fromedge(nextedge);
-				trainvcmd_addswitch(rv_vcmd, &cmdlen, curnode->name, pos, &switchloc);
-			}
-			if (nextnode->type == NODE_MERGE) {
-				track_node *sw = nextnode->reverse;
-				char pos = gps_getnextswitchpos(sw, nextedge->reverse);
-				location switchloc = location_fromedge(&nextnode->edge[0]);
-				trainvcmd_addswitch(rv_vcmd, &cmdlen, sw->name, pos, &switchloc);
-			}
-			// nothing to do
-	        } else if (curnode->reverse == nextnode) { // reverse
+		if (curnode->reverse == nextnode) { // reverse
 			location stoploc = gps_get_rev_stoploc(train, curnode);
 			trainvcmd_addstop(rv_vcmd, &cmdlen, &stoploc);
 			trainvcmd_addpause(rv_vcmd, &cmdlen, REVERSE_TIMEOUT);
@@ -195,14 +173,25 @@ void gps_findpath(gps *this, train *train, location *dest, int maxlen, trainvcmd
 				trainvcmd_addspeed(rv_vcmd, &cmdlen, CRUISE_SPEED, NULL);
 			}
 		} else {
-			ASSERT(0, "no edge between %s and %s", curnode->name, nextnode->name);
+			track_edge *nextedge = track_get_edge(curnode, nextnode);
+			ASSERT(nextedge, "no edge from %s to %s", curnode->name, nextnode->name);
+			if (curnode->type == NODE_BRANCH) {
+				char pos = track_branch_edge2pos(curnode, nextedge);
+				location switchloc = location_fromedge(nextedge);
+				trainvcmd_addswitch(rv_vcmd, &cmdlen, curnode->name, pos, &switchloc);
+			} else if (curnode->type == NODE_MERGE) {
+				track_node *sw = nextnode->reverse;
+				char pos = track_branch_edge2pos(sw, nextedge->reverse);
+				location switchloc = location_fromedge(&nextnode->edge[0]);
+				trainvcmd_addswitch(rv_vcmd, &cmdlen, sw->name, pos, &switchloc);
+			}
 		}
 	}
 
 	track_node *last_node = path[*pathlen - 1];
 
 	if (last_node->type == NODE_BRANCH) {
-		char pos = gps_getnextswitchpos(last_node, dest->edge);
+		char pos = track_branch_edge2pos(last_node, dest->edge);
 		location switchloc = location_fromedge(dest->edge);
 		trainvcmd_addswitch(rv_vcmd, &cmdlen, last_node->name, pos, &switchloc);
 	}
