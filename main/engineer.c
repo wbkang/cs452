@@ -54,7 +54,7 @@ train *engineer_get_train(engineer *this, int train_no) {
 void engineer_on_set_speed(engineer *this, int train_no, int speed, int t) {
 	train *train = trainreg_get(this->trainreg, train_no);
 	if (!train) return;
-	train_set_speed(train, speed, t);
+	train_on_setspeed(train, speed, t);
 }
 
 void engineer_set_speed(engineer *this, int train_no, int speed) {

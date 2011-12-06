@@ -69,7 +69,6 @@ struct train {
 
 	int no;
 	train_direction dir;
-	float x;
 
 	float v;
 	float v_i;
@@ -187,10 +186,11 @@ float train_get_velocity(train *this);
 float train_get_cruising_velocity(train *this);
 int train_is_moving(train *this);
 int train_get_stopdist4speedidx(train *this, int speed_idx);
+float train_calc_dvdist(train_cal *cal, float v_i, float v_f);
 int train_get_stopdist(train *this);
 int train_get_speed(train *this);
 int train_get_speedidx(train *this);
-void train_set_speed(train *this, int speed, int t);
+void train_on_setspeed(train *this, int speed, int t);
 void train_set_frontloc(train *this, location *loc_front);
 location train_get_frontloc(train *this);
 void train_set_pickuploc(train *this, location *loc_pickup);
@@ -210,6 +210,7 @@ int train_get_poserr(train *this);
 int train_get_pickup2frontdist(train *this);
 void train_on_missed2manysensors(train *this);
 float train_simulate_dx(train *this, int t_i, int t_f);
+void train_update_state(train *this, float t_f);
 void train_update_simulation(train *this, int t_f);
 
 void train_on_attrib(train *this, location *new_loc_pickup, int t_loc, int t);
@@ -222,4 +223,4 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 int train_get_reverse_cost(train *this, int dist, track_node *node);
 int train_get_train_length(train *this);
 
-float train_get_dt(train_cal *cal, float v_i, float v_f);
+float train_calc_dt(train_cal *cal, float v_i, float v_f);

@@ -288,7 +288,7 @@ int train_init_cal(train_cal *cal, int train_no) {
 			cal->acceltime = poly_new(34.9382, 13048.3, -5517.89, 0, 0, 0);
 			cal->deceltime = poly_new(34.9382, 13048.3, -5517.89, 0, 0, 0);
 
-			return FALSE;
+			return TRUE;
 		}
 		default:
 			return FALSE;
@@ -300,8 +300,6 @@ int train_init(train *this, int no) {
 
 	this->no = no;
 	train_set_dir(this, TRAIN_UNKNOWN);
-
-	this->x = 0;
 
 	this->v = 0;
 	this->v_i = 0;
@@ -360,11 +358,20 @@ int train_is_moving(train *this) {
 	return train_get_velocity(this) > 0;
 }
 
+float train_calc_dvdist(train_cal *cal, float v_i, float v_f) {
+	return (v_i + v_f) * train_calc_dt(cal, v_i, v_f) / 2;
+}
+
 int train_get_stopdist(train *this) {
-	float dt = train_get_dt(&this->cal, this->v, 0);
-	float dist = (this->v / 2) * dt; // + (this->a / 2) * st * st;
-	ASSERT(dist >= 0, "stop dist is negative, st: %dms: v: %dmm/s", (int) dt, (int) (this->v * 1000));
-	ASSERT(dist < 2000, "stop dist too long, st: %dms: v: %dmm/s", (int) dt, (int) (this->v * 1000));
+	ASSERTNOTNULL(this);
+	ASSERT(this->calibrated, "not calibrated");
+	train_cal *cal = &this->cal;
+	float v = this->v;
+	float dist = train_calc_dvdist(cal, v, 0);
+
+	float dt = train_calc_dt(cal, v, 0);
+	ASSERT(dist >= 0, "stop dist is negative, st: %dms: v: %dmm/s", (int) dt, (int) (v * 1000));
+	ASSERT(dist < 2000, "stop dist too long, st: %dms: v: %dmm/s", (int) dt, (int) (v * 1000));
 	return dist;
 }
 
@@ -376,7 +383,8 @@ int train_get_speedidx(train *this) {
 	return train_speed2speedidx(this->last_speed, train_get_speed(this));
 }
 
-void train_set_speed(train *this, int speed, int t) {
+void train_on_setspeed(train *this, int speed, int t) {
+	ASSERTNOTNULL(this)
 	ASSERT(TRAIN_GOOD_SPEED(speed), "bad speed %d", speed);
 
 	train_update_simulation(this, t);
@@ -385,8 +393,6 @@ void train_set_speed(train *this, int speed, int t) {
 	this->speed = speed;
 	train_set_tspeed(this, t);
 
-	this->x = 0;
-
 	this->v_i = train_get_velocity(this);
 	this->v_f = train_get_cruising_velocity(this);
 
@@ -394,7 +400,7 @@ void train_set_speed(train *this, int speed, int t) {
 	// a_f = 0
 
 	if (this->calibrated) {
-		this->dt = train_get_dt(&this->cal, this->v_i, this->v_f);
+		this->dt = train_calc_dt(&this->cal, this->v_i, this->v_f);
 	}
 }
 
@@ -519,22 +525,26 @@ float train_simulate_dx(train *this, int t_i, int t_f) {
 	return v * dt;
 }
 
-float train_get_dt(train_cal *cal, float v_i, float v_f) {
+float train_calc_dt(train_cal *cal, float v_i, float v_f) {
+	ASSERTNOTNULL(cal);
 	float dv = fabs(v_f - v_i);
 	float dt = poly_eval(v_i < v_f ? &cal->acceltime : &cal->deceltime, dv);
 	ASSERT(dt >= -100, "stop time is negative: %d", (int) dt);
 	return fmax(0, dt);
 }
 
-static void train_update_state(train *this, float t_f) {
-	if (fabs(this->v - this->v_f) > 0.002) {
+void train_update_state(train *this, float t_f) {
+	ASSERTNOTNULL(this);
+	const float const margin = 0.002;
+	if (fabs(this->v - this->v_f) > margin) {
 		float dv = this->v_f - this->v_i;
 		float dt = this->dt;
 		float t = t_f - train_get_tspeed(this);
 		float tau = t / dt;
 		float tau2 = tau * tau;
-		float tau3 = tau * tau2;
-		this->v = this->v_i + 3 * dv * tau2 - 2 * dv * tau3;
+		// float tau3 = tau * tau2;
+		this->v = this->v_i + dv * (3 - 2 * tau) * tau2;
+		ASSERT((this->v_i - margin <= this->v && this->v <= this->v_f + margin) || (this->v_f - margin <= this->v && this->v <= this->v_i + margin), "velocity out of bounds, v: %d, v_i: %d, v_f: %d", (int)(1000 * this->v), (int)(1000 * this->v_i), (int)(1000 * this->v_f));
 		this->a = this->a_i + 6 * (dv / dt) * tau - 6 * (dv / dt) * tau2;
 	} else {
 		this->v = this->v_f;
@@ -550,6 +560,7 @@ static void train_update_state(train *this, float t_f) {
 			this->num_missed_sensors += num_sensors;
 			if (this->num_missed_sensors >= MAX_NUM_MISSED_SENSORS) {
 				train_on_missed2manysensors(this);
+				train_set_tsim(this, t_f);
 				return;
 			}
 		}

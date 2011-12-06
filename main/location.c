@@ -113,6 +113,7 @@ int location_add(location *this, float dx) {
 				*this = location_fromnode(n_next, DIR_AHEAD);
 				return -2; // dead end
 			} else {
+				ASSERTNOTNULL(n_next->name);
 				if (n_next->type == NODE_SENSOR && n_next->name[0] != 'V') {
 					num_sensors += 1;
 				}

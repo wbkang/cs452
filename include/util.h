@@ -151,8 +151,8 @@ int MyTid();
 #if ASSERT_ENABLED
 #define ASSERT(X, ...) { \
 	if (UNLIKELY(!(X))) { /*__asm("swi 12\n\t");*/ \
-		VMEM(VIC1 + INTENCLR_OFFSET) = ~0; \
-		VMEM(VIC2 + INTENCLR_OFFSET) = ~0; \
+		/*(VMEM(VIC1 + INTENCLR_OFFSET) = ~0;*/ \
+		/*VMEM(VIC2 + INTENCLR_OFFSET) = ~0; */\
 		int cpsr; READ_CPSR(cpsr); int inusermode = ((cpsr & 0x1f) == 0x10); int tid = inusermode ? MyTid() : -1; \
 		bwprintf(0, "%c", 0x61); \
 		int fp, lr, pc; READ_REGISTER(fp); READ_REGISTER(lr); READ_REGISTER(pc); \
