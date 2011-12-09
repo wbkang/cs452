@@ -536,14 +536,18 @@ float train_calc_dt(train_cal *cal, float v_i, float v_f) {
 void train_update_state(train *this, float t_f) {
 	ASSERTNOTNULL(this);
 	const float const margin = 0.002;
-	if (fabs(this->v - this->v_f) > margin) {
-		float dv = this->v_f - this->v_i;
-		float dt = this->dt;
-		float t = t_f - train_get_tspeed(this);
+	float dv = this->v_f - this->v_i;
+	float dt = this->dt;
+	float t = t_f - train_get_tspeed(this);
+	if (t < dt) {
 		float tau = t / dt;
 		float tau2 = tau * tau;
 		// float tau3 = tau * tau2;
-		this->v = this->v_i + dv * (3 - 2 * tau) * tau2;
+		if (t < dt) {
+			this->v = this->v_i + dv * (3 - 2 * tau) * tau2;
+		} else {
+			this->v = this->v_i + dv * tau;
+		}
 		ASSERT((this->v_i - margin <= this->v && this->v <= this->v_f + margin) || (this->v_f - margin <= this->v && this->v <= this->v_i + margin), "velocity out of bounds, v: %d, v_i: %d, v_f: %d", (int)(1000 * this->v), (int)(1000 * this->v_i), (int)(1000 * this->v_f));
 		this->a = this->a_i + 6 * (dv / dt) * tau - 6 * (dv / dt) * tau2;
 	} else {
@@ -560,19 +564,18 @@ void train_update_state(train *this, float t_f) {
 			this->num_missed_sensors += num_sensors;
 			if (this->num_missed_sensors >= MAX_NUM_MISSED_SENSORS) {
 				train_on_missed2manysensors(this);
-				train_set_tsim(this, t_f);
 				return;
 			}
 		}
 		train_set_frontloc(this, &loc_front);
 	}
-	train_set_tsim(this, t_f);
 }
 
 void train_update_simulation(train *this, int t_f) {
 	float t_i = train_get_tsim(this);
 	for (float t = t_i; t <= t_f; t += 0.5) {
 		train_update_state(this, t);
+		train_set_tsim(this, t);
 	}
 }
 
@@ -651,8 +654,17 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 		this->last_run_vcmd = NULL;
 
 		// if (this->vcmdslen == 0) {
-			// logdisplay_printf(log, "cant find trip plan");
-			// logdisplay_flushline(log);
+		// 	// logdisplay_printf(log, "cant find trip plan");
+		// 	// logdisplay_flushline(log);
+		// 	if (!train_is_moving(this)) { // ensure the train stopped
+		// 		int time = Time(WhoIs(NAME_TIMESERVER));
+		// 		char m = 'A' + (time % 5);
+		// 		int id = 1 + (time % 16);
+		// 		char name[16];
+		// 		sprintf(name, "%c%d", m, id);
+		// 		location dest = location_fromnode(lookup_get(nodemap, name), 0);
+		// 		train_set_dest(this, &dest);
+		// 	}
 		// }
 
 		// if (this->vcmdslen > 0) {
@@ -783,18 +795,18 @@ void train_ontick(train *this, int tid_traincmdbuf, lookup *nodemap, a0ui *a0ui,
 	}
 
 	if (this->vcmdslen > 0 && this->vcmdidx == this->vcmdslen) {
-		// location nowhere = location_undef();
-		// train_set_dest(this, &nowhere);
+		location nowhere = location_undef();
+		train_set_dest(this, &nowhere);
 
-		if (!train_is_moving(this)) { // ensure the train stopped
-			int time = Time(WhoIs(NAME_TIMESERVER));
-			char m = 'A' + (time % 5);
-			int id = 1 + (time % 16);
-			char name[16];
-			sprintf(name, "%c%d", m, id);
-			location dest = location_fromnode(lookup_get(nodemap, name), 0);
-			train_set_dest(this, &dest);
-		}
+		// if (!train_is_moving(this)) { // ensure the train stopped
+		// 	int time = Time(WhoIs(NAME_TIMESERVER));
+		// 	char m = 'A' + (time % 5);
+		// 	int id = 1 + (time % 16);
+		// 	char name[16];
+		// 	sprintf(name, "%c%d", m, id);
+		// 	location dest = location_fromnode(lookup_get(nodemap, name), 0);
+		// 	train_set_dest(this, &dest);
+		// }
 	}
 }
 

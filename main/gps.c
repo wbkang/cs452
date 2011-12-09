@@ -129,7 +129,7 @@ static int gps_findgoodspeed(train_cal *cal, int speed_i, float v_i, int i, trac
 	// 	}
 	// }
 
-	// for (int speed = TRAIN_MAX_SPEED; speed > 0; speed--) {
+	// for (int speed = TRAIN_MAX_SPEED; speed >= 4; speed--) {
 	// 	int speedidx = train_speed2speedidx(speed_i, speed);
 	// 	ASSERT(0 <= speedidx && speedidx < TRAIN_NUM_SPEED_IDX, "bad speedidx %d", speedidx);
 	// 	float v_m = cal->v_avg[speedidx];
